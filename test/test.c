@@ -46,10 +46,13 @@ int test_list() {
     uint8_t buffer[1024];
     urlp_encoder enc;
     urlp_encoder_init(&enc, buffer, 1024);
+
+    // ["cat","dog"]
     len = urlp_list(&enc, 2,			      //
 		    urlp_item_uint8(&enc, "cat", 3),  //
 		    urlp_item_uint8(&enc, "dog", 3)   //
 		    );
+
     if (!(len == 9)) return -1;
     if (memcmp(urlp_data(&enc),
 	       "\xc8\x83"
