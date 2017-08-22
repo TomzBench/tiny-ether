@@ -50,7 +50,7 @@ int test_list() {
 		    urlp_item_uint8(&enc, "cat", 3),  //
 		    urlp_item_uint8(&enc, "dog", 3)   //
 		    );
-    if (!(len == 8)) return -1;
+    if (!(len == 9)) return -1;
     if (memcmp(urlp_data(&enc),
 	       "\xc8\x83"
 	       "cat"
