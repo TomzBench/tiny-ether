@@ -50,6 +50,8 @@ uint32_t urlp_item(urlp_encoder *encoder, uint8_t *src, uint32_t slen);
  * of the encoded data. Because urlp encode functions return sizes you can put
  * functions into the variadic arguments.
  *
+ * TODO - compilers can evaluate function parameters in any order
+ *
  * @code
  *  // Stack variables
  *  uint8_t buffer[1024];
