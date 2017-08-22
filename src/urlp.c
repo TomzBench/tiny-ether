@@ -60,18 +60,7 @@ uint32_t urlp_item(urlp_encoder *encoder, uint8_t *src, uint32_t slen) {
 }
 
 uint32_t urlp_list(urlp_encoder *encoder, int n, ...) {
-    uint32_t e, bytes = 0;
-    va_list ap;
-    va_start(ap, n);
-    while (n--) {
-	e = va_arg(ap, int);
-	if (e) {
-	    bytes += e;
-	} else {
-	    // an encoder returned 0 that means error.
-	}
-    }
-    va_end(ap);
+    uint32_t bytes = urlp_size(encoder);
     if (bytes <= 55) {
 	encoder->bytes[--encoder->spot] = 0xc0 + bytes;
     } else {
