@@ -137,7 +137,6 @@ uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
 	if (sz <= l) {
 	    while (size) b[--ctx.sz] = rlp->b[--size];
 	}
-	// sz = urlp_size(rlp);
     } else {
 	size = urlp_scanlen(rlp);
 	ctx.spot = &size;

@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     err = test_item(rlp_lorem, sizeof(rlp_lorem),
 		    "Lorem ipsum dolor sit amet, consectetur adipisicing elit",
 		    56);
-    // err = test_list(rlp_catdog, sizeof(rlp_catdog), 2, "cat", 3, "dog", 3);
+    err = test_list(rlp_catdog, sizeof(rlp_catdog), 2, "cat", 3, "dog", 3);
 
     return err;
 }
@@ -41,7 +41,6 @@ EXIT:
     return ret;
 }
 
-/*
 int test_list(uint8_t *rlp, uint32_t rlplen, int n, ...) {
     uint8_t result[rlplen];
     uint32_t len, ret = -1;
@@ -52,7 +51,7 @@ int test_list(uint8_t *rlp, uint32_t rlplen, int n, ...) {
 	uint32_t srclen = va_arg(ap, uint32_t);
 	urlp_push(item, urlp_item(src, srclen));
     }
-    va_end;
+    va_end(ap);
     len = urlp_print(item, result, rlplen);
     if (!(len == rlplen)) goto EXIT;
     if (!(urlp_size(item) == len)) goto EXIT;
@@ -62,7 +61,6 @@ EXIT:
     urlp_free(&item);
     return ret;
 }
-*/
 
 /*
 int test_str() {
