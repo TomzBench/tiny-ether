@@ -16,7 +16,7 @@ extern "C" {
  * @brief urlp context
  */
 typedef struct urlp {
-    struct urlp *next, *child;
+    struct urlp *prev, *tail;
     uint32_t sz, spot;
     uint8_t b[];
 } urlp;
