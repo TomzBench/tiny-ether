@@ -21,11 +21,18 @@
 
 #include "urlp.h"
 
+typedef struct {
+    uint32_t sz, listsz, *spot;
+    uint8_t* b;
+} urlp_print_walk_fn_ctx;
+
 // private
 urlp* urlp_alloc(uint32_t);    // init a rlp context on heap
 uint32_t urlp_szsz(uint32_t);  // size of size
 uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, uint8_t);  // print szsz
 uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t sz);
+void urlp_print_walk_fn(urlp* rlp, void*);
+void urlp_walk_internal(urlp*, urlp_walk_fn, void*);
 
 urlp* urlp_alloc(uint32_t sz) {
     urlp* rlp = NULL;
@@ -89,25 +96,75 @@ urlp* urlp_push(urlp* dst, urlp* add) {
     // if add sz > 0xc0 push child, else push next
 }
 
-uint32_t urlp_print(urlp* rlp, uint8_t* buffer, uint32_t buffer_len) {
-    uint32_t spot = buffer_len;
-    urlp_print_internal(rlp, buffer, &spot, spot);
+int urlp_walk(urlp* rlp, urlp_walk_fn fn, void* ctx) {
+    urlp_walk_internal(rlp, fn, ctx);
 }
 
-uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t sz) {
-    uint32_t size;
+void urlp_walk_internal(urlp* rlp, urlp_walk_fn fn, void* ctx) {
     while (rlp) {
 	if (rlp->child) {
-	    // Print rlp and prefix list
-	    size = urlp_print_internal(rlp->child, b, c, sz);
-	    urlp_print_szsz(b, c, size, 0xc0);
+	    urlp_walk_internal(rlp->child, fn, ctx);
 	}
-	size = urlp_size(rlp);
-	while (size) b[--*c] = rlp->b[--size];
+	fn(rlp, ctx);
 	rlp = rlp->next;
     }
-    return sz - *c;
 }
+
+uint32_t urlp_scanlen(urlp* rlp) {
+    //
+}
+
+void urlp_scanlen_walk_fn(urlp* rlp, void* data) {
+    uint32_t* sz = data;  //
+}
+
+uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
+    uint32_t sz;
+    urlp_print_walk_fn_ctx ctx = {.sz = l, .listsz = 0, .spot = &l, .b = b};
+    if (!(rlp->next || rlp->child)) {
+	uint32_t size = sz = urlp_size(rlp);
+	while (size) ctx.b[--*(ctx.spot)] = rlp->b[--size];  // Dont walk
+    } else {
+	urlp_walk(rlp, urlp_print_walk_fn, &ctx);
+    }
+    return sz;
+}
+
+void urlp_print_walk_fn(urlp* rlp, void* data) {
+    urlp_print_walk_fn_ctx* ctx = data;			   // walk fn context
+    uint32_t size = urlp_size(rlp);			   // size of rlp item
+    ctx->listsz += size;				   // size of rlp list
+    while (size) ctx->b[--*(ctx->spot)] = rlp->b[--size];  // write rlp
+    if (!rlp->next) {					   // cap our list
+	if (ctx->listsz <= 55) {
+	    ctx->b[--*(ctx->spot)] = 0xc0 + ctx->listsz;
+	} else {
+	    urlp_print_szsz(ctx->b, ctx->spot, ctx->listsz, 0xc0);
+	}
+	ctx->listsz = 0;
+    }
+}
+
+// uint32_t urlp_print(urlp* rlp, uint8_t* buffer, uint32_t buffer_len) {
+//    uint32_t spot = buffer_len;
+//    urlp_print_internal(rlp, buffer, &spot, spot);
+//}
+//
+// uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t sz)
+// {
+//    uint32_t size;
+//    while (rlp) {
+//	if (rlp->child) {
+//	    // Print rlp and prefix list
+//	    size = urlp_print_internal(rlp->child, b, c, sz);
+//	    urlp_print_szsz(b, c, size, 0xc0);
+//	}
+//	size = urlp_size(rlp);
+//	while (size) b[--*c] = rlp->b[--size];
+//	rlp = rlp->next;
+//    }
+//    return sz - *c;
+//}
 
 uint32_t urlp_size(urlp* rlp) {
     return rlp->sz - rlp->spot;  //
