@@ -21,7 +21,10 @@ int main(int argc, char *argv[]) {
     err = test_item(rlp_lorem, sizeof(rlp_lorem),
 		    "Lorem ipsum dolor sit amet, consectetur adipisicing elit",
 		    56);
-    err = test_list(rlp_catdog, sizeof(rlp_catdog), 2, "cat", 3, "dog", 3);
+    err = test_list(rlp_catdog, sizeof(rlp_catdog), 2,  //
+		    urlp_item("cat", 3),		//
+		    urlp_item("dog", 3)			//
+		    );
 
     return err;
 }
@@ -46,10 +49,10 @@ int test_list(uint8_t *rlp, uint32_t rlplen, int n, ...) {
     uint32_t len, ret = -1;
     urlp *item = NULL;
     va_list ap;
+    va_start(ap, n);
     while (n--) {
-	uint8_t *src = va_arg(ap, uint8_t *);
-	uint32_t srclen = va_arg(ap, uint32_t);
-	urlp_push(item, urlp_item(src, srclen));
+	urlp *rlp = va_arg(ap, urlp *);
+	urlp_push(&item, &rlp);
     }
     va_end(ap);
     len = urlp_print(item, result, rlplen);
