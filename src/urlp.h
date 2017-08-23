@@ -17,7 +17,7 @@ extern "C" {
  */
 typedef struct urlp {
     struct urlp *next, *child;
-    uint32_t sz;
+    uint32_t sz, spot;
     uint8_t b[];
 } urlp;
 
