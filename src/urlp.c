@@ -21,6 +21,19 @@
 
 #include "urlp.h"
 
+urlp* urlp_push(urlp* self, urlp* other) {
+    //
+}
+
+urlp* urlp_item(uint8_t* src, uint32_t slen) {
+    //
+}
+
+urlp* urlp_list(int n, ...) {
+    //
+}
+
+/*
 uint32_t urlp_print_long_size(urlp_encoder *enc, uint32_t size, uint8_t pref);
 
 int urlp_encoder_init(urlp_encoder *enc, uint8_t *bytes, uint32_t size) {
@@ -71,7 +84,9 @@ uint32_t urlp_print_long_size(urlp_encoder *enc, uint32_t size, uint8_t pref) {
 
 uint32_t urlp_size(urlp_encoder *enc) { return enc->size - enc->spot; }
 uint8_t *urlp_data(urlp_encoder *enc) { return &enc->bytes[enc->spot]; }
+*/
 
+//
 //
 //
 //
