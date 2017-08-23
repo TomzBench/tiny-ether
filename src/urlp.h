@@ -26,7 +26,7 @@ typedef void (*urlp_walk_fn)(urlp*, void*);
 urlp* urlp_item(uint8_t*, uint32_t);
 urlp* urlp_list(int n, ...);
 urlp* urlp_push(urlp*, urlp*);
-int urlp_walk(urlp*, urlp_walk_fn, void*);
+void urlp_walk(urlp*, urlp_walk_fn, void*);
 uint32_t urlp_size(urlp* rlp);
 uint8_t* urlp_data(urlp* rlp);
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t sz);
