@@ -21,17 +21,110 @@
 
 #include "urlp.h"
 
-urlp* urlp_push(urlp* self, urlp* other) {
-    //
+// private
+urlp* urlp_alloc(uint32_t);    // init a rlp context on heap
+uint32_t urlp_szsz(uint32_t);  // size of size
+uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, uint8_t);  // print szsz
+uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t sz);
+
+urlp* urlp_alloc(uint32_t sz) {
+    urlp* rlp = NULL;
+    rlp = urlp_malloc_fn(sizeof(urlp) + URLP_CONFIG_ANYSIZE_ARRAY + sz);
+    if (rlp) {
+	memset(rlp, 0, sizeof(urlp) + URLP_CONFIG_ANYSIZE_ARRAY + sz);
+	rlp->sz = rlp->spot = sz;
+    }
+    return rlp;
 }
 
-urlp* urlp_item(uint8_t* src, uint32_t slen) {
-    //
+void urlp_free(urlp** rlp_p) {
+    urlp* rlp = *rlp_p;
+    *rlp_p = NULL;
+    urlp_free_fn(rlp);
+}
+
+uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
+uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t size, uint8_t p) {
+    uint32_t szsz = urlp_szsz(size);
+    uint8_t(*x)[4] = (uint8_t(*)[4])(&size);
+    for (int i = 0; i < szsz; i++) b[--*c] = *x[i];
+    b[--*c] = p + szsz;
+    return szsz;
+}
+
+urlp* urlp_item(uint8_t* b, uint32_t sz) {
+    urlp* rlp = NULL;
+    uint32_t size;
+    if (sz == 0) {
+	size = 1;
+	rlp = urlp_alloc(size);
+	if (rlp) rlp->b[--rlp->spot] = 0x80;
+    } else if (sz == 1 && b[0] < 0x80) {
+	size = 1;
+	rlp = urlp_alloc(size);
+	if (rlp) rlp->b[--rlp->spot] = b[0];
+    } else if (sz <= 55) {
+	size = sz + 1;
+	rlp = urlp_alloc(size);
+	if (rlp) {
+	    for (int i = sz; i; i--) rlp->b[--rlp->spot] = b[i - 1];
+	    rlp->b[--rlp->spot] = 0x80 + sz;
+	}
+    } else {
+	size = urlp_szsz(sz) + 1 + sz;  // prefix + size of size + string
+	rlp = urlp_alloc(size);
+	if (rlp) {
+	    for (int i = sz; i; i--) rlp->b[--rlp->spot] = b[i - 1];
+	    urlp_print_szsz(rlp->b, &rlp->spot, sz, 0xb7);
+	}
+    }
+    return rlp;
 }
 
 urlp* urlp_list(int n, ...) {
     //
 }
+
+urlp* urlp_push(urlp* dst, urlp* add) {
+    // if add sz > 0xc0 push child, else push next
+}
+
+uint32_t urlp_print(urlp* rlp, uint8_t* buffer, uint32_t buffer_len) {
+    uint32_t spot = buffer_len;
+    urlp_print_internal(rlp, buffer, &spot, spot);
+}
+
+uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t sz) {
+    uint32_t size;
+    while (rlp) {
+	if (rlp->child) {
+	    // Print rlp and prefix list
+	    size = urlp_print_internal(rlp->child, b, c, sz);
+	    urlp_print_szsz(b, c, size, 0xc0);
+	}
+	size = urlp_size(rlp);
+	while (size) b[--*c] = rlp->b[--size];
+	rlp = rlp->next;
+    }
+    return sz - *c;
+}
+
+uint32_t urlp_size(urlp* rlp) {
+    return rlp->sz - rlp->spot;  //
+}
+
+uint8_t* urlp_data(urlp* rlp) {
+    return &rlp->b[rlp->spot];  //
+}
+
+// uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t sz) {
+//    uint32_t rlplen, ret = -1;
+//    if ((rlplen = urlp_size(rlp)) <= sz) {
+//	memcpy(b, urlp_data(rlp), rlplen);
+//	ret = rlplen;
+//    }
+//    return ret;
+//}
 
 /*
 uint32_t urlp_print_long_size(urlp_encoder *enc, uint32_t size, uint8_t pref);

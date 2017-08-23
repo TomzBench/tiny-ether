@@ -15,6 +15,7 @@
 #define URLP_CONFIG_ANYSIZE_ARRAY 1
 
 #define urlp_malloc_fn malloc
+#define urlp_free_fn free
 #define urlp_clz_fn __builtin_clz
 
 #endif
