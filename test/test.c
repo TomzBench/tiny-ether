@@ -2,7 +2,7 @@
 
 uint8_t rlp_cat[] = {'\x83', 'c', 'a', 't'};
 uint8_t rlp_dog[] = {'\x83', 'd', 'o', 'g'};
-uint8_t rlp_catdog[] = {'\xc9', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
+uint8_t rlp_catdog[] = {'\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
 uint8_t rlp_lorem[] = {'\xb8', '\x38', 'L', 'o', 'r', 'e', 'm', ' ', 'i', 'p',
 		       's',    'u',    'm', ' ', 'd', 'o', 'l', 'o', 'r', ' ',
 		       's',    'i',    't', ' ', 'a', 'm', 'e', 't', ',', ' ',
@@ -57,7 +57,6 @@ int test_list(uint8_t *rlp, uint32_t rlplen, int n, ...) {
     va_end(ap);
     len = urlp_print(item, result, rlplen);
     if (!(len == rlplen)) goto EXIT;
-    if (!(urlp_size(item) == len)) goto EXIT;
     if (memcmp(rlp, result, 4)) goto EXIT;
     ret = 0;
 EXIT:

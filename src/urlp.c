@@ -47,9 +47,13 @@ urlp* urlp_alloc(uint32_t sz) {
 }
 
 void urlp_free(urlp** rlp_p) {
-    urlp* rlp = *rlp_p;
+    urlp* tail = rlp_p ? (*rlp_p)->tail : NULL;
     *rlp_p = NULL;
-    urlp_free_fn(rlp);
+    while (tail) {
+	urlp* delete = tail;
+	tail = tail->prev;
+	urlp_free_fn(delete);
+    }
 }
 
 uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
@@ -106,10 +110,6 @@ urlp* urlp_push(urlp** dst_p, urlp** add_p) {
 	add->prev = dst->tail;
 	dst->tail = add;
     }
-    // if (!add->next) {
-    //    add->next = dst->next;
-    //    dst->next = add;
-    //}
     return dst;
 }
 
@@ -156,7 +156,7 @@ uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
     if (!(rlp->prev == rlp) /*|| rlp->child*/) {
 	size = urlp_scanlen(rlp);
 	ctx.spot = &size;
-	ctx.sz = size;
+	sz = ctx.sz = size;
 	urlp_walk(rlp, urlp_print_walk_fn, &ctx);
     } else {
 	// Don't walk
