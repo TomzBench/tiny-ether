@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     err = test_item(rlp_null, sizeof(rlp_null), "", 0);
     err = test_item(rlp_15, sizeof(rlp_15), "\x0f", 1);
     err = test_item(rlp_1024, sizeof(rlp_1024), "\x04\x00", 2);
-    // err = test_item(rlp_empty_list,sizeof(rlp_empty_list)
+    ////// err = test_item(rlp_empty_list,sizeof(rlp_empty_list)
     err = test_item(rlp_cat, sizeof(rlp_cat), "cat", 3);
     err = test_item(rlp_dog, sizeof(rlp_dog), "dog", 3);
     err = test_item(rlp_lorem, sizeof(rlp_lorem),
@@ -65,11 +65,13 @@ int main(int argc, char *argv[]) {
 		    urlp_item("dog", 3),		      //
 		    urlp_item("pig", 3)			      //
 		    );
+
     /*
     err = test_list(rlp_catdogpigcow, sizeof(rlp_catdogpigcow), 2,	   //
 		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),  //
 		    urlp_list(2, urlp_item("pig", 3), urlp_item("cow", 3))   //
 		    );
+
     err = test_list(rlp_random, sizeof(rlp_random), 7,			     //
 		    urlp_item("cat", 3),				     //
 		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),  //

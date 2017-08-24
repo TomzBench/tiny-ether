@@ -125,7 +125,7 @@ uint8_t* urlp_data(urlp* rlp) {
 
 uint32_t urlp_scanlen(urlp* rlp) {
     uint32_t spot = 0;
-    urlp_scanlen_walk_fn(rlp->sz ? rlp : rlp->next, &spot);
+    urlp_scanlen_walk_fn(rlp, &spot);
     return spot;
 }
 
@@ -134,13 +134,13 @@ uint32_t urlp_scanlen_walk_fn(urlp* rlp, uint32_t* spot) {
     urlp* start = rlp;
     while (rlp) {
 	if (rlp->child) {
-	    uint32_t innersz = urlp_scanlen_walk_fn(rlp, spot);
+	    uint32_t innersz = urlp_scanlen_walk_fn(rlp->child, spot);
 	    listsz += (innersz <= 55) ? 1 : 1 + urlp_szsz(innersz);
 	}
 	listsz += urlp_size(rlp);
 	rlp = rlp->next;
     }
-    if (start->next) {  // cap item if this is a list
+    if (urlp_is_list(start)) {  // cap item if this is a list
 	listsz += (listsz <= 55) ? 1 : 1 + urlp_szsz(listsz);
     }
     *spot += listsz;
@@ -151,16 +151,16 @@ uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
     uint32_t size = urlp_scanlen(rlp);
     uint32_t spot = size;
     if (!(l <= size)) return size;
-    urlp_print_walk_fn(rlp->sz ? rlp : rlp->next, b, &spot);
+    urlp_print_walk_fn(rlp, b, &spot);
     return size;
 }
 
 uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot) {
     uint32_t listsz = 0;
-    urlp* start = rlp;
+    urlp* start = rlp = rlp->sz ? rlp : rlp->next;
     while (rlp) {
 	if (rlp->child) {
-	    uint32_t innersz = urlp_print_walk_fn(rlp, b, spot);
+	    uint32_t innersz = urlp_print_walk_fn(rlp->child, b, spot);
 	    if (innersz <= 55) {
 		b[--*(spot)] = 0xc0 + innersz;
 		listsz++;
@@ -173,7 +173,7 @@ uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot) {
 	while (size) b[--*(spot)] = rlp->b[--size];
 	rlp = rlp->next;
     }
-    if (start->next) {  // cap item if this is a list
+    if (urlp_is_list(start)) {  // cap item if this is a list
 	if (listsz <= 55) {
 	    b[--*(spot)] = 0xc0 + listsz++;
 	} else {
