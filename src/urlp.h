@@ -32,7 +32,16 @@ void urlp_walk(urlp*, urlp_walk_fn, void*);
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t sz);
 void urlp_free(urlp**);
 
-#define urlp_is_list(rlp) (rlp->next)  // if next==true list==true
+/*
+ * Things that are not an rlp list (where[NULL]is rlp->sz==0)
+ * [NULL]->
+ * [NULL]->[dog]
+ * [dog]->
+ * #define urlp_is_list(rlp) \
+ *     ((rlp->sz && rlp->next) || (!rlp->sz && rlp->next && rlp->next))
+ */
+
+#define urlp_is_list(rlp) ((rlp->sz && rlp->next) || (rlp->next && rlp->next))
 
 #ifdef __cplusplus
 }
