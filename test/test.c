@@ -7,6 +7,12 @@ uint8_t rlp_empty_list[] = {'\xc1', '\xc0'};
 uint8_t rlp_cat[] = {'\x83', 'c', 'a', 't'};
 uint8_t rlp_dog[] = {'\x83', 'd', 'o', 'g'};
 uint8_t rlp_catdog[] = {'\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
+uint8_t rlp_catdogpig[] = {
+    '\xcc',		    //
+    '\x83', 'c', 'a', 't',  //
+    '\x83', 'd', 'o', 'g',  //
+    '\x83', 'p', 'i', 'g'   //
+};
 uint8_t rlp_lorem[] = {'\xb8', '\x38', 'L', 'o', 'r', 'e', 'm', ' ', 'i', 'p',
 		       's',    'u',    'm', ' ', 'd', 'o', 'l', 'o', 'r', ' ',
 		       's',    'i',    't', ' ', 'a', 'm', 'e', 't', ',', ' ',
@@ -14,7 +20,7 @@ uint8_t rlp_lorem[] = {'\xb8', '\x38', 'L', 'o', 'r', 'e', 'm', ' ', 'i', 'p',
 		       'r',    ' ',    'a', 'd', 'i', 'p', 'i', 's', 'i', 'c',
 		       'i',    'n',    'g', ' ', 'e', 'l', 'i', 't'};
 uint8_t rlp_random[] = {
-    '\34',						   // [...
+    '\xe1',						   // [...
     '\x83', 'c',    'a', 't',				   // "cat"
     '\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g',  // ["cat","dog"]
     '\x85', 'h',    'o', 'r', 's', 'e',			   // "horse"
@@ -42,6 +48,11 @@ int main(int argc, char *argv[]) {
     err = test_list(rlp_catdog, sizeof(rlp_catdog), 2,  //
 		    urlp_item("cat", 3),		//
 		    urlp_item("dog", 3)			//
+		    );
+    err = test_list(rlp_catdogpig, sizeof(rlp_catdogpig), 3,  //
+		    urlp_item("cat", 3),		      //
+		    urlp_item("dog", 3),		      //
+		    urlp_item("pig", 3)			      //
 		    );
     /*
     err = test_list(rlp_random, sizeof(rlp_random), 7,			     //

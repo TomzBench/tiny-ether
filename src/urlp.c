@@ -33,7 +33,6 @@ uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, uint8_t);  // print szsz
 uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t sz);
 void urlp_scanlen_walk_fn(urlp* rlp, void*);
 void urlp_print_walk_fn(urlp* rlp, void*);
-void urlp_walk_internal(urlp* rlp, urlp_walk_fn fn, void* ctx);
 
 urlp* urlp_alloc(uint32_t sz) {
     urlp* rlp = NULL;
@@ -41,17 +40,16 @@ urlp* urlp_alloc(uint32_t sz) {
     if (rlp) {
 	memset(rlp, 0, sizeof(urlp) + URLP_CONFIG_ANYSIZE_ARRAY + sz);
 	rlp->sz = rlp->spot = sz;
-	rlp->rtail = rlp->ptail = rlp;
     }
     return rlp;
 }
 
 void urlp_free(urlp** rlp_p) {
-    urlp* ptail = rlp_p ? (*rlp_p)->ptail : NULL;
+    urlp* rlp = *rlp_p;
     *rlp_p = NULL;
-    while (ptail) {
-	urlp* delete = ptail;
-	ptail = ptail->prev;
+    while (rlp) {
+	urlp* delete = rlp;
+	rlp = rlp->next;
 	urlp_free_fn(delete);
     }
 }
@@ -102,21 +100,12 @@ urlp* urlp_list(int n, ...) {
 urlp* urlp_push(urlp** dst_p, urlp** add_p) {
     urlp *dst = *dst_p, *add = *add_p;
     *add_p = NULL;  // steal callers pointer. (caller no longer own.)
-    if (!dst) {
-	*dst_p = add;  // caller pushed to empty list
-	return add;
-    }
+    if (!dst) *dst_p = dst = urlp_alloc(0);  // give caller root
     if (urlp_is_list(add)) {
     } else {
-	add->prev = dst->ptail;
-	dst->ptail = add;
+	add->next = dst->next;
+	dst->next = add;
     }
-    /*
-    if (!add->prev) {
-	add->prev = dst->ptail;
-	dst->ptail = add;
-    }
-    */
     return dst;
 }
 
@@ -129,14 +118,10 @@ uint8_t* urlp_data(urlp* rlp) {
 }
 
 void urlp_walk(urlp* rlp, urlp_walk_fn fn, void* ctx) {
-    urlp_walk_internal(rlp->ptail, fn, ctx);
-}
-
-void urlp_walk_internal(urlp* rlp, urlp_walk_fn fn, void* ctx) {
     while (rlp) {
 	// if (rlp->child) urlp_walk(rlp->child, fn, ctx);
 	fn(rlp, ctx);
-	rlp = rlp->prev;
+	rlp = rlp->next;
     }
 }
 
@@ -158,7 +143,7 @@ void urlp_scanlen_walk_fn(urlp* rlp, void* data) {
     urlp_print_walk_fn_ctx* ctx = data;  // walk fn context
     uint32_t size = urlp_size(rlp);
     ctx->listsz += size;
-    if (!rlp->prev) {
+    if (!rlp->next) {
 	*ctx->spot += ctx->listsz <= 55
 			  ? ctx->listsz + 1
 			  : ctx->listsz + 1 + urlp_szsz(ctx->listsz);
@@ -188,7 +173,7 @@ void urlp_print_walk_fn(urlp* rlp, void* data) {
     uint32_t size = urlp_size(rlp);			   // size of rlp item
     ctx->listsz += size;				   // size of rlp list
     while (size) ctx->b[--*(ctx->spot)] = rlp->b[--size];  // write rlp
-    if (!rlp->prev) {					   // cap our list
+    if (!rlp->next) {					   // cap our list
 	if (ctx->listsz <= 55) {
 	    ctx->b[--*(ctx->spot)] = 0xc0 + ctx->listsz;
 	} else {
