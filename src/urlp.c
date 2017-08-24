@@ -41,17 +41,17 @@ urlp* urlp_alloc(uint32_t sz) {
     if (rlp) {
 	memset(rlp, 0, sizeof(urlp) + URLP_CONFIG_ANYSIZE_ARRAY + sz);
 	rlp->sz = rlp->spot = sz;
-	rlp->tail = rlp;
+	rlp->rtail = rlp->ptail = rlp;
     }
     return rlp;
 }
 
 void urlp_free(urlp** rlp_p) {
-    urlp* tail = rlp_p ? (*rlp_p)->tail : NULL;
+    urlp* ptail = rlp_p ? (*rlp_p)->ptail : NULL;
     *rlp_p = NULL;
-    while (tail) {
-	urlp* delete = tail;
-	tail = tail->prev;
+    while (ptail) {
+	urlp* delete = ptail;
+	ptail = ptail->prev;
 	urlp_free_fn(delete);
     }
 }
@@ -106,15 +106,30 @@ urlp* urlp_push(urlp** dst_p, urlp** add_p) {
 	*dst_p = add;  // caller pushed to empty list
 	return add;
     }
-    if (!add->prev) {
-	add->prev = dst->tail;
-	dst->tail = add;
+    if (urlp_is_list(add)) {
+    } else {
+	add->prev = dst->ptail;
+	dst->ptail = add;
     }
+    /*
+    if (!add->prev) {
+	add->prev = dst->ptail;
+	dst->ptail = add;
+    }
+    */
     return dst;
 }
 
+uint32_t urlp_size(urlp* rlp) {
+    return rlp->sz - rlp->spot;  //
+}
+
+uint8_t* urlp_data(urlp* rlp) {
+    return &rlp->b[rlp->spot];  //
+}
+
 void urlp_walk(urlp* rlp, urlp_walk_fn fn, void* ctx) {
-    urlp_walk_internal(rlp->tail, fn, ctx);
+    urlp_walk_internal(rlp->ptail, fn, ctx);
 }
 
 void urlp_walk_internal(urlp* rlp, urlp_walk_fn fn, void* ctx) {
@@ -128,7 +143,7 @@ void urlp_walk_internal(urlp* rlp, urlp_walk_fn fn, void* ctx) {
 uint32_t urlp_scanlen(urlp* rlp) {
     uint32_t spot = 0;
     urlp_print_walk_fn_ctx ctx;
-    if (!(rlp->tail == rlp) /*|| rlp->child*/) {
+    if (urlp_is_list(rlp)) {
 	ctx.spot = &spot;
 	ctx.listsz = 0;
 	urlp_walk(rlp, urlp_scanlen_walk_fn, &ctx);
@@ -153,7 +168,7 @@ void urlp_scanlen_walk_fn(urlp* rlp, void* data) {
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
     uint32_t sz, size;
     urlp_print_walk_fn_ctx ctx = {.b = b, .listsz = 0};
-    if (!(rlp->tail == rlp) /*|| rlp->child*/) {
+    if (urlp_is_list(rlp)) {
 	size = urlp_scanlen(rlp);
 	ctx.spot = &size;
 	sz = ctx.sz = size;
@@ -203,14 +218,6 @@ void urlp_print_walk_fn(urlp* rlp, void* data) {
 //    }
 //    return sz - *c;
 //}
-
-uint32_t urlp_size(urlp* rlp) {
-    return rlp->sz - rlp->spot;  //
-}
-
-uint8_t* urlp_data(urlp* rlp) {
-    return &rlp->b[rlp->spot];  //
-}
 
 // uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t sz) {
 //    uint32_t rlplen, ret = -1;

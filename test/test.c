@@ -16,7 +16,7 @@ uint8_t rlp_lorem[] = {'\xb8', '\x38', 'L', 'o', 'r', 'e', 'm', ' ', 'i', 'p',
 uint8_t rlp_random[] = {
     '\34',						   // [...
     '\x83', 'c',    'a', 't',				   // "cat"
-    '\xc8', '\x83', 'c', 'a', 't', '\x83', 'c', 'o', 'w',  // ["cat","dog"]
+    '\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g',  // ["cat","dog"]
     '\x85', 'h',    'o', 'r', 's', 'e',			   // "horse"
     '\xc1', '\xc0',					   // [[]]
     '\x83', 'p',    'i', 'g',				   // "pig"
@@ -86,7 +86,7 @@ int test_list(uint8_t *rlp, uint32_t rlplen, int n, ...) {
     va_end(ap);
     len = urlp_print(item, result, rlplen);
     if (!(len == rlplen)) goto EXIT;
-    if (memcmp(rlp, result, 4)) goto EXIT;
+    if (memcmp(rlp, result, rlplen)) goto EXIT;
     ret = 0;
 EXIT:
     urlp_free(&item);
