@@ -25,6 +25,7 @@ typedef struct urlp {
 typedef void (*urlp_walk_fn)(urlp*, void*);
 
 urlp* urlp_item(uint8_t*, uint32_t);
+urlp* urlp_list(int n, ...);
 urlp* urlp_push(urlp**, urlp**);
 uint32_t urlp_size(urlp* rlp);
 uint8_t* urlp_data(urlp* rlp);
