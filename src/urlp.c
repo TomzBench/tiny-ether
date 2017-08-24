@@ -128,7 +128,7 @@ void urlp_walk_internal(urlp* rlp, urlp_walk_fn fn, void* ctx) {
 uint32_t urlp_scanlen(urlp* rlp) {
     uint32_t spot = 0;
     urlp_print_walk_fn_ctx ctx;
-    if (!(rlp->prev == rlp) /*|| rlp->child*/) {
+    if (!(rlp->tail == rlp) /*|| rlp->child*/) {
 	ctx.spot = &spot;
 	ctx.listsz = 0;
 	urlp_walk(rlp, urlp_scanlen_walk_fn, &ctx);
@@ -153,7 +153,7 @@ void urlp_scanlen_walk_fn(urlp* rlp, void* data) {
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
     uint32_t sz, size;
     urlp_print_walk_fn_ctx ctx = {.b = b, .listsz = 0};
-    if (!(rlp->prev == rlp) /*|| rlp->child*/) {
+    if (!(rlp->tail == rlp) /*|| rlp->child*/) {
 	size = urlp_scanlen(rlp);
 	ctx.spot = &size;
 	sz = ctx.sz = size;

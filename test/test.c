@@ -1,5 +1,9 @@
 #include "mtm/urlp.h"
 
+uint8_t rlp_null[] = {'\x80'};
+uint8_t rlp_15[] = {'\x0f'};
+uint8_t rlp_1024[] = {'\x82', '\x04', '\x00'};
+uint8_t rlp_empty_list[] = {'\xc1', '\xc0'};
 uint8_t rlp_cat[] = {'\x83', 'c', 'a', 't'};
 uint8_t rlp_dog[] = {'\x83', 'd', 'o', 'g'};
 uint8_t rlp_catdog[] = {'\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
@@ -9,6 +13,16 @@ uint8_t rlp_lorem[] = {'\xb8', '\x38', 'L', 'o', 'r', 'e', 'm', ' ', 'i', 'p',
 		       'c',    'o',    'n', 's', 'e', 'c', 't', 'e', 't', 'u',
 		       'r',    ' ',    'a', 'd', 'i', 'p', 'i', 's', 'i', 'c',
 		       'i',    'n',    'g', ' ', 'e', 'l', 'i', 't'};
+uint8_t rlp_random[] = {
+    '\34',						   // [...
+    '\x83', 'c',    'a', 't',				   // "cat"
+    '\xc8', '\x83', 'c', 'a', 't', '\x83', 'c', 'o', 'w',  // ["cat","dog"]
+    '\x85', 'h',    'o', 'r', 's', 'e',			   // "horse"
+    '\xc1', '\xc0',					   // [[]]
+    '\x83', 'p',    'i', 'g',				   // "pig"
+    '\xc1', '\x80',					   // [""]
+    '\x85', 's',    'h', 'e', 'e', 'p'			   // "sheep"
+};
 
 int test_item(uint8_t *, uint32_t, uint8_t *, uint32_t);
 int test_list(uint8_t *, uint32_t, int, ...);
@@ -16,6 +30,10 @@ int test_list(uint8_t *, uint32_t, int, ...);
 int main(int argc, char *argv[]) {
     int err;
 
+    err = test_item(rlp_null, sizeof(rlp_null), "", 0);
+    err = test_item(rlp_15, sizeof(rlp_15), "\x0f", 1);
+    err = test_item(rlp_1024, sizeof(rlp_1024), "\x04\x00", 2);
+    // err = test_item(rlp_empty_list,sizeof(rlp_empty_list)
     err = test_item(rlp_cat, sizeof(rlp_cat), "cat", 3);
     err = test_item(rlp_dog, sizeof(rlp_dog), "dog", 3);
     err = test_item(rlp_lorem, sizeof(rlp_lorem),
@@ -25,6 +43,17 @@ int main(int argc, char *argv[]) {
 		    urlp_item("cat", 3),		//
 		    urlp_item("dog", 3)			//
 		    );
+    /*
+    err = test_list(rlp_random, sizeof(rlp_random), 7,			     //
+		    urlp_item("cat", 3),				     //
+		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),  //
+		    urlp_item("horse", 5),				     //
+		    urlp_list(1, urlp_list(0)),				     //
+		    urlp_item("pig", 3),				     //
+		    urlp_item("", 1),					     //
+		    urlp_item("sheep", 5)				     //
+		    );
+		    */
 
     return err;
 }
@@ -37,7 +66,7 @@ int test_item(uint8_t *rlp, uint32_t rlplen, uint8_t *src, uint32_t srclen) {
     if (!(len == rlplen)) goto EXIT;
     if (!(urlp_size(item) == rlplen)) goto EXIT;
     if (memcmp(rlp, urlp_data(item), rlplen)) goto EXIT;
-    if (memcmp(rlp, result, 4)) goto EXIT;
+    if (memcmp(rlp, result, rlplen)) goto EXIT;
     ret = 0;
 EXIT:
     urlp_free(&item);
