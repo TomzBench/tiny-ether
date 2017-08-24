@@ -17,7 +17,7 @@ extern "C" {
  * Doubly linked list with tail pointers and extra padding for node rlp.
  */
 typedef struct urlp {
-    struct urlp* next;
+    struct urlp *next, *child;
     uint32_t sz, spot;
     uint8_t b[];
 } urlp;
