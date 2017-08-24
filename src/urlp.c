@@ -45,7 +45,6 @@ void urlp_free(urlp** rlp_p) {
     while (rlp) {
 	urlp* delete = rlp;
 	rlp = rlp->next;
-	if (delete->child) urlp_free(&delete);
 	urlp_free_fn(delete);
     }
 }
@@ -100,18 +99,12 @@ urlp* urlp_list(int n, ...) {
     return item;
 }
 
-// if add sz > 0xc0 push child, else push next
 urlp* urlp_push(urlp** dst_p, urlp** add_p) {
     urlp *dst = *dst_p, *add = *add_p;
     *add_p = NULL;  // steal callers pointer. (caller no longer own.)
     if (!dst) *dst_p = dst = urlp_alloc(0);  // give caller root
-    if (urlp_is_list(add)) {
-	add->child = dst->child;
-	dst->child = add;
-    } else {
-	add->next = dst->next;
-	dst->next = add;
-    }
+    add->next = dst->next;
+    dst->next = add;
     return dst;
 }
 
@@ -133,10 +126,6 @@ uint32_t urlp_scanlen_walk_fn(urlp* rlp, uint32_t* spot) {
     uint32_t listsz = 0;
     urlp* start = rlp;
     while (rlp) {
-	if (rlp->child) {
-	    uint32_t innersz = urlp_scanlen_walk_fn(rlp->child, spot);
-	    listsz += (innersz <= 55) ? 1 : 1 + urlp_szsz(innersz);
-	}
 	listsz += urlp_size(rlp);
 	rlp = rlp->next;
     }
@@ -159,15 +148,6 @@ uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot) {
     uint32_t listsz = 0;
     urlp* start = rlp = rlp->sz ? rlp : rlp->next;
     while (rlp) {
-	if (rlp->child) {
-	    uint32_t innersz = urlp_print_walk_fn(rlp->child, b, spot);
-	    if (innersz <= 55) {
-		b[--*(spot)] = 0xc0 + innersz;
-		listsz++;
-	    } else {
-		listsz += urlp_print_szsz(b, spot, innersz, 0xc0);
-	    }
-	}
 	uint32_t size = urlp_size(rlp);
 	listsz += size;
 	while (size) b[--*(spot)] = rlp->b[--size];
