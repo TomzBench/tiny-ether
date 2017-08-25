@@ -93,16 +93,16 @@ int main(int argc, char *argv[]) {
     urlp_free(&rlp);
 
     /*
-    err = test_item(rlp_random, sizeof(rlp_random), 7, //
-		    urlp_item("cat", 3),				     //
-		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),
-		    urlp_item("horse", 5),				     //
-		    urlp_list(1, urlp_list(0)), //
-		    urlp_item("pig", 3),				     //
-		    urlp_item("", 1), //
-		    urlp_item("sheep", 5)				     //
-		    );
-		    */
+    rlp = urlp_push(urlp_item("cat", 3),
+		    urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
+    urlp_push(rlp, urlp_item("horse", 5));
+    urlp_push(rlp, urlp_push(NULL, NULL));
+    urlp_push(rlp, urlp_item("pig", 3));
+    urlp_push(rlp, urlp_push(NULL, urlp_item("", 1)));
+    urlp_push(rlp, urlp_item("sheep", 5));
+    err |= test_item(rlp_random, sizeof(rlp_random), rlp);
+    urlp_free(&rlp);
+    */
 
     return err;
 }
