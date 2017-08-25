@@ -124,6 +124,8 @@ urlp* urlp_push(urlp* dst, urlp* add) {
 	// not lists always not linked!
 	// assert(!add->x)
     }
+    // first item in list always start with sz=0 node.
+    if (!urlp_is_list(dst)) dst = urlp_push(urlp_alloc(0), dst);
     add->x = dst->x;
     dst->x = add;
     return dst;
@@ -138,9 +140,9 @@ const uint8_t* urlp_data(urlp* rlp) {
 }
 
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
-    uint32_t sz = urlp_print_walk(rlp, NULL, 0);
+    uint32_t sz = urlp_print_walk(rlp, NULL, 0);  // get size
     if (!(sz <= l)) return sz;
-    return urlp_print_walk(rlp, b, &sz);
+    return urlp_print_walk(rlp, b, &sz);  // print if ok
 }
 
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
@@ -148,7 +150,7 @@ uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
     while (rlp) {
 	if (rlp->y) {
 	    uint32_t inner = urlp_print_walk(rlp->y, b, spot);
-	    sz += urlp_print_sz(b, spot, inner, 0xc0);
+	    sz += urlp_print_sz(b, spot, inner, 0xc0) + inner;
 	}
 	if (b) {
 	    uint32_t rlpsz = rlp->sz;

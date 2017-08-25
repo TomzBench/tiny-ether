@@ -61,31 +61,36 @@ int main(int argc, char *argv[]) {
 	urlp_item("Lorem ipsum dolor sit amet, consectetur adipisicing elit",
 		  56));
 
-    // cat = urlp_pushx(urlp_item("cat", 3), urlp_item("dog", 3));
+    err |= test_item(rlp_catdog, sizeof(rlp_catdog),
+		     urlp_push(urlp_item("cat", 3),  //
+			       urlp_item("dog", 3)));
 
-    err |= test_list(rlp_catdog, sizeof(rlp_catdog), 2,  //
-		     urlp_item("cat", 3),		 //
-		     urlp_item("dog", 3)		 //
-		     );
-    err |= test_list(rlp_catdogpig, sizeof(rlp_catdogpig), 3,  //
-		     urlp_item("cat", 3),		       //
-		     urlp_item("dog", 3),		       //
-		     urlp_item("pig", 3)		       //
-		     );
+    err |= test_item(rlp_catdogpig, sizeof(rlp_catdogpig),  //
+		     urlp_push(				    //
+			 urlp_push(urlp_item("cat", 3),     //
+				   urlp_item("dog", 3)),    //
+			 urlp_item("pig", 3)));
+    err |= test_item(
+	rlp_catdogpigcow, sizeof(rlp_catdogpigcow),
+	urlp_push(urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)),
+		  urlp_push(urlp_item("pig", 3), urlp_item("cow", 3))));
 
     /*
     err = test_list(rlp_catdogpigcow, sizeof(rlp_catdogpigcow), 2,	   //
-		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),  //
-		    urlp_list(2, urlp_item("pig", 3), urlp_item("cow", 3))   //
+		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),
+    //
+		    urlp_list(2, urlp_item("pig", 3), urlp_item("cow", 3))
+    //
 		    );
 
-    err = test_list(rlp_random, sizeof(rlp_random), 7,			     //
+    err = test_list(rlp_random, sizeof(rlp_random), 7, //
 		    urlp_item("cat", 3),				     //
-		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),  //
+		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),
+    //
 		    urlp_item("horse", 5),				     //
-		    urlp_list(1, urlp_list(0)),				     //
+		    urlp_list(1, urlp_list(0)), //
 		    urlp_item("pig", 3),				     //
-		    urlp_item("", 1),					     //
+		    urlp_item("", 1), //
 		    urlp_item("sheep", 5)				     //
 		    );
 		    */
@@ -98,8 +103,6 @@ int test_item(uint8_t *rlp, uint32_t rlplen, urlp *item) {
     uint32_t len, ret = -1;
     len = urlp_print(item, result, rlplen);
     if (!(len == rlplen)) goto EXIT;
-    if (!(urlp_size(item) == rlplen)) goto EXIT;
-    if (memcmp(rlp, urlp_data(item), rlplen)) goto EXIT;
     if (memcmp(rlp, result, rlplen)) goto EXIT;
     ret = 0;
 EXIT:
