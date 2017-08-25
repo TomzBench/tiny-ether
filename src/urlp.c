@@ -26,9 +26,11 @@ urlp* urlp_alloc(uint32_t);  // init a rlp context on heap
 uint32_t urlp_print_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_szsz(uint32_t);  // size of size
-uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t sz);
-uint32_t urlp_scanlen_walk_fn(urlp* rlp, uint32_t* spot);
-uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot);
+uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
+// uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t
+// sz);
+// uint32_t urlp_scanlen_walk_fn(urlp* rlp, uint32_t* spot);
+// uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot);
 
 urlp* urlp_alloc(uint32_t sz) {
     urlp* rlp = NULL;
@@ -112,24 +114,19 @@ urlp* urlp_list(int n, ...) {
     return item;
 }
 
-urlp* urlp_push(urlp* dst, urlp* add) { return urlp_pushx(dst, add); }
-urlp* urlp_pushx(urlp* dst, urlp* add) {
+urlp* urlp_push(urlp* dst, urlp* add) {
     if (!dst) dst = urlp_alloc(0);
+    if (urlp_is_list(add)) {
+	// list is always empty first node!
+	// assert(!add->y)
+	add->y = add->x;
+    } else {
+	// not lists always not linked!
+	// assert(!add->x)
+    }
     add->x = dst->x;
     dst->x = add;
     return dst;
-}
-
-urlp* urlp_pushy(urlp* dst, urlp* add) {
-    //
-}
-
-urlp* urlp_npushx(int n, ...) {
-    //
-}
-
-urlp* urlp_npushy(int n, ...) {
-    //
 }
 
 uint32_t urlp_size(urlp* rlp) {
@@ -140,6 +137,30 @@ const uint8_t* urlp_data(urlp* rlp) {
     return rlp->b;  //
 }
 
+uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
+    uint32_t sz = urlp_print_walk(rlp, NULL, 0);
+    if (!(sz <= l)) return sz;
+    return urlp_print_walk(rlp, b, &sz);
+}
+
+uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
+    uint32_t sz = 0, islist = urlp_is_list(rlp);
+    while (rlp) {
+	if (rlp->y) {
+	    uint32_t inner = urlp_print_walk(rlp->y, b, spot);
+	    sz += urlp_print_sz(b, spot, inner, 0xc0);
+	}
+	if (b) {
+	    uint32_t rlpsz = rlp->sz;
+	    while (rlpsz) b[--*(spot)] = rlp->b[--rlpsz];
+	}
+	sz += rlp->sz;
+	rlp = rlp->x;
+    }
+    if (islist) sz += urlp_print_sz(b, spot, sz, 0xc0);
+    return sz;
+}
+/*
 uint32_t urlp_scanlen(urlp* rlp) {
     uint32_t spot = 0;
     urlp_scanlen_walk_fn(rlp, &spot);
@@ -182,6 +203,7 @@ uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot) {
     }
     return listsz;
 }
+*/
 
 //
 //
