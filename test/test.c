@@ -42,10 +42,10 @@ uint8_t rlp_random[] = {
 };
 
 int test_item(uint8_t *, uint32_t, urlp *);
-int test_list(uint8_t *, uint32_t, int, ...);
 
 int main(int argc, char *argv[]) {
     int err = 0;
+    urlp *rlp;
 
     // TODO rvalues on urlp_push nogood, remove **urlp to *urlp for push fn
 
@@ -61,32 +61,23 @@ int main(int argc, char *argv[]) {
 	urlp_item("Lorem ipsum dolor sit amet, consectetur adipisicing elit",
 		  56));
 
-    err |= test_item(rlp_catdog, sizeof(rlp_catdog),
-		     urlp_push(urlp_item("cat", 3),  //
-			       urlp_item("dog", 3)));
+    rlp = urlp_push(urlp_item("cat", 3), urlp_item("dog", 3));
+    err |= test_item(rlp_catdog, sizeof(rlp_catdog), rlp);
 
-    err |= test_item(rlp_catdogpig, sizeof(rlp_catdogpig),  //
-		     urlp_push(				    //
-			 urlp_push(urlp_item("cat", 3),     //
-				   urlp_item("dog", 3)),    //
-			 urlp_item("pig", 3)));
-    err |= test_item(
-	rlp_catdogpigcow, sizeof(rlp_catdogpigcow),
-	urlp_push(urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)),
-		  urlp_push(urlp_item("pig", 3), urlp_item("cow", 3))));
+    rlp = urlp_item("cat", 3);
+    rlp = urlp_push(rlp, urlp_item("dog", 3));
+    rlp = urlp_push(rlp, urlp_item("pig", 3));
+    err |= test_item(rlp_catdogpig, sizeof(rlp_catdogpig), rlp);
+
+    rlp = urlp_alloc(0);
+    urlp_push(rlp, urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
+    urlp_push(rlp, urlp_push(urlp_item("pig", 3), urlp_item("cow", 3)));
+    err |= test_item(rlp_catdogpigcow, sizeof(rlp_catdogpigcow), rlp);
 
     /*
-    err = test_list(rlp_catdogpigcow, sizeof(rlp_catdogpigcow), 2,	   //
-		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),
-    //
-		    urlp_list(2, urlp_item("pig", 3), urlp_item("cow", 3))
-    //
-		    );
-
-    err = test_list(rlp_random, sizeof(rlp_random), 7, //
+    err = test_item(rlp_random, sizeof(rlp_random), 7, //
 		    urlp_item("cat", 3),				     //
 		    urlp_list(2, urlp_item("cat", 3), urlp_item("dog", 3)),
-    //
 		    urlp_item("horse", 5),				     //
 		    urlp_list(1, urlp_list(0)), //
 		    urlp_item("pig", 3),				     //
@@ -109,43 +100,6 @@ EXIT:
     urlp_free(&item);
     return ret;
 }
-
-int test_list(uint8_t *rlp, uint32_t rlplen, int n, ...) {
-    uint8_t result[rlplen];
-    uint32_t len, ret = -1;
-    urlp *item = NULL;
-    va_list ap;
-    va_start(ap, n);
-    while (n--) {
-	urlp *rlp = va_arg(ap, urlp *);
-	item = urlp_push(item, rlp);
-    }
-    va_end(ap);
-    len = urlp_print(item, result, rlplen);
-    if (!(len == rlplen)) goto EXIT;
-    if (memcmp(rlp, result, rlplen)) goto EXIT;
-    ret = 0;
-EXIT:
-    urlp_free(&item);
-    return ret;
-}
-
-/*
-int test_str() {
-    urlp rlp;
-
-    //["cat",["puppy","cow"],"horse",[[]],"pig",[""],"sheep"]
-    urlp_push(&rlp, urlp_item("cat", 3));		  // "cat",
-    urlp_push(&rlp, urlp_list(2, "puppy", 5, "cow", 3));  // ["puppy","cow"]
-    urlp_push(&rlp, urlp_item("horse", 5));		  // "horse
-    urlp_push(&rlp, urlp_push(&rlp, urlp_list(0)));       // [[]]
-    urlp_push(&rlp, urlp_item("pig", 3));		  // "pig"
-    urlp_push(&rlp, urlp_list(1, "", 1));		  // [""]
-    urlp_push(&rlp, urlp_item("sheep", 5));		  // "sheep"
-    // urlp_print(&rlp);
-    return 0;
-}
-*/
 
 //
 //

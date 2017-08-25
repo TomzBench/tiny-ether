@@ -14,27 +14,16 @@ extern "C" {
 
 /**
  * @brief urlp context
- * Doubly linked list with tail pointers and extra padding for node rlp.
- *
- * ("cat")->
- * "cat"
- *
- * (0)->("cat")->
- * ["cat"]
- *
- * (0)->("dog")->("cat")->
- * ["cat","dog"]
- *
- * ...
+ * extra padding b[] for node rlp.
  */
 typedef struct urlp {
-    struct urlp *x, *y;
+    struct urlp *next, *child;
     uint32_t sz;
     uint8_t b[];
 } urlp;
 
+urlp* urlp_alloc(uint32_t);
 urlp* urlp_item(const uint8_t*, uint32_t);
-urlp* urlp_list(int n, ...);
 urlp* urlp_push(urlp*, urlp*);
 uint32_t urlp_size(urlp* rlp);
 const uint8_t* urlp_data(urlp* rlp);

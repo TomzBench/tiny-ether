@@ -22,7 +22,6 @@
 #include "urlp.h"
 
 // private
-urlp* urlp_alloc(uint32_t);  // init a rlp context on heap
 uint32_t urlp_print_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_szsz(uint32_t);  // size of size
@@ -47,7 +46,8 @@ void urlp_free(urlp** rlp_p) {
     *rlp_p = NULL;
     while (rlp) {
 	urlp* delete = rlp;
-	rlp = rlp->x;
+	rlp = rlp->next;
+	if (delete->child) urlp_free(&delete->child);
 	urlp_free_fn(delete);
     }
 }
@@ -102,34 +102,40 @@ urlp* urlp_item(const uint8_t* b, uint32_t sz) {
     return rlp;
 }
 
-urlp* urlp_list(int n, ...) {
-    va_list ap;
-    va_start(ap, n);
-    urlp* item = NULL;
-    while (n--) {
-	urlp* rlp = va_arg(ap, urlp*);
-	urlp_push(item, rlp);
+urlp* urlp_push(urlp* parent, urlp* child) {
+    if (!parent) {
+	parent = urlp_alloc(0);
+    } else if (!urlp_is_list(parent)) {
+	// first item in list always start with sz=0 node.
+	parent = urlp_push(urlp_alloc(0), parent);
     }
-    va_end(ap);
-    return item;
+    if (parent->child) {
+	child->next = parent->child;
+	parent->child = child;
+    } else {
+	parent->child = child;
+    }
+    return parent;
 }
 
+/*
 urlp* urlp_push(urlp* dst, urlp* add) {
     if (!dst) dst = urlp_alloc(0);
     if (urlp_is_list(add)) {
 	// list is always empty first node!
-	// assert(!add->y)
-	add->y = add->x;
+	// assert(!add->child)
+	add->child = add->next;
     } else {
 	// not lists always not linked!
-	// assert(!add->x)
+	// assert(!add->next)
     }
     // first item in list always start with sz=0 node.
     if (!urlp_is_list(dst)) dst = urlp_push(urlp_alloc(0), dst);
-    add->x = dst->x;
-    dst->x = add;
+    add->next = dst->next;
+    dst->next = add;
     return dst;
 }
+*/
 
 uint32_t urlp_size(urlp* rlp) {
     return rlp->sz;  //
@@ -140,26 +146,33 @@ const uint8_t* urlp_data(urlp* rlp) {
 }
 
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
-    uint32_t sz = urlp_print_walk(rlp, NULL, 0);  // get size
-    if (!(sz <= l)) return sz;
-    return urlp_print_walk(rlp, b, &sz);  // print if ok
+    uint32_t sz;
+    if (!urlp_is_list(rlp)) {
+	// handle case where it is not array.
+	if (!(rlp->sz <= l)) return rlp->sz;
+	if (b) {
+	    for (int i = rlp->sz - 1; i >= 0; i--) b[i] = rlp->b[i];
+	}
+	return rlp->sz;
+    } else {
+	sz = urlp_print_walk(rlp->child, NULL, 0);  // get size
+	if (!(sz <= l)) return sz;
+	return urlp_print_walk(rlp->child, b, &sz);  // print if ok
+    }
 }
 
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
-    uint32_t sz = 0, islist = urlp_is_list(rlp);
+    uint32_t sz = 0;
     while (rlp) {
-	if (rlp->y) {
-	    uint32_t inner = urlp_print_walk(rlp->y, b, spot);
-	    sz += urlp_print_sz(b, spot, inner, 0xc0) + inner;
-	}
+	if (rlp->child) sz += urlp_print_walk(rlp->child, b, spot);
 	if (b) {
 	    uint32_t rlpsz = rlp->sz;
 	    while (rlpsz) b[--*(spot)] = rlp->b[--rlpsz];
 	}
 	sz += rlp->sz;
-	rlp = rlp->x;
+	rlp = rlp->next;
     }
-    if (islist) sz += urlp_print_sz(b, spot, sz, 0xc0);
+    sz += urlp_print_sz(b, spot, sz, 0xc0);
     return sz;
 }
 /*
@@ -174,7 +187,7 @@ uint32_t urlp_scanlen_walk_fn(urlp* rlp, uint32_t* spot) {
     urlp* start = rlp;
     while (rlp) {
 	listsz += urlp_size(rlp);
-	rlp = rlp->x;
+	rlp = rlp->next;
     }
     if (urlp_is_list(start)) {  // cap item if this is a list
 	listsz += urlp_print_sz(NULL, NULL, listsz, 0xc0);
@@ -193,12 +206,12 @@ uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
 
 uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot) {
     uint32_t listsz = 0;
-    urlp* start = rlp = rlp->sz ? rlp : rlp->x;
+    urlp* start = rlp = rlp->sz ? rlp : rlp->next;
     while (rlp) {
 	uint32_t size = urlp_size(rlp);
 	listsz += size;
 	while (size) b[--*(spot)] = rlp->b[--size];
-	rlp = rlp->x;
+	rlp = rlp->next;
     }
     if (urlp_is_list(start)) {  // cap item if this is a list
 	listsz += urlp_print_sz(b, spot, listsz, 0xc0);
