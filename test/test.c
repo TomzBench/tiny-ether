@@ -7,14 +7,12 @@ uint8_t rlp_empty[] = {'\xc1', '\xc0'};
 uint8_t rlp_cat[] = {'\x83', 'c', 'a', 't'};
 uint8_t rlp_dog[] = {'\x83', 'd', 'o', 'g'};
 uint8_t rlp_catdog[] = {'\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
-// ["cat","dog","pig"]
 uint8_t rlp_catdogpig[] = {
     '\xcc',		    //
     '\x83', 'c', 'a', 't',  //
     '\x83', 'd', 'o', 'g',  //
     '\x83', 'p', 'i', 'g'   //
 };
-// [["cat","dog"],["pig","cow"]]
 uint8_t rlp_catdogpigcow[] = {
     '\xd2',		    //
     '\xc8',		    //
