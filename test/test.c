@@ -45,33 +45,33 @@ int test_item(uint8_t *, uint32_t, urlp *);
 int test_list(uint8_t *, uint32_t, int, ...);
 
 int main(int argc, char *argv[]) {
-    int err;
+    int err = 0;
 
     // TODO rvalues on urlp_push nogood, remove **urlp to *urlp for push fn
 
-    err = test_item(rlp_null, sizeof(rlp_null), urlp_item("", 0));
-    err = test_item(rlp_15, sizeof(rlp_15), urlp_item("\x0f", 1));
-    err = test_item(rlp_1024, sizeof(rlp_1024), urlp_item("\x04\x00", 2));
+    err |= test_item(rlp_null, sizeof(rlp_null), urlp_item("", 0));
+    err |= test_item(rlp_15, sizeof(rlp_15), urlp_item("\x0f", 1));
+    err |= test_item(rlp_1024, sizeof(rlp_1024), urlp_item("\x04\x00", 2));
     // err =
     // test_item(rlp_empty,sizeof(rlp_empty),urlp_pushx(0,urlp_item("",0)));
-    err = test_item(rlp_cat, sizeof(rlp_cat), urlp_item("cat", 3));
-    err = test_item(rlp_dog, sizeof(rlp_dog), urlp_item("dog", 3));
-    err = test_item(
+    err |= test_item(rlp_cat, sizeof(rlp_cat), urlp_item("cat", 3));
+    err |= test_item(rlp_dog, sizeof(rlp_dog), urlp_item("dog", 3));
+    err |= test_item(
 	rlp_lorem, sizeof(rlp_lorem),
 	urlp_item("Lorem ipsum dolor sit amet, consectetur adipisicing elit",
 		  56));
 
     // cat = urlp_pushx(urlp_item("cat", 3), urlp_item("dog", 3));
 
-    err = test_list(rlp_catdog, sizeof(rlp_catdog), 2,  //
-		    urlp_item("cat", 3),		//
-		    urlp_item("dog", 3)			//
-		    );
-    err = test_list(rlp_catdogpig, sizeof(rlp_catdogpig), 3,  //
-		    urlp_item("cat", 3),		      //
-		    urlp_item("dog", 3),		      //
-		    urlp_item("pig", 3)			      //
-		    );
+    err |= test_list(rlp_catdog, sizeof(rlp_catdog), 2,  //
+		     urlp_item("cat", 3),		 //
+		     urlp_item("dog", 3)		 //
+		     );
+    err |= test_list(rlp_catdogpig, sizeof(rlp_catdogpig), 3,  //
+		     urlp_item("cat", 3),		       //
+		     urlp_item("dog", 3),		       //
+		     urlp_item("pig", 3)		       //
+		     );
 
     /*
     err = test_list(rlp_catdogpigcow, sizeof(rlp_catdogpigcow), 2,	   //

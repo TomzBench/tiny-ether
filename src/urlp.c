@@ -154,7 +154,7 @@ uint32_t urlp_scanlen_walk_fn(urlp* rlp, uint32_t* spot) {
 	rlp = rlp->x;
     }
     if (urlp_is_list(start)) {  // cap item if this is a list
-	listsz += (listsz <= 55) ? 1 : 1 + urlp_szsz(listsz);
+	listsz += urlp_print_sz(NULL, NULL, listsz, 0xc0);
     }
     *spot += listsz;
     return listsz;
@@ -178,11 +178,7 @@ uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot) {
 	rlp = rlp->x;
     }
     if (urlp_is_list(start)) {  // cap item if this is a list
-	if (listsz <= 55) {
-	    b[--*(spot)] = 0xc0 + listsz++;
-	} else {
-	    listsz += urlp_print_szsz(b, spot, listsz, 0xc0);
-	}
+	listsz += urlp_print_sz(b, spot, listsz, 0xc0);
     }
     return listsz;
 }
