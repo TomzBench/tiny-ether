@@ -1,7 +1,7 @@
 #test makefile
 
 INCDIR:=../build/include/
-CFLAGS?=-O0 -g -Wall -DNDEBUG -DURLP_CONFIG_LINUX_EMU 
+CFLAGS?=-O0 -g -Wall -Wno-pointer-sign -DNDEBUG -DURLP_CONFIG_LINUX_EMU 
 LDFLAGS=-L../build/lib -l:liburlp.a
 CC:=cc -std=gnu11  -I${INCDIR} -I. -I../build/include
 

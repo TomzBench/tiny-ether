@@ -24,7 +24,7 @@
 // private
 urlp* urlp_alloc(uint32_t);    // init a rlp context on heap
 uint32_t urlp_szsz(uint32_t);  // size of size
-uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, uint8_t);  // print szsz
+uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_print_internal(urlp* rlp, uint8_t* b, uint32_t* c, uint32_t sz);
 uint32_t urlp_scanlen_walk_fn(urlp* rlp, uint32_t* spot);
 uint32_t urlp_print_walk_fn(urlp* rlp, uint8_t* b, uint32_t* spot);
@@ -50,15 +50,15 @@ void urlp_free(urlp** rlp_p) {
 }
 
 uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
-uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t size, uint8_t p) {
-    uint32_t szsz = urlp_szsz(size);
-    uint8_t(*x)[4] = (uint8_t(*)[4])(&size);
+uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
+    uint32_t szsz = urlp_szsz(s);
+    uint8_t(*x)[4] = (uint8_t(*)[4])(&s);
     for (int i = 0; i < szsz; i++) b[--*c] = *x[i];
     b[--*c] = p + szsz;
     return szsz + 1;
 }
 
-urlp* urlp_item(uint8_t* b, uint32_t sz) {
+urlp* urlp_item(const uint8_t* b, uint32_t sz) {
     urlp* rlp = NULL;
     uint32_t size;
     if (sz == 0) {
@@ -93,16 +93,14 @@ urlp* urlp_list(int n, ...) {
     urlp* item = NULL;
     while (n--) {
 	urlp* rlp = va_arg(ap, urlp*);
-	urlp_push(&item, &rlp);
+	urlp_push(item, rlp);
     }
     va_end(ap);
     return item;
 }
 
-urlp* urlp_push(urlp** dst_p, urlp** add_p) {
-    urlp *dst = *dst_p, *add = *add_p;
-    *add_p = NULL;  // steal callers pointer. (caller no longer own.)
-    if (!dst) *dst_p = dst = urlp_alloc(0);  // give caller root
+urlp* urlp_push(urlp* dst, urlp* add) {
+    if (!dst) dst = urlp_alloc(0);
     add->next = dst->next;
     dst->next = add;
     return dst;
@@ -112,7 +110,7 @@ uint32_t urlp_size(urlp* rlp) {
     return rlp->sz - rlp->spot;  //
 }
 
-uint8_t* urlp_data(urlp* rlp) {
+const uint8_t* urlp_data(urlp* rlp) {
     return &rlp->b[rlp->spot];  //
 }
 

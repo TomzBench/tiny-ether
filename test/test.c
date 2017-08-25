@@ -115,7 +115,7 @@ int test_list(uint8_t *rlp, uint32_t rlplen, int n, ...) {
     va_start(ap, n);
     while (n--) {
 	urlp *rlp = va_arg(ap, urlp *);
-	urlp_push(&item, &rlp);
+	item = urlp_push(item, rlp);
     }
     va_end(ap);
     len = urlp_print(item, result, rlplen);
