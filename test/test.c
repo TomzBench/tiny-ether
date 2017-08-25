@@ -3,7 +3,7 @@
 uint8_t rlp_null[] = {'\x80'};
 uint8_t rlp_15[] = {'\x0f'};
 uint8_t rlp_1024[] = {'\x82', '\x04', '\x00'};
-uint8_t rlp_empty_list[] = {'\xc1', '\xc0'};
+uint8_t rlp_empty[] = {'\xc1', '\xc0'};
 uint8_t rlp_cat[] = {'\x83', 'c', 'a', 't'};
 uint8_t rlp_dog[] = {'\x83', 'd', 'o', 'g'};
 uint8_t rlp_catdog[] = {'\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
@@ -41,21 +41,28 @@ uint8_t rlp_random[] = {
     '\x85', 's',    'h', 'e', 'e', 'p'			   // "sheep"
 };
 
-int test_item(uint8_t *, uint32_t, uint8_t *, uint32_t);
+int test_item(uint8_t *, uint32_t, urlp *);
 int test_list(uint8_t *, uint32_t, int, ...);
 
 int main(int argc, char *argv[]) {
     int err;
 
-    err = test_item(rlp_null, sizeof(rlp_null), "", 0);
-    err = test_item(rlp_15, sizeof(rlp_15), "\x0f", 1);
-    err = test_item(rlp_1024, sizeof(rlp_1024), "\x04\x00", 2);
-    ////// err = test_item(rlp_empty_list,sizeof(rlp_empty_list)
-    err = test_item(rlp_cat, sizeof(rlp_cat), "cat", 3);
-    err = test_item(rlp_dog, sizeof(rlp_dog), "dog", 3);
-    err = test_item(rlp_lorem, sizeof(rlp_lorem),
-		    "Lorem ipsum dolor sit amet, consectetur adipisicing elit",
-		    56);
+    // TODO rvalues on urlp_push nogood, remove **urlp to *urlp for push fn
+
+    err = test_item(rlp_null, sizeof(rlp_null), urlp_item("", 0));
+    err = test_item(rlp_15, sizeof(rlp_15), urlp_item("\x0f", 1));
+    err = test_item(rlp_1024, sizeof(rlp_1024), urlp_item("\x04\x00", 2));
+    // err =
+    // test_item(rlp_empty,sizeof(rlp_empty),urlp_pushx(0,urlp_item("",0)));
+    err = test_item(rlp_cat, sizeof(rlp_cat), urlp_item("cat", 3));
+    err = test_item(rlp_dog, sizeof(rlp_dog), urlp_item("dog", 3));
+    err = test_item(
+	rlp_lorem, sizeof(rlp_lorem),
+	urlp_item("Lorem ipsum dolor sit amet, consectetur adipisicing elit",
+		  56));
+
+    // cat = urlp_pushx(urlp_item("cat", 3), urlp_item("dog", 3));
+
     err = test_list(rlp_catdog, sizeof(rlp_catdog), 2,  //
 		    urlp_item("cat", 3),		//
 		    urlp_item("dog", 3)			//
@@ -86,10 +93,9 @@ int main(int argc, char *argv[]) {
     return err;
 }
 
-int test_item(uint8_t *rlp, uint32_t rlplen, uint8_t *src, uint32_t srclen) {
+int test_item(uint8_t *rlp, uint32_t rlplen, urlp *item) {
     uint8_t result[rlplen];
     uint32_t len, ret = -1;
-    urlp *item = urlp_item(src, srclen);
     len = urlp_print(item, result, rlplen);
     if (!(len == rlplen)) goto EXIT;
     if (!(urlp_size(item) == rlplen)) goto EXIT;
