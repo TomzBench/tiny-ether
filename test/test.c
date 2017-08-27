@@ -116,9 +116,8 @@ int main(int argc, char *argv[]) {
     urlp_free(&rlp);
 
     // ["cat",["cat","dog"],"horse",[[]],"pig",[""],"sheep"]
-    rlp = urlp_list();
-    urlp_push(rlp, urlp_item("cat", 3));
-    urlp_push(rlp, urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
+    rlp = urlp_item("cat", 3);
+    rlp = urlp_push(rlp, urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
     urlp_push(rlp, urlp_item("horse", 5));
     urlp_push(rlp, urlp_push(NULL, urlp_list()));
     urlp_push(rlp, urlp_item("pig", 3));

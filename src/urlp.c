@@ -117,6 +117,12 @@ urlp* urlp_push(urlp* parent, urlp* child) {
 	parent = urlp_alloc(0);
     } else if (!urlp_is_list(parent)) {
 	// first item in list always start with sz=0 node.
+	// Note that we are changing the root node because caller is turning
+	// a single item into a list... Might need better api to distingish this
+	// to caller. We always return parent node to caller, but there original
+	// callers node is now a different point. For safety we should not allow
+	// this, and require caller to be more explicit when creating list or an
+	// item...
 	parent = urlp_push(urlp_alloc(0), parent);
     }
     if (parent->child) {
