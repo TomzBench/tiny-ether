@@ -3,7 +3,9 @@
 uint8_t rlp_null[] = {'\x80'};
 uint8_t rlp_15[] = {'\x0f'};
 uint8_t rlp_1024[] = {'\x82', '\x04', '\x00'};
-uint8_t rlp_empty[] = {'\xc1', '\xc0'};
+uint8_t rlp_empty[] = {'\xc0'};
+uint8_t rlp_empty_empty[] = {'\xc2', '\xc0', '\xc0'};
+uint8_t rlp_empty_nest[] = {'\xc2', '\xc1', '\xc0'};
 uint8_t rlp_cat[] = {'\x83', 'c', 'a', 't'};
 uint8_t rlp_dog[] = {'\x83', 'd', 'o', 'g'};
 uint8_t rlp_catdog[] = {'\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
@@ -46,61 +48,84 @@ int main(int argc, char *argv[]) {
     char *lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
     urlp *rlp;
 
+    // ""
     rlp = urlp_item("", 0);
     err |= test_item(rlp_null, sizeof(rlp_null), rlp);
     urlp_free(&rlp);
 
+    // 0x0f
     rlp = urlp_item("\x0f", 1);
     err |= test_item(rlp_15, sizeof(rlp_15), rlp);
     urlp_free(&rlp);
 
+    // 0x400x00
     rlp = urlp_item("\x04\x00", 2);
     err |= test_item(rlp_1024, sizeof(rlp_1024), rlp);
     urlp_free(&rlp);
 
-    // rlp = urlp_alloc(0);
-    // err |= test_item(rlp_empty, sizeof(rlp_empty), rlp);
-    // urlp_free(&rlp);
+    // []
+    rlp = urlp_list();
+    err |= test_item(rlp_empty, sizeof(rlp_empty), rlp);
+    urlp_free(&rlp);
 
+    // [[],[]]
+    rlp = urlp_list();
+    urlp_push(rlp, urlp_list());
+    urlp_push(rlp, urlp_list());
+    err |= test_item(rlp_empty_empty, sizeof(rlp_empty_empty), rlp);
+    urlp_free(&rlp);
+
+    // [[[]]]
+    rlp = urlp_list();
+    urlp_push(rlp, urlp_push(NULL, urlp_list()));
+    err |= test_item(rlp_empty_nest, sizeof(rlp_empty_nest), rlp);
+    urlp_free(&rlp);
+
+    // "cat"
     rlp = urlp_item("cat", 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), rlp);
     urlp_free(&rlp);
 
+    // "dog"
     rlp = urlp_item("dog", 3);
     err |= test_item(rlp_dog, sizeof(rlp_dog), rlp);
     urlp_free(&rlp);
 
+    // "lorem...
     rlp = urlp_item(lorem, 56);
     err |= test_item(rlp_lorem, sizeof(rlp_lorem), rlp);
     urlp_free(&rlp);
 
+    // ["cat","dog"]
     rlp = urlp_push(urlp_item("cat", 3), urlp_item("dog", 3));
     err |= test_item(rlp_catdog, sizeof(rlp_catdog), rlp);
     urlp_free(&rlp);
 
+    // ["cat","dog","pig"]
     rlp = urlp_item("cat", 3);
     rlp = urlp_push(rlp, urlp_item("dog", 3));
     rlp = urlp_push(rlp, urlp_item("pig", 3));
     err |= test_item(rlp_catdogpig, sizeof(rlp_catdogpig), rlp);
     urlp_free(&rlp);
 
-    rlp = urlp_alloc(0);
+    // [["cat","dog"],["pig","cow"]]
+    rlp = urlp_list();
     urlp_push(rlp, urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
     urlp_push(rlp, urlp_push(urlp_item("pig", 3), urlp_item("cow", 3)));
     err |= test_item(rlp_catdogpigcow, sizeof(rlp_catdogpigcow), rlp);
     urlp_free(&rlp);
 
-    /*
-    rlp = urlp_push(urlp_item("cat", 3),
-		    urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
+    // ["cat",["cat","dog"],"horse",[[]],"pig",[""],"sheep"]
+    rlp = urlp_list();
+    urlp_push(rlp, urlp_item("cat", 3));
+    urlp_push(rlp, urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
     urlp_push(rlp, urlp_item("horse", 5));
-    urlp_push(rlp, urlp_push(NULL, NULL));
+    urlp_push(rlp, urlp_push(NULL, urlp_list()));
     urlp_push(rlp, urlp_item("pig", 3));
-    urlp_push(rlp, urlp_push(NULL, urlp_item("", 1)));
+    urlp_push(rlp, urlp_push(NULL, urlp_item("", 0)));
     urlp_push(rlp, urlp_item("sheep", 5));
     err |= test_item(rlp_random, sizeof(rlp_random), rlp);
     urlp_free(&rlp);
-    */
 
     return err;
 }

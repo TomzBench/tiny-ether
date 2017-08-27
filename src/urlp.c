@@ -79,7 +79,7 @@ uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
 
 uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
 
-urlp* urlp_item() {
+urlp* urlp_list() {
     return urlp_alloc(0);  //
 }
 
@@ -139,23 +139,38 @@ const uint8_t* urlp_data(urlp* rlp) {
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t l) {
     uint32_t sz;
     if (!urlp_is_list(rlp)) {
-	// handle case where it is not array.
+	// handle case where this is single item and not a list
 	if (!(rlp->sz <= l)) return rlp->sz;
 	if (b) {
 	    for (int i = rlp->sz - 1; i >= 0; i--) b[i] = rlp->b[i];
 	}
 	return rlp->sz;
     } else {
-	sz = urlp_print_walk(rlp->child, NULL, 0);  // get size
-	if (!(sz <= l)) return sz;
-	return urlp_print_walk(rlp->child, b, &sz);  // print if ok
+	if (rlp->child) {
+	    // Regular list
+	    sz = urlp_print_walk(rlp->child, NULL, 0);  // get size
+	    if (!(sz <= l)) return sz;
+	    return urlp_print_walk(rlp->child, b, &sz);  // print if ok
+	} else {
+	    // We have empty list... []
+	    if (!(1 <= l)) return 1;  // size of 0xc0
+	    if (b) *b = 0xc0;
+	    return 1;
+	}
     }
 }
 
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
     uint32_t sz = 0;
     while (rlp) {
-	if (rlp->child) sz += urlp_print_walk(rlp->child, b, spot);
+	if (urlp_is_list(rlp)) {
+	    if (rlp->child) {
+		sz += urlp_print_walk(rlp->child, b, spot);
+	    } else {  // empty list;
+		sz += 1;
+		if (b) b[--*(spot)] = 0xc0;
+	    }
+	}
 	if (b) {
 	    uint32_t rlpsz = rlp->sz;
 	    while (rlpsz) b[--*(spot)] = rlp->b[--rlpsz];
