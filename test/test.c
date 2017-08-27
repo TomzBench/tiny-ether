@@ -76,8 +76,7 @@ int main(int argc, char *argv[]) {
     urlp_free(&rlp);
 
     // [[[]]]
-    rlp = urlp_list();
-    urlp_push(rlp, urlp_push(NULL, urlp_list()));
+    rlp = urlp_push(urlp_list(), urlp_push(urlp_list(), urlp_list()));
     err |= test_item(rlp_empty_nest, sizeof(rlp_empty_nest), rlp);
     urlp_free(&rlp);
 
