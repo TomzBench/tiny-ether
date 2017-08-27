@@ -21,6 +21,16 @@
 
 #include "urlp.h"
 
+/**
+ * @brief urlp context
+ * extra padding b[] for node rlp.
+ */
+typedef struct urlp {
+    struct urlp *next, *child; /*!< list pointers FIFO */
+    uint32_t sz;	       /*!< Number of bytes of rlp */
+    uint8_t b[];	       /*!< Bytes of RLP stored here */
+} urlp;
+
 // private
 uint32_t urlp_print_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
@@ -68,6 +78,10 @@ uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
 }
 
 uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
+
+urlp* urlp_item() {
+    return urlp_alloc(0);  //
+}
 
 urlp* urlp_item(const uint8_t* b, uint32_t sz) {
     urlp* rlp = NULL;

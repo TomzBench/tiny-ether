@@ -12,17 +12,10 @@ extern "C" {
 
 #include "urlp_config.h"
 
-/**
- * @brief urlp context
- * extra padding b[] for node rlp.
- */
-typedef struct urlp {
-    struct urlp *next, *child;
-    uint32_t sz;
-    uint8_t b[];
-} urlp;
+typedef struct urlp urlp; /*!< opaque class */
 
 urlp* urlp_alloc(uint32_t);
+urlp* urlp_list();
 urlp* urlp_item(const uint8_t*, uint32_t);
 urlp* urlp_push(urlp*, urlp*);
 uint32_t urlp_size(urlp* rlp);
