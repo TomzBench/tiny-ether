@@ -83,7 +83,7 @@ urlp* urlp_list() {
     return urlp_alloc(0);  //
 }
 
-urlp* urlp_item(const uint8_t* b, uint32_t sz) {
+urlp* urlp_item_uint8(const uint8_t* b, uint32_t sz) {
     urlp* rlp = NULL;
     uint32_t size;
     if (sz == 0) {

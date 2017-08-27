@@ -13,6 +13,7 @@
 #include <string.h>
 
 #define URLP_CONFIG_ANYSIZE_ARRAY 1
+#define URLP_IS_BIGENDIAN 1
 
 #define urlp_malloc_fn malloc
 #define urlp_free_fn free
