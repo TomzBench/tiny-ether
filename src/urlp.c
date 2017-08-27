@@ -70,6 +70,7 @@ uint32_t urlp_print_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
 uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
     uint32_t szsz = urlp_szsz(s);
     uint8_t(*x)[4] = (uint8_t(*)[4])(&s);
+    // TODO - this assumes sz is big endian...
     if (b) {  // caller may pass null to learn length
 	for (int i = 0; i < szsz; i++) b[--*c] = *x[i];
 	b[--*c] = p + szsz;
@@ -81,6 +82,21 @@ uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
 
 urlp* urlp_list() {
     return urlp_alloc(0);  //
+}
+
+urlp* urlp_item_uint64(const uint64_t* b, uint32_t sz) {
+    // TODO - create new byte array on stack of correct size and re order
+    // bytes based on endianess. Then forward new bytes to urlp_item_uint8(...
+}
+
+urlp* urlp_item_uint32(const uint32_t* b, uint32_t sz) {
+    // TODO - create new byte array on stack of correct size and re order
+    // bytes based on endianess. Then forward new bytes to urlp_item_uint8(...
+}
+
+urlp* urlp_item_uint16(const uint16_t* b, uint32_t sz) {
+    // TODO - create new byte array on stack of correct size and re order
+    // bytes based on endianess. Then forward new bytes to urlp_item_uint8(...
 }
 
 urlp* urlp_item_uint8(const uint8_t* b, uint32_t sz) {
