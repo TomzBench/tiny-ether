@@ -40,6 +40,8 @@ uint8_t rlp_random[] = {
     '\xc1', '\x80',					   // [""]
     '\x85', 's',    'h', 'e', 'e', 'p'			   // "sheep"
 };
+uint8_t rlp_wat[] = {'\xc7', '\xc0', '\xc1', '\xc0',
+		     '\xc3', '\xc0', '\xc1', '\xc0'};
 
 int test_item(uint8_t *, uint32_t, urlp *);
 
@@ -78,6 +80,16 @@ int main(int argc, char *argv[]) {
     // [[[]]]
     rlp = urlp_push(urlp_list(), urlp_push(urlp_list(), urlp_list()));
     err |= test_item(rlp_empty_nest, sizeof(rlp_empty_nest), rlp);
+    urlp_free(&rlp);
+
+    //[[],[[]],[ [],[[]] ] ]
+    rlp = urlp_list();
+    urlp_push(rlp, urlp_list());
+    urlp_push(rlp, urlp_push(urlp_list(), urlp_list()));
+    urlp_push(rlp, urlp_push(urlp_push(urlp_list(), urlp_list()),  //
+			     urlp_push(urlp_list(), urlp_list()))  //
+	      );
+    err |= test_item(rlp_wat, sizeof(rlp_wat), rlp);
     urlp_free(&rlp);
 
     // "cat"
