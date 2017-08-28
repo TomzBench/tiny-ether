@@ -50,12 +50,16 @@ uint8_t rlp_wat[] = {'\xc7', '\xc0', '\xc1', '\xc0',
 		     '\xc3', '\xc0', '\xc1', '\xc0'};
 
 int test_u8();
+int test_u16();
+int test_u32();
 int test_u64();
 int test_item(uint8_t *, uint32_t, urlp *);
 
 int main(int argc, char *argv[]) {
     int err = 0;
     err |= test_u8();
+    err |= test_u16();
+    err |= test_u32();
     err |= test_u64();
     return err;
 }
@@ -155,10 +159,71 @@ int test_u8() {
     return err;
 }
 
+int test_u16() {
+    int err = 0;
+    uint16_t cat[] = {'c', 'a', 't'};  //
+    uint16_t half[] = {0x100};
+    uint16_t max[] = {0xffff};
+    uint16_t onefive[] = {0x000f};
+    urlp *rlp;
+
+    rlp = urlp_item_u16(cat, 3);
+    err |= test_item(rlp_cat, sizeof(rlp_cat), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u16(max, 1);
+    err |= test_item(rlp_max16, sizeof(rlp_max16), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u16(half, 1);
+    err |= test_item(rlp_half16, sizeof(rlp_half16), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u16(NULL, 0);
+    err |= test_item(rlp_null, sizeof(rlp_null), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u16(onefive, 1);
+    err |= test_item(rlp_15, sizeof(rlp_15), rlp);
+    urlp_free(&rlp);
+
+    return err;
+}
+
+int test_u32() {
+    int err = 0;
+    uint32_t cat[] = {'c', 'a', 't'};  //
+    uint32_t half[] = {0x10000};
+    uint32_t max[] = {0xffffff};
+    uint32_t onefive[] = {0x00000f};
+    urlp *rlp;
+
+    rlp = urlp_item_u32(cat, 3);
+    err |= test_item(rlp_cat, sizeof(rlp_cat), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u32(max, 1);
+    err |= test_item(rlp_max32, sizeof(rlp_max32), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u32(half, 1);
+    err |= test_item(rlp_half32, sizeof(rlp_half32), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u32(NULL, 0);
+    err |= test_item(rlp_null, sizeof(rlp_null), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u32(onefive, 1);
+    err |= test_item(rlp_15, sizeof(rlp_15), rlp);
+    urlp_free(&rlp);
+
+    return err;
+}
+
 int test_u64() {
     int err = 0;
     uint64_t cat[] = {'c', 'a', 't'};  //
-    // uint64_t zero[] = {0x00000000};
     uint64_t half[] = {0x1000000};
     uint64_t max[] = {0xffffffff};
     uint64_t onefive[] = {0x0000000f};
