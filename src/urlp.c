@@ -32,11 +32,11 @@ typedef struct urlp {
 } urlp;
 
 // private
-uint32_t urlp_print_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
-uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_szsz(uint32_t);  // size of size
+uint32_t urlp_write_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
+uint32_t urlp_write_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_write_big_endian(uint8_t*, const void*, int);
-uint32_t urlp_print_big_endian(uint8_t*, const void*, uint32_t, int);
+uint32_t urlp_write_n_big_endian(uint8_t*, const void*, uint32_t, int);
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
 urlp* urlp_parse_walk(uint8_t* b);
 
@@ -61,27 +61,27 @@ void urlp_free(urlp** rlp_p) {
     }
 }
 
-uint32_t urlp_print_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
+uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
+
+uint32_t urlp_write_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
     if (s <= 55) {
 	if (b) b[--*(c)] = p + s;  // ie: b[x] = 0xc0 + sz
 	return 1;
     } else {
-	return urlp_print_szsz(b, c, s, p);
+	return urlp_write_szsz(b, c, s, p);
     }
 }
 
-uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
+uint32_t urlp_write_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
     uint32_t szsz = urlp_szsz(s);
     *c -= szsz;
-    urlp_print_big_endian(&b[*c], &s, 1, 4);
+    urlp_write_big_endian(&b[*c], &s, 4);
     if (b) b[--*c] = p + szsz;
     return szsz + 1;
 }
 
-uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
-
-uint32_t urlp_print_big_endian(uint8_t* b, const void* dat, uint32_t len,
-			       int szof) {
+uint32_t urlp_write_n_big_endian(uint8_t* b, const void* dat, uint32_t len,
+				 int szof) {
     uint32_t spot = 0, n;
     while (len--) {
 	n = urlp_write_big_endian(&b[spot], dat, szof);
@@ -137,21 +137,21 @@ urlp* urlp_list() {
 urlp* urlp_item_u64(const uint64_t* b, uint32_t sz) {
     uint32_t blen = sz * sizeof(uint64_t);  // worstcase
     uint8_t bytes[blen];
-    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint64_t));
+    uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint64_t));
     return urlp_item_u8(bytes, len);
 }
 
 urlp* urlp_item_u32(const uint32_t* b, uint32_t sz) {
     uint32_t blen = sz * sizeof(uint32_t);  // worstcase
     uint8_t bytes[blen];
-    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint32_t));
+    uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint32_t));
     return urlp_item_u8(bytes, len);
 }
 
 urlp* urlp_item_u16(const uint16_t* b, uint32_t sz) {
     uint32_t blen = sz * sizeof(uint16_t);  // worstcase
     uint8_t bytes[blen];
-    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint16_t));
+    uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint16_t));
     return urlp_item_u8(bytes, len);
 }
 
@@ -178,7 +178,7 @@ urlp* urlp_item_u8(const uint8_t* b, uint32_t sz) {
 	rlp = urlp_alloc(size);
 	if (rlp) {
 	    for (int i = sz; i; i--) rlp->b[--size] = b[i - 1];
-	    urlp_print_szsz(rlp->b, &size, sz, 0xb7);
+	    urlp_write_szsz(rlp->b, &size, sz, 0xb7);
 	}
     }
     return rlp;
@@ -257,18 +257,23 @@ uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
 	sz += rlp->sz;
 	rlp = rlp->next;
     }
-    sz += urlp_print_sz(b, spot, sz, 0xc0);
+    sz += urlp_write_sz(b, spot, sz, 0xc0);
     return sz;
 }
 
+// TODO require actual length of bytes parsing to validate encoding with
+// received data...
 urlp* urlp_parse(uint8_t* b) {
     urlp* rlp = NULL;
-    uint32_t sz;
     if (!b) return NULL;
     if (*b < 0xc0) {
 	// Handle case where this is a single item and not a list
-	if (*b < 0xb7) {
+	if (*b < 0x80) {
+	    rlp = urlp_item(b, 1);
 	} else {
+	    // TODO read sz of sz and read_big_endian sz bytes...
+	    // Then skip sz of sz + 1 (for prefix) and read item.
+	    // rlp = urlp_item(b+szsz+1,size);
 	}
     } else {
 	if (*b > 0xc0) {
@@ -279,6 +284,7 @@ urlp* urlp_parse(uint8_t* b) {
 	    return urlp_list();
 	}
     }
+    return rlp;
 }
 
 urlp* urlp_parse_walk(uint8_t* b) {
