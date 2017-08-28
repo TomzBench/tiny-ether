@@ -80,13 +80,14 @@ uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
 
 uint32_t urlp_print_big_endian(uint8_t* b, const void* dat, uint32_t len,
 			       int szof) {
+    // TODO - portable ?
     //[0x01,0x00,0x00,0x00] uint32_t int = 1; // little endian
     //[0x00,0x00,0x00,0x01] uint32_t int = 1; // big endian
-    // Since writing bigendian we want lsb to be last while writing bytes
     static int test = 1; /*!< endianess test */
     uint8_t *start, *end, *x;
     int inc;
     if (*(char*)&test) {
+	// Since writing bigendian we want lsb to be last while writing bytes
 	start = (&((uint8_t*)dat)[szof - 1]);
 	end = (&((uint8_t*)dat)[0]);
 	inc = -1;
