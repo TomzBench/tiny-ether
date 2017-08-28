@@ -35,7 +35,7 @@ typedef struct urlp {
 uint32_t urlp_print_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_szsz(uint32_t);  // size of size
-uint32_t urlp_print_big_endian(uint8_t*, const void*, uint32_t, int);
+uint32_t urlp_write_big_endian(uint8_t*, const void*, uint32_t, int);
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
 urlp* urlp_parse_walk(uint8_t* b);
 
@@ -72,14 +72,14 @@ uint32_t urlp_print_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
 uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
     uint32_t szsz = urlp_szsz(s);
     *c -= szsz;
-    urlp_print_big_endian(&b[*c], &s, 1, 4);
+    urlp_write_big_endian(&b[*c], &s, 1, 4);
     if (b) b[--*c] = p + szsz;
     return szsz + 1;
 }
 
 uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
 
-uint32_t urlp_print_big_endian(uint8_t* b, const void* dat, uint32_t len,
+uint32_t urlp_write_big_endian(uint8_t* b, const void* dat, uint32_t len,
 			       int szof) {
     // TODO - portable ?
     //[0x01,0x00,0x00,0x00] uint32_t int = 1; // little endian
@@ -130,21 +130,21 @@ urlp* urlp_list() {
 urlp* urlp_item_u64(const uint64_t* b, uint32_t sz) {
     uint32_t blen = sz * sizeof(uint64_t);  // worstcase
     uint8_t bytes[blen];
-    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint64_t));
+    uint32_t len = urlp_write_big_endian(bytes, b, sz, sizeof(uint64_t));
     return urlp_item_u8(bytes, len);
 }
 
 urlp* urlp_item_u32(const uint32_t* b, uint32_t sz) {
     uint32_t blen = sz * sizeof(uint32_t);  // worstcase
     uint8_t bytes[blen];
-    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint32_t));
+    uint32_t len = urlp_write_big_endian(bytes, b, sz, sizeof(uint32_t));
     return urlp_item_u8(bytes, len);
 }
 
 urlp* urlp_item_u16(const uint16_t* b, uint32_t sz) {
     uint32_t blen = sz * sizeof(uint16_t);  // worstcase
     uint8_t bytes[blen];
-    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint16_t));
+    uint32_t len = urlp_write_big_endian(bytes, b, sz, sizeof(uint16_t));
     return urlp_item_u8(bytes, len);
 }
 
