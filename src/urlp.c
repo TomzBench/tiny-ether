@@ -37,6 +37,7 @@ uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_szsz(uint32_t);  // size of size
 uint32_t urlp_print_big_endian(uint8_t*, const void*, uint32_t, int);
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
+urlp* urlp_parse_walk(uint8_t* b);
 
 urlp* urlp_alloc(uint32_t sz) {
     urlp* rlp = NULL;
@@ -251,6 +252,42 @@ uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
     }
     sz += urlp_print_sz(b, spot, sz, 0xc0);
     return sz;
+}
+
+urlp* urlp_parse(uint8_t* b) {
+    urlp* rlp = NULL;
+    if (!b) return NULL;
+    if (*b < 0xc0) {
+	// Handle case where this is a single item and not a list
+    } else {
+	if (*b > 0xc0) {
+	    // regular list
+	    rlp = urlp_parse_walk(++b);
+	} else {
+	    // empty list []
+	    return urlp_list();
+	}
+    }
+}
+
+urlp* urlp_parse_walk(uint8_t* b) {
+    urlp* rlp = NULL;
+    while (b) {
+	if (*b >= 0xc0) {
+	    // This is a list.
+	    if (*b == 0xc0) {
+		// Push empty list
+		rlp = urlp_push(rlp, urlp_list());
+		b++;
+	    } else {
+		// Push list of items into our list (recursive.)
+		rlp = urlp_push(rlp, urlp_parse_walk(++b));
+	    }
+	} else {
+	    // This is an item.
+	}
+    }
+    return rlp;
 }
 
 //
