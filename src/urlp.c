@@ -61,7 +61,7 @@ void urlp_free(urlp** rlp_p) {
 
 uint32_t urlp_print_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
     if (s <= 55) {
-	if (b) b[--*(c)] = p + s;  // b[x] = 0x?? + sz
+	if (b) b[--*(c)] = p + s;  // ie: b[x] = 0xc0 + sz
 	return 1;
     } else {
 	return urlp_print_szsz(b, c, s, p);
