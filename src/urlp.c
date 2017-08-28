@@ -35,6 +35,7 @@ typedef struct urlp {
 uint32_t urlp_print_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_print_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_szsz(uint32_t);  // size of size
+uint32_t urlp_print_big_endian(uint8_t*, const void*, uint32_t, int);
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
 
 urlp* urlp_alloc(uint32_t sz) {
@@ -69,37 +70,83 @@ uint32_t urlp_print_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
 
 uint32_t urlp_print_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p) {
     uint32_t szsz = urlp_szsz(s);
-    uint8_t(*x)[4] = (uint8_t(*)[4])(&s);
-    // TODO - this assumes sz is big endian...
-    if (b) {  // caller may pass null to learn length
-	for (int i = 0; i < szsz; i++) b[--*c] = *x[i];
-	b[--*c] = p + szsz;
-    }
+    *c -= szsz;
+    urlp_print_big_endian(&b[*c], &s, 1, 4);
+    if (b) b[--*c] = p + szsz;
     return szsz + 1;
 }
 
 uint32_t urlp_szsz(uint32_t size) { return 4 - (urlp_clz_fn(size) / 8); }
 
+uint32_t urlp_print_big_endian(uint8_t* b, const void* dat, uint32_t len,
+			       int szof) {
+    //[0x01,0x00,0x00,0x00] uint32_t int = 1; // little endian
+    //[0x00,0x00,0x00,0x01] uint32_t int = 1; // big endian
+    // Since writing bigendian we want lsb to be last while writing bytes
+    static int test = 1; /*!< endianess test */
+    uint8_t *start, *end, *x;
+    int inc;
+    if (*(char*)&test) {
+	start = (&((uint8_t*)dat)[szof - 1]);
+	end = (&((uint8_t*)dat)[0]);
+	inc = -1;
+    } else {
+	start = (&((uint8_t*)dat)[0]);
+	end = (&((uint8_t*)dat)[szof - 1]);
+	inc = 1;
+    }
+    int hit = 0;       /*!< start writting bits */
+    uint32_t spot = 0; /*!< Bytes written */
+    while (len--) {    // Loop callers array
+	hit = 0;
+	for (x = start; x != &end[inc]; x += inc) {
+	    if (*x) {
+		if (!hit) hit = 1;
+		if (b) b[spot] = *x;
+		spot++;
+	    } else {
+		if (hit) {
+		    if (b) b[spot] = *x;
+		    spot++;
+		}
+	    }
+	}
+	if (!hit) {
+	    if (b) b[spot] = 0;
+	    spot++;
+	}
+	start += szof;
+	end += szof;
+    }
+    return spot;
+}
+
 urlp* urlp_list() {
     return urlp_alloc(0);  //
 }
 
-urlp* urlp_item_uint64(const uint64_t* b, uint32_t sz) {
-    // TODO - create new byte array on stack of correct size and re order
-    // bytes based on endianess. Then forward new bytes to urlp_item_uint8(...
+urlp* urlp_item_u64(const uint64_t* b, uint32_t sz) {
+    uint32_t blen = sz * sizeof(uint64_t);  // worstcase
+    uint8_t bytes[blen];
+    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint64_t));
+    return urlp_item_u8(bytes, len);
 }
 
-urlp* urlp_item_uint32(const uint32_t* b, uint32_t sz) {
-    // TODO - create new byte array on stack of correct size and re order
-    // bytes based on endianess. Then forward new bytes to urlp_item_uint8(...
+urlp* urlp_item_u32(const uint32_t* b, uint32_t sz) {
+    uint32_t blen = sz * sizeof(uint32_t);  // worstcase
+    uint8_t bytes[blen];
+    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint32_t));
+    return urlp_item_u8(bytes, len);
 }
 
-urlp* urlp_item_uint16(const uint16_t* b, uint32_t sz) {
-    // TODO - create new byte array on stack of correct size and re order
-    // bytes based on endianess. Then forward new bytes to urlp_item_uint8(...
+urlp* urlp_item_u16(const uint16_t* b, uint32_t sz) {
+    uint32_t blen = sz * sizeof(uint16_t);  // worstcase
+    uint8_t bytes[blen];
+    uint32_t len = urlp_print_big_endian(bytes, b, sz, sizeof(uint16_t));
+    return urlp_item_u8(bytes, len);
 }
 
-urlp* urlp_item_uint8(const uint8_t* b, uint32_t sz) {
+urlp* urlp_item_u8(const uint8_t* b, uint32_t sz) {
     urlp* rlp = NULL;
     uint32_t size;
     if (sz == 0) {

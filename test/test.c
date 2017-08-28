@@ -9,6 +9,12 @@ uint8_t rlp_empty_nest[] = {'\xc2', '\xc1', '\xc0'};
 uint8_t rlp_cat[] = {'\x83', 'c', 'a', 't'};
 uint8_t rlp_dog[] = {'\x83', 'd', 'o', 'g'};
 uint8_t rlp_catdog[] = {'\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
+uint8_t rlp_max64[] = {'\x84', '\xff', '\xff', '\xff', '\xff'};
+uint8_t rlp_half64[] = {'\x84', '\x01', '\x00', '\x00', '\x00'};
+uint8_t rlp_max32[] = {'\x83', '\xff', '\xff', '\xff'};
+uint8_t rlp_half32[] = {'\x83', '\x01', '\x00', '\x00'};
+uint8_t rlp_max16[] = {'\x82', '\xff', '\xff'};
+uint8_t rlp_half16[] = {'\x82', '\x01', '\x00'};
 uint8_t rlp_catdogpig[] = {
     '\xcc',		    //
     '\x83', 'c', 'a', 't',  //
@@ -43,9 +49,18 @@ uint8_t rlp_random[] = {
 uint8_t rlp_wat[] = {'\xc7', '\xc0', '\xc1', '\xc0',
 		     '\xc3', '\xc0', '\xc1', '\xc0'};
 
+int test_u8();
+int test_u64();
 int test_item(uint8_t *, uint32_t, urlp *);
 
 int main(int argc, char *argv[]) {
+    int err = 0;
+    err |= test_u8();
+    err |= test_u64();
+    return err;
+}
+
+int test_u8() {
     int err = 0;
     char *lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
     urlp *rlp;
@@ -135,6 +150,38 @@ int main(int argc, char *argv[]) {
     urlp_push(rlp, urlp_push(NULL, urlp_item("", 0)));
     urlp_push(rlp, urlp_item("sheep", 5));
     err |= test_item(rlp_random, sizeof(rlp_random), rlp);
+    urlp_free(&rlp);
+
+    return err;
+}
+
+int test_u64() {
+    int err = 0;
+    uint64_t cat[] = {'c', 'a', 't'};  //
+    // uint64_t zero[] = {0x00000000};
+    uint64_t half[] = {0x1000000};
+    uint64_t max[] = {0xffffffff};
+    uint64_t onefive[] = {0x0000000f};
+    urlp *rlp;
+
+    rlp = urlp_item_u64(cat, 3);
+    err |= test_item(rlp_cat, sizeof(rlp_cat), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u64(max, 1);
+    err |= test_item(rlp_max64, sizeof(rlp_max64), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u64(half, 1);
+    err |= test_item(rlp_half64, sizeof(rlp_half64), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u64(NULL, 0);
+    err |= test_item(rlp_null, sizeof(rlp_null), rlp);
+    urlp_free(&rlp);
+
+    rlp = urlp_item_u64(onefive, 1);
+    err |= test_item(rlp_15, sizeof(rlp_15), rlp);
     urlp_free(&rlp);
 
     return err;
