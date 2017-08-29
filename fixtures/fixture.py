@@ -42,7 +42,6 @@ def main():
 
     # wait for interupt
     evt = gevent.event.Event()
-    # gevent.signal(signal.SIGQUIT, gevent.kill) ## killall pattern
     gevent.signal(signal.SIGQUIT, evt.set)
     gevent.signal(signal.SIGTERM, evt.set)
     gevent.signal(signal.SIGINT, evt.set)
