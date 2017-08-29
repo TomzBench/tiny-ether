@@ -99,7 +99,7 @@ uint32_t urlp_write_big_endian(uint8_t* b, const void* dat, int szof) {
     //[0x00,0x00,0x00,0x01] uint32_t int = 1; // big endian
     static int test = 1; /*!< endianess test */
     uint8_t* x;		 /*!< inner bytes ptr */
-    uint32_t spot = 0;   /*!< Bytes written */
+    uint32_t c = 0;      /*!< Bytes written */
     int hit = 0;	 /*!< start writing bytes */
     int inc;		 /*!< ptr(++/--) */
     if (*(char*)&test) { /*!< if little endian (start at end) */
@@ -113,21 +113,21 @@ uint32_t urlp_write_big_endian(uint8_t* b, const void* dat, int szof) {
     while (szof--) {
 	if (*x) {
 	    if (!hit) hit = 1;
-	    if (b) b[spot] = *x;
-	    spot++;
+	    if (b) b[c] = *x;
+	    c++;
 	} else {
 	    if (hit) {
-		if (b) b[spot] = *x;
-		spot++;
+		if (b) b[c] = *x;
+		c++;
 	    }
 	}
 	x += inc;
     }
     if (!hit) {
-	if (b) b[spot] = 0;
-	spot++;
+	if (b) b[c] = 0;
+	c++;
     }
-    return spot;
+    return c;
 }
 
 uint32_t urlp_read_sz(uint8_t* b, uint32_t* result, uint8_t p) {
