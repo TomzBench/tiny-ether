@@ -110,6 +110,7 @@ uint32_t urlp_write_big_endian(uint8_t* b, const void* dat, int szof) {
     hit = 0;
     while (szof--) {
 	if (*x) hit = 1;
+	// If last byte, or already set msb or *x has weight.
 	if (hit || *x || !szof) {
 	    if (b) b[c] = *x;
 	    c++;
