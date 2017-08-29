@@ -37,8 +37,10 @@ uint32_t urlp_write_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_write_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_write_big_endian(uint8_t*, const void*, int);
 uint32_t urlp_write_n_big_endian(uint8_t*, const void*, uint32_t, int);
+uint32_t urlp_read_sz(uint8_t* b, uint32_t* result, uint8_t prefix);
+uint32_t urlp_read_big_endian(uint8_t* b, const void* dat, int szof);
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
-urlp* urlp_parse_walk(uint8_t* b);
+urlp* urlp_parse_walk(uint8_t* b, uint32_t l);
 
 urlp* urlp_alloc(uint32_t sz) {
     urlp* rlp = NULL;
@@ -96,22 +98,19 @@ uint32_t urlp_write_big_endian(uint8_t* b, const void* dat, int szof) {
     //[0x01,0x00,0x00,0x00] uint32_t int = 1; // little endian
     //[0x00,0x00,0x00,0x01] uint32_t int = 1; // big endian
     static int test = 1; /*!< endianess test */
-    uint8_t *start, *end, *x;
-    uint32_t spot = 0; /*!< Bytes written */
-    int hit = 0;       /*!< start writting bits */
-    int inc;
-    if (*(char*)&test) {
-	// Since writing bigendian we want lsb to be last while writing bytes
-	start = (&((uint8_t*)dat)[szof - 1]);
-	end = (&((uint8_t*)dat)[0]);
+    uint8_t* x;		 /*!< inner bytes ptr */
+    uint32_t spot = 0;   /*!< Bytes written */
+    int hit = 0;	 /*!< start writing bytes */
+    int inc;		 /*!< ptr(++/--) */
+    if (*(char*)&test) { /*!< if little endian (start at end) */
+	x = (&((uint8_t*)dat)[szof - 1]);
 	inc = -1;
     } else {
-	start = (&((uint8_t*)dat)[0]);
-	end = (&((uint8_t*)dat)[szof - 1]);
+	x = (&((uint8_t*)dat)[0]);
 	inc = 1;
     }
     hit = 0;
-    for (x = start; x != &end[inc]; x += inc) {
+    while (szof--) {
 	if (*x) {
 	    if (!hit) hit = 1;
 	    if (b) b[spot] = *x;
@@ -122,12 +121,42 @@ uint32_t urlp_write_big_endian(uint8_t* b, const void* dat, int szof) {
 		spot++;
 	    }
 	}
+	x += inc;
     }
     if (!hit) {
 	if (b) b[spot] = 0;
 	spot++;
     }
     return spot;
+}
+
+uint32_t urlp_read_sz(uint8_t* b, uint32_t* result, uint8_t p) {
+    uint32_t szsz = *b - p;
+    if (szsz <= 55) {
+	*result = szsz;
+	return 1;
+    } else {
+	return urlp_read_big_endian(++b, result, szsz) + 1;
+    }
+}
+
+uint32_t urlp_read_big_endian(uint8_t* b, const void* dat, int szof) {
+    static int test = 1; /*!< endianess test */
+    uint8_t* x;		 /*!< inner bytes ptr */
+    uint32_t spot = 0;   /*!< Bytes written */
+    int inc;		 /*!< ptr(++/--) */
+    if (*(char*)&test) { /*!< if little endian (start at end) */
+	x = (&((uint8_t*)dat)[szof - 1]);
+	inc = -1;
+    } else {
+	x = (&((uint8_t*)dat)[0]);
+	inc = 1;
+    }
+    ((void)spot);
+    ((void)inc);
+    ((void)x);
+    while (szof--) {
+    }
 }
 
 urlp* urlp_list() {
@@ -263,13 +292,13 @@ uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
 
 // TODO require actual length of bytes parsing to validate encoding with
 // received data...
-urlp* urlp_parse(uint8_t* b) {
+urlp* urlp_parse(uint8_t* b, uint32_t l) {
     urlp* rlp = NULL;
     if (!b) return NULL;
     if (*b < 0xc0) {
 	// Handle case where this is a single item and not a list
 	if (*b < 0x80) {
-	    rlp = urlp_item(b, 1);
+	    rlp = l == 1 ? urlp_item(b, 1) : NULL;
 	} else {
 	    // TODO read sz of sz and read_big_endian sz bytes...
 	    // Then skip sz of sz + 1 (for prefix) and read item.
@@ -278,7 +307,7 @@ urlp* urlp_parse(uint8_t* b) {
     } else {
 	if (*b > 0xc0) {
 	    // regular list
-	    rlp = urlp_parse_walk(++b);
+	    rlp = urlp_parse_walk(++b, l);
 	} else {
 	    // empty list []
 	    return urlp_list();
@@ -287,7 +316,7 @@ urlp* urlp_parse(uint8_t* b) {
     return rlp;
 }
 
-urlp* urlp_parse_walk(uint8_t* b) {
+urlp* urlp_parse_walk(uint8_t* b, uint32_t l) {
     urlp* rlp = NULL;
     while (b) {
 	if (*b >= 0xc0) {
@@ -298,7 +327,7 @@ urlp* urlp_parse_walk(uint8_t* b) {
 		b++;
 	    } else {
 		// Push list of items into our list (recursive.)
-		rlp = urlp_push(rlp, urlp_parse_walk(++b));
+		rlp = urlp_push(rlp, urlp_parse_walk(++b, l - 1));
 	    }
 	} else {
 	    // This is an item.
