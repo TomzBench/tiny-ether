@@ -134,6 +134,7 @@ uint32_t urlp_read_big_endian(void* dat, int szof, uint8_t* b) {
 
 uint32_t urlp_read_sz(uint8_t* b, uint32_t* result) {
     uint32_t sz = 0, szsz = 0;
+    *result = 0;
     if (*b <= 0x80) {
 	*result = 1;
 	sz = 0;
@@ -291,8 +292,6 @@ uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot) {
     return sz;
 }
 
-// TODO require actual length of bytes parsing to validate encoding with
-// received data...
 urlp* urlp_parse(uint8_t* b, uint32_t l) {
     urlp* rlp = NULL;
     if (!b) return NULL;
@@ -326,14 +325,12 @@ urlp* urlp_parse_walk(uint8_t* b, uint32_t l) {
 		b++;
 	    } else {
 		// Push list of items into our list (recursive.)
-		sz = 0;
 		b += urlp_read_sz(b, &sz);
 		rlp = urlp_push(rlp, urlp_parse_walk(b, sz));
 		b += sz;
 	    }
 	} else {
 	    // This is an item.
-	    sz = 0;  //
 	    b += urlp_read_sz(b, &sz);
 	    rlp = urlp_push(rlp, urlp_item(b, sz));
 	    b += sz;
