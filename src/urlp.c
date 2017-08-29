@@ -38,7 +38,6 @@ uint32_t urlp_write_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
 uint32_t urlp_write_big_endian(uint8_t*, const void*, int);
 uint32_t urlp_write_n_big_endian(uint8_t*, const void*, uint32_t, int);
 uint32_t urlp_read_sz(uint8_t* b, uint32_t* result, uint8_t prefix);
-uint32_t urlp_read_big_endian(uint8_t* b, const void* dat, int szof);
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
 urlp* urlp_parse_walk(uint8_t* b, uint32_t l);
 
@@ -94,7 +93,6 @@ uint32_t urlp_write_n_big_endian(uint8_t* b, const void* dat, uint32_t len,
 }
 
 uint32_t urlp_write_big_endian(uint8_t* b, const void* dat, int szof) {
-    // TODO - portable ?
     //[0x01,0x00,0x00,0x00] uint32_t int = 1; // little endian
     //[0x00,0x00,0x00,0x01] uint32_t int = 1; // big endian
     static int test = 1; /*!< endianess test */
@@ -111,21 +109,12 @@ uint32_t urlp_write_big_endian(uint8_t* b, const void* dat, int szof) {
     }
     hit = 0;
     while (szof--) {
-	if (*x) {
-	    if (!hit) hit = 1;
+	if (*x) hit = 1;
+	if (hit || *x || !szof) {
 	    if (b) b[c] = *x;
 	    c++;
-	} else {
-	    if (hit) {
-		if (b) b[c] = *x;
-		c++;
-	    }
 	}
 	x += inc;
-    }
-    if (!hit) {
-	if (b) b[c] = 0;
-	c++;
     }
     return c;
 }
@@ -136,26 +125,8 @@ uint32_t urlp_read_sz(uint8_t* b, uint32_t* result, uint8_t p) {
 	*result = szsz;
 	return 1;
     } else {
-	return urlp_read_big_endian(++b, result, szsz) + 1;
-    }
-}
-
-uint32_t urlp_read_big_endian(uint8_t* b, const void* dat, int szof) {
-    static int test = 1; /*!< endianess test */
-    uint8_t* x;		 /*!< inner bytes ptr */
-    uint32_t spot = 0;   /*!< Bytes written */
-    int inc;		 /*!< ptr(++/--) */
-    if (*(char*)&test) { /*!< if little endian (start at end) */
-	x = (&((uint8_t*)dat)[szof - 1]);
-	inc = -1;
-    } else {
-	x = (&((uint8_t*)dat)[0]);
-	inc = 1;
-    }
-    ((void)spot);
-    ((void)inc);
-    ((void)x);
-    while (szof--) {
+	*result = 0;
+	return 0;
     }
 }
 
