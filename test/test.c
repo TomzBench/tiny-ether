@@ -236,6 +236,8 @@ int test_item(uint8_t *rlp, uint32_t rlplen, urlp **item_p) {
     if (memcmp(rlp, result, rlplen)) goto EXIT;
     urlp_free(&item);
 
+    memset(result, 0, rlplen);
+
     // Check decoded
     item = urlp_parse(rlp, rlplen);
     len = urlp_print(item, result, rlplen);
