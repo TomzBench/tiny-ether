@@ -18,6 +18,7 @@ typedef struct urlp urlp; /*!< opaque class */
 #define urlp_is_list(rlp) (!(rlp->sz)) /*!< empty node signal start of list */
 
 urlp* urlp_alloc(uint32_t);
+void urlp_free(urlp**);
 urlp* urlp_list();
 urlp* urlp_item_u64(const uint64_t*, uint32_t sz);
 urlp* urlp_item_u32(const uint32_t*, uint32_t sz);
@@ -28,7 +29,6 @@ uint32_t urlp_size(urlp* rlp);
 const uint8_t* urlp_data(urlp* rlp);
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t sz);
 urlp* urlp_parse(uint8_t* b, uint32_t);
-void urlp_free(urlp**);
 
 #ifdef __cplusplus
 }
