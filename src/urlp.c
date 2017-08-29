@@ -227,7 +227,7 @@ urlp* urlp_push(urlp* parent, urlp* child) {
 	// this, and require caller to be more explicit when creating list or an
 	// item... ie: if (!urlp_is_list(parent))return NULL; ...
 	// Right now this code supports turning single items into list for them.
-	parent = urlp_push(urlp_alloc(0), parent);
+	parent = urlp_push(urlp_list(), parent);
     }
     if (parent->child) {
 	child->next = parent->child;
