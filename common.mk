@@ -41,7 +41,6 @@ valgrind_%: %
 
 clean_%: 
 	@echo "CLEAN"
-	@echo ${obj-y}
 	@rm -rf ./${obj-y} ./${relobj-y} $(patsubst clean_%,%,$@)
 
 #

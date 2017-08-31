@@ -9,7 +9,7 @@ SRCDIR:=./src
 incs+= \
        -I../micro-board/linux-emu/
 
-CFLAGS?=-O0 -g -Wall -DNDEBUG -DURLP_CONFIG_LINUX_EMU 
+CFLAGS?=-O0 -g -Wall -DNDEBUG -DURLPX_CONFIG_LINUX_EMU 
 CC:=cc -std=gnu11  -I${INCDIR} -I${SRCDIR} -I./external/klib
 
 # create dirs
