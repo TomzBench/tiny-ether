@@ -50,20 +50,9 @@ ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 	@echo "  CC $@"
 	@${CC} -c ${CFLAGS} ${LDFLAGS} $< -o $@ 
 
-.PHONY: cscope clean print
-cscope:
-	find . \
-		\( -name '*.c' -o -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) -print > cscope.files
-		cscope -b 
+.PHONY: clean
 
 clean:
 	@echo "CLEAN"
 	@rm -rf ./obj/ ${LIBDIR}/liburlp.so ${LIBDIR}/liburlp.a
 	@rm -f ${hdrs} #careful when headers is an empty /
-
-print:
-	@echo \
-		OBJECTS: ${obj-y} \
-		LIB_OBJ: ${relobj-y} \
-		HEADERS: ${hdrs} \
-		| sed -e 's/\s\+/\n/g' 
