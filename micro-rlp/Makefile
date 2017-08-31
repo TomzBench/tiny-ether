@@ -7,7 +7,6 @@ BINDIR:=${PREFIX}/bin
 SRCDIR:=./src
 
 CFLAGS?=-O0 -g -Wall -DNDEBUG -DURLP_CONFIG_LINUX_EMU 
-
 CC:=cc -std=gnu11  -I${INCDIR} -I${SRCDIR} -I./external/klib
 
 # create dirs
@@ -59,7 +58,7 @@ cscope:
 
 clean:
 	@echo "CLEAN"
-	@rm -rf ./obj/ ${LIBDIR}/liburlp.so 
+	@rm -rf ./obj/ ${LIBDIR}/liburlp.so ${LIBDIR}/liburlp.a
 	@rm -f ${hdrs} #careful when headers is an empty /
 
 print:
