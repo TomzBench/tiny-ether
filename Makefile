@@ -3,7 +3,7 @@
 .PHONY: libs clean test print
 
 libs:
-	$(MAKE) -s -C ./board/linux-emu
+	#$(MAKE) -s -C ./board/linux-emu
 	$(MAKE) -s -C ./micro-rlp
 	$(MAKE) -s -C ./micro-rlp/test
 
