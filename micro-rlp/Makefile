@@ -19,18 +19,15 @@ dirs+=${BINDIR}
 obj-y+=./obj/urlp.o
 
 # headers
-hdrs+=${INCDIR}/${BRAND}/urlp.h
-hdrs+=${INCDIR}/${BRAND}/urlp_config.h
-hdrs+=${INCDIR}/${BRAND}/urlp_config_linux_emu.h
+hdrs+=${INCDIR}/mtm/urlp.h
+hdrs+=${INCDIR}/mtm/urlp_config.h
+hdrs+=${INCDIR}/mtm/urlp_config_linux_emu.h
 
 #targets
 
-all: ${LIBDIR}/liburlp.so ${LIBDIR}/liburlp.a
+all: ${LIBDIR}/liburlp.so ${LIBDIR}/liburlp.a ${hdrs}
 
 include ../common.mk
-
-${LIBDIR}/liburlp.a: ${hdrs}
-${LIBDIR}/liburlp.so: ${hdrs}
 
 .PHONY: clean
 
