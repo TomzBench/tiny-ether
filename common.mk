@@ -16,7 +16,7 @@ relobj-y:=${obj-y:.o=.lo}
 ${dirs}:
 	${MKDIR_P} ${dirs}
 
-${LIBDIR}/%.so: ${dirs} ${relobj-y} ${hdrs}
+${LIBDIR}/%.so: ${dirs} ${relobj-y} ${obj-y} ${hdrs}
 	@echo "LINK $@"
 	@${CC} -shared ${relobj-y} ${LDFLAGS} -o $@
 

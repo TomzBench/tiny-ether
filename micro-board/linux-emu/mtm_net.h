@@ -18,18 +18,28 @@ extern "C" {
 #include <sys/socket.h>
 #include <unistd.h>
 
-typedef int mtm_socket__fd; /* item pointer */
+// net types.
+typedef unsigned char uchar;
+typedef unsigned char byte;
+typedef int mtm_socket_fd;
+typedef uint32_t mtm_ipaddr;
+typedef unsigned char mtm_macaddr[6];
+
+#ifndef hexnum
+#define hexnum(c) \
+    ((c <= '9') ? (c - '0') : ((c <= 'F') ? (c - 'A' + 10) : (c - 'a' + 10)))
+#endif
 
 int mtm_listen(int port);
 int mtm_connect(const char *, int port);
 int mtm_accept(void *);
-int mtm_accept_fd(mtm_socket__fd s);
+int mtm_accept_fd(mtm_socket_fd s);
 int mtm_recv(void *, uchar *, size_t);
-int mtm_recv_fd(mtm_socket__fd, unsigned char *buff, size_t len);
+int mtm_recv_fd(mtm_socket_fd, unsigned char *buff, size_t len);
 int mtm_send(void *, const uchar *, size_t);
-int mtm_send_fd(mtm_socket__fd, const unsigned char *, size_t len);
+int mtm_send_fd(mtm_socket_fd, const unsigned char *, size_t len);
 void mtm_close(void *);
-void mtm_close_fd(mtm_socket__fd);
+void mtm_close_fd(mtm_socket_fd);
 int mtm_select(int *sock, int nsock, int time);
 int mtm_aton(const char *str, mtm_ipaddr *ipdata);
 int mtm_atomac(const char *str, mtm_macaddr mac);
