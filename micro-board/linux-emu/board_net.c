@@ -1,4 +1,4 @@
-#include "mtm_net.h"
+#include "board_net.h"
 #include <ctype.h>
 
 int mtm_connect(const char *host, int port) {

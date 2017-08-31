@@ -1,4 +1,4 @@
-#mtm_net makefile
+#board_net makefile
 
 PREFIX:=../build
 LIBDIR:=${PREFIX}/lib
@@ -13,13 +13,12 @@ incs+=-I${SRCDIR}
 dirs+=./obj
 
 #build objects
-obj-y+=./obj/mtm_net.o
+obj-y+=./obj/board_net.o
 
-#copy headers
-hdrs+=${INCDIR}/mtm/mtm_net.h
+relobj-y:=${obj-y:.o=.lo}
 
 #targets
-all: ${dirs} ${obj-y}
+all: ${dirs} ${obj-y} ${relobj-y}
 
 include ../../common.mk
 

@@ -18,11 +18,11 @@ ${dirs}:
 
 ${LIBDIR}/%.so: ${dirs} ${relobj-y} ${obj-y} ${hdrs}
 	@echo "LINK $@"
-	@${CC} -shared ${relobj-y} ${LDFLAGS} -o $@
+	@${CC} -shared ${relobj-y} ${ld-relobj} ${LDFLAGS} -o $@
 
 ${LIBDIR}/%.a: ${dirs} ${obj-y} ${hdrs}
 	@echo "LINK $@"
-	@ar rcs $@ ${obj-y}
+	@ar rcs $@ ${obj-y} ${ld-obj}
 
 ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 	@echo "COPY $@"
