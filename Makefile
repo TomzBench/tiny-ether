@@ -9,7 +9,7 @@ libs:
 
 clean:
 	$(MAKE) -s -C ./micro-rlp clean
-	$(MAKE) -s -C ./micro-rlp/test clean
+	$(MAKE) -s -C ./micro-rlp/test clean_app_test
 
 test:
-	$(MAKE) -s -C ./micro-rlp/test valgrind
+	$(MAKE) -s -C ./micro-rlp/test valgrind_app_test

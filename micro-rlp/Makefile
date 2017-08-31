@@ -17,7 +17,6 @@ dirs+=${BINDIR}
 
 # get objects
 obj-y+=./obj/urlp.o
-relobj-y:=${obj-y:.o=.lo}
 
 # headers
 hdrs+=${INCDIR}/${BRAND}/urlp.h
