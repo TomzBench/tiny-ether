@@ -3,9 +3,14 @@
 # tell common.mk flags and file locations
 INCDIR:=../../build/include/
 SRCDIR:=./
-CFLAGS?=-O0 -g -Wall -Wno-pointer-sign -DNDEBUG -DURLP_CONFIG_LINUX_EMU 
-LDFLAGS=-L../../build/lib -l:liburlp.a
-CC:=cc -std=gnu11  -I${INCDIR} -I.
+
+defines+=-DURLP_CONFIG_LINUX_EMU
+cflags+=-Wno-pointer-sign
+
+incs+=-I../../build/include
+incs+=-I./
+
+libs+=-L../../build/lib -l:liburlp.a
 
 # create some dirs
 dirs+=./obj

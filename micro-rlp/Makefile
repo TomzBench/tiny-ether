@@ -6,8 +6,10 @@ INCDIR:=${PREFIX}/include
 BINDIR:=${PREFIX}/bin
 SRCDIR:=./src
 
-CFLAGS?=-O0 -g -Wall -DNDEBUG -DURLP_CONFIG_LINUX_EMU 
-CC:=cc -std=gnu11  -I${INCDIR} -I${SRCDIR} -I./external/klib
+defines+=-DURLP_CONFIG_LINUX_EMU
+
+incs+=-I.
+incs+=-I${SRCDIR}
 
 # create dirs
 dirs+=./obj

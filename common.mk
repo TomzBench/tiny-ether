@@ -3,6 +3,14 @@
 BRAND:=mtm
 MKDIR_P:= mkdir -p
 
+CFLAGS?=-O0 -g -Wall -DNDEBUG
+CFLAGS+= ${defines}
+CFLAGS+=${cflags}
+LDFLAGS+=${libs}
+
+CC:=cc -std=gnu11 
+CC+= ${incs}
+
 relobj-y:=${obj-y:.o=.lo}
 
 ${dirs}:
