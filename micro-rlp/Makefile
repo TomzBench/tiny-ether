@@ -1,4 +1,4 @@
-# libatx makefile
+# micro-rlp makefile
 
 PREFIX:=../build
 LIBDIR:=${PREFIX}/lib
@@ -30,25 +30,8 @@ all: ${LIBDIR}/liburlp.so ${LIBDIR}/liburlp.a
 
 include ../common.mk
 
-${LIBDIR}/liburlp.so: ${dirs} ${relobj-y} ${hdrs}
-	@echo "LINK $@"
-	@${CC} -shared ${relobj-y} ${LDFLAGS} -o ${LIBDIR}/liburlp.so
-
-${LIBDIR}/liburlp.a: ${dirs} ${obj-y} ${hdrs}
-	@echo "LINK $@"
-	@ar rcs ${LIBDIR}/liburlp.a ${obj-y}
-
-${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
-	@echo "COPY $@"
-	@cp $< $@
-
-./obj/%.lo: ${SRCDIR}/%.c
-	@echo "  CC $@"
-	@${CC} -c -fPIC ${CFLAGS} ${LDFLAGS} $< -o $@ 
-
-./obj/%.o: ${SRCDIR}/%.c
-	@echo "  CC $@"
-	@${CC} -c ${CFLAGS} ${LDFLAGS} $< -o $@ 
+${LIBDIR}/liburlp.a: ${hdrs}
+${LIBDIR}/liburlp.so: ${hdrs}
 
 .PHONY: clean
 
