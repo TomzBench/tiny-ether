@@ -25,7 +25,7 @@ incs+=-I../micro-board/linux-emu/
 # compile objects
 obj-y+=./obj/urlpx.o
 
-# linker dependencies
+# linker (external) dependencies
 ld-obj+=../micro-board/linux-emu/obj/board_net.o
 ld-relobj+=../micro-board/linux-emu/obj/board_net.lo
 

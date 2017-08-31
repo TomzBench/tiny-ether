@@ -9,14 +9,13 @@
 #include "urlpx.h"
 
 typedef struct {
-    mtm_socket_fd conn; /*!< os socket handle */  //
+    board_socket_fd conn; /*!< os socket handle */  //
 } urlpx_conn;
 
 urlpx_conn *urlpx_connect() {
     urlpx_conn *c = urlpx_malloc_fn(sizeof(urlpx_conn));
-    if (c) {
-	memset(c, 0, sizeof(urlpx_conn));
-    }
+    if (!c) return c; // early bail
+    memset(c, 0, sizeof(urlpx_conn));
     return c;
 }
 

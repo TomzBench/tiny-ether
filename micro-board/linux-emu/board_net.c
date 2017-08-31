@@ -1,12 +1,12 @@
 #include "board_net.h"
 #include <ctype.h>
 
-int mtm_connect(const char *host, int port) {
+int board_connect(const char *host, int port) {
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    mtm_socket_fd sock;
+    board_socket_fd sock;
     if ((sock = (int)socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 	return -1;
     }
@@ -19,7 +19,7 @@ int mtm_connect(const char *host, int port) {
     return sock;
 }
 
-int mtm_listen(int port) {
+int board_listen(int port) {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) return -1;
     int opt = true;
@@ -48,21 +48,21 @@ int mtm_listen(int port) {
     return sockfd;
 }
 
-mtm_socket_fd mtm_accept(void *ctx) {
-    return mtm_accept_fd(*(mtm_socket_fd *)ctx);
+board_socket_fd board_accept(void *ctx) {
+    return board_accept_fd(*(board_socket_fd *)ctx);
 }
 
-mtm_socket_fd mtm_accept_fd(mtm_socket_fd s) {
+board_socket_fd board_accept_fd(board_socket_fd s) {
     struct sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
     return accept(s, (struct sockaddr *)&addr, &addr_len);
 }
 
-int mtm_recv(void *ctx, uchar *b, size_t len) {
-    return mtm_recv_fd(*(mtm_socket_fd *)ctx, b, len);
+int board_recv(void *ctx, uchar *b, size_t len) {
+    return board_recv_fd(*(board_socket_fd *)ctx, b, len);
 }
 
-int mtm_recv_fd(int sockfd, unsigned char *b, size_t len) {
+int board_recv_fd(int sockfd, unsigned char *b, size_t len) {
     int32_t active, bytes_read = 0;
     while (bytes_read < len) {
 	const int32_t n =
@@ -71,17 +71,17 @@ int mtm_recv_fd(int sockfd, unsigned char *b, size_t len) {
 	if (n == -1) return -1;
 	if (n == 0) return bytes_read;
 	bytes_read += n;
-	active = mtm_select(&sockfd, 1, 80);
+	active = board_select(&sockfd, 1, 80);
 	if (!(active == sockfd)) break;
     }
     return bytes_read;
 }
 
-int mtm_send(void *ctx, const uchar *b, size_t len) {
-    return mtm_send_fd(*(mtm_socket_fd *)ctx, b, len);
+int board_send(void *ctx, const uchar *b, size_t len) {
+    return board_send_fd(*(board_socket_fd *)ctx, b, len);
 }
 
-int mtm_send_fd(int sockfd, const unsigned char *b, size_t len) {
+int board_send_fd(int sockfd, const unsigned char *b, size_t len) {
     size_t bytes_sent = 0;
     while (bytes_sent < len) {
 	const int32_t rc =
@@ -94,13 +94,13 @@ int mtm_send_fd(int sockfd, const unsigned char *b, size_t len) {
     return bytes_sent;
 }
 
-void mtm_close(void *ctx) {
-    return mtm_close_fd(*(mtm_socket_fd *)ctx);
+void board_close(void *ctx) {
+    return board_close_fd(*(board_socket_fd *)ctx);
 }
 
-void mtm_close_fd(mtm_socket_fd s) { close(s); }
+void board_close_fd(board_socket_fd s) { close(s); }
 
-int mtm_select(int *sock, int nsock, int time) {
+int board_select(int *sock, int nsock, int time) {
     if (!nsock) return -1;
     fd_set readfds;
     FD_ZERO(&readfds);
@@ -129,7 +129,7 @@ int mtm_select(int *sock, int nsock, int time) {
     return 0;
 }
 
-int mtm_aton(const char *str, mtm_ipaddr *ipdata) {
+int board_aton(const char *str, board_ipaddr *ipdata) {
     uint32_t num[4] = {0};
     int i, index = 0, len = strlen(str);
     uint32_t temp = 0;
@@ -166,7 +166,7 @@ int mtm_aton(const char *str, mtm_ipaddr *ipdata) {
     return 0;
 }
 
-int mtm_atomac(const char *str, mtm_macaddr mac) {
+int board_atomac(const char *str, board_macaddr mac) {
     int i, j = 0;
 
     for (i = 0; i < 16; i += 3) {
@@ -180,28 +180,28 @@ int mtm_atomac(const char *str, mtm_macaddr mac) {
     return 0;
 }
 
-int mtm_init(const char *mac) {
+int board_init(const char *mac) {
     ((void)mac);
     return 0;
 }
 
-int mtm_dhcp() {
+int board_dhcp() {
     return 0;  //
 }
-int mtm_dhcp_wait(char *ip, char *sn, char *gw) {
+int board_dhcp_wait(char *ip, char *sn, char *gw) {
     ((void)ip);
     ((void)sn);
     ((void)gw);
     return 0;
 }
-int mtm_static(const char *ip, const char *sn, const char *gw) {
+int board_static(const char *ip, const char *sn, const char *gw) {
     ((void)ip);
     ((void)sn);
     ((void)gw);
     return 0;
 }
 
-int mtm_get_ip(char *ipstr, char *snstr, char *gwstr) {
+int board_get_ip(char *ipstr, char *snstr, char *gwstr) {
     ((void)ipstr);
     ((void)snstr);
     ((void)gwstr);
