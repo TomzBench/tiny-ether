@@ -24,7 +24,6 @@ hdrs+=${INCDIR}/mtm/urlp_config.h
 hdrs+=${INCDIR}/mtm/urlp_config_linux_emu.h
 
 #targets
-
 all: ${LIBDIR}/liburlp.so ${LIBDIR}/liburlp.a ${hdrs}
 
 include ../common.mk

@@ -14,7 +14,7 @@ CC:=cc -std=gnu11  -I${INCDIR} -I${SRCDIR} -I./external/klib
 
 # create dirs
 dirs+=./obj
-dirs+=${INCDIR}/${BRAND}
+dirs+=${INCDIR}/mtm
 dirs+=${LIBDIR}
 dirs+=${BINDIR}
 
@@ -23,18 +23,14 @@ obj-y+=./obj/urlpx.o
 obj-y+=../micro-board/linux-emu/obj/mtm_net.o
 
 # headers
-hdrs+=${INCDIR}/${BRAND}/urlpx.h
-hdrs+=${INCDIR}/${BRAND}/urlpx_config.h
-hdrs+=${INCDIR}/${BRAND}/urlpx_config_linux_emu.h
+hdrs+=${INCDIR}/mtm/urlpx.h
+hdrs+=${INCDIR}/mtm/urlpx_config.h
+hdrs+=${INCDIR}/mtm/urlpx_config_linux_emu.h
 
 #targets
-
-all: ${LIBDIR}/liburlpx.so ${LIBDIR}/liburlpx.a
+all: ${LIBDIR}/liburlpx.so ${LIBDIR}/liburlpx.a ${hdrs}
 
 include ../common.mk
-
-#${LIBDIR}/liburlpx.a: ${hdrs}
-#${LIBDIR}/liburlpx.so: ${hdrs}
 
 .PHONY: clean
 
