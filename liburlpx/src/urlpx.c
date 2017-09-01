@@ -14,7 +14,7 @@ typedef struct {
 
 urlpx_conn *urlpx_connect() {
     urlpx_conn *c = urlpx_malloc_fn(sizeof(urlpx_conn));
-    if (!c) return c; // early bail
+    if (!c) return c;  // early bail
     memset(c, 0, sizeof(urlpx_conn));
     return c;
 }

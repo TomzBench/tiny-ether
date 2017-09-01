@@ -3,12 +3,12 @@
 .PHONY: libs clean test print
 
 libs:
-	$(MAKE) -s -C ./micro-rlp
-	$(MAKE) -s -C ./micro-rlp/test
+	$(MAKE) -s -C ./liburlp
+	$(MAKE) -s -C ./liburlp/test
 
 clean:
-	$(MAKE) -s -C ./micro-rlp clean
-	$(MAKE) -s -C ./micro-rlp/test clean_app_test
+	$(MAKE) -s -C ./liburlp clean
+	$(MAKE) -s -C ./liburlp/test clean_app_test
 
 test:
-	$(MAKE) -s -C ./micro-rlp/test valgrind_app_test
+	$(MAKE) -s -C ./liburlp/test valgrind_app_test
