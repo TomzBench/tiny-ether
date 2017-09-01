@@ -3,20 +3,20 @@
  *
  * @brief Encode and decode bytes and lists of bytes into rlp format.
  *
- * Summary of encoding scheme
+ * @code
+ * 	uint8_t rlp_bytes[100]; ///Some stack for encoded rlp
  *
- * [0x00,0x7f] single byte
- * [0x80,0xb7] 0-55 bytes
- * [0xb8,0xbf] 56-2^56 bytes
- * [0xc0,0xf7] 0-55 bytes of concatenated items.
- * [0xf8,0xff] 56-2^56 bytes of concatenated items.
+ * 	// ["cat","dog"] - rlp some pets
+ * 	urlp *list = urlp_list();
+ * 	urlp_push(list,"cat");
+ * 	urlp_push(list,"dog");
  *
- * Where an "item" is described with first byte < 0xc0 and a "list" is described
- * with first byte >= 0xc0 and is concatenation of items.
+ *	// print out rlp  (0xc8, 0x83, 'c', 'a', 't', 0x83, ...)
+ * 	urlp_print(list,rlp_bytes,100);
+ * 	printf("%s\n",rlp_bytes); 
  *
- * And the maximum size of an item or list is 2^56 - because the length of
- * length of bytes can be at most 7 bytes in length.
- *
+ *	// free heap
+ *	urlp_free(&list);
  */
 
 #include "urlp.h"

@@ -45,8 +45,8 @@ flags = [
 '-lpthread',
 '-lm',
 '-DNDEBUG',
-'-DATX_USE_LINUX',
-'-DCONFIG_LINUX_EMU',
+'-DURLP_CONFIG_LINUX_EMU',
+'-DURLPX_CONFIG_LINUX_EMU',
 # You 100% do NOT need -DUSE_CLANG_COMPLETER in your flags; only the YCM
 # source code needs it.
 #'-DUSE_CLANG_COMPLETER',
@@ -67,9 +67,24 @@ flags = [
 '.',
 '-I',
 '/usr/local/include',
-
 '-I',
-'./micro-rpl/src',
+'./board/linux-emu/',
+'-I',
+'./external/mbedtls/library/',
+'-I',
+'./external/mbedtls/include/',
+'-I',
+'./crypto/mbedtls/',
+'-I',
+'./crypto/wolfssl/',
+'-I',
+'./liburlp/src',
+'-I',
+'./liburlp/test',
+'-I',
+'./liburlpx/src',
+'-I',
+'./liburlpx/test',
 ]
 
 

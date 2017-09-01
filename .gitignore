@@ -21,7 +21,6 @@
 output/doc/*
 
 *.bin
-.ycm_extra_conf.pyc
 /autoscan.log
 config.log
 config.status
