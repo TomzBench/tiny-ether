@@ -1,62 +1,64 @@
 #include "mtm/urlp.h"
 
-uint8_t rlp_null[] = {'\x80'};
-uint8_t rlp_15[] = {'\x0f'};
-uint8_t rlp_1024[] = {'\x82', '\x04', '\x00'};
-uint8_t rlp_empty[] = {'\xc0'};
-uint8_t rlp_empty_empty[] = {'\xc2', '\xc0', '\xc0'};
-uint8_t rlp_empty_nest[] = {'\xc2', '\xc1', '\xc0'};
-uint8_t rlp_cat[] = {'\x83', 'c', 'a', 't'};
-uint8_t rlp_dog[] = {'\x83', 'd', 'o', 'g'};
-uint8_t rlp_catdog[] = {'\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g'};
-uint8_t rlp_max64[] = {'\x84', '\xff', '\xff', '\xff', '\xff'};
-uint8_t rlp_half64[] = {'\x84', '\x01', '\x00', '\x00', '\x00'};
-uint8_t rlp_max32[] = {'\x83', '\xff', '\xff', '\xff'};
-uint8_t rlp_half32[] = {'\x83', '\x01', '\x00', '\x00'};
-uint8_t rlp_max16[] = {'\x82', '\xff', '\xff'};
-uint8_t rlp_half16[] = {'\x82', '\x01', '\x00'};
+uint8_t rlp_null[] = { '\x80' };
+uint8_t rlp_15[] = { '\x0f' };
+uint8_t rlp_1024[] = { '\x82', '\x04', '\x00' };
+uint8_t rlp_empty[] = { '\xc0' };
+uint8_t rlp_empty_empty[] = { '\xc2', '\xc0', '\xc0' };
+uint8_t rlp_empty_nest[] = { '\xc2', '\xc1', '\xc0' };
+uint8_t rlp_cat[] = { '\x83', 'c', 'a', 't' };
+uint8_t rlp_dog[] = { '\x83', 'd', 'o', 'g' };
+uint8_t rlp_catdog[] = { '\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g' };
+uint8_t rlp_max64[] = { '\x84', '\xff', '\xff', '\xff', '\xff' };
+uint8_t rlp_half64[] = { '\x84', '\x01', '\x00', '\x00', '\x00' };
+uint8_t rlp_max32[] = { '\x83', '\xff', '\xff', '\xff' };
+uint8_t rlp_half32[] = { '\x83', '\x01', '\x00', '\x00' };
+uint8_t rlp_max16[] = { '\x82', '\xff', '\xff' };
+uint8_t rlp_half16[] = { '\x82', '\x01', '\x00' };
 uint8_t rlp_catdogpig[] = {
-    '\xcc',		    //
-    '\x83', 'c', 'a', 't',  //
-    '\x83', 'd', 'o', 'g',  //
-    '\x83', 'p', 'i', 'g'   //
+    '\xcc',                //
+    '\x83', 'c', 'a', 't', //
+    '\x83', 'd', 'o', 'g', //
+    '\x83', 'p', 'i', 'g'  //
 };
 uint8_t rlp_catdogpigcow[] = {
-    '\xd2',		    //
-    '\xc8',		    //
-    '\x83', 'c', 'a', 't',  //
-    '\x83', 'd', 'o', 'g',  //
-    '\xc8',		    //
-    '\x83', 'p', 'i', 'g',  //
-    '\x83', 'c', 'o', 'w'   //
+    '\xd2',                //
+    '\xc8',                //
+    '\x83', 'c', 'a', 't', //
+    '\x83', 'd', 'o', 'g', //
+    '\xc8',                //
+    '\x83', 'p', 'i', 'g', //
+    '\x83', 'c', 'o', 'w'  //
 };
 uint8_t rlp_lorem[] = {
     '\xb8', '\x38', 'L', 'o', 'r', 'e', 'm', ' ', 'i', 'p', 's', 'u',
     'm',    ' ',    'd', 'o', 'l', 'o', 'r', ' ', 's', 'i', 't', ' ',
     'a',    'm',    'e', 't', ',', ' ', 'c', 'o', 'n', 's', 'e', 'c',
     't',    'e',    't', 'u', 'r', ' ', 'a', 'd', 'i', 'p', 'i', 's',
-    'i',    'c',    'i', 'n', 'g', ' ', 'e', 'l', 'i', 't'  //
+    'i',    'c',    'i', 'n', 'g', ' ', 'e', 'l', 'i', 't' //
 };
 uint8_t rlp_random[] = {
-    '\xe1',						   // [...
-    '\x83', 'c',    'a', 't',				   // "cat"
-    '\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g',  // ["cat","dog"]
-    '\x85', 'h',    'o', 'r', 's', 'e',			   // "horse"
-    '\xc1', '\xc0',					   // [[]]
-    '\x83', 'p',    'i', 'g',				   // "pig"
-    '\xc1', '\x80',					   // [""]
-    '\x85', 's',    'h', 'e', 'e', 'p'			   // "sheep"
+    '\xe1',                                               // [...
+    '\x83', 'c',    'a', 't',                             // "cat"
+    '\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g', // ["cat","dog"]
+    '\x85', 'h',    'o', 'r', 's', 'e',                   // "horse"
+    '\xc1', '\xc0',                                       // [[]]
+    '\x83', 'p',    'i', 'g',                             // "pig"
+    '\xc1', '\x80',                                       // [""]
+    '\x85', 's',    'h', 'e', 'e', 'p'                    // "sheep"
 };
-uint8_t rlp_wat[] = {'\xc7', '\xc0', '\xc1', '\xc0',
-		     '\xc3', '\xc0', '\xc1', '\xc0'};
+uint8_t rlp_wat[] = { '\xc7', '\xc0', '\xc1', '\xc0',
+                      '\xc3', '\xc0', '\xc1', '\xc0' };
 
 int test_u8();
 int test_u16();
 int test_u32();
 int test_u64();
-int test_item(uint8_t *, uint32_t, urlp **);
+int test_item(uint8_t*, uint32_t, urlp**);
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char* argv[])
+{
     int err = 0;
     err |= test_u8();
     err |= test_u16();
@@ -65,10 +67,12 @@ int main(int argc, char *argv[]) {
     return err;
 }
 
-int test_u8() {
+int
+test_u8()
+{
     int err = 0;
-    char *lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
-    urlp *rlp;
+    char* lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
+    urlp* rlp;
 
     // ""
     rlp = urlp_item("", 0);
@@ -100,9 +104,9 @@ int test_u8() {
     rlp = urlp_list();
     urlp_push(rlp, urlp_list());
     urlp_push(rlp, urlp_push(urlp_list(), urlp_list()));
-    urlp_push(rlp, urlp_push(urlp_push(urlp_list(), urlp_list()),  //
-			     urlp_push(urlp_list(), urlp_list()))  //
-	      );
+    urlp_push(rlp, urlp_push(urlp_push(urlp_list(), urlp_list()), //
+                             urlp_push(urlp_list(), urlp_list())) //
+              );
     err |= test_item(rlp_wat, sizeof(rlp_wat), &rlp);
 
     // "cat"
@@ -147,13 +151,15 @@ int test_u8() {
     return err;
 }
 
-int test_u16() {
+int
+test_u16()
+{
     int err = 0;
-    uint16_t cat[] = {'c', 'a', 't'};  //
-    uint16_t half[] = {0x100};
-    uint16_t max[] = {0xffff};
-    uint16_t onefive[] = {0x000f};
-    urlp *rlp;
+    uint16_t cat[] = { 'c', 'a', 't' }; //
+    uint16_t half[] = { 0x100 };
+    uint16_t max[] = { 0xffff };
+    uint16_t onefive[] = { 0x000f };
+    urlp* rlp;
 
     rlp = urlp_item_u16(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
@@ -173,13 +179,15 @@ int test_u16() {
     return err;
 }
 
-int test_u32() {
+int
+test_u32()
+{
     int err = 0;
-    uint32_t cat[] = {'c', 'a', 't'};  //
-    uint32_t half[] = {0x10000};
-    uint32_t max[] = {0xffffff};
-    uint32_t onefive[] = {0x00000f};
-    urlp *rlp;
+    uint32_t cat[] = { 'c', 'a', 't' }; //
+    uint32_t half[] = { 0x10000 };
+    uint32_t max[] = { 0xffffff };
+    uint32_t onefive[] = { 0x00000f };
+    urlp* rlp;
 
     rlp = urlp_item_u32(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
@@ -199,13 +207,15 @@ int test_u32() {
     return err;
 }
 
-int test_u64() {
+int
+test_u64()
+{
     int err = 0;
-    uint64_t cat[] = {'c', 'a', 't'};  //
-    uint64_t half[] = {0x1000000};
-    uint64_t max[] = {0xffffffff};
-    uint64_t onefive[] = {0x0000000f};
-    urlp *rlp;
+    uint64_t cat[] = { 'c', 'a', 't' }; //
+    uint64_t half[] = { 0x1000000 };
+    uint64_t max[] = { 0xffffffff };
+    uint64_t onefive[] = { 0x0000000f };
+    urlp* rlp;
 
     rlp = urlp_item_u64(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
@@ -225,10 +235,12 @@ int test_u64() {
     return err;
 }
 
-int test_item(uint8_t *rlp, uint32_t rlplen, urlp **item_p) {
+int
+test_item(uint8_t* rlp, uint32_t rlplen, urlp** item_p)
+{
     uint8_t result[rlplen];
     uint32_t len, ret = -1;
-    urlp *item = *item_p;
+    urlp* item = *item_p;
     *item_p = NULL;
 
     // Check encoded
