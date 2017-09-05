@@ -38,7 +38,7 @@ ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 
 app_%: ${dirs} ${obj-y}
 	@echo "LINK $@"
-	${CC} ${LDFLAGS} ${ld-obj} ${obj-y} -o $@
+	${CC} ${ld-obj} ${obj-y} ${LDFLAGS} -o $@
 
 valgrind_%: %
 	valgrind \

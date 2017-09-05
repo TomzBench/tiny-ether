@@ -6,7 +6,7 @@ SRCDIR:=./
 incs+=-I../
 incs+=-I./
 
-libs+= -L ../../../external/mbedtls/library -l:libmbedcrypto.a
+libs+=-L../../../external/mbedtls/library -l:libmbedcrypto.a
 
 # create some dirs
 dirs+=./obj

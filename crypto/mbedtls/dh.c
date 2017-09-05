@@ -46,4 +46,5 @@ crypto_ecdh_key_free(crypto_ecdh_ctx** ctx_p)
     crypto_ecdh_ctx* ctx = *ctx_p;
     *ctx_p = NULL;
     mbedtls_ecdh_free(ctx);
+    board_free(ctx);
 }
