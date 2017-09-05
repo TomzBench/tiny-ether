@@ -1,4 +1,4 @@
-# micro-urlpx makefile
+# devp2p makefile
 
 PREFIX:=../build
 LIBDIR:=${PREFIX}/lib
@@ -23,7 +23,7 @@ incs+=-I./src
 incs+=-I../micro-board/linux-emu/
 
 # compile objects
-obj-y+=./obj/urlpx.o
+obj-y+=./obj/rlpx.o
 
 # linker (external) dependencies
 ld-obj+=../micro-board/linux-emu/obj/board_net.o
@@ -32,9 +32,9 @@ ld-relobj+=../micro-board/linux-emu/obj/board_net.lo
 relobj-y:=${obj-y:.o=.lo}
 
 # headers
-hdrs+=${INCDIR}/mtm/urlpx.h
-hdrs+=${INCDIR}/mtm/urlpx_config.h
-hdrs+=${INCDIR}/mtm/urlpx_config_linux_emu.h
+hdrs+=${INCDIR}/mtm/rlpx.h
+hdrs+=${INCDIR}/mtm/rlpx_config.h
+hdrs+=${INCDIR}/mtm/rlpx_config_linux_emu.h
 
 # targets
 all: \
@@ -42,8 +42,8 @@ all: \
 	${dirs} \
 	${obj-y} \
 	${relobj-y} \
-	${LIBDIR}/liburlpx.so \
-	${LIBDIR}/liburlpx.a \
+	${LIBDIR}/librlpx.so \
+	${LIBDIR}/librlpx.a \
 	${hdrs} 
 
 board: ${ld-obj} ${ld-relobj}
@@ -55,7 +55,7 @@ include ../common.mk
 
 clean:
 	@echo "CLEAN"
-	@rm -rf ./obj/ ${LIBDIR}/liburlpx.so ${LIBDIR}/liburlpx.a
+	@rm -rf ./obj/ ${LIBDIR}/librlpx.so ${LIBDIR}/librlpx.a
 	@rm -f ${hdrs} #careful when headers is an empty /
 
 #

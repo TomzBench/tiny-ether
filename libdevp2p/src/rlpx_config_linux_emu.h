@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define urlpx_malloc_fn malloc
-#define urlpx_free_fn free
+#define rlpx_malloc_fn malloc
+#define rlpx_free_fn free
 
 #endif

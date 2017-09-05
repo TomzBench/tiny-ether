@@ -1,5 +1,5 @@
 /*
- * @file urlpx.h
+ * @file rlpx.h
  *
  * @brief exports
  */
@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "urlpx_config.h"
+#include "rlpx_config.h"
 
 #ifdef __cplusplus
 }

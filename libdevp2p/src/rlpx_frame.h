@@ -1,5 +1,5 @@
 /*
- * @file urlpx_frame.h
+ * @file rlpx_frame.h
  *
  * @brief rlpx frame encoding
  */
@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "urlpx_config.h"
+#include "rlpx_config.h"
 
 #ifdef __cplusplus
 }
