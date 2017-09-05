@@ -1,19 +1,19 @@
 #include "dh.h"
 #include "board_mem.h"
 
-crypto_ecdh_ctx*
-crypto_ecdh_key_alloc()
+ecdh_ctx*
+ecdh_key_alloc()
 {
     int err;
-    crypto_ecdh_ctx* ctx = board_alloc(sizeof(crypto_ecdh_ctx));
+    ecdh_ctx* ctx = board_alloc(sizeof(ecdh_ctx));
     if (!ctx) return ctx;
-    err = crypto_ecdh_key_init(ctx);
-    if (!(err == 0)) crypto_ecdh_key_free(&ctx);
+    err = ecdh_key_init(ctx);
+    if (!(err == 0)) ecdh_key_free(&ctx);
     return ctx;
 }
 
 int
-crypto_ecdh_key_init(crypto_ecdh_ctx* ctx)
+ecdh_key_init(ecdh_ctx* ctx)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -40,11 +40,41 @@ EXIT:
     return ret;
 }
 
-void
-crypto_ecdh_key_free(crypto_ecdh_ctx** ctx_p)
+int
+ecdh_agree(ecdh_ctx* ctx, const uint8_t* theirs, uint32_t sz)
 {
-    crypto_ecdh_ctx* ctx = *ctx_p;
+
+    int err;
+    mbedtls_ctr_drbg_context rng;
+    mbedtls_ctr_drbg_init(&rng);
+    // Read other guys public key into our context.
+    err = mbedtls_ecdh_read_public(ctx, theirs, sz);
+    if (!(err == 0)) goto EXIT;
+
+    // Create shared secret with other guys context.
+    err = mbedtls_ecdh_compute_shared(&ctx->grp, &ctx->z, &ctx->Qp, &ctx->d,
+                                      mbedtls_ctr_drbg_random, &rng);
+    if (!(err == 0)) goto EXIT;
+EXIT:
+    mbedtls_ctr_drbg_free(&rng);
+    return err == 0 ? err : -1;
+}
+
+void
+ecdh_key_free(ecdh_ctx** ctx_p)
+{
+    ecdh_ctx* ctx = *ctx_p;
     *ctx_p = NULL;
-    mbedtls_ecdh_free(ctx);
+    ecdh_key_deinit(ctx);
     board_free(ctx);
 }
+
+void
+ecdh_key_deinit(ecdh_ctx* ctx)
+{
+    mbedtls_ecdh_free(ctx);
+}
+
+//
+//
+//

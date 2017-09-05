@@ -9,33 +9,48 @@ extern "C" {
 #include "mbedtls/ecdh.h"
 #include "mbedtls/entropy.h"
 
-/**
- * @brief wrapper object for portability.
- */
-typedef mbedtls_ecdh_context crypto_ecdh_ctx;
+typedef mbedtls_ecdh_context ecdh_ctx; /*!< caller ref */
+typedef mbedtls_mpi mpi;               /*!< multi precesion integer */
+typedef mbedtls_ecp_point ecp_point;   /*!< curve struct */
 
 /**
  * @brief Initialize ecdh key context onto heap
  *
  * @return Heap pointer or NULL;
  */
-crypto_ecdh_ctx* crypto_ecdh_key_alloc();
+ecdh_ctx* ecdh_key_alloc();
 
 /**
  * @brief initialize a key context
  *
- * @param crypto_ecdh_ctx
+ * @param ecdh_ctx
  *
  * @return
  */
-int crypto_ecdh_key_init(crypto_ecdh_ctx*);
+int ecdh_key_init(ecdh_ctx*);
+
+/**
+ * @brief Compute a shared secret. Secret is updated into ctx z param
+ *
+ * @param ctx
+ *
+ * @return 0 OK or -1 err
+ */
+int ecdh_agree(ecdh_ctx* ctx, const uint8_t*, uint32_t);
 
 /**
  * @brief return any heap from key
  *
  * @param
  */
-void crypto_ecdh_key_free(crypto_ecdh_ctx**);
+void ecdh_key_free(ecdh_ctx**);
+
+/**
+ * @brief
+ *
+ * @param ecdh_ctx
+ */
+void ecdh_key_deinit(ecdh_ctx*);
 
 #ifdef __cplusplus
 }

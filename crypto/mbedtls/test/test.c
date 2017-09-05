@@ -15,9 +15,14 @@ main(int argc, char* argv[])
 int
 test_ecdh()
 {
+    ecdh_ctx *ctxa, *ctxb;
     int err = 0;
-    crypto_ecdh_ctx* ctx = crypto_ecdh_key_alloc();
-    if (!ctx) err = -1;
-    crypto_ecdh_key_free(&ctx);
+    ctxa = ecdh_key_alloc(&ctxa);
+    ctxb = ecdh_key_alloc(&ctxb);
+    if (!(ctxa && ctxb)) goto EXIT;
+
+EXIT:
+    if (ctxa) ecdh_key_free(&ctxa);
+    if (ctxb) ecdh_key_free(&ctxb);
     return err;
 }
