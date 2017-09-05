@@ -8,9 +8,9 @@ extern "C" {
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecdh.h"
 #include "mbedtls/entropy.h"
+#include "mpi.h"
 
 typedef mbedtls_ecdh_context ecdh_ctx; /*!< caller ref */
-typedef mbedtls_mpi mpi;               /*!< multi precesion integer */
 typedef mbedtls_ecp_point ecp_point;   /*!< curve struct */
 
 /**
@@ -30,13 +30,31 @@ ecdh_ctx* ecdh_key_alloc();
 int ecdh_key_init(ecdh_ctx*);
 
 /**
+ * @brief
+ *
+ * @param ecdh_ctx
+ *
+ * @return
+ */
+const ecp_point* ecdh_pubkey(ecdh_ctx*);
+
+/**
+ * @brief
+ *
+ * @param ecdh_ctx
+ *
+ * @return
+ */
+const mpi* ecdh_secret(ecdh_ctx*);
+
+/**
  * @brief Compute a shared secret. Secret is updated into ctx z param
  *
  * @param ctx
  *
  * @return 0 OK or -1 err
  */
-int ecdh_agree(ecdh_ctx* ctx, const uint8_t*, uint32_t);
+int ecdh_agree(ecdh_ctx* ctx, const ecp_point*);
 
 /**
  * @brief return any heap from key

@@ -16,6 +16,7 @@ dirs+=./obj
 
 #build objects
 obj-y+=./obj/dh.o
+obj-y+=./obj/mpi.o
 
 relobj-y:=${obj-y:.o=.lo}
 

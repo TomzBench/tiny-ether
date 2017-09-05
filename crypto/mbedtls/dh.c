@@ -40,23 +40,37 @@ EXIT:
     return ret;
 }
 
+const ecp_point*
+ecdh_pubkey(ecdh_ctx* ctx)
+{
+    return &ctx->Q;
+}
+
+const mpi*
+ecdh_secret(ecdh_ctx* ctx)
+{
+    return &ctx->z;
+}
+
 int
-ecdh_agree(ecdh_ctx* ctx, const uint8_t* theirs, uint32_t sz)
+ecdh_agree(ecdh_ctx* ctx, const ecp_point* qp)
 {
 
     int err;
     mbedtls_ctr_drbg_context rng;
+    mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_init(&rng);
-    // Read other guys public key into our context.
-    err = mbedtls_ecdh_read_public(ctx, theirs, sz);
+    mbedtls_entropy_init(&entropy);
+    err = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
     if (!(err == 0)) goto EXIT;
 
-    // Create shared secret with other guys context.
-    err = mbedtls_ecdh_compute_shared(&ctx->grp, &ctx->z, &ctx->Qp, &ctx->d,
+    // Create shared secret with other guys Q
+    err = mbedtls_ecdh_compute_shared(&ctx->grp, &ctx->z, qp, &ctx->d,
                                       mbedtls_ctr_drbg_random, &rng);
     if (!(err == 0)) goto EXIT;
 EXIT:
     mbedtls_ctr_drbg_free(&rng);
+    mbedtls_entropy_free(&entropy);
     return err == 0 ? err : -1;
 }
 

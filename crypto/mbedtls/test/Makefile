@@ -16,6 +16,7 @@ obj-y+=./obj/test.o
 
 # linker (external) dependencies
 ld-obj+=../obj/dh.o
+ld-obj+=../obj/mpi.o
 
 # note - common.mk target requires app_*
 app: ${dirs} ${obj-y} board app_test
