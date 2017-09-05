@@ -68,6 +68,8 @@ flags = [
 '-I',
 '/usr/local/include',
 '-I',
+'./target/include/',
+'-I',
 './board/linux-emu/',
 '-I',
 './external/mbedtls/library/',

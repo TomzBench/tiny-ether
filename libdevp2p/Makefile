@@ -20,14 +20,14 @@ defines+=-DURLP_CONFIG_LINUX_EMU
 incs+=-I../target/include/
 incs+=-I.
 incs+=-I./src
-incs+=-I../micro-board/linux-emu/
+incs+=-I../board/linux-emu/
 
 # compile objects
 obj-y+=./obj/rlpx.o
 
 # linker (external) dependencies
-ld-obj+=../micro-board/linux-emu/obj/board_net.o
-ld-relobj+=../micro-board/linux-emu/obj/board_net.lo
+ld-obj+=../board/linux-emu/obj/board_net.o
+ld-relobj+=../board/linux-emu/obj/board_net.lo
 
 relobj-y:=${obj-y:.o=.lo}
 
@@ -42,12 +42,12 @@ all: \
 	${dirs} \
 	${obj-y} \
 	${relobj-y} \
-	${LIBDIR}/librlpx.so \
-	${LIBDIR}/librlpx.a \
+	${LIBDIR}/libdevp2p.so \
+	${LIBDIR}/libdevp2p.a \
 	${hdrs} 
 
 board: ${ld-obj} ${ld-relobj}
-	$(MAKE) -s -C ../micro-board/linux-emu
+	$(MAKE) -s -C ../board/linux-emu
 	
 include ../common.mk
 
@@ -55,7 +55,7 @@ include ../common.mk
 
 clean:
 	@echo "CLEAN"
-	@rm -rf ./obj/ ${LIBDIR}/librlpx.so ${LIBDIR}/librlpx.a
+	@rm -rf ./obj/ ${LIBDIR}/libdevp2p.so ${LIBDIR}/libdevp2p.a
 	@rm -f ${hdrs} #careful when headers is an empty /
 
 #
