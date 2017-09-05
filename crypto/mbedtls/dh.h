@@ -7,11 +7,17 @@ extern "C" {
 
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecdh.h"
+#include "mbedtls/ecdsa.h"
 #include "mbedtls/entropy.h"
 #include "mpi.h"
 
 typedef mbedtls_ecdh_context ecdh_ctx; /*!< caller ref */
 typedef mbedtls_ecp_point ecp_point;   /*!< curve struct */
+typedef struct
+{
+    mpi r;
+    mpi s;
+} ecp_signature;
 
 /**
  * @brief Initialize ecdh key context onto heap
@@ -56,6 +62,46 @@ const mpi* ecdh_secret(ecdh_ctx*);
  */
 int ecdh_agree(ecdh_ctx* ctx, const ecp_point*);
 
+/**
+ * @brief
+ *
+ * @param sig
+ */
+void ecp_signature_init(ecp_signature* sig);
+
+/**
+ * @brief
+ *
+ * @param sig
+ */
+void ecp_signature_free(ecp_signature* sig);
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param b
+ * @param sz
+ * @param ecp_signature
+ *
+ * @return
+ */
+int ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature*);
+
+/**
+ * @brief
+ *
+ * @param q
+ * @param b
+ * @param sz
+ * @param ecp_signature
+ *
+ * @return
+ */
+int ecdh_verify(const ecp_point* q,
+                const uint8_t* b,
+                uint32_t sz,
+                ecp_signature*);
 /**
  * @brief return any heap from key
  *

@@ -10,6 +10,7 @@ extern "C" {
 typedef mbedtls_mpi mpi; /*!< multi precesion integer */
 
 void mpi_init(mpi*);
+void mpi_free(mpi*);
 int mpi_cmp(const mpi*, const mpi*);
 
 #ifdef __cplusplus
