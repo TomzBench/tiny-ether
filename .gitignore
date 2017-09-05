@@ -8,6 +8,7 @@
 #objects
 *.o
 *.lo
+target
 
 #libatx
 *.txt

@@ -1,6 +1,6 @@
 # devp2p makefile
 
-PREFIX:=../build
+PREFIX:=../target
 LIBDIR:=${PREFIX}/lib
 INCDIR:=${PREFIX}/include
 BINDIR:=${PREFIX}/bin
@@ -17,7 +17,7 @@ defines+=-DURLPX_CONFIG_LINUX_EMU
 defines+=-DURLP_CONFIG_LINUX_EMU
 
 # source directories
-incs+=-I../build/include/
+incs+=-I../target/include/
 incs+=-I.
 incs+=-I./src
 incs+=-I../micro-board/linux-emu/

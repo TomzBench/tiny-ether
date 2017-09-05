@@ -1,6 +1,6 @@
 # micro-rlp makefile
 
-PREFIX:=../build
+PREFIX:=../target
 LIBDIR:=${PREFIX}/lib
 INCDIR:=${PREFIX}/include
 BINDIR:=${PREFIX}/bin
