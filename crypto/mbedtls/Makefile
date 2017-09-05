@@ -1,4 +1,4 @@
-#board_net makefile
+#crypto makefile
 
 PREFIX:=../target
 LIBDIR:=${PREFIX}/lib
@@ -8,13 +8,14 @@ SRCDIR:=./
 
 incs+=-I.
 incs+=-I${SRCDIR}
+incs+=-I../../external/mbedtls/include
+incs+=-I../../board/linux-emu
 
 #create dirs
 dirs+=./obj
 
 #build objects
-obj-y+=./obj/board_net.o
-obj-y+=./obj/board_mem.o
+obj-y+=./obj/dh.o
 
 relobj-y:=${obj-y:.o=.lo}
 
@@ -27,4 +28,3 @@ clean:
 	@echo "CLEAN"
 	@rm -rf ./obj/ 
 	@rm -f ${hdrs} #careful when headers is an empty /
-
