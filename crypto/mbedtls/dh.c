@@ -23,12 +23,16 @@ ecdh_key_init(ecdh_ctx* ctx)
     mbedtls_ecdh_init(ctx);
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&rng);
+
+    // Seed rng
     ret = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
     if (!(ret == 0)) goto EXIT;
 
+    // Load curve parameters
     ret = mbedtls_ecp_group_load(&ctx->grp, MBEDTLS_ECP_DP_SECP256K1);
     if (!(ret == 0)) goto EXIT;
 
+    // Create ecdh public/private key pair
     ret = mbedtls_ecdh_gen_public(&ctx->grp, &ctx->d, &ctx->Q,
                                   mbedtls_ctr_drbg_random, &rng);
     if (!(ret == 0)) goto EXIT;
@@ -55,12 +59,15 @@ ecdh_secret(ecdh_ctx* ctx)
 int
 ecdh_agree(ecdh_ctx* ctx, const ecp_point* qp)
 {
-
     int err;
     mbedtls_ctr_drbg_context rng;
     mbedtls_entropy_context entropy;
+
+    // initialize stack content
     mbedtls_ctr_drbg_init(&rng);
     mbedtls_entropy_init(&entropy);
+
+    // seed RNG
     err = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
     if (!(err == 0)) goto EXIT;
 
@@ -94,11 +101,16 @@ ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature* sig)
     int err, ret = -1;
     mbedtls_ctr_drbg_context rng;
     mbedtls_entropy_context entropy;
+
+    // Init stack content
     mbedtls_ctr_drbg_init(&rng);
     mbedtls_entropy_init(&entropy);
+
+    // Seed RNG
     err = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
     if (!(err == 0)) goto EXIT;
 
+    // Sign message
     err = mbedtls_ecdsa_sign(&ctx->grp, &sig->r, &sig->s, &ctx->d, b, sz,
                              mbedtls_ctr_drbg_random, &rng);
     if (!(err == 0)) goto EXIT;
@@ -118,9 +130,13 @@ ecdh_verify(const ecp_point* q,
 {
     int err, ret = -1;
     mbedtls_ecp_group grp;
+
+    // Init stack content
     mbedtls_ecp_group_init(&grp);
     err = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1);
     if (!(err == 0)) goto EXIT;
+
+    // Verify signature of content
     err = mbedtls_ecdsa_verify(&grp, b, sz, q, &sig->r, &sig->s);
     if (!(err == 0)) goto EXIT;
     ret = 0;
