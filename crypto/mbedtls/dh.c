@@ -91,7 +91,7 @@ ecp_signature_free(ecp_signature* sig)
 int
 ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature* sig)
 {
-    int err;
+    int err, ret = -1;
     mbedtls_ctr_drbg_context rng;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_init(&rng);
@@ -102,11 +102,12 @@ ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature* sig)
     err = mbedtls_ecdsa_sign(&ctx->grp, &sig->r, &sig->s, &ctx->d, b, sz,
                              mbedtls_ctr_drbg_random, &rng);
     if (!(err == 0)) goto EXIT;
+    ret = 0;
 
 EXIT:
     mbedtls_ctr_drbg_free(&rng);
     mbedtls_entropy_free(&entropy);
-    return err;
+    return ret;
 }
 
 int
