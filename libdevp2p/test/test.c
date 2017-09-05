@@ -1,6 +1,6 @@
 #include "mtm/rlpx_config.h"
 
-int test_handshake_pain();
+int test_auth_pain();
 
 int
 main(int argc, char* argv[])
@@ -9,7 +9,7 @@ main(int argc, char* argv[])
     ((void)argv);
     int err = 0;
 
-    err |= test_handshake_pain();
+    err |= test_auth_pain();
 
     return err;
 }
@@ -18,7 +18,7 @@ main(int argc, char* argv[])
  * @brief
  *
  * RLPX Handshake test vectors
- * (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-8.md)
+ * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-8.md
  *
  * Static Key B:
  * b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291
@@ -38,9 +38,8 @@ main(int argc, char* argv[])
  * @return 0 pass
  */
 int
-test_handshake_pain()
+test_auth_pain()
 {
-
     int err = 0;
     const char* secret = "b71c71a67e1177ad4e901695e1b4b9ee17ae16"
                          "c6668d313eac2f96dbcda3f291";
