@@ -113,8 +113,11 @@ ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature sig)
     err = mbedtls_mpi_write_binary(&s, &sig[32], 32);
     if (!(err == 0)) goto EXIT;
 
-    // TODO: No idea if this is right. (Lowest bit or byte? of public keys Y
-    // coordinate)
+    // TODO: No idea if this is right. (Lowest byte of public keys Y coordinate)
+    // ecdsa_sign_recoverable(...
+    //   ecdsa_sig_sign(...
+    //     fe_is_odd(r.y) ? 1:0
+    // ecdsa_recoverable_signature_save(...
     sig[64] = ctx->Q.Y.p[0] ? 1 : 0;
 
 EXIT:
