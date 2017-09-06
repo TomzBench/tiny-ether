@@ -28,11 +28,8 @@ test_ecdh()
     // Generate a shared secret
     ecdh_agree(ctxa, ecdh_pubkey(ctxb));
     ecdh_agree(ctxb, ecdh_pubkey(ctxa));
-    if (mpi_cmp(ecdh_secret(ctxa), ecdh_secret(ctxb))) {
-        err = -1;
-    } else {
-        err = 0;
-    }
+    err = mpi_cmp(ecdh_secret(ctxa), ecdh_secret(ctxb)) ? -1 : 0;
+    if (!(err == 0)) goto EXIT;
 
     // Sign verify check
     err = ecdh_sign(ctxa, signme, 66, sig);
