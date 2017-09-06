@@ -45,6 +45,7 @@ valgrind_%: %
 		--track-origins=yes \
 		--tool=memcheck \
 		--leak-check=full \
+		--quiet \
 		./$<
 
 clean_%: 
