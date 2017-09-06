@@ -22,7 +22,6 @@ test_ecdh()
     uint8_t signme[66];
     ctxa = ecdh_key_alloc(&ctxa);
     ctxb = ecdh_key_alloc(&ctxb);
-    ecp_signature_init(&sig);
     memset(signme, 'a', 66);
     if (!(ctxa && ctxb)) goto EXIT;
 
@@ -36,15 +35,14 @@ test_ecdh()
     }
 
     // Sign verify check
-    err = ecdh_sign(ctxa, signme, 66, &sig);
+    err = ecdh_sign(ctxa, signme, 66, sig);
     if (!(err == 0)) goto EXIT;
 
-    err = ecdh_verify(ecdh_pubkey(ctxa), signme, 66, &sig);
+    err = ecdh_verify(ecdh_pubkey(ctxa), signme, 66, sig);
     if (!(err == 0)) goto EXIT;
 
 EXIT:
     if (ctxa) ecdh_key_free(&ctxa);
     if (ctxb) ecdh_key_free(&ctxb);
-    ecp_signature_free(&sig);
     return err;
 }

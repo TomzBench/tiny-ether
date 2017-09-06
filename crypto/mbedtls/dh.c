@@ -81,42 +81,42 @@ EXIT:
     return err == 0 ? err : -1;
 }
 
-void
-ecp_signature_init(ecp_signature* sig)
-{
-    mpi_init(&sig->r);
-    mpi_init(&sig->s);
-}
-
-void
-ecp_signature_free(ecp_signature* sig)
-{
-    mpi_free(&sig->r);
-    mpi_free(&sig->s);
-}
-
 int
-ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature* sig)
+ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature sig)
 {
     int err, ret = -1;
+    mpi r, s;
     mbedtls_ctr_drbg_context rng;
     mbedtls_entropy_context entropy;
+    for (int i = 0; i < 65; i++) sig[0] = 0;
 
     // Init stack content
     mbedtls_ctr_drbg_init(&rng);
     mbedtls_entropy_init(&entropy);
+    mpi_init(&r);
+    mpi_init(&s);
 
     // Seed RNG
     err = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
     if (!(err == 0)) goto EXIT;
 
     // Sign message
-    err = mbedtls_ecdsa_sign(&ctx->grp, &sig->r, &sig->s, &ctx->d, b, sz,
+    err = mbedtls_ecdsa_sign(&ctx->grp, &r, &s, &ctx->d, b, sz,
                              mbedtls_ctr_drbg_random, &rng);
     if (!(err == 0)) goto EXIT;
     ret = 0;
 
+    err = mbedtls_mpi_write_binary(&r, &sig[0], 32);
+    if (!(err == 0)) goto EXIT;
+
+    err = mbedtls_mpi_write_binary(&s, &sig[32], 32);
+    if (!(err == 0)) goto EXIT;
+
+// TODO: write recovery bit?
+
 EXIT:
+    mpi_free(&r);
+    mpi_free(&s);
     mbedtls_ctr_drbg_free(&rng);
     mbedtls_entropy_free(&entropy);
     return ret;
@@ -126,22 +126,34 @@ int
 ecdh_verify(const ecp_point* q,
             const uint8_t* b,
             uint32_t sz,
-            ecp_signature* sig)
+            ecp_signature sig)
 {
     int err, ret = -1;
     mbedtls_ecp_group grp;
+    mpi r, s;
 
     // Init stack content
     mbedtls_ecp_group_init(&grp);
+    mpi_init(&r);
+    mpi_init(&s);
     err = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1);
     if (!(err == 0)) goto EXIT;
 
-    // Verify signature of content
-    err = mbedtls_ecdsa_verify(&grp, b, sz, q, &sig->r, &sig->s);
+    err = mbedtls_mpi_read_binary(&r, sig, 32);
     if (!(err == 0)) goto EXIT;
+
+    err = mbedtls_mpi_read_binary(&s, &sig[32], 32);
+    if (!(err == 0)) goto EXIT;
+
+    // Verify signature of content
+    err = mbedtls_ecdsa_verify(&grp, b, sz, q, &r, &s);
+    if (!(err == 0)) goto EXIT;
+
     ret = 0;
 EXIT:
     mbedtls_ecp_group_free(&grp);
+    mpi_free(&r);
+    mpi_free(&s);
     return ret;
 }
 

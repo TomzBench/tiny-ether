@@ -13,11 +13,7 @@ extern "C" {
 
 typedef mbedtls_ecdh_context ecdh_ctx; /*!< caller ref */
 typedef mbedtls_ecp_point ecp_point;   /*!< curve struct */
-typedef struct
-{
-    mpi r;
-    mpi s;
-} ecp_signature;
+typedef uint8_t ecp_signature[65];     /*!< r: [0, 32), s: [32, 64), v: 64 */
 
 /**
  * @brief Initialize ecdh key context onto heap
@@ -65,20 +61,6 @@ int ecdh_agree(ecdh_ctx* ctx, const ecp_point*);
 /**
  * @brief
  *
- * @param sig
- */
-void ecp_signature_init(ecp_signature* sig);
-
-/**
- * @brief
- *
- * @param sig
- */
-void ecp_signature_free(ecp_signature* sig);
-
-/**
- * @brief
- *
  * @param ctx
  * @param b
  * @param sz
@@ -86,7 +68,7 @@ void ecp_signature_free(ecp_signature* sig);
  *
  * @return
  */
-int ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature*);
+int ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature);
 
 /**
  * @brief
@@ -101,7 +83,7 @@ int ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature*);
 int ecdh_verify(const ecp_point* q,
                 const uint8_t* b,
                 uint32_t sz,
-                ecp_signature*);
+                ecp_signature);
 /**
  * @brief return any heap from key
  *
