@@ -1,12 +1,12 @@
 #crypto test makefile
 
-INCDIR:=../
+#INCDIR:=../
 SRCDIR:=./
 
-incs+=-I../
+incs+=-I../mbedtls
 incs+=-I./
 
-libs+=-L../../../external/mbedtls/library -l:libmbedcrypto.a
+libs+=-L../../external/mbedtls/library -l:libmbedcrypto.a
 
 # create some dirs
 dirs+=./obj
@@ -15,16 +15,16 @@ dirs+=./obj
 obj-y+=./obj/test.o
 
 # linker (external) dependencies
-ld-obj+=../obj/dh.o
-ld-obj+=../obj/mpi.o
+ld-obj+=../mbedtls/obj/dh.o
+ld-obj+=../mbedtls/obj/mpi.o
 
 # note - common.mk target requires app_*
 app: ${dirs} ${obj-y} board app_test
 
 board: ${ld-obj} 
-	$(MAKE) -s -C ../
+	$(MAKE) -s -C ../mbedtls
 
-include ../../../common.mk
+include ../../common.mk
 
 clean:
 	@echo "CLEAN"
