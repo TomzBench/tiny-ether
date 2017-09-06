@@ -9,10 +9,9 @@ extern "C" {
 
 typedef mbedtls_mpi mpi; /*!< multi precesion integer */
 
-void mpi_init(mpi*);
-void mpi_free(mpi*);
-int mpi_cmp(const mpi*, const mpi*);
-
+#define mpi_init(x) mbedtls_mpi_init(x)
+#define mpi_free(x) mbedtls_mpi_free(x)
+#define mpi_cmp(x, y) mbedtls_mpi_cmp_mpi(x, y)
 #define mpi_write_binary(x, b, l) mbedtls_mpi_write_binary(x, b, l)
 #define mpi_read_binary(x, b, l) mbedtls_mpi_read_binary(x, b, l)
 #define mpi_write_string(x, r, b, l, o) mbedtls_mpi_write_string(x, r, b, l, o)
