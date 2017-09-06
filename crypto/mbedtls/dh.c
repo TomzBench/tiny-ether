@@ -106,12 +106,16 @@ ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature sig)
     if (!(err == 0)) goto EXIT;
     ret = 0;
 
-    // Print Keys (TODO: write recovery bit v[64])
+    // Print Keys
     err = mbedtls_mpi_write_binary(&r, &sig[0], 32);
     if (!(err == 0)) goto EXIT;
 
     err = mbedtls_mpi_write_binary(&s, &sig[32], 32);
     if (!(err == 0)) goto EXIT;
+
+    // TODO: No idea if this is right. (Lowest bit or byte? of public keys Y
+    // coordinate)
+    sig[64] = ctx->Q.Y.p[0] ? 1 : 0;
 
 EXIT:
     mpi_free(&r);
