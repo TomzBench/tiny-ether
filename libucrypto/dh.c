@@ -45,17 +45,6 @@ EXIT:
     return ret;
 }
 
-ucrypto_ecdh_ctx*
-ucrypto_ecdh_import_private_key_alloc(const ucrypto_mpi* d)
-{
-    int err = 0;
-    ucrypto_ecdh_ctx* ctx = ucrypto_ecdh_key_alloc(d);
-    if (!ctx) return ctx;
-    err = ucrypto_ecdh_import_private_key(ctx, d);
-    if (err) ucrypto_ecdh_key_free(&ctx);
-    return ctx;
-}
-
 int
 ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx* ctx, const ucrypto_mpi* d)
 {
@@ -90,6 +79,21 @@ EXIT:
     mbedtls_ctr_drbg_free(&rng);
     mbedtls_entropy_free(&entropy);
     return ret;
+}
+
+void
+ucrypto_ecdh_key_free(ucrypto_ecdh_ctx** ctx_p)
+{
+    ucrypto_ecdh_ctx* ctx = *ctx_p;
+    *ctx_p = NULL;
+    ucrypto_ecdh_key_deinit(ctx);
+    board_free(ctx);
+}
+
+void
+ucrypto_ecdh_key_deinit(ucrypto_ecdh_ctx* ctx)
+{
+    mbedtls_ecdh_free(ctx);
 }
 
 const ucrypto_ecp_point*
@@ -224,21 +228,6 @@ EXIT:
     ucrypto_mpi_free(&r);
     ucrypto_mpi_free(&s);
     return ret;
-}
-
-void
-ucrypto_ecdh_key_free(ucrypto_ecdh_ctx** ctx_p)
-{
-    ucrypto_ecdh_ctx* ctx = *ctx_p;
-    *ctx_p = NULL;
-    ucrypto_ecdh_key_deinit(ctx);
-    board_free(ctx);
-}
-
-void
-ucrypto_ecdh_key_deinit(ucrypto_ecdh_ctx* ctx)
-{
-    mbedtls_ecdh_free(ctx);
 }
 
 //
