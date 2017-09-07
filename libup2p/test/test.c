@@ -87,7 +87,7 @@ test_auth_pain()
     uint8_t noncea[32];
     uint8_t nonceb[32];
     uint8_t secret[32];
-    uint8_t epubkey[64];
+    ucrypto_ecdh_public_key epubkey;
     ucrypto_ecp_signature sig;
     ucrypto_h256 hepub;
     ucrypto_ecdh_ctx *skey_a, *skey_b;
@@ -125,7 +125,7 @@ test_auth_pain()
     memcpy(b, sig, 65);
 
     // Concat with sha3 hash of ephermeral pub key
-    ucrypto_ecdh_pubkey_write(ekey_a, epubkey);
+    ucrypto_ecdh_pubkey_write(ekey_a, &epubkey);
     ucrypto_sha3_256(epubkey, 64, hepub);
     memcpy(&b[65], hepub, 32);
 

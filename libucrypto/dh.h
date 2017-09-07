@@ -11,10 +11,11 @@ extern "C" {
 #include "mbedtls/entropy.h"
 #include "mpi.h"
 
-typedef mbedtls_ecdh_context ucrypto_ecdh_ctx; /*!< caller ref */
-typedef mbedtls_ecp_point ucrypto_ecp_point;   /*!< curve struct */
 /*!< r: [0, 32), s: [32, 64), v: 64 */
 typedef uint8_t ucrypto_ecp_signature[65];
+typedef uint8_t ucrypto_ecdh_public_key[64];
+typedef mbedtls_ecdh_context ucrypto_ecdh_ctx; /*!< caller ref */
+typedef mbedtls_ecp_point ucrypto_ecp_point;   /*!< curve struct */
 
 /**
  * @brief Initialize ecdh key context onto heap
@@ -71,7 +72,7 @@ const ucrypto_ecp_point* ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx*);
  *
  * @return
  */
-int ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx*, uint8_t* b);
+int ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx*, ucrypto_ecdh_public_key* b);
 
 /**
  * @brief

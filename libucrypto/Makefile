@@ -18,6 +18,7 @@ dirs+=./obj
 #build objects
 obj-y+=./obj/dh.o
 obj-y+=./obj/mpi.o
+obj-y+=./obj/ecies.o
 
 #external dependencies
 ld-obj+=../external/trezor-crypto/sha3.o

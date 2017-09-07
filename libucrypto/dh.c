@@ -99,12 +99,12 @@ ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx* ctx)
 }
 
 int
-ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx* ctx, uint8_t* b)
+ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx* ctx, ucrypto_ecdh_public_key* b)
 {
     int err;
     size_t len = 64;
     err = mbedtls_ecp_point_write_binary(
-        &ctx->grp, &ctx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, b, 64);
+        &ctx->grp, &ctx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *b, 64);
     return err ? -1 : 0;
 }
 
