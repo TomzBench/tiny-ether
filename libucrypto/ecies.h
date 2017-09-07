@@ -21,7 +21,7 @@ extern "C" {
  *        }
  *
  *	let mut msg = vec![0u8; (1 + 64 + 16 + plain.len() + 32)];
- *	0x04 + echd-random-pubk + iv + aes(shared-secret, plaintext) + hmac
+ *	0x04 + echd-random-pubk + iv + aes(kdf(shared-secret), plaintext) + hmac
  */
 
 #include "dh.h"
