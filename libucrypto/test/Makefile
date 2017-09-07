@@ -3,7 +3,7 @@
 #INCDIR:=../
 SRCDIR:=./
 
-incs+=-I../mbedtls
+incs+=-I../
 incs+=-I./
 
 libs+=-L../../external/mbedtls/library -l:libmbedcrypto.a
@@ -15,18 +15,19 @@ dirs+=./obj
 obj-y+=./obj/test.o
 
 # linker (external) dependencies
-ld-obj+=../mbedtls/obj/dh.o
-ld-obj+=../mbedtls/obj/mpi.o
+ld-obj+=../obj/dh.o
+ld-obj+=../obj/mpi.o
 
 # note - common.mk target requires app_*
 app: ${dirs} ${obj-y} board app_test
 
 board: ${ld-obj} 
-	$(MAKE) -s -C ../mbedtls
+	$(MAKE) -s -C ../
 
 include ../../common.mk
 
 clean:
 	@echo "CLEAN"
 	@rm -rf ./obj/ 
+	@rm app_test
 	@rm -f ${hdrs} #careful when headers is an empty /
