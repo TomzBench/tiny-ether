@@ -92,10 +92,20 @@ EXIT:
     return ret;
 }
 
-const ecp_point*
+const ucrypto_ecp_point*
 ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx* ctx)
 {
     return &ctx->Q;
+}
+
+int
+ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx* ctx, uint8_t* b)
+{
+    int err;
+    size_t len = 64;
+    err = mbedtls_ecp_point_write_binary(
+        &ctx->grp, &ctx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, b, 64);
+    return err ? -1 : 0;
 }
 
 const ucrypto_mpi*
@@ -105,7 +115,7 @@ ucrypto_ecdh_secret(ucrypto_ecdh_ctx* ctx)
 }
 
 int
-ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ecp_point* qp)
+ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point* qp)
 {
     int err;
     mbedtls_ctr_drbg_context rng;
@@ -181,7 +191,7 @@ EXIT:
 }
 
 int
-ucrypto_ecdh_verify(const ecp_point* q,
+ucrypto_ecdh_verify(const ucrypto_ecp_point* q,
                     const uint8_t* b,
                     uint32_t sz,
                     ucrypto_ecp_signature* sig_p)
@@ -214,6 +224,24 @@ EXIT:
     ucrypto_mpi_free(&r);
     ucrypto_mpi_free(&s);
     return ret;
+}
+
+int
+ucrypto_ecdh_encrypt(ucrypto_ecdh_ctx* ctx,
+                     uint8_t* src,
+                     size_t slen,
+                     uint8_t* dst,
+                     size_t dlen)
+{
+}
+
+int
+ucrypto_ecdh_dencrypt(ucrypto_ecdh_ctx* ctx,
+                      uint8_t* src,
+                      size_t slen,
+                      uint8_t* dst,
+                      size_t dlen)
+{
 }
 
 void

@@ -12,7 +12,7 @@ extern "C" {
 #include "mpi.h"
 
 typedef mbedtls_ecdh_context ucrypto_ecdh_ctx; /*!< caller ref */
-typedef mbedtls_ecp_point ecp_point;           /*!< curve struct */
+typedef mbedtls_ecp_point ucrypto_ecp_point;   /*!< curve struct */
 /*!< r: [0, 32), s: [32, 64), v: 64 */
 typedef uint8_t ucrypto_ecp_signature[65];
 
@@ -61,7 +61,17 @@ int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
  *
  * @return
  */
-const ecp_point* ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx*);
+const ucrypto_ecp_point* ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx*);
+
+/**
+ * @brief
+ *
+ * @param ucrypto_ecdh_ctx
+ * @param b
+ *
+ * @return
+ */
+int ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx*, uint8_t* b);
 
 /**
  * @brief
@@ -79,7 +89,7 @@ const ucrypto_mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
  *
  * @return 0 OK or -1 err
  */
-int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ecp_point*);
+int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point*);
 
 /**
  * @brief
@@ -106,10 +116,44 @@ int ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
  *
  * @return
  */
-int ucrypto_ecdh_verify(const ecp_point* q,
+int ucrypto_ecdh_verify(const ucrypto_ecp_point* q,
                         const uint8_t* b,
                         uint32_t sz,
                         ucrypto_ecp_signature*);
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param src
+ * @param slen
+ * @param dst
+ * @param dlen
+ *
+ * @return
+ */
+int ucrypto_ecdh_encrypt(ucrypto_ecdh_ctx* ctx,
+                         uint8_t* src,
+                         size_t slen,
+                         uint8_t* dst,
+                         size_t dlen);
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param src
+ * @param slen
+ * @param dst
+ * @param dlen
+ *
+ * @return
+ */
+int ucrypto_ecdh_dencrypt(ucrypto_ecdh_ctx* ctx,
+                          uint8_t* src,
+                          size_t slen,
+                          uint8_t* dst,
+                          size_t dlen);
+
 /**
  * @brief return any heap from key
  *

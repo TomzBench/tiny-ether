@@ -2,6 +2,7 @@
 #include "mtm/mpi.h"
 #include "mtm/rlpx_config.h"
 #include "mtm/sha.h"
+#include <string.h>
 
 /**
  * @brief
@@ -78,11 +79,15 @@ test_auth_pain()
 {
     int err = -1;
 
-    // for (uint32_t i = 0; i < l; i++) dst->p[i] ^= bytes[i];
+    // A public key is 64 bytes
+    // A signature is 65 bytes
+    // A shared secret is 32 bytes?
+    // A Hash is 32 bytes?
     uint8_t b[65 + 32 + 64 + 32 + 1];
     uint8_t noncea[32];
     uint8_t nonceb[32];
     uint8_t secret[32];
+    uint8_t epubkey[64];
     ucrypto_ecp_signature sig;
     ucrypto_h256 hepub;
     ucrypto_ecdh_ctx *skey_a, *skey_b;
@@ -114,12 +119,24 @@ test_auth_pain()
 
     // sign shared secret^nonce between static keys with an ephermeral pri key
     ucrypto_ecdh_agree(skey_a, ucrypto_ecdh_pubkey(skey_b));
-    ucrypto_mpi_write_binary(ucrypto_ecdh_secret(skey_a), secret, 32);
+    ucrypto_mpi_write_binary(ucrypto_ecdh_secret(skey_a), secret, 32); // 32?
     for (uint32_t i = 0; i < 32; i++) secret[i] ^= noncea[i];
     ucrypto_ecdh_sign(ekey_a, secret, 32, &sig);
+    memcpy(b, sig, 65);
 
-    // Concat with ephermeral pub key
-    ucrypto_sha3_256(ucrypto_ecdh_pubkey(ekey_a), 32, hepub);
+    // Concat with sha3 hash of ephermeral pub key
+    ucrypto_ecdh_pubkey_write(ekey_a, epubkey);
+    ucrypto_sha3_256(epubkey, 64, hepub);
+    memcpy(&b[65], hepub, 32);
+
+    // Concat with pubkey
+    memcpy(&b[65 + 32], epubkey, 64);
+
+    // Concat with Nonce
+    memcpy(&b[65 + 32 + 64], noncea, 32);
+
+    // Concat with NULL
+    b[65 + 32 + 64 + 32] = 0;
 
     err = 0;
     ucrypto_mpi_free(&spriv_a);
