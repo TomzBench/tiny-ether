@@ -32,6 +32,17 @@ ecdh_ctx* ecdh_key_alloc();
 int ecdh_key_init(ecdh_ctx*);
 
 /**
+ * @brief Given private key (d), calculate public key using group G.
+ *
+ * Q = d*G
+ *
+ * @param ecdh_ctx
+ *
+ * @return
+ */
+int ecdh_key_init_from_private_key(ecdh_ctx*);
+
+/**
  * @brief
  *
  * @param ecdh_ctx
