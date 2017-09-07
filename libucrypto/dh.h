@@ -42,18 +42,21 @@ int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*);
  *
  * @return
  */
-ucrypto_ecdh_ctx* ucrypto_ecdh_import_private_key_alloc(const ucrypto_mpi* d);
+int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
 
 /**
- * @brief Given private key (d), calculate public key using group G.
+ * @brief return any heap from key
  *
- * Q = d*G
+ * @param
+ */
+void ucrypto_ecdh_key_free(ucrypto_ecdh_ctx**);
+
+/**
+ * @brief
  *
  * @param ucrypto_ecdh_ctx
- *
- * @return
  */
-int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
+void ucrypto_ecdh_key_deinit(ucrypto_ecdh_ctx*);
 
 /**
  * @brief
@@ -121,20 +124,6 @@ int ucrypto_ecdh_verify(const ucrypto_ecp_point* q,
                         const uint8_t* b,
                         uint32_t sz,
                         ucrypto_ecp_signature*);
-
-/**
- * @brief return any heap from key
- *
- * @param
- */
-void ucrypto_ecdh_key_free(ucrypto_ecdh_ctx**);
-
-/**
- * @brief
- *
- * @param ucrypto_ecdh_ctx
- */
-void ucrypto_ecdh_key_deinit(ucrypto_ecdh_ctx*);
 
 #ifdef __cplusplus
 }
