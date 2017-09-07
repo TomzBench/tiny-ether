@@ -93,7 +93,7 @@ int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ecp_point*);
 int ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
                       const uint8_t* b,
                       uint32_t sz,
-                      ecp_signature);
+                      ecp_signature*);
 
 /**
  * @brief
@@ -108,7 +108,7 @@ int ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
 int ucrypto_ecdh_verify(const ecp_point* q,
                         const uint8_t* b,
                         uint32_t sz,
-                        ecp_signature);
+                        ecp_signature*);
 /**
  * @brief return any heap from key
  *

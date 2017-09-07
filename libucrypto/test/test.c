@@ -19,12 +19,12 @@ test_ecdh()
     int err = 0;
     ucrypto_ecdh_ctx *ctxa, *ctxa_clone, *ctxb;
     ecp_signature sig;
-    uint8_t signme[66];
+    uint8_t stest[66];
     ctxa = ucrypto_ecdh_key_alloc(NULL);
     ctxb = ucrypto_ecdh_key_alloc(NULL);
     ctxa_clone = ucrypto_ecdh_key_alloc(&ctxa->d);
     if (!(ctxa && ctxa_clone && ctxb)) goto EXIT;
-    memset(signme, 'a', 66);
+    memset(stest, 'a', 66);
 
     // Generate a shared secret
     ucrypto_ecdh_agree(ctxa, ucrypto_ecdh_pubkey(ctxb));
@@ -35,22 +35,22 @@ test_ecdh()
     if (!(err == 0)) goto EXIT;
 
     // Sign our test blob
-    err = ucrypto_ecdh_sign(ctxa, signme, 66, sig);
+    err = ucrypto_ecdh_sign(ctxa, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
     // Verify with public key
-    err = ucrypto_ecdh_verify(ucrypto_ecdh_pubkey(ctxa), signme, 66, sig);
+    err = ucrypto_ecdh_verify(ucrypto_ecdh_pubkey(ctxa), stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
-    err = ucrypto_ecdh_verify(ucrypto_ecdh_pubkey(ctxa_clone), signme, 66, sig);
+    err = ucrypto_ecdh_verify(ucrypto_ecdh_pubkey(ctxa_clone), stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
     memset(sig, 0, sizeof(sig));
 
-    err = ucrypto_ecdh_sign(ctxa_clone, signme, 66, sig);
+    err = ucrypto_ecdh_sign(ctxa_clone, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
-    err = ucrypto_ecdh_verify(ucrypto_ecdh_pubkey(ctxa_clone), signme, 66, sig);
+    err = ucrypto_ecdh_verify(ucrypto_ecdh_pubkey(ctxa_clone), stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
 EXIT:

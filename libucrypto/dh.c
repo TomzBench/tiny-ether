@@ -133,9 +133,10 @@ int
 ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
                   const uint8_t* b,
                   uint32_t sz,
-                  ecp_signature sig)
+                  ecp_signature* sig_p)
 {
     int err, ret = -1;
+    uint8_t* sig = *sig_p;
     ucrypto_mpi r, s;
     mbedtls_ctr_drbg_context rng;
     mbedtls_entropy_context entropy;
@@ -183,9 +184,10 @@ int
 ucrypto_ecdh_verify(const ecp_point* q,
                     const uint8_t* b,
                     uint32_t sz,
-                    ecp_signature sig)
+                    ecp_signature* sig_p)
 {
     int err, ret = -1;
+    uint8_t* sig = *sig_p;
     mbedtls_ecp_group grp;
     ucrypto_mpi r, s;
 
