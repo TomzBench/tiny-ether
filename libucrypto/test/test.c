@@ -18,7 +18,7 @@ test_ecdh()
 {
     int err = 0;
     ucrypto_ecdh_ctx *ctxa, *ctxa_clone, *ctxb;
-    ecp_signature sig;
+    ucrypto_ecp_signature sig;
     uint8_t stest[66];
     ctxa = ucrypto_ecdh_key_alloc(NULL);
     ctxb = ucrypto_ecdh_key_alloc(NULL);

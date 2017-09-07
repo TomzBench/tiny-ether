@@ -29,13 +29,13 @@
  *
  * @return 0 pass
  */
-const char* g_skey_a =
+const char* g_spriv_a =
     "49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee";
-const char* g_skey_b =
+const char* g_spriv_b =
     "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291";
-const char* g_ekey_a =
+const char* g_epriv_a =
     "869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d";
-const char* g_ekey_b =
+const char* g_epriv_b =
     "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4";
 const char* g_nonce_a =
     "7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6";
@@ -73,34 +73,47 @@ main(int argc, char* argv[])
     return err;
 }
 
+// E(remote-pubk, S(ecdhe-random, ecdh-shared-secret^nonce) ||
+// H(ecdhe-random-pubk) || pubk || nonce || 0x0)
 int
 test_auth_pain()
 {
     int err = -1;
 
-    ucrypto_mpi skey_a, skey_b;
-    ucrypto_mpi ekey_a, ekey_b;
+    uint8_t b[65 + 32 + 64 + 32 + 1];
+    ucrypto_ecdh_ctx *skey_a, *skey_b;
+    ucrypto_ecdh_ctx *ekey_a, *ekey_b;
+    ucrypto_mpi spriv_a, spriv_b;
+    ucrypto_mpi epriv_a, epriv_b;
     ucrypto_mpi nonce_a, nonce_b;
-    ucrypto_mpi_init(&skey_a);
-    ucrypto_mpi_init(&skey_b);
-    ucrypto_mpi_init(&ekey_a);
-    ucrypto_mpi_init(&ekey_b);
+    ucrypto_mpi_init(&spriv_a);
+    ucrypto_mpi_init(&spriv_b);
+    ucrypto_mpi_init(&epriv_a);
+    ucrypto_mpi_init(&epriv_b);
     ucrypto_mpi_init(&nonce_a);
     ucrypto_mpi_init(&nonce_b);
-    ucrypto_mpi_read_string(&skey_a, 16, g_skey_a);
-    ucrypto_mpi_read_string(&skey_b, 16, g_skey_b);
-    ucrypto_mpi_read_string(&ekey_a, 16, g_ekey_a);
-    ucrypto_mpi_read_string(&ekey_b, 16, g_ekey_b);
+    ucrypto_mpi_read_string(&spriv_a, 16, g_spriv_a);
+    ucrypto_mpi_read_string(&spriv_b, 16, g_spriv_b);
+    ucrypto_mpi_read_string(&epriv_a, 16, g_epriv_a);
+    ucrypto_mpi_read_string(&epriv_b, 16, g_epriv_b);
     ucrypto_mpi_read_string(&nonce_a, 16, g_nonce_a);
     ucrypto_mpi_read_string(&nonce_b, 16, g_nonce_b);
+    skey_a = ucrypto_ecdh_key_alloc(&spriv_a);
+    skey_b = ucrypto_ecdh_key_alloc(&spriv_a);
+    ekey_a = ucrypto_ecdh_key_alloc(&epriv_a);
+    ekey_b = ucrypto_ecdh_key_alloc(&epriv_b);
 
     err = 0;
-    ucrypto_mpi_free(&skey_a);
-    ucrypto_mpi_free(&skey_b);
-    ucrypto_mpi_free(&ekey_a);
-    ucrypto_mpi_free(&ekey_b);
+    ucrypto_mpi_free(&spriv_a);
+    ucrypto_mpi_free(&spriv_b);
+    ucrypto_mpi_free(&epriv_a);
+    ucrypto_mpi_free(&epriv_b);
     ucrypto_mpi_free(&nonce_a);
     ucrypto_mpi_free(&nonce_b);
+    ucrypto_ecdh_key_free(&skey_a);
+    ucrypto_ecdh_key_free(&skey_b);
+    ucrypto_ecdh_key_free(&ekey_a);
+    ucrypto_ecdh_key_free(&ekey_b);
     return err;
     err = 0;
     return err;

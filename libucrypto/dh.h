@@ -13,14 +13,15 @@ extern "C" {
 
 typedef mbedtls_ecdh_context ucrypto_ecdh_ctx; /*!< caller ref */
 typedef mbedtls_ecp_point ecp_point;           /*!< curve struct */
-typedef uint8_t ecp_signature[65]; /*!< r: [0, 32), s: [32, 64), v: 64 */
+/*!< r: [0, 32), s: [32, 64), v: 64 */
+typedef uint8_t ucrypto_ecp_signature[65];
 
 /**
  * @brief Initialize ecdh key context onto heap
  *
  * @return Heap pointer or NULL;
  */
-ucrypto_ecdh_ctx* ucrypto_ecdh_key_alloc(ucrypto_mpi*);
+ucrypto_ecdh_ctx* ucrypto_ecdh_key_alloc(const ucrypto_mpi*);
 
 /**
  * @brief initialize a key context
@@ -40,7 +41,7 @@ int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*);
  *
  * @return
  */
-ucrypto_ecdh_ctx* ucrypto_ecdh_import_private_key_alloc(ucrypto_mpi* d);
+ucrypto_ecdh_ctx* ucrypto_ecdh_import_private_key_alloc(const ucrypto_mpi* d);
 
 /**
  * @brief Given private key (d), calculate public key using group G.
@@ -51,7 +52,7 @@ ucrypto_ecdh_ctx* ucrypto_ecdh_import_private_key_alloc(ucrypto_mpi* d);
  *
  * @return
  */
-int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, ucrypto_mpi* d);
+int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
 
 /**
  * @brief
@@ -86,14 +87,14 @@ int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ecp_point*);
  * @param ctx
  * @param b
  * @param sz
- * @param ecp_signature
+ * @param ucrypto_ecp_signature
  *
  * @return
  */
 int ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
                       const uint8_t* b,
                       uint32_t sz,
-                      ecp_signature*);
+                      ucrypto_ecp_signature*);
 
 /**
  * @brief
@@ -101,14 +102,14 @@ int ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
  * @param q
  * @param b
  * @param sz
- * @param ecp_signature
+ * @param ucrypto_ecp_signature
  *
  * @return
  */
 int ucrypto_ecdh_verify(const ecp_point* q,
                         const uint8_t* b,
                         uint32_t sz,
-                        ecp_signature*);
+                        ucrypto_ecp_signature*);
 /**
  * @brief return any heap from key
  *

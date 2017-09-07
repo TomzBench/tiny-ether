@@ -2,7 +2,7 @@
 #include "board_mem.h"
 
 ucrypto_ecdh_ctx*
-ucrypto_ecdh_key_alloc(ucrypto_mpi* d)
+ucrypto_ecdh_key_alloc(const ucrypto_mpi* d)
 {
     int err;
     ucrypto_ecdh_ctx* ctx = board_alloc(sizeof(ucrypto_ecdh_ctx));
@@ -46,7 +46,7 @@ EXIT:
 }
 
 ucrypto_ecdh_ctx*
-ucrypto_ecdh_import_private_key_alloc(ucrypto_mpi* d)
+ucrypto_ecdh_import_private_key_alloc(const ucrypto_mpi* d)
 {
     int err = 0;
     ucrypto_ecdh_ctx* ctx = ucrypto_ecdh_key_alloc(d);
@@ -57,7 +57,7 @@ ucrypto_ecdh_import_private_key_alloc(ucrypto_mpi* d)
 }
 
 int
-ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx* ctx, ucrypto_mpi* d)
+ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx* ctx, const ucrypto_mpi* d)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -133,7 +133,7 @@ int
 ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
                   const uint8_t* b,
                   uint32_t sz,
-                  ecp_signature* sig_p)
+                  ucrypto_ecp_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = *sig_p;
@@ -184,7 +184,7 @@ int
 ucrypto_ecdh_verify(const ecp_point* q,
                     const uint8_t* b,
                     uint32_t sz,
-                    ecp_signature* sig_p)
+                    ucrypto_ecp_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = *sig_p;
