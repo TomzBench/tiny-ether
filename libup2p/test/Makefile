@@ -22,3 +22,8 @@ obj-y+=./obj/test.o
 app: ${dirs} ${obj-y} app_test
 
 include ../../common.mk
+
+clean:
+	@echo "CLEAN"
+	@rm -rf ./obj/ 
+	@rm -f app_test
