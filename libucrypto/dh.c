@@ -2,12 +2,12 @@
 #include "board_mem.h"
 
 ecdh_ctx*
-ecdh_key_alloc()
+ecdh_key_alloc(mpi* d)
 {
     int err;
     ecdh_ctx* ctx = board_alloc(sizeof(ecdh_ctx));
     if (!ctx) return ctx;
-    err = ecdh_key_init(ctx);
+    err = d ? ecdh_import_private_key(ctx, d) : ecdh_key_init(ctx);
     if (!(err == 0)) ecdh_key_free(&ctx);
     return ctx;
 }
@@ -35,6 +35,53 @@ ecdh_key_init(ecdh_ctx* ctx)
     // Create ecdh public/private key pair
     ret = mbedtls_ecdh_gen_public(&ctx->grp, &ctx->d, &ctx->Q,
                                   mbedtls_ctr_drbg_random, &rng);
+    if (!(ret == 0)) goto EXIT;
+
+EXIT:
+    if (ret) mbedtls_ecdh_free(ctx);
+    mbedtls_ctr_drbg_free(&rng);
+    mbedtls_entropy_free(&entropy);
+    return ret;
+}
+
+ecdh_ctx*
+ecdh_import_private_key_alloc(mpi* d)
+{
+    int err = 0;
+    ecdh_ctx* ctx = ecdh_key_alloc(d);
+    if (!ctx) return ctx;
+    err = ecdh_import_private_key(ctx, d);
+    if (err) ecdh_key_free(&ctx);
+    return ctx;
+}
+
+int
+ecdh_import_private_key(ecdh_ctx* ctx, mpi* d)
+{
+    int ret;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context rng;
+
+    // initialize stack variables and callers ecdh context.
+    mbedtls_ecdh_init(ctx);
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&rng);
+
+    // Seed rng
+    ret = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
+    if (!(ret == 0)) goto EXIT;
+
+    // Load curve parameters
+    ret = mbedtls_ecp_group_load(&ctx->grp, MBEDTLS_ECP_DP_SECP256K1);
+    if (!(ret == 0)) goto EXIT;
+
+    // Copy our key
+    ret = mbedtls_mpi_copy(&ctx->d, d);
+    if (!(ret == 0)) goto EXIT;
+
+    // Get public key from private key?
+    ret = mbedtls_ecp_mul(&ctx->grp, &ctx->Q, &ctx->d, &ctx->grp.G,
+                          mbedtls_entropy_func, &entropy);
     if (!(ret == 0)) goto EXIT;
 
 EXIT:

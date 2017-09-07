@@ -20,7 +20,7 @@ typedef uint8_t ecp_signature[65];     /*!< r: [0, 32), s: [32, 64), v: 64 */
  *
  * @return Heap pointer or NULL;
  */
-ecdh_ctx* ecdh_key_alloc();
+ecdh_ctx* ecdh_key_alloc(mpi*);
 
 /**
  * @brief initialize a key context
@@ -40,7 +40,18 @@ int ecdh_key_init(ecdh_ctx*);
  *
  * @return
  */
-int ecdh_key_init_from_private_key(ecdh_ctx*);
+ecdh_ctx* ecdh_import_private_key_alloc(mpi* d);
+
+/**
+ * @brief Given private key (d), calculate public key using group G.
+ *
+ * Q = d*G
+ *
+ * @param ecdh_ctx
+ *
+ * @return
+ */
+int ecdh_import_private_key(ecdh_ctx*, mpi* d);
 
 /**
  * @brief
