@@ -122,39 +122,6 @@ int ucrypto_ecdh_verify(const ucrypto_ecp_point* q,
                         ucrypto_ecp_signature*);
 
 /**
- * @brief
- *
- * @param ctx
- * @param src
- * @param slen
- * @param dst
- * @param dlen
- *
- * @return
- */
-int ucrypto_ecdh_encrypt(ucrypto_ecdh_ctx* ctx,
-                         uint8_t* src,
-                         size_t slen,
-                         uint8_t* dst,
-                         size_t dlen);
-/**
- * @brief
- *
- * @param ctx
- * @param src
- * @param slen
- * @param dst
- * @param dlen
- *
- * @return
- */
-int ucrypto_ecdh_dencrypt(ucrypto_ecdh_ctx* ctx,
-                          uint8_t* src,
-                          size_t slen,
-                          uint8_t* dst,
-                          size_t dlen);
-
-/**
  * @brief return any heap from key
  *
  * @param

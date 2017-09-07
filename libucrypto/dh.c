@@ -226,24 +226,6 @@ EXIT:
     return ret;
 }
 
-int
-ucrypto_ecdh_encrypt(ucrypto_ecdh_ctx* ctx,
-                     uint8_t* src,
-                     size_t slen,
-                     uint8_t* dst,
-                     size_t dlen)
-{
-}
-
-int
-ucrypto_ecdh_dencrypt(ucrypto_ecdh_ctx* ctx,
-                      uint8_t* src,
-                      size_t slen,
-                      uint8_t* dst,
-                      size_t dlen)
-{
-}
-
 void
 ucrypto_ecdh_key_free(ucrypto_ecdh_ctx** ctx_p)
 {
