@@ -46,9 +46,9 @@ ld-obj+=../external/mbedtls/library/sha256.o
 ld-obj+=../external/mbedtls/library/sha512.o
 ld-obj+=../external/mbedtls/library/timing.o
 
-hdrs+=${INCDIR}/mtm/ucrypto.h
 hdrs+=${INCDIR}/mtm/dh.h
 hdrs+=${INCDIR}/mtm/mpi.h
+hdrs+=${INCDIR}/mtm/sha.h
 
 
 relobj-y:=${obj-y:.o=.lo}
