@@ -1,12 +1,12 @@
 #crypto test makefile
 
-#INCDIR:=../
 SRCDIR:=./
 
-incs+=-I../
 incs+=-I./
+incs+=-I../
+incs+=-I../../target/include/
 
-libs+=-L../../external/mbedtls/library -l:libmbedcrypto.a
+libs+=-L../../target/lib -l:libucrypto.a
 
 # create some dirs
 dirs+=./obj
@@ -14,20 +14,12 @@ dirs+=./obj
 # compiled objects
 obj-y+=./obj/test.o
 
-# linker (external) dependencies
-ld-obj+=../obj/dh.o
-ld-obj+=../obj/mpi.o
-
 # note - common.mk target requires app_*
-app: ${dirs} ${obj-y} board app_test
-
-board: ${ld-obj} 
-	$(MAKE) -s -C ../
+app: ${dirs} ${obj-y} app_test
 
 include ../../common.mk
 
 clean:
 	@echo "CLEAN"
 	@rm -rf ./obj/ 
-	@rm app_test
-	@rm -f ${hdrs} #careful when headers is an empty /
+	@rm -f app_test

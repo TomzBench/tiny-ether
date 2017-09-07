@@ -9,6 +9,7 @@ SRCDIR:=./
 incs+=-I.
 incs+=-I${SRCDIR}
 incs+=-I../external/mbedtls/include
+incs+=-I../external/trezor-crypto/
 incs+=-I../board/linux-emu
 
 #create dirs
@@ -18,14 +19,51 @@ dirs+=./obj
 obj-y+=./obj/dh.o
 obj-y+=./obj/mpi.o
 
+#external dependencies
+ld-obj+=../external/trezor-crypto/sha3.o
+ld-obj+=../external/mbedtls/library/aes.o
+ld-obj+=../external/mbedtls/library/aesni.o
+ld-obj+=../external/mbedtls/library/asn1write.o
+ld-obj+=../external/mbedtls/library/asn1parse.o
+ld-obj+=../external/mbedtls/library/bignum.o
+ld-obj+=../external/mbedtls/library/ctr_drbg.o
+ld-obj+=../external/mbedtls/library/ecdh.o
+ld-obj+=../external/mbedtls/library/ecp.o
+ld-obj+=../external/mbedtls/library/ecp_curves.o
+ld-obj+=../external/mbedtls/library/ecdsa.o
+ld-obj+=../external/mbedtls/library/ecdh.o
+ld-obj+=../external/mbedtls/library/entropy.o
+ld-obj+=../external/mbedtls/library/entropy_poll.o
+ld-obj+=../external/mbedtls/library/hmac_drbg.o
+ld-obj+=../external/mbedtls/library/md.o
+ld-obj+=../external/mbedtls/library/md2.o
+ld-obj+=../external/mbedtls/library/md4.o
+ld-obj+=../external/mbedtls/library/md5.o
+ld-obj+=../external/mbedtls/library/md_wrap.o
+ld-obj+=../external/mbedtls/library/ripemd160.o
+ld-obj+=../external/mbedtls/library/sha1.o
+ld-obj+=../external/mbedtls/library/sha256.o
+ld-obj+=../external/mbedtls/library/sha512.o
+ld-obj+=../external/mbedtls/library/timing.o
+
+hdrs+=${INCDIR}/mtm/ucrypto.h
+hdrs+=${INCDIR}/mtm/dh.h
+hdrs+=${INCDIR}/mtm/mpi.h
+
+
 relobj-y:=${obj-y:.o=.lo}
 
 #targets
-all: ${dirs} ${obj-y} ${relobj-y}
+all: ${LIBDIR}/libucrypto.a ${hdrs} ${ld-obj} ${obj-y}
+
+#all: ${dirs} ${obj-y} ${ld-obj} ${relobj-y}
 
 include ../common.mk
 
 clean:
 	@echo "CLEAN"
 	@rm -rf ./obj/ 
+	@rm -f ${ld-obj}
+	@rm -f ${LIBDIR}/libucrypto.a
+	@rm -f ${LIBDIR}/libucrypto.so
 	@rm -f ${hdrs} #careful when headers is an empty /

@@ -20,7 +20,7 @@ ${LIBDIR}/%.so: ${dirs} ${relobj-y} ${obj-y} ${hdrs}
 	@echo "LINK $@"
 	@${CC} -shared ${relobj-y} ${ld-relobj} ${LDFLAGS} -o $@
 
-${LIBDIR}/%.a: ${dirs} ${obj-y} ${hdrs}
+${LIBDIR}/%.a: ${dirs} ${obj-y} ${hdrs} ${ld-obj}
 	@echo "LINK $@"
 	@ar rcs $@ ${obj-y} ${ld-obj}
 
@@ -36,9 +36,15 @@ ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 	@echo "  CC $@"
 	@${CC} -c ${CFLAGS} ${LDFLAGS} $< -o $@ 
 
+%.o: %.c
+	@echo "  CC $@"
+	@${CC} -c ${CFLAGS} ${LDFLAGS} $< -o $@ 
+
 app_%: ${dirs} ${obj-y}
 	@echo "LINK $@"
-	${CC} ${ld-obj} ${obj-y} ${LDFLAGS} -o $@
+	@${CC} ${ld-obj} ${obj-y} ${LDFLAGS} -o $@
+
+
 
 valgrind_%: %
 	valgrind \
