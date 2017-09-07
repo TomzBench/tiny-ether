@@ -4,7 +4,9 @@
 extern "C" {
 #endif
 
-#define ucrypto_sha3_512(b, l, d) sha3_512(b, l, d)
+#define ucrypto_sha3_256(b, l, d) sha3_256(b, l, d)
+
+typedef uint8_t ucrypto_h256[32];
 
 #ifdef __cplusplus
 }

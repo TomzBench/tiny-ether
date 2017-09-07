@@ -81,6 +81,7 @@ test_auth_pain()
     int err = -1;
 
     uint8_t b[65 + 32 + 64 + 32 + 1];
+    ucrypto_ecp_signature sig;
     ucrypto_ecdh_ctx *skey_a, *skey_b;
     ucrypto_ecdh_ctx *ekey_a, *ekey_b;
     ucrypto_mpi spriv_a, spriv_b;
