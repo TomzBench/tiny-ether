@@ -1,21 +1,7 @@
-#include "mtm/rlpx_config.h"
-#include "mtm/mpi.h"
-#include "mtm/sha.h"
 #include "mtm/dh.h"
-
-int test_auth_pain();
-
-int
-main(int argc, char* argv[])
-{
-    ((void)argc);
-    ((void)argv);
-    int err = 0;
-
-    err |= test_auth_pain();
-
-    return err;
-}
+#include "mtm/mpi.h"
+#include "mtm/rlpx_config.h"
+#include "mtm/sha.h"
 
 /**
  * @brief
@@ -43,11 +29,19 @@ main(int argc, char* argv[])
  *
  * @return 0 pass
  */
-int
-test_auth_pain()
-{
-    int err = -1;
-    const char* auth = ""
+const char* g_skey_a =
+    "49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee";
+const char* g_skey_b =
+    "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291";
+const char* g_ekey_a =
+    "869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d";
+const char* g_ekey_b =
+    "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4";
+const char* g_nonce_a =
+    "7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6";
+const char* g_nonce_b =
+    "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd";
+const char* g_auth_1 = ""
                        "048ca79ad18e4b0659fab4853fe5bc58eb8399"
                        "2980f4c9cc147d2aa31532efd29a3d3dc6a3d8"
                        "9eaf913150cfc777ce0ce4af2758bf4810235f"
@@ -65,6 +59,24 @@ test_auth_pain()
                        "73d1750780db4c9ee4cd4d225173a4592ee77e"
                        "2bd94d0be3691f3b406f9bba9b591fc63facc0"
                        "16bfa8";
+int test_auth_pain();
+
+int
+main(int argc, char* argv[])
+{
+    ((void)argc);
+    ((void)argv);
+    int err = 0;
+
+    err |= test_auth_pain();
+
+    return err;
+}
+
+int
+test_auth_pain()
+{
+    int err = -1;
 
     ucrypto_mpi skey_a, skey_b;
     ucrypto_mpi ekey_a, ekey_b;
@@ -75,24 +87,12 @@ test_auth_pain()
     ucrypto_mpi_init(&ekey_b);
     ucrypto_mpi_init(&nonce_a);
     ucrypto_mpi_init(&nonce_b);
-    ucrypto_mpi_read_string(
-        &skey_a, 16,
-        "49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee");
-    ucrypto_mpi_read_string(
-        &skey_b, 16,
-        "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291");
-    ucrypto_mpi_read_string(
-        &ekey_a, 16,
-        "869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d");
-    ucrypto_mpi_read_string(
-        &ekey_b, 16,
-        "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4");
-    ucrypto_mpi_read_string(
-        &nonce_a, 16,
-        "7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6");
-    ucrypto_mpi_read_string(
-        &nonce_b, 16,
-        "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd");
+    ucrypto_mpi_read_string(&skey_a, 16, g_skey_a);
+    ucrypto_mpi_read_string(&skey_b, 16, g_skey_b);
+    ucrypto_mpi_read_string(&ekey_a, 16, g_ekey_a);
+    ucrypto_mpi_read_string(&ekey_b, 16, g_ekey_b);
+    ucrypto_mpi_read_string(&nonce_a, 16, g_nonce_a);
+    ucrypto_mpi_read_string(&nonce_b, 16, g_nonce_b);
 
     err = 0;
     ucrypto_mpi_free(&skey_a);
