@@ -11,65 +11,65 @@ extern "C" {
 #include "mbedtls/entropy.h"
 #include "mpi.h"
 
-typedef mbedtls_ecdh_context ecdh_ctx; /*!< caller ref */
-typedef mbedtls_ecp_point ecp_point;   /*!< curve struct */
-typedef uint8_t ecp_signature[65];     /*!< r: [0, 32), s: [32, 64), v: 64 */
+typedef mbedtls_ecdh_context ucrypto_ecdh_ctx; /*!< caller ref */
+typedef mbedtls_ecp_point ecp_point;           /*!< curve struct */
+typedef uint8_t ecp_signature[65]; /*!< r: [0, 32), s: [32, 64), v: 64 */
 
 /**
  * @brief Initialize ecdh key context onto heap
  *
  * @return Heap pointer or NULL;
  */
-ecdh_ctx* ecdh_key_alloc(mpi*);
+ucrypto_ecdh_ctx* ucrypto_ecdh_key_alloc(mpi*);
 
 /**
  * @brief initialize a key context
  *
- * @param ecdh_ctx
+ * @param ucrypto_ecdh_ctx
  *
  * @return
  */
-int ecdh_key_init(ecdh_ctx*);
+int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*);
 
 /**
  * @brief Given private key (d), calculate public key using group G.
  *
  * Q = d*G
  *
- * @param ecdh_ctx
+ * @param ucrypto_ecdh_ctx
  *
  * @return
  */
-ecdh_ctx* ecdh_import_private_key_alloc(mpi* d);
+ucrypto_ecdh_ctx* ucrypto_ecdh_import_private_key_alloc(mpi* d);
 
 /**
  * @brief Given private key (d), calculate public key using group G.
  *
  * Q = d*G
  *
- * @param ecdh_ctx
+ * @param ucrypto_ecdh_ctx
  *
  * @return
  */
-int ecdh_import_private_key(ecdh_ctx*, mpi* d);
+int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, mpi* d);
 
 /**
  * @brief
  *
- * @param ecdh_ctx
+ * @param ucrypto_ecdh_ctx
  *
  * @return
  */
-const ecp_point* ecdh_pubkey(ecdh_ctx*);
+const ecp_point* ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx*);
 
 /**
  * @brief
  *
- * @param ecdh_ctx
+ * @param ucrypto_ecdh_ctx
  *
  * @return
  */
-const mpi* ecdh_secret(ecdh_ctx*);
+const mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
 
 /**
  * @brief Compute a shared secret. Secret is updated into ctx z param
@@ -78,7 +78,7 @@ const mpi* ecdh_secret(ecdh_ctx*);
  *
  * @return 0 OK or -1 err
  */
-int ecdh_agree(ecdh_ctx* ctx, const ecp_point*);
+int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ecp_point*);
 
 /**
  * @brief
@@ -90,7 +90,10 @@ int ecdh_agree(ecdh_ctx* ctx, const ecp_point*);
  *
  * @return
  */
-int ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature);
+int ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
+                      const uint8_t* b,
+                      uint32_t sz,
+                      ecp_signature);
 
 /**
  * @brief
@@ -102,23 +105,23 @@ int ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature);
  *
  * @return
  */
-int ecdh_verify(const ecp_point* q,
-                const uint8_t* b,
-                uint32_t sz,
-                ecp_signature);
+int ucrypto_ecdh_verify(const ecp_point* q,
+                        const uint8_t* b,
+                        uint32_t sz,
+                        ecp_signature);
 /**
  * @brief return any heap from key
  *
  * @param
  */
-void ecdh_key_free(ecdh_ctx**);
+void ucrypto_ecdh_key_free(ucrypto_ecdh_ctx**);
 
 /**
  * @brief
  *
- * @param ecdh_ctx
+ * @param ucrypto_ecdh_ctx
  */
-void ecdh_key_deinit(ecdh_ctx*);
+void ucrypto_ecdh_key_deinit(ucrypto_ecdh_ctx*);
 
 #ifdef __cplusplus
 }

@@ -2,7 +2,7 @@
 #include "string.h"
 
 int
-mpi_xor(mpi* dst, mpi* src, uint8_t* bytes, size_t l)
+ucrypto_mpi_xor(mpi* dst, mpi* src, uint8_t* bytes, size_t l)
 {
     if (!(l <= dst->n)) return -1;
     if (!(l <= src->n)) return -1;

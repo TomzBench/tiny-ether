@@ -1,19 +1,20 @@
 #include "dh.h"
 #include "board_mem.h"
 
-ecdh_ctx*
-ecdh_key_alloc(mpi* d)
+ucrypto_ecdh_ctx*
+ucrypto_ecdh_key_alloc(mpi* d)
 {
     int err;
-    ecdh_ctx* ctx = board_alloc(sizeof(ecdh_ctx));
+    ucrypto_ecdh_ctx* ctx = board_alloc(sizeof(ucrypto_ecdh_ctx));
     if (!ctx) return ctx;
-    err = d ? ecdh_import_private_key(ctx, d) : ecdh_key_init(ctx);
-    if (!(err == 0)) ecdh_key_free(&ctx);
+    err = d ? ucrypto_ecdh_import_private_key(ctx, d)
+            : ucrypto_ecdh_key_init(ctx);
+    if (!(err == 0)) ucrypto_ecdh_key_free(&ctx);
     return ctx;
 }
 
 int
-ecdh_key_init(ecdh_ctx* ctx)
+ucrypto_ecdh_key_init(ucrypto_ecdh_ctx* ctx)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -44,19 +45,19 @@ EXIT:
     return ret;
 }
 
-ecdh_ctx*
-ecdh_import_private_key_alloc(mpi* d)
+ucrypto_ecdh_ctx*
+ucrypto_ecdh_import_private_key_alloc(mpi* d)
 {
     int err = 0;
-    ecdh_ctx* ctx = ecdh_key_alloc(d);
+    ucrypto_ecdh_ctx* ctx = ucrypto_ecdh_key_alloc(d);
     if (!ctx) return ctx;
-    err = ecdh_import_private_key(ctx, d);
-    if (err) ecdh_key_free(&ctx);
+    err = ucrypto_ecdh_import_private_key(ctx, d);
+    if (err) ucrypto_ecdh_key_free(&ctx);
     return ctx;
 }
 
 int
-ecdh_import_private_key(ecdh_ctx* ctx, mpi* d)
+ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx* ctx, mpi* d)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -92,19 +93,19 @@ EXIT:
 }
 
 const ecp_point*
-ecdh_pubkey(ecdh_ctx* ctx)
+ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx* ctx)
 {
     return &ctx->Q;
 }
 
 const mpi*
-ecdh_secret(ecdh_ctx* ctx)
+ucrypto_ecdh_secret(ucrypto_ecdh_ctx* ctx)
 {
     return &ctx->z;
 }
 
 int
-ecdh_agree(ecdh_ctx* ctx, const ecp_point* qp)
+ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ecp_point* qp)
 {
     int err;
     mbedtls_ctr_drbg_context rng;
@@ -129,7 +130,10 @@ EXIT:
 }
 
 int
-ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature sig)
+ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
+                  const uint8_t* b,
+                  uint32_t sz,
+                  ecp_signature sig)
 {
     int err, ret = -1;
     mpi r, s;
@@ -140,8 +144,8 @@ ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature sig)
     // Init stack content
     mbedtls_ctr_drbg_init(&rng);
     mbedtls_entropy_init(&entropy);
-    mpi_init(&r);
-    mpi_init(&s);
+    ucrypto_mpi_init(&r);
+    ucrypto_mpi_init(&s);
 
     // Seed RNG
     err = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
@@ -168,18 +172,18 @@ ecdh_sign(ecdh_ctx* ctx, const uint8_t* b, uint32_t sz, ecp_signature sig)
     sig[64] = ctx->Q.Y.p[0] ? 1 : 0;
 
 EXIT:
-    mpi_free(&r);
-    mpi_free(&s);
+    ucrypto_mpi_free(&r);
+    ucrypto_mpi_free(&s);
     mbedtls_ctr_drbg_free(&rng);
     mbedtls_entropy_free(&entropy);
     return ret;
 }
 
 int
-ecdh_verify(const ecp_point* q,
-            const uint8_t* b,
-            uint32_t sz,
-            ecp_signature sig)
+ucrypto_ecdh_verify(const ecp_point* q,
+                    const uint8_t* b,
+                    uint32_t sz,
+                    ecp_signature sig)
 {
     int err, ret = -1;
     mbedtls_ecp_group grp;
@@ -187,8 +191,8 @@ ecdh_verify(const ecp_point* q,
 
     // Init stack content
     mbedtls_ecp_group_init(&grp);
-    mpi_init(&r);
-    mpi_init(&s);
+    ucrypto_mpi_init(&r);
+    ucrypto_mpi_init(&s);
     err = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1);
     if (!(err == 0)) goto EXIT;
 
@@ -205,22 +209,22 @@ ecdh_verify(const ecp_point* q,
     ret = 0;
 EXIT:
     mbedtls_ecp_group_free(&grp);
-    mpi_free(&r);
-    mpi_free(&s);
+    ucrypto_mpi_free(&r);
+    ucrypto_mpi_free(&s);
     return ret;
 }
 
 void
-ecdh_key_free(ecdh_ctx** ctx_p)
+ucrypto_ecdh_key_free(ucrypto_ecdh_ctx** ctx_p)
 {
-    ecdh_ctx* ctx = *ctx_p;
+    ucrypto_ecdh_ctx* ctx = *ctx_p;
     *ctx_p = NULL;
-    ecdh_key_deinit(ctx);
+    ucrypto_ecdh_key_deinit(ctx);
     board_free(ctx);
 }
 
 void
-ecdh_key_deinit(ecdh_ctx* ctx)
+ucrypto_ecdh_key_deinit(ucrypto_ecdh_ctx* ctx)
 {
     mbedtls_ecdh_free(ctx);
 }
