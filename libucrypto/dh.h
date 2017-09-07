@@ -20,7 +20,7 @@ typedef uint8_t ecp_signature[65]; /*!< r: [0, 32), s: [32, 64), v: 64 */
  *
  * @return Heap pointer or NULL;
  */
-ucrypto_ecdh_ctx* ucrypto_ecdh_key_alloc(mpi*);
+ucrypto_ecdh_ctx* ucrypto_ecdh_key_alloc(ucrypto_mpi*);
 
 /**
  * @brief initialize a key context
@@ -40,7 +40,7 @@ int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*);
  *
  * @return
  */
-ucrypto_ecdh_ctx* ucrypto_ecdh_import_private_key_alloc(mpi* d);
+ucrypto_ecdh_ctx* ucrypto_ecdh_import_private_key_alloc(ucrypto_mpi* d);
 
 /**
  * @brief Given private key (d), calculate public key using group G.
@@ -51,7 +51,7 @@ ucrypto_ecdh_ctx* ucrypto_ecdh_import_private_key_alloc(mpi* d);
  *
  * @return
  */
-int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, mpi* d);
+int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, ucrypto_mpi* d);
 
 /**
  * @brief
@@ -69,7 +69,7 @@ const ecp_point* ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx*);
  *
  * @return
  */
-const mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
+const ucrypto_mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
 
 /**
  * @brief Compute a shared secret. Secret is updated into ctx z param

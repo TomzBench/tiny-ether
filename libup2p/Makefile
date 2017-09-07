@@ -18,9 +18,9 @@ defines+=-DURLP_CONFIG_LINUX_EMU
 
 # source directories
 incs+=-I../target/include/
+incs+=-I../board/linux-emu/
 incs+=-I.
 incs+=-I./src
-incs+=-I../board/linux-emu/
 
 # compile objects
 obj-y+=./obj/rlpx.o
@@ -42,8 +42,8 @@ all: \
 	${dirs} \
 	${obj-y} \
 	${relobj-y} \
-	${LIBDIR}/libdevp2p.so \
-	${LIBDIR}/libdevp2p.a \
+	${LIBDIR}/libup2p.so \
+	${LIBDIR}/libup2p.a \
 	${hdrs} 
 
 board: ${ld-obj} ${ld-relobj}
@@ -55,7 +55,7 @@ include ../common.mk
 
 clean:
 	@echo "CLEAN"
-	@rm -rf ./obj/ ${LIBDIR}/libdevp2p.so ${LIBDIR}/libdevp2p.a
+	@rm -rf ./obj/ ${LIBDIR}/libup2p.so ${LIBDIR}/libup2p.a
 	@rm -f ${hdrs} #careful when headers is an empty /
 
 #
