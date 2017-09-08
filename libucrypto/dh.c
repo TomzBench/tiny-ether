@@ -166,11 +166,6 @@ ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
 
     // TODO: ``\_("/)_/``
     // No idea if this is right. (Lowest bit of public keys Y coordinate)
-    // ecdsa_sign_recoverable(...
-    //   ecdsa_sig_sign(...
-    //     fe_is_odd(r.y) ? 1:0
-    // ecdsa_recoverable_signature_save(...
-    // sig[64] = ctx->Q.Y.p[0] ? 1 : 0;
     sig[64] = mbedtls_mpi_get_bit(&ctx->Q.Y, 0) ? 1 : 0;
 
 EXIT:
