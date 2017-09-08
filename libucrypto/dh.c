@@ -3,7 +3,7 @@
 int
 ucrypto_ecdh_key_init(ucrypto_ecdh_ctx* ctx, const ucrypto_mpi* d)
 {
-    return d ? ucrypto_ecdh_import_private_key(ctx, d)
+    return d ? ucrypto_ecdh_import_keypair(ctx, d)
              : ucrypto_ecdh_init_keypair(ctx);
 }
 
@@ -40,7 +40,7 @@ EXIT:
 }
 
 int
-ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx* ctx, const ucrypto_mpi* d)
+ucrypto_ecdh_import_keypair(ucrypto_ecdh_ctx* ctx, const ucrypto_mpi* d)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -91,9 +91,9 @@ int
 ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx* ctx, ucrypto_ecdh_public_key* b)
 {
     int err;
-    size_t len = 64;
+    size_t len = 65;
     err = mbedtls_ecp_point_write_binary(
-        &ctx->grp, &ctx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *b, 64);
+        &ctx->grp, &ctx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *b, 65);
     return err ? -1 : 0;
 }
 

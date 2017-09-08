@@ -13,7 +13,7 @@ extern "C" {
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */
 typedef uint8_t ucrypto_ecp_signature[65];
-typedef uint8_t ucrypto_ecdh_public_key[64];
+typedef uint8_t ucrypto_ecdh_public_key[65];
 typedef mbedtls_ecdh_context ucrypto_ecdh_ctx; /*!< caller ref */
 typedef mbedtls_ecp_point ucrypto_ecp_point;   /*!< curve struct */
 
@@ -44,7 +44,7 @@ int ucrypto_ecdh_init_keypair(ucrypto_ecdh_ctx* ctx);
  *
  * @return
  */
-int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
+int ucrypto_ecdh_import_keypair(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
 
 /**
  * @brief
