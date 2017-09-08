@@ -11,17 +11,15 @@
 typedef struct
 {
     board_socket_fd conn; /*!< os socket handle */ //
-    const ucrypto_ecdh_ctx** static_key_ref;
     ucrypto_ecdh_ctx ephemeral_key;
 } rlpx_session;
 
 rlpx_session*
-rlpx_session_alloc(const ucrypto_ecdh_ctx** key_p)
+rlpx_session_alloc()
 {
     rlpx_session* session = rlpx_malloc_fn(sizeof(rlpx_session));
     if (session) {
         ucrypto_ecdh_key_init(&session->ephemeral_key, NULL);
-        session->static_key_ref = key_p;
     }
     return session;
 }
@@ -37,10 +35,13 @@ rlpx_session_free(rlpx_session** session_p)
 
 int
 rlpx_session_read_auth(rlpx_session* session,
+                       const ucrypto_ecdh_ctx* secret,
                        uint8_t* cipher,
                        uint32_t cipher_sz)
 {
     // ecies decrypt with static_key_ref private key.
+    //    ucrypto_ecies_decrypt(*session->static_key_ref, cipher, cipher_sz,
+    //                          plaintext, 307);
     return -1;
 }
 

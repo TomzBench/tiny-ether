@@ -160,17 +160,26 @@ int
 test_rlpx_session()
 {
     int err = -1;
+    uint8_t auth_binary[307];
     ucrypto_ecdh_ctx static_key;
-    const ucrypto_ecdh_ctx* static_key_ptr = &static_key;
+    ucrypto_mpi auth1;
+
+    ucrypto_mpi_init(&auth1);
+    ucrypto_mpi_read_string(&auth1, 16, g_auth_1);
+    ucrypto_mpi_write_binary(&auth1, auth_binary, 307);
 
     // Create static key
     ucrypto_ecdh_key_init(&static_key, NULL);
 
     // Create new session
-    rlpx_session* session = rlpx_session_alloc(&static_key_ptr);
+    rlpx_session* session = rlpx_session_alloc();
+
+    // Read authentication
+    err = rlpx_session_read_auth(session, &static_key, auth_binary, 307);
 
     // cleanup
     ucrypto_ecdh_key_deinit(&static_key);
+    ucrypto_mpi_free(&auth1);
     rlpx_session_free(&session);
     if (session) err = -1;
     err = 0;

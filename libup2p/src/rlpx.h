@@ -15,9 +15,14 @@ extern "C" {
 
 #include "rlpx_types.h"
 
-rlpx_session* rlpx_session_alloc(const ucrypto_ecdh_ctx** key_p);
+rlpx_session* rlpx_session_alloc();
 
 void rlpx_session_free(rlpx_session** session_p);
+
+int rlpx_session_read_auth(rlpx_session* session,
+                           const ucrypto_ecdh_ctx* secret,
+                           uint8_t* cipher,
+                           uint32_t cipher_sz);
 
 #ifdef __cplusplus
 }
