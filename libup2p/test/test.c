@@ -90,8 +90,8 @@ test_auth_pain()
     ucrypto_ecdh_public_key epubkey;
     ucrypto_ecp_signature sig;
     ucrypto_h256 hepub;
-    ucrypto_ecdh_ctx *skey_a, *skey_b;
-    ucrypto_ecdh_ctx *ekey_a, *ekey_b;
+    ucrypto_ecdh_ctx skey_a, skey_b;
+    ucrypto_ecdh_ctx ekey_a, ekey_b;
     ucrypto_mpi spriv_a, spriv_b;
     ucrypto_mpi epriv_a, epriv_b;
     ucrypto_mpi nonce_a, nonce_b;
@@ -109,23 +109,23 @@ test_auth_pain()
     ucrypto_mpi_read_string(&nonce_b, 16, g_nonce_b);
     ucrypto_mpi_write_binary(&nonce_a, noncea, 32);
     ucrypto_mpi_write_binary(&nonce_b, nonceb, 32);
-    skey_a = ucrypto_ecdh_key_alloc(&spriv_a);
-    skey_b = ucrypto_ecdh_key_alloc(&spriv_a);
-    ekey_a = ucrypto_ecdh_key_alloc(&epriv_a);
-    ekey_b = ucrypto_ecdh_key_alloc(&epriv_b);
+    ucrypto_ecdh_key_init(&skey_a, &spriv_a);
+    ucrypto_ecdh_key_init(&skey_b, &spriv_b);
+    ucrypto_ecdh_key_init(&ekey_a, &epriv_a);
+    ucrypto_ecdh_key_init(&ekey_b, &epriv_b);
 
     // E(remote-pubk, S(ecdhe-random, ecdh-shared-secret^nonce) ||
     // H(ecdhe-random-pubk) || pubk || nonce || 0x0)
 
     // sign shared secret^nonce between static keys with an ephermeral pri key
-    ucrypto_ecdh_agree(skey_a, ucrypto_ecdh_pubkey(skey_b));
-    ucrypto_mpi_write_binary(ucrypto_ecdh_secret(skey_a), secret, 32); // 32?
+    ucrypto_ecdh_agree(&skey_a, ucrypto_ecdh_pubkey(&skey_b));
+    ucrypto_mpi_write_binary(ucrypto_ecdh_secret(&skey_a), secret, 32); // 32?
     for (uint32_t i = 0; i < 32; i++) secret[i] ^= noncea[i];
-    ucrypto_ecdh_sign(ekey_a, secret, 32, &sig);
+    ucrypto_ecdh_sign(&ekey_a, secret, 32, &sig);
     memcpy(b, sig, 65);
 
     // Concat with sha3 hash of ephermeral pub key
-    ucrypto_ecdh_pubkey_write(ekey_a, &epubkey);
+    ucrypto_ecdh_pubkey_write(&ekey_a, &epubkey);
     ucrypto_sha3_256(epubkey, 64, hepub);
     memcpy(&b[65], hepub, 32);
 
@@ -145,10 +145,10 @@ test_auth_pain()
     ucrypto_mpi_free(&epriv_b);
     ucrypto_mpi_free(&nonce_a);
     ucrypto_mpi_free(&nonce_b);
-    ucrypto_ecdh_key_free(&skey_a);
-    ucrypto_ecdh_key_free(&skey_b);
-    ucrypto_ecdh_key_free(&ekey_a);
-    ucrypto_ecdh_key_free(&ekey_b);
+    ucrypto_ecdh_key_deinit(&skey_a);
+    ucrypto_ecdh_key_deinit(&skey_b);
+    ucrypto_ecdh_key_deinit(&ekey_a);
+    ucrypto_ecdh_key_deinit(&ekey_b);
     return err;
     err = 0;
     return err;

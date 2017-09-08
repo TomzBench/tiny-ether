@@ -10,7 +10,6 @@ incs+=-I.
 incs+=-I${SRCDIR}
 incs+=-I../external/mbedtls/include
 incs+=-I../external/trezor-crypto/
-incs+=-I../board/linux-emu
 
 #create dirs
 dirs+=./obj

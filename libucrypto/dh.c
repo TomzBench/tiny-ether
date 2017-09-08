@@ -1,20 +1,14 @@
 #include "dh.h"
-#include "board_mem.h"
 
-ucrypto_ecdh_ctx*
-ucrypto_ecdh_key_alloc(const ucrypto_mpi* d)
+int
+ucrypto_ecdh_key_init(ucrypto_ecdh_ctx* ctx, const ucrypto_mpi* d)
 {
-    int err;
-    ucrypto_ecdh_ctx* ctx = board_alloc(sizeof(ucrypto_ecdh_ctx));
-    if (!ctx) return ctx;
-    err = d ? ucrypto_ecdh_import_private_key(ctx, d)
-            : ucrypto_ecdh_key_init(ctx);
-    if (!(err == 0)) ucrypto_ecdh_key_free(&ctx);
-    return ctx;
+    return d ? ucrypto_ecdh_import_private_key(ctx, d)
+             : ucrypto_ecdh_init_keypair(ctx);
 }
 
 int
-ucrypto_ecdh_key_init(ucrypto_ecdh_ctx* ctx)
+ucrypto_ecdh_init_keypair(ucrypto_ecdh_ctx* ctx)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -79,15 +73,6 @@ EXIT:
     mbedtls_ctr_drbg_free(&rng);
     mbedtls_entropy_free(&entropy);
     return ret;
-}
-
-void
-ucrypto_ecdh_key_free(ucrypto_ecdh_ctx** ctx_p)
-{
-    ucrypto_ecdh_ctx* ctx = *ctx_p;
-    *ctx_p = NULL;
-    ucrypto_ecdh_key_deinit(ctx);
-    board_free(ctx);
 }
 
 void

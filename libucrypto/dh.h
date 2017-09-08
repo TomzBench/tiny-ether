@@ -18,20 +18,22 @@ typedef mbedtls_ecdh_context ucrypto_ecdh_ctx; /*!< caller ref */
 typedef mbedtls_ecp_point ucrypto_ecp_point;   /*!< curve struct */
 
 /**
- * @brief Initialize ecdh key context onto heap
- *
- * @return Heap pointer or NULL;
- */
-ucrypto_ecdh_ctx* ucrypto_ecdh_key_alloc(const ucrypto_mpi*);
-
-/**
  * @brief initialize a key context
  *
  * @param ucrypto_ecdh_ctx
  *
  * @return
  */
-int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*);
+int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
+
+/**
+ * @brief
+ *
+ * @param ctx
+ *
+ * @return
+ */
+int ucrypto_ecdh_init_keypair(ucrypto_ecdh_ctx* ctx);
 
 /**
  * @brief Given private key (d), calculate public key using group G.
@@ -43,13 +45,6 @@ int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*);
  * @return
  */
 int ucrypto_ecdh_import_private_key(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
-
-/**
- * @brief return any heap from key
- *
- * @param
- */
-void ucrypto_ecdh_key_free(ucrypto_ecdh_ctx**);
 
 /**
  * @brief
