@@ -23,7 +23,7 @@ incs+=-I.
 incs+=-I./src
 
 # compile objects
-obj-y+=./obj/rlpx.o
+obj-y+=./obj/rlpx_session.o
 
 # linker (external) dependencies
 ld-obj+=../board/linux-emu/obj/board_net.o
@@ -33,6 +33,7 @@ relobj-y:=${obj-y:.o=.lo}
 
 # headers
 hdrs+=${INCDIR}/mtm/rlpx.h
+hdrs+=${INCDIR}/mtm/rlpx_types.h
 hdrs+=${INCDIR}/mtm/rlpx_config.h
 hdrs+=${INCDIR}/mtm/rlpx_config_linux_emu.h
 

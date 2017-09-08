@@ -1,6 +1,6 @@
 #include "mtm/dh.h"
 #include "mtm/mpi.h"
-#include "mtm/rlpx_config.h"
+#include "mtm/rlpx.h"
 #include "mtm/sha.h"
 #include <string.h>
 
@@ -61,6 +61,7 @@ const char* g_auth_1 = ""
                        "2bd94d0be3691f3b406f9bba9b591fc63facc0"
                        "16bfa8";
 int test_auth_pain();
+int test_rlpx_session();
 
 int
 main(int argc, char* argv[])
@@ -70,6 +71,7 @@ main(int argc, char* argv[])
     int err = 0;
 
     err |= test_auth_pain();
+    err |= test_rlpx_session();
 
     return err;
 }
@@ -153,3 +155,28 @@ test_auth_pain()
     err = 0;
     return err;
 }
+
+int
+test_rlpx_session()
+{
+    int err = -1;
+    ucrypto_ecdh_ctx static_key;
+    const ucrypto_ecdh_ctx* static_key_ptr = &static_key;
+
+    // Create static key
+    ucrypto_ecdh_key_init(&static_key, NULL);
+
+    // Create new session
+    rlpx_session* session = rlpx_session_alloc(&static_key_ptr);
+
+    // cleanup
+    ucrypto_ecdh_key_deinit(&static_key);
+    rlpx_session_free(&session);
+    if (session) err = -1;
+    err = 0;
+    return err;
+}
+
+//
+//
+//
