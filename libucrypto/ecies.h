@@ -22,6 +22,9 @@ extern "C" {
  *
  *	let mut msg = vec![0u8; (1 + 64 + 16 + plain.len() + 32)];
  *	0x04 + echd-random-pubk + iv + aes(kdf(shared-secret), plaintext) + hmac
+ *
+ * offset 0                65         81               275
+ *        [ecies-pubkey:65||aes-iv:16||cipher-text:194||ecies-mac:32]
  */
 
 #include "dh.h"
