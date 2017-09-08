@@ -164,12 +164,14 @@ ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
     err = mbedtls_mpi_write_binary(&s, &sig[32], 32);
     if (!(err == 0)) goto EXIT;
 
-    // TODO: No idea if this is right. (Lowest byte of public keys Y coordinate)
+    // TODO: ``\_("/)_/``
+    // No idea if this is right. (Lowest bit of public keys Y coordinate)
     // ecdsa_sign_recoverable(...
     //   ecdsa_sig_sign(...
     //     fe_is_odd(r.y) ? 1:0
     // ecdsa_recoverable_signature_save(...
-    sig[64] = ctx->Q.Y.p[0] ? 1 : 0;
+    // sig[64] = ctx->Q.Y.p[0] ? 1 : 0;
+    sig[64] = mbedtls_mpi_get_bit(&ctx->Q.Y, 0) ? 1 : 0;
 
 EXIT:
     ucrypto_mpi_free(&r);
