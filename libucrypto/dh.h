@@ -82,13 +82,23 @@ int ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx*, ucrypto_ecdh_public_key* b);
 const ucrypto_mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
 
 /**
+ * @brief
+ *
+ * @param ctx
+ * @param k
+ *
+ * @return
+ */
+int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecdh_public_key* k);
+
+/**
  * @brief Compute a shared secret. Secret is updated into ctx z param
  *
  * @param ctx
  *
  * @return 0 OK or -1 err
  */
-int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point*);
+int ucrypto_ecdh_agree_point(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point*);
 
 /**
  * @brief

@@ -120,7 +120,7 @@ test_auth_pain()
     // H(ecdhe-random-pubk) || pubk || nonce || 0x0)
 
     // sign shared secret^nonce between static keys with an ephermeral pri key
-    ucrypto_ecdh_agree(&skey_a, ucrypto_ecdh_pubkey(&skey_b));
+    ucrypto_ecdh_agree_point(&skey_a, ucrypto_ecdh_pubkey(&skey_b));
     ucrypto_mpi_write_binary(ucrypto_ecdh_secret(&skey_a), secret, 32); // 32?
     for (uint32_t i = 0; i < 32; i++) secret[i] ^= noncea[i];
     ucrypto_ecdh_sign(&ekey_a, secret, 32, &sig);
@@ -166,7 +166,6 @@ test_rlpx_session()
 
     ucrypto_mpi_init(&auth1);
     ucrypto_mpi_read_string(&auth1, 16, g_auth_1);
-    ucrypto_mpi_write_binary(&auth1, auth_binary, 307);
 
     // Create static key
     ucrypto_ecdh_key_init(&static_key, NULL);
@@ -174,15 +173,21 @@ test_rlpx_session()
     // Create new session
     rlpx_session* session = rlpx_session_alloc();
 
+    // Print binary auth
+    if (!(ucrypto_mpi_size(&auth1) == 307)) goto EXIT;
+    ucrypto_mpi_write_binary(&auth1, auth_binary, 307);
+
     // Read authentication
     err = rlpx_session_read_auth(session, &static_key, auth_binary, 307);
+    if (!(err == 0)) goto EXIT;
 
+    err = 0;
+
+EXIT:
     // cleanup
     ucrypto_ecdh_key_deinit(&static_key);
     ucrypto_mpi_free(&auth1);
     rlpx_session_free(&session);
-    if (session) err = -1;
-    err = 0;
     return err;
 }
 

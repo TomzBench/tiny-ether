@@ -17,6 +17,7 @@ typedef mbedtls_mpi ucrypto_mpi; /*!< multi precesion integer */
 #define ucrypto_mpi_write_string(x, r, b, l, o)                                \
     mbedtls_mpi_write_string(x, r, b, l, o)
 #define ucrypto_mpi_read_string(x, r, s) mbedtls_mpi_read_string(x, r, s)
+#define ucrypto_mpi_size(x) mbedtls_mpi_size(x)
 
 int ucrypto_mpi_xor(ucrypto_mpi* dst,
                     const ucrypto_mpi* src,

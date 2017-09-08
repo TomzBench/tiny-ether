@@ -18,21 +18,32 @@ test_ecdh()
 {
     int err = 0;
     ucrypto_ecdh_ctx ctxa, ctxa_clone, ctxb;
+    ucrypto_ecdh_public_key pubkeya, pubkeyb;
     ucrypto_ecp_signature sig;
+    const ucrypto_mpi *secreta, *secretb;
     uint8_t stest[66];
     ucrypto_ecdh_key_init(&ctxa, NULL);
     ucrypto_ecdh_key_init(&ctxb, NULL);
     ucrypto_ecdh_key_init(&ctxa_clone, &ctxa.d);
-    // if (!(ctxa && ctxa_clone && ctxb)) goto EXIT;
     memset(stest, 'a', 66);
 
-    // Generate a shared secret
-    ucrypto_ecdh_agree(&ctxa, ucrypto_ecdh_pubkey(&ctxb));
-    ucrypto_ecdh_agree(&ctxb, ucrypto_ecdh_pubkey(&ctxa));
-    err =
-        ucrypto_mpi_cmp(ucrypto_ecdh_secret(&ctxa), ucrypto_ecdh_secret(&ctxb))
-            ? -1
-            : 0;
+    // Generate a shared secret from point
+    err |= ucrypto_ecdh_agree_point(&ctxa, ucrypto_ecdh_pubkey(&ctxb));
+    err |= ucrypto_ecdh_agree_point(&ctxb, ucrypto_ecdh_pubkey(&ctxa));
+    if (!(err == 0)) goto EXIT;
+    secreta = ucrypto_ecdh_secret(&ctxa);
+    secretb = ucrypto_ecdh_secret(&ctxb);
+    err |= ucrypto_mpi_cmp(secreta, secretb) ? -1 : 0;
+    if (!(err == 0)) goto EXIT;
+
+    // Generate shared secret from pubkey
+    ucrypto_ecdh_pubkey_write(&ctxa, &pubkeya);
+    ucrypto_ecdh_pubkey_write(&ctxb, &pubkeyb);
+    err |= ucrypto_ecdh_agree(&ctxa, &pubkeyb);
+    err |= ucrypto_ecdh_agree(&ctxb, &pubkeya);
+    if (!(err == 0)) goto EXIT;
+    secretb = ucrypto_ecdh_secret(&ctxb);
+    err |= ucrypto_mpi_cmp(secreta, secretb) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
 
     // Sign our test blob

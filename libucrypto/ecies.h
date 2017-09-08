@@ -29,6 +29,12 @@ extern "C" {
 
 #include "dh.h"
 
+int ucrypto_ecies_decrypt(ucrypto_ecdh_ctx* s,
+                          uint8_t* cipher,
+                          size_t cipher_len,
+                          uint8_t* plain,
+                          size_t plain_len);
+
 #ifdef __cplusplus
 }
 #endif

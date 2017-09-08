@@ -104,7 +104,26 @@ ucrypto_ecdh_secret(ucrypto_ecdh_ctx* ctx)
 }
 
 int
-ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point* qp)
+ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecdh_public_key* key)
+{
+    int err;
+    ucrypto_ecp_point point;
+    mbedtls_ecp_point_init(&point);
+
+    /**
+     * @brief note mbedtls_ecp_point_read_binary only accepts types of points
+     * where key[0] is 0x04...
+     */
+    mbedtls_ecp_point_read_binary(&ctx->grp, &point, (uint8_t*)key,
+                                  sizeof(ucrypto_ecdh_public_key));
+
+    err = ucrypto_ecdh_agree_point(ctx, &point);
+    mbedtls_ecp_point_free(&point);
+    return err;
+}
+
+int
+ucrypto_ecdh_agree_point(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point* qp)
 {
     int err;
     mbedtls_ctr_drbg_context rng;

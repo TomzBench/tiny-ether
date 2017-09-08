@@ -35,14 +35,20 @@ rlpx_session_free(rlpx_session** session_p)
 
 int
 rlpx_session_read_auth(rlpx_session* session,
-                       const ucrypto_ecdh_ctx* secret,
+                       ucrypto_ecdh_ctx* secret,
                        uint8_t* cipher,
-                       uint32_t cipher_sz)
+                       size_t cipher_sz,
+                       uint8_t* plain,
+                       size_t plain_sz)
 {
     // ecies decrypt with static_key_ref private key.
     //    ucrypto_ecies_decrypt(*session->static_key_ref, cipher, cipher_sz,
     //                          plaintext, 307);
-    return -1;
+
+    int err = 0;
+    err = ucrypto_ecies_decrypt(secret, cipher, cipher_sz, plain, plain_sz);
+
+    return err;
 }
 
 //

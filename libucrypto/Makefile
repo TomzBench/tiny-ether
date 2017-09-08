@@ -49,6 +49,7 @@ ld-obj+=../external/mbedtls/library/timing.o
 hdrs+=${INCDIR}/mtm/dh.h
 hdrs+=${INCDIR}/mtm/mpi.h
 hdrs+=${INCDIR}/mtm/sha.h
+hdrs+=${INCDIR}/mtm/ecies.h
 
 
 relobj-y:=${obj-y:.o=.lo}

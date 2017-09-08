@@ -13,6 +13,7 @@ extern "C" {
 
 #include "mtm/dh.h"
 #include "mtm/urlp.h"
+#include "mtm/ecies.h"
 
 #include "rlpx_config.h"
 
