@@ -11,7 +11,7 @@
 typedef struct
 {
     board_socket_fd conn; /*!< os socket handle */ //
-    ucrypto_ecdh_ctx ephemeral_key;
+    ucrypto_ecc_ctx ephemeral_key;
 } rlpx_session;
 
 rlpx_session*
@@ -19,7 +19,7 @@ rlpx_session_alloc()
 {
     rlpx_session* session = rlpx_malloc_fn(sizeof(rlpx_session));
     if (session) {
-        ucrypto_ecdh_key_init(&session->ephemeral_key, NULL);
+        ucrypto_ecc_key_init(&session->ephemeral_key, NULL);
     }
     return session;
 }
@@ -29,13 +29,13 @@ rlpx_session_free(rlpx_session** session_p)
 {
     rlpx_session* session = *session_p;
     *session_p = NULL;
-    ucrypto_ecdh_key_deinit(&session->ephemeral_key);
+    ucrypto_ecc_key_deinit(&session->ephemeral_key);
     rlpx_free_fn(session);
 }
 
 int
 rlpx_session_read_auth(rlpx_session* session,
-                       ucrypto_ecdh_ctx* secret,
+                       ucrypto_ecc_ctx* secret,
                        uint8_t* cipher,
                        size_t cipher_sz,
                        uint8_t* plain,

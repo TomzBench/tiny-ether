@@ -110,7 +110,7 @@ test_rlpx_session()
 {
     int err = -1;
     uint8_t auth_binary[307];
-    ucrypto_ecdh_ctx static_key;
+    ucrypto_ecc_ctx static_key;
     ucrypto_mpi auth1;
     ucrypto_mpi skey;
     ucrypto_mpi_init(&auth1);
@@ -119,7 +119,7 @@ test_rlpx_session()
     ucrypto_mpi_read_string(&skey, 16, g_spriv_b);
 
     // Create static key with test param
-    ucrypto_ecdh_key_init(&static_key, &skey);
+    ucrypto_ecc_key_init(&static_key, &skey);
 
     // Create new session
     rlpx_session* session = rlpx_session_alloc();
@@ -136,7 +136,7 @@ test_rlpx_session()
 
 EXIT:
     // cleanup
-    ucrypto_ecdh_key_deinit(&static_key);
+    ucrypto_ecc_key_deinit(&static_key);
     ucrypto_mpi_free(&auth1);
     ucrypto_mpi_free(&skey);
     rlpx_session_free(&session);

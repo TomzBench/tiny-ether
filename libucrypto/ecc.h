@@ -13,18 +13,18 @@ extern "C" {
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */
 typedef uint8_t ucrypto_ecp_signature[65];
-typedef uint8_t ucrypto_ecdh_public_key[65];
-typedef mbedtls_ecdh_context ucrypto_ecdh_ctx; /*!< caller ref */
+typedef uint8_t ucrypto_ecc_public_key[65];
+typedef mbedtls_ecdh_context ucrypto_ecc_ctx; /*!< caller ref */
 typedef mbedtls_ecp_point ucrypto_ecp_point;   /*!< curve struct */
 
 /**
  * @brief initialize a key context
  *
- * @param ucrypto_ecdh_ctx
+ * @param ucrypto_ecc_ctx
  *
  * @return
  */
-int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
+int ucrypto_ecc_key_init(ucrypto_ecc_ctx*, const ucrypto_mpi* d);
 
 /**
  * @brief
@@ -33,43 +33,43 @@ int ucrypto_ecdh_key_init(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
  *
  * @return
  */
-int ucrypto_ecdh_init_keypair(ucrypto_ecdh_ctx* ctx);
+int ucrypto_ecc_init_keypair(ucrypto_ecc_ctx* ctx);
 
 /**
  * @brief Given private key (d), calculate public key using group G.
  *
  * Q = d*G
  *
- * @param ucrypto_ecdh_ctx
+ * @param ucrypto_ecc_ctx
  *
  * @return
  */
-int ucrypto_ecdh_import_keypair(ucrypto_ecdh_ctx*, const ucrypto_mpi* d);
+int ucrypto_ecc_import_keypair(ucrypto_ecc_ctx*, const ucrypto_mpi* d);
 
 /**
  * @brief
  *
- * @param ucrypto_ecdh_ctx
+ * @param ucrypto_ecc_ctx
  */
-void ucrypto_ecdh_key_deinit(ucrypto_ecdh_ctx*);
+void ucrypto_ecc_key_deinit(ucrypto_ecc_ctx*);
 
 /**
  * @brief
  *
- * @param ucrypto_ecdh_ctx
+ * @param ucrypto_ecc_ctx
  *
  * @return
  */
-const ucrypto_ecp_point* ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx*);
+const ucrypto_ecp_point* ucrypto_ecc_pubkey(ucrypto_ecc_ctx*);
 
 /**
  * @brief
  *
- * @param ucrypto_ecdh_ctx
+ * @param ucrypto_ecc_ctx
  *
  * @return
  */
-const ucrypto_mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
+const ucrypto_mpi* ucrypto_ecc_secret(ucrypto_ecc_ctx*);
 
 /**
  * @brief
@@ -80,19 +80,19 @@ const ucrypto_mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
  *
  * @return
  */
-int ucrypto_ecdh_point_read_string(const char* str,
+int ucrypto_ecc_point_read_string(const char* str,
                                    int rdx,
                                    ucrypto_ecp_point* q);
 
 /**
  * @brief
  *
- * @param ucrypto_ecdh_ctx
+ * @param ucrypto_ecc_ctx
  * @param b
  *
  * @return
  */
-int ucrypto_ecdh_point_write(ucrypto_ecdh_ctx*, ucrypto_ecdh_public_key* b);
+int ucrypto_ecc_point_write(ucrypto_ecc_ctx*, ucrypto_ecc_public_key* b);
 
 /**
  * @brief
@@ -102,7 +102,7 @@ int ucrypto_ecdh_point_write(ucrypto_ecdh_ctx*, ucrypto_ecdh_public_key* b);
  *
  * @return
  */
-int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecdh_public_key* k);
+int ucrypto_ecc_agree(ucrypto_ecc_ctx* ctx, const ucrypto_ecc_public_key* k);
 
 /**
  * @brief Compute a shared secret. Secret is updated into ctx z param
@@ -111,7 +111,7 @@ int ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecdh_public_key* k);
  *
  * @return 0 OK or -1 err
  */
-int ucrypto_ecdh_agree_point(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point*);
+int ucrypto_ecc_agree_point(ucrypto_ecc_ctx* ctx, const ucrypto_ecp_point*);
 
 /**
  * @brief
@@ -123,7 +123,7 @@ int ucrypto_ecdh_agree_point(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point*);
  *
  * @return
  */
-int ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
+int ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
                       const uint8_t* b,
                       uint32_t sz,
                       ucrypto_ecp_signature*);
@@ -138,7 +138,7 @@ int ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
  *
  * @return
  */
-int ucrypto_ecdh_verify(const ucrypto_ecp_point* q,
+int ucrypto_ecc_verify(const ucrypto_ecp_point* q,
                         const uint8_t* b,
                         uint32_t sz,
                         ucrypto_ecp_signature*);

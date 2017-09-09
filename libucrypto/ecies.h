@@ -29,7 +29,7 @@ extern "C" {
 
 #include "ecc.h"
 
-int ucrypto_ecies_decrypt(ucrypto_ecdh_ctx* s,
+int ucrypto_ecies_decrypt(ucrypto_ecc_ctx* s,
                           uint8_t* cipher,
                           size_t cipher_len,
                           uint8_t* plain,

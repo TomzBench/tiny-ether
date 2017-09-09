@@ -1,20 +1,20 @@
 #include "ecc.h"
 
 int
-ucrypto_ecdh_key_init(ucrypto_ecdh_ctx* ctx, const ucrypto_mpi* d)
+ucrypto_ecc_key_init(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
 {
-    return d ? ucrypto_ecdh_import_keypair(ctx, d)
-             : ucrypto_ecdh_init_keypair(ctx);
+    return d ? ucrypto_ecc_import_keypair(ctx, d)
+             : ucrypto_ecc_init_keypair(ctx);
 }
 
 int
-ucrypto_ecdh_init_keypair(ucrypto_ecdh_ctx* ctx)
+ucrypto_ecc_init_keypair(ucrypto_ecc_ctx* ctx)
 {
     int ret;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context rng;
 
-    // initialize stack variables and callers ecdh context.
+    // initialize stack variables and callers ecc context.
     mbedtls_ecdh_init(ctx);
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&rng);
@@ -27,7 +27,7 @@ ucrypto_ecdh_init_keypair(ucrypto_ecdh_ctx* ctx)
     ret = mbedtls_ecp_group_load(&ctx->grp, MBEDTLS_ECP_DP_SECP256K1);
     if (!(ret == 0)) goto EXIT;
 
-    // Create ecdh public/private key pair
+    // Create ecc public/private key pair
     ret = mbedtls_ecdh_gen_public(&ctx->grp, &ctx->d, &ctx->Q,
                                   mbedtls_ctr_drbg_random, &rng);
     if (!(ret == 0)) goto EXIT;
@@ -40,7 +40,7 @@ EXIT:
 }
 
 int
-ucrypto_ecdh_import_keypair(ucrypto_ecdh_ctx* ctx, const ucrypto_mpi* d)
+ucrypto_ecc_import_keypair(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -76,25 +76,25 @@ EXIT:
 }
 
 void
-ucrypto_ecdh_key_deinit(ucrypto_ecdh_ctx* ctx)
+ucrypto_ecc_key_deinit(ucrypto_ecc_ctx* ctx)
 {
     mbedtls_ecdh_free(ctx);
 }
 
 const ucrypto_ecp_point*
-ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx* ctx)
+ucrypto_ecc_pubkey(ucrypto_ecc_ctx* ctx)
 {
     return &ctx->Q;
 }
 
 const ucrypto_mpi*
-ucrypto_ecdh_secret(ucrypto_ecdh_ctx* ctx)
+ucrypto_ecc_secret(ucrypto_ecc_ctx* ctx)
 {
     return &ctx->z;
 }
 
 int
-ucrypto_ecdh_point_read_string(const char* str, int rdx, ucrypto_ecp_point* q)
+ucrypto_ecc_point_read_string(const char* str, int rdx, ucrypto_ecp_point* q)
 {
     int err = -1;
     uint8_t buff[65];
@@ -129,7 +129,7 @@ EXIT:
 }
 
 int
-ucrypto_ecdh_point_write(ucrypto_ecdh_ctx* ctx, ucrypto_ecdh_public_key* b)
+ucrypto_ecc_point_write(ucrypto_ecc_ctx* ctx, ucrypto_ecc_public_key* b)
 {
     int err;
     size_t len = 65;
@@ -139,7 +139,7 @@ ucrypto_ecdh_point_write(ucrypto_ecdh_ctx* ctx, ucrypto_ecdh_public_key* b)
 }
 
 int
-ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecdh_public_key* key)
+ucrypto_ecc_agree(ucrypto_ecc_ctx* ctx, const ucrypto_ecc_public_key* key)
 {
     int err;
     ucrypto_ecp_point point;
@@ -150,15 +150,15 @@ ucrypto_ecdh_agree(ucrypto_ecdh_ctx* ctx, const ucrypto_ecdh_public_key* key)
      * where key[0] is 0x04...
      */
     mbedtls_ecp_point_read_binary(&ctx->grp, &point, (uint8_t*)key,
-                                  sizeof(ucrypto_ecdh_public_key));
+                                  sizeof(ucrypto_ecc_public_key));
 
-    err = ucrypto_ecdh_agree_point(ctx, &point);
+    err = ucrypto_ecc_agree_point(ctx, &point);
     mbedtls_ecp_point_free(&point);
     return err;
 }
 
 int
-ucrypto_ecdh_agree_point(ucrypto_ecdh_ctx* ctx, const ucrypto_ecp_point* qp)
+ucrypto_ecc_agree_point(ucrypto_ecc_ctx* ctx, const ucrypto_ecp_point* qp)
 {
     int err;
     mbedtls_ctr_drbg_context rng;
@@ -183,10 +183,10 @@ EXIT:
 }
 
 int
-ucrypto_ecdh_sign(ucrypto_ecdh_ctx* ctx,
-                  const uint8_t* b,
-                  uint32_t sz,
-                  ucrypto_ecp_signature* sig_p)
+ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
+                 const uint8_t* b,
+                 uint32_t sz,
+                 ucrypto_ecp_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = *sig_p;
@@ -231,10 +231,10 @@ EXIT:
 }
 
 int
-ucrypto_ecdh_verify(const ucrypto_ecp_point* q,
-                    const uint8_t* b,
-                    uint32_t sz,
-                    ucrypto_ecp_signature* sig_p)
+ucrypto_ecc_verify(const ucrypto_ecp_point* q,
+                   const uint8_t* b,
+                   uint32_t sz,
+                   ucrypto_ecp_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = *sig_p;
