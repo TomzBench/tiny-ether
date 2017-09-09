@@ -186,7 +186,7 @@ int
 ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
                  const uint8_t* b,
                  uint32_t sz,
-                 ucrypto_ecp_signature* sig_p)
+                 ucrypto_ecc_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = *sig_p;
@@ -234,7 +234,7 @@ int
 ucrypto_ecc_verify(const ucrypto_ecp_point* q,
                    const uint8_t* b,
                    uint32_t sz,
-                   ucrypto_ecp_signature* sig_p)
+                   ucrypto_ecc_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = *sig_p;

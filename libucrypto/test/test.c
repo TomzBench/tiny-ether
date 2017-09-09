@@ -19,7 +19,7 @@ test_ecdh()
     int err = 0;
     ucrypto_ecc_ctx ctxa, ctxa_clone, ctxb;
     ucrypto_ecc_public_key pubkeya, pubkeyb;
-    ucrypto_ecp_signature sig;
+    ucrypto_ecc_signature sig;
     const ucrypto_mpi *secreta, *secretb;
     uint8_t stest[66];
     ucrypto_ecc_key_init(&ctxa, NULL);

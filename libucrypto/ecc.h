@@ -12,7 +12,7 @@ extern "C" {
 #include "mpi.h"
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */
-typedef uint8_t ucrypto_ecp_signature[65];
+typedef uint8_t ucrypto_ecc_signature[65];
 typedef uint8_t ucrypto_ecc_public_key[65];
 typedef mbedtls_ecdh_context ucrypto_ecc_ctx; /*!< caller ref */
 typedef mbedtls_ecp_point ucrypto_ecp_point;   /*!< curve struct */
@@ -119,14 +119,14 @@ int ucrypto_ecc_agree_point(ucrypto_ecc_ctx* ctx, const ucrypto_ecp_point*);
  * @param ctx
  * @param b
  * @param sz
- * @param ucrypto_ecp_signature
+ * @param ucrypto_ecc_signature
  *
  * @return
  */
 int ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
                       const uint8_t* b,
                       uint32_t sz,
-                      ucrypto_ecp_signature*);
+                      ucrypto_ecc_signature*);
 
 /**
  * @brief
@@ -134,14 +134,14 @@ int ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
  * @param q
  * @param b
  * @param sz
- * @param ucrypto_ecp_signature
+ * @param ucrypto_ecc_signature
  *
  * @return
  */
 int ucrypto_ecc_verify(const ucrypto_ecp_point* q,
                         const uint8_t* b,
                         uint32_t sz,
-                        ucrypto_ecp_signature*);
+                        ucrypto_ecc_signature*);
 
 #ifdef __cplusplus
 }
