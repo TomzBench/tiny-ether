@@ -1,4 +1,4 @@
-#include "mtm/dh.h"
+#include "mtm/ecc.h"
 #include <string.h>
 
 int test_ecdh();

@@ -15,7 +15,7 @@ incs+=-I../external/trezor-crypto/
 dirs+=./obj
 
 #build objects
-obj-y+=./obj/dh.o
+obj-y+=./obj/ecc.o
 obj-y+=./obj/mpi.o
 obj-y+=./obj/ecies.o
 
@@ -46,7 +46,7 @@ ld-obj+=../external/mbedtls/library/sha256.o
 ld-obj+=../external/mbedtls/library/sha512.o
 ld-obj+=../external/mbedtls/library/timing.o
 
-hdrs+=${INCDIR}/mtm/dh.h
+hdrs+=${INCDIR}/mtm/ecc.h
 hdrs+=${INCDIR}/mtm/mpi.h
 hdrs+=${INCDIR}/mtm/sha.h
 hdrs+=${INCDIR}/mtm/ecies.h

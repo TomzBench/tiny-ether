@@ -27,7 +27,7 @@ extern "C" {
  *        [ecies-pubkey:65||aes-iv:16||cipher-text:194||ecies-mac:32]
  */
 
-#include "dh.h"
+#include "ecc.h"
 
 int ucrypto_ecies_decrypt(ucrypto_ecdh_ctx* s,
                           uint8_t* cipher,

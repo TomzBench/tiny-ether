@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "mtm/dh.h"
+#include "mtm/ecc.h"
 #include "mtm/urlp.h"
 #include "mtm/ecies.h"
 
