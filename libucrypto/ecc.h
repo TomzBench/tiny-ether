@@ -14,8 +14,9 @@ extern "C" {
 /*!< r: [0, 32), s: [32, 64), v: 64 */
 typedef uint8_t ucrypto_ecc_signature[65];
 typedef uint8_t ucrypto_ecc_public_key[65];
+typedef ucrypto_mpi ucrypto_ecc_private_key;
 typedef mbedtls_ecdh_context ucrypto_ecc_ctx; /*!< caller ref */
-typedef mbedtls_ecp_point ucrypto_ecp_point;   /*!< curve struct */
+typedef mbedtls_ecp_point ucrypto_ecp_point;  /*!< curve struct */
 
 /**
  * @brief initialize a key context
@@ -80,9 +81,7 @@ const ucrypto_mpi* ucrypto_ecc_secret(ucrypto_ecc_ctx*);
  *
  * @return
  */
-int ucrypto_ecc_point_read_string(const char* str,
-                                   int rdx,
-                                   ucrypto_ecp_point* q);
+int ucrypto_ecc_atop(const char* str, int rdx, ucrypto_ecp_point* q);
 
 /**
  * @brief
@@ -92,7 +91,7 @@ int ucrypto_ecc_point_read_string(const char* str,
  *
  * @return
  */
-int ucrypto_ecc_point_write(ucrypto_ecc_ctx*, ucrypto_ecc_public_key* b);
+int ucrypto_ecc_ptob(ucrypto_ecc_ctx*, ucrypto_ecc_public_key* b);
 
 /**
  * @brief
@@ -124,9 +123,9 @@ int ucrypto_ecc_agree_point(ucrypto_ecc_ctx* ctx, const ucrypto_ecp_point*);
  * @return
  */
 int ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
-                      const uint8_t* b,
-                      uint32_t sz,
-                      ucrypto_ecc_signature*);
+                     const uint8_t* b,
+                     uint32_t sz,
+                     ucrypto_ecc_signature*);
 
 /**
  * @brief
@@ -139,9 +138,9 @@ int ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
  * @return
  */
 int ucrypto_ecc_verify(const ucrypto_ecp_point* q,
-                        const uint8_t* b,
-                        uint32_t sz,
-                        ucrypto_ecc_signature*);
+                       const uint8_t* b,
+                       uint32_t sz,
+                       ucrypto_ecc_signature*);
 
 #ifdef __cplusplus
 }

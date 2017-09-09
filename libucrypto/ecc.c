@@ -94,7 +94,7 @@ ucrypto_ecc_secret(ucrypto_ecc_ctx* ctx)
 }
 
 int
-ucrypto_ecc_point_read_string(const char* str, int rdx, ucrypto_ecp_point* q)
+ucrypto_ecc_atop(const char* str, int rdx, ucrypto_ecp_point* q)
 {
     int err = -1;
     uint8_t buff[65];
@@ -129,7 +129,7 @@ EXIT:
 }
 
 int
-ucrypto_ecc_point_write(ucrypto_ecc_ctx* ctx, ucrypto_ecc_public_key* b)
+ucrypto_ecc_ptob(ucrypto_ecc_ctx* ctx, ucrypto_ecc_public_key* b)
 {
     int err;
     size_t len = 65;
