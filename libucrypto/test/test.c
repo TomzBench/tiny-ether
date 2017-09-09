@@ -71,9 +71,6 @@ EXIT:
     ucrypto_ecdh_key_deinit(&ctxa);
     ucrypto_ecdh_key_deinit(&ctxa_clone);
     ucrypto_ecdh_key_deinit(&ctxb);
-    // if (ctxa) ucrypto_ecdh_key_free(&ctxa);
-    // if (ctxb) ucrypto_ecdh_key_free(&ctxb);
-    // if (ctxa_clone) ucrypto_ecdh_key_free(&ctxa_clone);
     return err;
 }
 
