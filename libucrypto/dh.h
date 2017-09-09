@@ -66,20 +66,33 @@ const ucrypto_ecp_point* ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx*);
  * @brief
  *
  * @param ucrypto_ecdh_ctx
- * @param b
  *
  * @return
  */
-int ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx*, ucrypto_ecdh_public_key* b);
+const ucrypto_mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
+
+/**
+ * @brief
+ *
+ * @param str
+ * @param rdx
+ * @param q
+ *
+ * @return
+ */
+int ucrypto_ecdh_point_read_string(const char* str,
+                                   int rdx,
+                                   ucrypto_ecp_point* q);
 
 /**
  * @brief
  *
  * @param ucrypto_ecdh_ctx
+ * @param b
  *
  * @return
  */
-const ucrypto_mpi* ucrypto_ecdh_secret(ucrypto_ecdh_ctx*);
+int ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx*, ucrypto_ecdh_public_key* b);
 
 /**
  * @brief

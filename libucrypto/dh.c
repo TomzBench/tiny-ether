@@ -87,6 +87,44 @@ ucrypto_ecdh_pubkey(ucrypto_ecdh_ctx* ctx)
     return &ctx->Q;
 }
 
+const ucrypto_mpi*
+ucrypto_ecdh_secret(ucrypto_ecdh_ctx* ctx)
+{
+    return &ctx->z;
+}
+
+int
+ucrypto_ecdh_point_read_string(const char* str, int rdx, ucrypto_ecp_point* q)
+{
+    int err;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point p;
+    mbedtls_mpi bin;
+
+    // init stack
+    mbedtls_mpi_init(&bin);
+    mbedtls_ecp_point_init(&p);
+    mbedtls_ecp_group_init(&grp);
+    err = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1);
+
+    // Read in string
+    mbedtls_mpi_read_string(&bin, rdx, str);
+    size_t l = mbedtls_mpi_size(&bin);
+    uint8_t buff[l];
+    mbedtls_mpi_write_binary(&bin, buff, l);
+    err = mbedtls_ecp_point_read_binary(&grp, &p, buff, l);
+    if (!(err == 0)) goto EXIT;
+
+    err = 0;
+
+EXIT:
+    // Free
+    mbedtls_mpi_free(&bin);
+    mbedtls_ecp_point_free(&p);
+    mbedtls_ecp_group_free(&grp);
+    return err;
+}
+
 int
 ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx* ctx, ucrypto_ecdh_public_key* b)
 {
@@ -95,12 +133,6 @@ ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx* ctx, ucrypto_ecdh_public_key* b)
     err = mbedtls_ecp_point_write_binary(
         &ctx->grp, &ctx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *b, 65);
     return err ? -1 : 0;
-}
-
-const ucrypto_mpi*
-ucrypto_ecdh_secret(ucrypto_ecdh_ctx* ctx)
-{
-    return &ctx->z;
 }
 
 int
