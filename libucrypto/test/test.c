@@ -37,8 +37,8 @@ test_ecdh()
     if (!(err == 0)) goto EXIT;
 
     // Generate shared secret from pubkey
-    ucrypto_ecdh_pubkey_write(&ctxa, &pubkeya);
-    ucrypto_ecdh_pubkey_write(&ctxb, &pubkeyb);
+    ucrypto_ecdh_point_write(&ctxa, &pubkeya);
+    ucrypto_ecdh_point_write(&ctxb, &pubkeyb);
     err |= ucrypto_ecdh_agree(&ctxa, &pubkeyb);
     err |= ucrypto_ecdh_agree(&ctxb, &pubkeya);
     if (!(err == 0)) goto EXIT;

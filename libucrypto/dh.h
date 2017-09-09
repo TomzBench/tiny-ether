@@ -92,7 +92,7 @@ int ucrypto_ecdh_point_read_string(const char* str,
  *
  * @return
  */
-int ucrypto_ecdh_pubkey_write(ucrypto_ecdh_ctx*, ucrypto_ecdh_public_key* b);
+int ucrypto_ecdh_point_write(ucrypto_ecdh_ctx*, ucrypto_ecdh_public_key* b);
 
 /**
  * @brief
