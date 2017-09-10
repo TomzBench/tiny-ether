@@ -12,6 +12,10 @@ const char* kdf2 =
     "961c065873443014e0371f1ed656c586c6730bf927415757f389d92acf8268df";
 const char* kdf2_result =
     "4050C52E6D9C08755E5A818AC66FABE478B825B1836FD5EFC4D44E40D04DABCC";
+const char* g_hmac = "af6623e52208c596e17c72cea6f1cb09";
+const char* g_hmac_input = "3461282bcedace970df2";
+const char* g_hmac_result =
+    "B3CE623BCE08D5793677BA9441B22BB34D3E8A7DE964206D26589DF3E8EB5183";
 const char* alice_pkey_str =
     "5e173f6ac3c669587538e7727cf19b782a4f2fda07c1eaa662c593e5e85e3051";
 const char* alice_ekey_str =
@@ -44,6 +48,7 @@ const char* auth_cipher =
  */
 int test_ecc();
 int test_kdf();
+int test_hmac();
 int test_ecies();
 
 int
@@ -54,6 +59,7 @@ main(int argc, char* argv[])
     int err = 0;
     err |= test_ecc();
     err |= test_kdf();
+    err |= test_hmac();
     err |= test_ecies();
     return err;
 }
@@ -171,6 +177,33 @@ test_kdf()
     err = 0;
 EXIT:
     ucrypto_mpi_free(&result_mpi);
+    return err;
+}
+
+int
+test_hmac()
+{
+    int err = -1;
+    ucrypto_hmac_sha256 h256;
+    uint8_t hmac[16], hmac_input[10];
+    uint8_t hmac_result[32];
+    size_t olen = 100;
+    char str_result[olen];
+
+    memset(str_result, 0, olen);
+
+    err = ucrypto_mpi_atob(16, g_hmac, hmac, 16);
+    if (!err) ucrypto_mpi_atob(16, g_hmac_input, hmac_input, 10);
+    if (err) return err;
+
+    ucrypto_hmac_sha256_init(&h256, hmac, 16);
+    ucrypto_hmac_sha256_update(&h256, hmac_input, 10);
+    ucrypto_hmac_sha256_finish(&h256, hmac_result);
+
+    err = ucrypto_mpi_btoa(hmac_result, 32, 16, str_result, &olen);
+    if (err) return err;
+
+    err = memcmp(g_hmac_result, str_result, olen) ? -1 : 0;
     return err;
 }
 
