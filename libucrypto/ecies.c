@@ -53,8 +53,12 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     // 0x04 + echd-random-pubk + iv + aes(kdf(shared-secret), plaintext) + hmac
     // * offset 0                65         81               275
     // *        [ecies-pubkey:65||aes-iv:16||cipher-text:194||ecies-mac:32]
+    ucrypto_hmac_sha256 h256;
+    mbedtls_sha256_context sha256;
     int err = 0;
     uint8_t key[32];
+    uint8_t key_mac[32];
+    uint8_t valid_mac[32];
 
     err = ucrypto_ecc_agree(secret, (ucrypto_ecc_public_key*)cipher);
     if (!(err == 0)) goto EXIT;
@@ -63,6 +67,17 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     if (!(err == 0)) goto EXIT;
 
     ucrypto_ecies_kdf_mpi(&secret->z, key, 32);
+
+    // TODO wrap one time sha's and hmacs
+    mbedtls_sha256_init(&sha256);
+    mbedtls_sha256_starts(&sha256, 0);
+    mbedtls_sha256_update(&sha256, &key[16], 16);
+    mbedtls_sha256_finish(&sha256, key_mac);
+    mbedtls_sha256_free(&sha256);
+    ucrypto_hmac_sha256_init(&h256, key_mac, 32);
+    ucrypto_hmac_sha256_update(&h256, &cipher[1 + 64], cipher_len - 32);
+    ucrypto_hmac_sha256_finish(&h256, valid_mac);
+    ucrypto_hmac_sha256_free(&h256);
 
 EXIT:
     return err;
