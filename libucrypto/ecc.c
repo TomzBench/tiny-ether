@@ -104,12 +104,10 @@ ucrypto_ecc_atop(const char* str, int rdx, ucrypto_ecp_point* q)
     uint8_t buff[65];
     size_t l;
     mbedtls_ecp_group grp;
-    // mbedtls_ecp_point p;
     mbedtls_mpi bin;
 
     // init stack
     mbedtls_mpi_init(&bin);
-    // mbedtls_ecp_point_init(&p);
     mbedtls_ecp_group_init(&grp);
     err = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1);
     if (!(err == 0)) goto EXIT;
@@ -127,7 +125,6 @@ ucrypto_ecc_atop(const char* str, int rdx, ucrypto_ecp_point* q)
 EXIT:
     // Free
     mbedtls_mpi_free(&bin);
-    // mbedtls_ecp_point_free(&p);
     mbedtls_ecp_group_free(&grp);
     return err;
 }
