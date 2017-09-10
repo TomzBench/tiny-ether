@@ -26,26 +26,9 @@ typedef mbedtls_ecp_point ucrypto_ecp_point;  /*!< curve struct */
  * @return
  */
 int ucrypto_ecc_key_init(ucrypto_ecc_ctx*, const ucrypto_mpi* d);
-
-/**
- * @brief
- *
- * @param ctx
- *
- * @return
- */
-int ucrypto_ecc_init_keypair(ucrypto_ecc_ctx* ctx);
-
-/**
- * @brief Given private key (d), calculate public key using group G.
- *
- * Q = d*G
- *
- * @param ucrypto_ecc_ctx
- *
- * @return
- */
-int ucrypto_ecc_import_keypair(ucrypto_ecc_ctx*, const ucrypto_mpi* d);
+int ucrypto_ecc_key_init_string(ucrypto_ecc_ctx* ctx, int radix, const char*);
+int ucrypto_ecc_key_init_binary(ucrypto_ecc_ctx*, const ucrypto_mpi* d);
+int ucrypto_ecc_key_init_new(ucrypto_ecc_ctx*);
 
 /**
  * @brief

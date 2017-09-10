@@ -3,44 +3,28 @@
 int
 ucrypto_ecc_key_init(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
 {
-    return d ? ucrypto_ecc_import_keypair(ctx, d)
-             : ucrypto_ecc_init_keypair(ctx);
+    return d ? ucrypto_ecc_key_init_binary(ctx, d)
+             : ucrypto_ecc_key_init_new(ctx);
 }
 
 int
-ucrypto_ecc_init_keypair(ucrypto_ecc_ctx* ctx)
+ucrypto_ecc_key_init_string(ucrypto_ecc_ctx* ctx, int radix, const char* s)
 {
-    int ret;
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context rng;
-
-    // initialize stack variables and callers ecc context.
-    mbedtls_ecdh_init(ctx);
-    mbedtls_entropy_init(&entropy);
-    mbedtls_ctr_drbg_init(&rng);
-
-    // Seed rng
-    ret = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
-    if (!(ret == 0)) goto EXIT;
-
-    // Load curve parameters
-    ret = mbedtls_ecp_group_load(&ctx->grp, MBEDTLS_ECP_DP_SECP256K1);
-    if (!(ret == 0)) goto EXIT;
-
-    // Create ecc public/private key pair
-    ret = mbedtls_ecdh_gen_public(&ctx->grp, &ctx->d, &ctx->Q,
-                                  mbedtls_ctr_drbg_random, &rng);
-    if (!(ret == 0)) goto EXIT;
-
+    int err = -1;
+    ucrypto_mpi d;
+    ucrypto_mpi_init(&d);
+    err = ucrypto_mpi_read_string(&d, radix, s);
+    if (!(err == 0)) goto EXIT;
+    err = ucrypto_ecc_key_init_binary(ctx, &d);
+    if (!(err == 0)) goto EXIT;
+    err = 0;
 EXIT:
-    if (ret) mbedtls_ecdh_free(ctx);
-    mbedtls_ctr_drbg_free(&rng);
-    mbedtls_entropy_free(&entropy);
-    return ret;
+    ucrypto_mpi_free(&d);
+    return err;
 }
 
 int
-ucrypto_ecc_import_keypair(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
+ucrypto_ecc_key_init_binary(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -66,6 +50,38 @@ ucrypto_ecc_import_keypair(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
     // Get public key from private key?
     ret = mbedtls_ecp_mul(&ctx->grp, &ctx->Q, &ctx->d, &ctx->grp.G,
                           mbedtls_entropy_func, &entropy);
+    if (!(ret == 0)) goto EXIT;
+
+EXIT:
+    if (ret) mbedtls_ecdh_free(ctx);
+    mbedtls_ctr_drbg_free(&rng);
+    mbedtls_entropy_free(&entropy);
+    return ret;
+}
+
+int
+ucrypto_ecc_key_init_new(ucrypto_ecc_ctx* ctx)
+{
+    int ret;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context rng;
+
+    // initialize stack variables and callers ecc context.
+    mbedtls_ecdh_init(ctx);
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&rng);
+
+    // Seed rng
+    ret = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
+    if (!(ret == 0)) goto EXIT;
+
+    // Load curve parameters
+    ret = mbedtls_ecp_group_load(&ctx->grp, MBEDTLS_ECP_DP_SECP256K1);
+    if (!(ret == 0)) goto EXIT;
+
+    // Create ecc public/private key pair
+    ret = mbedtls_ecdh_gen_public(&ctx->grp, &ctx->d, &ctx->Q,
+                                  mbedtls_ctr_drbg_random, &rng);
     if (!(ret == 0)) goto EXIT;
 
 EXIT:
