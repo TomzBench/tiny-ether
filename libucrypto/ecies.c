@@ -1,4 +1,5 @@
 #include "ecies.h"
+#include <string.h>
 
 int
 ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
@@ -54,11 +55,15 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     // * offset 0                65         81               275
     // *        [ecies-pubkey:65||aes-iv:16||cipher-text:194||ecies-mac:32]
     int err = 0;
+    uint8_t key[32];
+
     err = ucrypto_ecc_agree(secret, (ucrypto_ecc_public_key*)cipher);
     if (!(err == 0)) goto EXIT;
 
     err = ucrypto_mpi_size(&secret->z) == 32 ? 0 : -1;
     if (!(err == 0)) goto EXIT;
+
+    ucrypto_ecies_kdf_mpi(&secret->z, key, 32);
 
 EXIT:
     return err;
@@ -72,14 +77,27 @@ ucrypto_ecies_kdf_string(const char* str, int radix, uint8_t* b, size_t keylen)
     ucrypto_mpi_init(&z);
     err = ucrypto_mpi_read_string(&z, radix, str);
     if (!(err == 0)) goto EXIT;
-    err = ucrypto_ecies_kdf(&z, b, keylen);
+    err = ucrypto_ecies_kdf_mpi(&z, b, keylen);
 EXIT:
     ucrypto_mpi_free(&z);
     return err;
 }
 
 int
-ucrypto_ecies_kdf(const ucrypto_mpi* secret, uint8_t* b, size_t keylen)
+ucrypto_ecies_kdf_mpi(const ucrypto_mpi* secret, uint8_t* b, size_t keylen)
+{
+    int err, zlen = mbedtls_mpi_size(secret);
+    uint8_t z[zlen];
+    err = mbedtls_mpi_write_binary(secret, z, zlen);
+    if (!(err == 0)) goto EXIT;
+
+    ucrypto_ecies_kdf(z, zlen, b, keylen);
+EXIT:
+    return err;
+}
+
+void
+ucrypto_ecies_kdf(uint8_t* z, size_t zlen, uint8_t* b, size_t keylen)
 {
     // concat hashes (counter||secret||otherInfo)
     // where otherinfo seems to be empty
@@ -87,30 +105,26 @@ ucrypto_ecies_kdf(const ucrypto_mpi* secret, uint8_t* b, size_t keylen)
     // ``\_("/)_/`` ((keylen+7)*8)/(64*8) for sha256
     mbedtls_sha256_context sha;
     uint8_t ctr[4] = { 0, 0, 0, 1 };
-    size_t c = 0;
+    uint8_t* end = &b[keylen];
     uint8_t s1 = 0;
-    int err = -1, zlen = mbedtls_mpi_size(secret);
-    uint8_t z[zlen];
-    err = mbedtls_mpi_write_binary(secret, z, zlen);
-    if (!(err == 0)) goto EXIT;
-    while (c < keylen) {
+
+    while (b < end) {
+        uint8_t tmp[32];
         mbedtls_sha256_init(&sha);
         mbedtls_sha256_starts(&sha, 0);
         mbedtls_sha256_update(&sha, ctr, 4);
         mbedtls_sha256_update(&sha, z, zlen);
         mbedtls_sha256_update(&sha, &s1, 0);
-        mbedtls_sha256_finish(&sha, &b[c]);
+        mbedtls_sha256_finish(&sha, tmp);
+        memcpy(b, tmp, b + 32 <= end ? 32 : end - b);
         mbedtls_sha256_free(&sha);
-        c += 32; // sha256 blocksize
+        b += 32;
 
         // Nifty short circuit condition big endian counter
         if (++ctr[3] || ++ctr[2] || ++ctr[1] || ++ctr[0]) {
             continue;
         }
     }
-    err = 0;
-EXIT:
-    return err;
 }
 
 //

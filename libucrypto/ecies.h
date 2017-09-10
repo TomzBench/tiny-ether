@@ -50,7 +50,8 @@ int ucrypto_ecies_kdf_string(const char* str,
                              int radix,
                              uint8_t* b,
                              size_t keylen);
-int ucrypto_ecies_kdf(const ucrypto_mpi* secret, uint8_t* b, size_t keylen);
+int ucrypto_ecies_kdf_mpi(const ucrypto_mpi* secret, uint8_t* b, size_t keylen);
+void ucrypto_ecies_kdf(uint8_t* z, size_t zlen, uint8_t* key, size_t keylen);
 
 #ifdef __cplusplus
 }

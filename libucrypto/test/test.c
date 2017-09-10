@@ -7,7 +7,7 @@
  */
 const char* kdf1 =
     "0de72f1223915fa8b8bf45dffef67aef8d89792d116eb61c9a1eb02c422a4663";
-const char* kdf1_result = "1D0C446F9899A3426f2B89A8CB75C14B";
+const char* kdf1_result = "1D0C446F9899A3426F2B89A8CB75C14B";
 const char* kdf2 =
     "961c065873443014e0371f1ed656c586c6730bf927415757f389d92acf8268df";
 const char* kdf2_result =
@@ -136,8 +136,8 @@ test_kdf()
     int err = -1;
     const char* expect[] = { kdf1_result, kdf2_result };
     const char* kdf[] = { kdf1, kdf2 };
-    uint8_t result_bin[32]; // worst case size
-    char result_str[120];   // worst case size
+    size_t len[] = { 16, 32 };
+    char result_str[66]; // worst case size
 
     // Init stack
     ucrypto_mpi result_mpi;
@@ -146,21 +146,24 @@ test_kdf()
     for (int i = 0; i < 2; i++) {
         const char* k = kdf[i];
         const char* r = expect[i];
-        size_t l = 64;
-        memset(result_bin, 0, 32);
-        memset(result_str, 0, 64);
+        uint8_t result_bin[len[i]];
+        size_t rlen = 0;
+        memset(result_bin, 0, len[i]);
+        memset(result_str, 0, 66);
 
         // kdf
-        err = ucrypto_ecies_kdf_string(k, 16, result_bin, 32);
+        err = ucrypto_ecies_kdf_string(k, 16, result_bin, len[i]);
         if (!(err == 0)) goto EXIT;
 
-        err = ucrypto_mpi_read_binary(&result_mpi, result_bin, 32);
+        // mpi_to_b
+        err = ucrypto_mpi_read_binary(&result_mpi, result_bin, len[i]);
+        if (!(err == 0)) goto EXIT;
+
+        // btoa
+        err = ucrypto_mpi_write_string(&result_mpi, 16, result_str, 66, &rlen);
         if (!(err == 0)) goto EXIT;
 
         // Check result
-        err = ucrypto_mpi_write_string(&result_mpi, 16, result_str, l, &l);
-        if (!(err == 0)) goto EXIT;
-
         err = memcmp(r, result_str, strlen(result_str));
         if (!(err == 0)) goto EXIT;
     }
