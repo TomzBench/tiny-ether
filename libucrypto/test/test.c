@@ -5,6 +5,13 @@
 /**
  * @brief Test vectors
  */
+const char* kdf1 =
+    "0de72f1223915fa8b8bf45dffef67aef8d89792d116eb61c9a1eb02c422a4663";
+const char* kdf1_result = "1D0C446F9899A3426f2B89A8CB75C14B";
+const char* kdf2 =
+    "961c065873443014e0371f1ed656c586c6730bf927415757f389d92acf8268df";
+const char* kdf2_result =
+    "4050C52E6D9C08755E5A818AC66FABE478B825B1836FD5EFC4D44E40D04DABCC";
 const char* alice_pkey_str =
     "5e173f6ac3c669587538e7727cf19b782a4f2fda07c1eaa662c593e5e85e3051";
 const char* alice_ekey_str =
@@ -32,11 +39,11 @@ const char* auth_cipher =
     "3e7723eb95b3cef9942f01a58bd61baee7c9bdd438956b426a4ffe238e61746a8c93d5e106"
     "80617c82e48d706ac4953f5e1c4c4f7d013c87d34a06626f498f34576dc017fdd3d581e83c"
     "fd26cf125b6d2bda1f1d56";
-
 /**
  * @brief Prototypes
  */
-int test_ecdh();
+int test_ecc();
+int test_kdf();
 int test_ecies();
 
 int
@@ -45,13 +52,14 @@ main(int argc, char* argv[])
     ((void)argc);
     ((void)argv);
     int err = 0;
-    err |= test_ecdh();
+    err |= test_ecc();
+    err |= test_kdf();
     err |= test_ecies();
     return err;
 }
 
 int
-test_ecdh()
+test_ecc()
 {
     int err = 0;
     size_t l = 100;     // buffer sz
@@ -119,6 +127,47 @@ EXIT:
     ucrypto_ecc_key_deinit(&ctxa_clone);
     ucrypto_ecc_key_deinit(&ctxb);
     ucrypto_ecc_key_deinit(&ctxc);
+    return err;
+}
+
+int
+test_kdf()
+{
+    int err = -1;
+    const char* expect[] = { kdf1_result, kdf2_result };
+    const char* kdf[] = { kdf1, kdf2 };
+    uint8_t result_bin[32]; // worst case size
+    char result_str[120];   // worst case size
+
+    // Init stack
+    ucrypto_mpi result_mpi;
+    ucrypto_mpi_init(&result_mpi);
+
+    for (int i = 0; i < 2; i++) {
+        const char* k = kdf[i];
+        const char* r = expect[i];
+        size_t l = 64;
+        memset(result_bin, 0, 32);
+        memset(result_str, 0, 64);
+
+        // kdf
+        err = ucrypto_ecies_kdf_string(k, 16, result_bin, 32);
+        if (!(err == 0)) goto EXIT;
+
+        err = ucrypto_mpi_read_binary(&result_mpi, result_bin, 32);
+        if (!(err == 0)) goto EXIT;
+
+        // Check result
+        err = ucrypto_mpi_write_string(&result_mpi, 16, result_str, l, &l);
+        if (!(err == 0)) goto EXIT;
+
+        err = memcmp(r, result_str, strlen(result_str));
+        if (!(err == 0)) goto EXIT;
+    }
+
+    err = 0;
+EXIT:
+    ucrypto_mpi_free(&result_mpi);
     return err;
 }
 

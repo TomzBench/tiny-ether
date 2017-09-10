@@ -46,6 +46,12 @@ int ucrypto_ecies_decrypt(ucrypto_ecc_ctx* s,
                           uint8_t* plain,
                           size_t plain_len);
 
+int ucrypto_ecies_kdf_string(const char* str,
+                             int radix,
+                             uint8_t* b,
+                             size_t keylen);
+int ucrypto_ecies_kdf(const ucrypto_mpi* secret, uint8_t* b, size_t keylen);
+
 #ifdef __cplusplus
 }
 #endif
