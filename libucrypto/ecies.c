@@ -57,7 +57,7 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     mbedtls_sha256_context sha256;
     int err = 0;
     uint8_t key[32];
-    uint8_t key_mac[32];
+    uint8_t mKey[32];
     uint8_t valid_mac[32];
 
     err = ucrypto_ecc_agree(secret, (ucrypto_ecc_public_key*)cipher);
@@ -72,10 +72,12 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     mbedtls_sha256_init(&sha256);
     mbedtls_sha256_starts(&sha256, 0);
     mbedtls_sha256_update(&sha256, &key[16], 16);
-    mbedtls_sha256_finish(&sha256, key_mac);
+    mbedtls_sha256_finish(&sha256, mKey);
     mbedtls_sha256_free(&sha256);
-    ucrypto_hmac_sha256_init(&h256, key_mac, 32);
-    ucrypto_hmac_sha256_update(&h256, &cipher[1 + 64], cipher_len - 32);
+    ucrypto_hmac_sha256_init(&h256, mKey, 32);
+    // calcuate length of array [65:-32]
+    ucrypto_hmac_sha256_update(&h256, &cipher[1 + 64],
+                               cipher_len - 1 - 64 - 32);
     ucrypto_hmac_sha256_update(&h256, NULL, 0);
     ucrypto_hmac_sha256_finish(&h256, valid_mac);
     ucrypto_hmac_sha256_free(&h256);
