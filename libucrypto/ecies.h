@@ -28,9 +28,20 @@ extern "C" {
  */
 
 #include "ecc.h"
+#include "mbedtls/sha256.h"
+int ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
+                                 int radix,
+                                 const char* cipher,
+                                 uint8_t* plain,
+                                 size_t plain_len);
+
+int ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
+                              ucrypto_mpi* bin,
+                              uint8_t* plain,
+                              size_t plain_len);
 
 int ucrypto_ecies_decrypt(ucrypto_ecc_ctx* s,
-                          uint8_t* cipher,
+                          const uint8_t* cipher,
                           size_t cipher_len,
                           uint8_t* plain,
                           size_t plain_len);
