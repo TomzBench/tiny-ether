@@ -75,9 +75,8 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     mbedtls_sha256_finish(&sha256, mKey);
     mbedtls_sha256_free(&sha256);
     ucrypto_hmac_sha256_init(&h256, mKey, 32);
-    // calcuate length of array [65:-32]
     ucrypto_hmac_sha256_update(&h256, &cipher[1 + 64],
-                               cipher_len - 1 - 64 - 32);
+                               &cipher[cipher_len - 32] - &cipher[1 + 64]);
     ucrypto_hmac_sha256_update(&h256, NULL, 0);
     ucrypto_hmac_sha256_finish(&h256, valid_mac);
     ucrypto_hmac_sha256_free(&h256);
