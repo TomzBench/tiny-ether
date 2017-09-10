@@ -28,7 +28,9 @@ extern "C" {
  */
 
 #include "ecc.h"
+#include "hmac.h"
 #include "mbedtls/sha256.h"
+#include <string.h>
 
 int ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
                                  int radix,
@@ -53,18 +55,6 @@ int ucrypto_ecies_kdf_string(const char* str,
                              size_t keylen);
 int ucrypto_ecies_kdf_mpi(const ucrypto_mpi* secret, uint8_t* b, size_t keylen);
 void ucrypto_ecies_kdf(uint8_t* z, size_t zlen, uint8_t* key, size_t keylen);
-
-// TODO seperate from file.
-typedef struct
-{
-    uint8_t pad[64];
-    mbedtls_sha256_context sha;
-} ucrypto_hmac_sha256;
-
-void ucrypto_hmac_sha256_init(ucrypto_hmac_sha256*, const uint8_t*, size_t);
-void ucrypto_hmac_sha256_update(ucrypto_hmac_sha256*, const uint8_t*, size_t);
-void ucrypto_hmac_sha256_finish(ucrypto_hmac_sha256*, uint8_t*);
-void ucrypto_hmac_sha256_free(ucrypto_hmac_sha256*);
 
 #ifdef __cplusplus
 }

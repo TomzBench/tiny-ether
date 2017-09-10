@@ -9,7 +9,7 @@ SRCDIR:=./
 incs+=-I.
 incs+=-I${SRCDIR}
 incs+=-I../external/mbedtls/include
-incs+=-I../external/trezor-crypto/
+#incs+=-I../external/trezor-crypto/
 
 #create dirs
 dirs+=./obj
@@ -18,9 +18,10 @@ dirs+=./obj
 obj-y+=./obj/ecc.o
 obj-y+=./obj/mpi.o
 obj-y+=./obj/ecies.o
+obj-y+=./obj/hmac.o
 
 #external dependencies
-ld-obj+=../external/trezor-crypto/sha3.o
+#ld-obj+=../external/trezor-crypto/sha3.o
 ld-obj+=../external/mbedtls/library/aes.o
 ld-obj+=../external/mbedtls/library/aesni.o
 ld-obj+=../external/mbedtls/library/asn1write.o
@@ -48,8 +49,8 @@ ld-obj+=../external/mbedtls/library/timing.o
 
 hdrs+=${INCDIR}/mtm/ecc.h
 hdrs+=${INCDIR}/mtm/mpi.h
-hdrs+=${INCDIR}/mtm/sha.h
 hdrs+=${INCDIR}/mtm/ecies.h
+hdrs+=${INCDIR}/mtm/hmac.h
 
 
 relobj-y:=${obj-y:.o=.lo}
