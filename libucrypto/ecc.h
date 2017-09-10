@@ -40,24 +40,6 @@ void ucrypto_ecc_key_deinit(ucrypto_ecc_ctx*);
 /**
  * @brief
  *
- * @param ucrypto_ecc_ctx
- *
- * @return
- */
-const ucrypto_ecp_point* ucrypto_ecc_pubkey(ucrypto_ecc_ctx*);
-
-/**
- * @brief
- *
- * @param ucrypto_ecc_ctx
- *
- * @return
- */
-const ucrypto_mpi* ucrypto_ecc_secret(ucrypto_ecc_ctx*);
-
-/**
- * @brief
- *
  * @param str
  * @param rdx
  * @param q

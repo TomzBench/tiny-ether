@@ -33,7 +33,6 @@ test_ecdh()
     size_t l = 100;     // buffer sz
     uint8_t stest[l];   // binary buffer
     char secret_str[l]; // ascii buffer
-    const ucrypto_mpi *secreta, *secretb, *secretc;
     ucrypto_ecc_ctx ctxa, ctxa_clone, ctxb, ctxc;
     ucrypto_ecc_public_key pubkeya, pubkeyb;
     ucrypto_ecc_signature sig;
@@ -46,12 +45,10 @@ test_ecdh()
     memset(stest, 'a', l);
 
     // Generate a shared secret with known private keys with point public key
-    err |= ucrypto_ecc_agree_point(&ctxa, ucrypto_ecc_pubkey(&ctxb));
-    err |= ucrypto_ecc_agree_point(&ctxb, ucrypto_ecc_pubkey(&ctxa));
+    err |= ucrypto_ecc_agree_point(&ctxa, &ctxb.Q);
+    err |= ucrypto_ecc_agree_point(&ctxb, &ctxa.Q);
     if (!(err == 0)) goto EXIT;
-    secreta = ucrypto_ecc_secret(&ctxa);
-    secretb = ucrypto_ecc_secret(&ctxb);
-    err |= ucrypto_mpi_cmp(secreta, secretb) ? -1 : 0;
+    err |= ucrypto_mpi_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
     ucrypto_mpi_write_string(&ctxa.z, 16, secret_str, l, &l);
     err = memcmp(expect_secret_str, secret_str, strlen(secret_str)) ? -1 : 0;
@@ -63,17 +60,14 @@ test_ecdh()
     err |= ucrypto_ecc_agree(&ctxa, &pubkeyb);
     err |= ucrypto_ecc_agree(&ctxb, &pubkeya);
     if (!(err == 0)) goto EXIT;
-    secretb = ucrypto_ecc_secret(&ctxb);
-    err |= ucrypto_mpi_cmp(secreta, secretb) ? -1 : 0;
+    err |= ucrypto_mpi_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
 
     // Generated shared secret with random key
-    err |= ucrypto_ecc_agree_point(&ctxa, ucrypto_ecc_pubkey(&ctxc));
-    err |= ucrypto_ecc_agree_point(&ctxc, ucrypto_ecc_pubkey(&ctxa));
+    err |= ucrypto_ecc_agree_point(&ctxa, &ctxc.Q);
+    err |= ucrypto_ecc_agree_point(&ctxc, &ctxa.Q);
     if (!(err == 0)) goto EXIT;
-    secreta = ucrypto_ecc_secret(&ctxa);
-    secretc = ucrypto_ecc_secret(&ctxc);
-    err |= ucrypto_mpi_cmp(secreta, secretc) ? -1 : 0;
+    err |= ucrypto_mpi_cmp(&ctxa.z, &ctxc.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
 
     // Sign our test blob
@@ -81,10 +75,10 @@ test_ecdh()
     if (!(err == 0)) goto EXIT;
 
     // Verify with public key
-    err = ucrypto_ecc_verify(ucrypto_ecc_pubkey(&ctxa), stest, 66, &sig);
+    err = ucrypto_ecc_verify(&ctxa.Q, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
-    err = ucrypto_ecc_verify(ucrypto_ecc_pubkey(&ctxa_clone), stest, 66, &sig);
+    err = ucrypto_ecc_verify(&ctxa_clone.Q, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
     memset(sig, 0, sizeof(sig));
@@ -93,7 +87,7 @@ test_ecdh()
     err = ucrypto_ecc_sign(&ctxa_clone, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
-    err = ucrypto_ecc_verify(ucrypto_ecc_pubkey(&ctxa_clone), stest, 66, &sig);
+    err = ucrypto_ecc_verify(&ctxa_clone.Q, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
 EXIT:

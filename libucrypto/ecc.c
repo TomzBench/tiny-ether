@@ -97,18 +97,6 @@ ucrypto_ecc_key_deinit(ucrypto_ecc_ctx* ctx)
     mbedtls_ecdh_free(ctx);
 }
 
-const ucrypto_ecp_point*
-ucrypto_ecc_pubkey(ucrypto_ecc_ctx* ctx)
-{
-    return &ctx->Q;
-}
-
-const ucrypto_mpi*
-ucrypto_ecc_secret(ucrypto_ecc_ctx* ctx)
-{
-    return &ctx->z;
-}
-
 int
 ucrypto_ecc_atop(const char* str, int rdx, ucrypto_ecp_point* q)
 {
