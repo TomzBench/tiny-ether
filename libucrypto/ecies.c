@@ -49,39 +49,31 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
                       uint8_t* plain,
                       size_t plain_len)
 {
-    // TODO: Encryption
     // 0x04 + echd-random-pubk + iv + aes(kdf(shared-secret), plaintext) + hmac
     // * offset 0                65         81               275
     // *        [ecies-pubkey:65||aes-iv:16||cipher-text:194||ecies-mac:32]
-    ucrypto_hmac_sha256 h256;
-    mbedtls_sha256_context sha256;
+    // *                        ||-----------hmac-----------||
     int err = 0;
-    uint8_t key[32];
-    uint8_t mKey[32];
-    uint8_t valid_mac[32];
+    uint8_t key[32];  // kdf(ecdh_agree(secret,ecies-pubkey));
+    uint8_t mkey[32]; // sha256(key[16]);
+    uint8_t tmac[32]; // hmac_sha256(iv+ciphertext)
 
+    // Get shared secret key
     err = ucrypto_ecc_agree(secret, (ucrypto_ecc_public_key*)cipher);
-    if (!(err == 0)) goto EXIT;
+    if (err) return err;
 
+    // Check key
     err = ucrypto_mpi_size(&secret->z) == 32 ? 0 : -1;
-    if (!(err == 0)) goto EXIT;
+    if (err) return err;
 
+    // Verify tag
     ucrypto_ecies_kdf_mpi(&secret->z, key, 32);
+    ucrypto_sha256(&key[16], 16, mkey);
+    ucrypto_hmac_sha256(mkey, 32, &cipher[65], cipher_len - 32 - 65, tmac);
+    for (uint32_t i = 0; i < 32; i++) {
+        if (!(tmac[i] == cipher[cipher_len - 32 + i])) return -1;
+    }
 
-    // TODO wrap one time sha's and hmacs
-    mbedtls_sha256_init(&sha256);
-    mbedtls_sha256_starts(&sha256, 0);
-    mbedtls_sha256_update(&sha256, &key[16], 16);
-    mbedtls_sha256_finish(&sha256, mKey);
-    mbedtls_sha256_free(&sha256);
-    ucrypto_hmac_sha256_init(&h256, mKey, 32);
-    ucrypto_hmac_sha256_update(&h256, &cipher[1 + 64],
-                               &cipher[cipher_len - 32] - &cipher[1 + 64]);
-    ucrypto_hmac_sha256_update(&h256, NULL, 0);
-    ucrypto_hmac_sha256_finish(&h256, valid_mac);
-    ucrypto_hmac_sha256_free(&h256);
-
-EXIT:
     return err;
 }
 

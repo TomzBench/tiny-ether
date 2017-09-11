@@ -184,7 +184,7 @@ int
 test_hmac()
 {
     int err = -1;
-    ucrypto_hmac_sha256 h256;
+    ucrypto_hmac_sha256_ctx h256;
     uint8_t hmac[16], hmac_input[10];
     uint8_t hmac_result[32];
     size_t olen = 100;
