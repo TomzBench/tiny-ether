@@ -49,7 +49,8 @@ const char* auth_cipher =
 int test_ecc();
 int test_kdf();
 int test_hmac();
-int test_ecies();
+int test_ecies_encrypt();
+int test_ecies_decrypt();
 
 int
 main(int argc, char* argv[])
@@ -60,7 +61,8 @@ main(int argc, char* argv[])
     err |= test_ecc();
     err |= test_kdf();
     err |= test_hmac();
-    err |= test_ecies();
+    err |= test_ecies_encrypt();
+    err |= test_ecies_decrypt();
     return err;
 }
 
@@ -208,7 +210,24 @@ test_hmac()
 }
 
 int
-test_ecies()
+test_ecies_encrypt()
+{
+    int err = 0;
+    uint8_t test[] = { '1', '2', '3', '4' };
+    uint8_t test_result[4];
+    uint8_t out[65 + 16 + sizeof(test) + 32];
+    ucrypto_ecc_ctx bob;
+    ucrypto_ecc_public_key pubkey;
+    if (!err) err = ucrypto_ecc_key_init_new(&bob);
+    if (!err) err = ucrypto_ecc_ptob(&bob, &pubkey);
+    if (!err) err = ucrypto_ecies_encrypt(&pubkey, test, 4, out);
+    if (!err) err = ucrypto_ecies_decrypt(&bob, out, sizeof(out), test_result);
+    ucrypto_ecc_key_deinit(&bob);
+    return err;
+}
+
+int
+test_ecies_decrypt()
 {
     int err = -1;
     size_t l = 194, slen = 400;

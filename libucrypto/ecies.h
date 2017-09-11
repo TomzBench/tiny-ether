@@ -33,6 +33,20 @@ extern "C" {
 #include "mbedtls/sha256.h"
 #include <string.h>
 
+int ucrypto_ecies_encrypt_string(ucrypto_ecc_public_key* s,
+                                 int radix,
+                                 const char* plain,
+                                 uint8_t* cipher);
+
+int ucrypto_ecies_encrypt_mpi(ucrypto_ecc_public_key* s,
+                              ucrypto_mpi* bin,
+                              uint8_t* cipher);
+
+int ucrypto_ecies_encrypt(ucrypto_ecc_public_key* s,
+                          const uint8_t* plain,
+                          size_t plain_len,
+                          uint8_t* cipher);
+
 int ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
                                  int radix,
                                  const char* cipher,
