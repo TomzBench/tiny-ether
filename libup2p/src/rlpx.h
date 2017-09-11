@@ -22,7 +22,8 @@ void rlpx_session_free(rlpx_session** session_p);
 int rlpx_session_read_auth(rlpx_session* session,
                            const ucrypto_ecc_ctx* secret,
                            uint8_t* cipher,
-                           uint32_t cipher_sz);
+                           uint32_t cipher_sz,
+                           uint8_t*);
 
 #ifdef __cplusplus
 }

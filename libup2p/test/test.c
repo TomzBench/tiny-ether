@@ -108,37 +108,29 @@ test_auth_pain()
 int
 test_rlpx_session()
 {
-    int err = -1;
-    uint8_t auth_binary[307];
-    ucrypto_ecc_ctx static_key;
-    ucrypto_mpi auth1;
-    ucrypto_mpi skey;
-    ucrypto_mpi_init(&auth1);
-    ucrypto_mpi_init(&skey);
-    ucrypto_mpi_read_string(&auth1, 16, g_auth_1);
-    ucrypto_mpi_read_string(&skey, 16, g_spriv_b);
+    ucrypto_ecc_ctx bob;
+    int err = 0;
+    uint8_t input[307];
+    uint8_t output[194];
 
-    // Create static key with test param
-    ucrypto_ecc_key_init(&static_key, &skey);
+    // init stack with auth data and bobs key
+    err = ucrypto_mpi_atob(16, g_auth_1, input, 307);
+    if (err) return -1;
+    err = ucrypto_ecc_key_init_string(&bob, 16, g_spriv_b);
+    if (err) return -1;
 
     // Create new session
     rlpx_session* session = rlpx_session_alloc();
 
-    // Print binary auth
-    if (!(ucrypto_mpi_size(&auth1) == 307)) goto EXIT;
-    ucrypto_mpi_write_binary(&auth1, auth_binary, 307);
-
     // Read authentication
-    err = rlpx_session_read_auth(session, &static_key, auth_binary, 307);
+    err = rlpx_session_read_auth(session, &bob, input, 307, output);
     if (!(err == 0)) goto EXIT;
 
     err = 0;
 
 EXIT:
     // cleanup
-    ucrypto_ecc_key_deinit(&static_key);
-    ucrypto_mpi_free(&auth1);
-    ucrypto_mpi_free(&skey);
+    ucrypto_ecc_key_deinit(&bob);
     rlpx_session_free(&session);
     return err;
 }
