@@ -213,15 +213,13 @@ int
 test_ecies_encrypt()
 {
     int err = 0;
-    uint8_t test[] = { '1', '2', '3', '4' };
-    uint8_t test_result[4];
-    uint8_t out[65 + 16 + sizeof(test) + 32];
+    uint8_t in[] = { 't', 'e', 's', 't', ' ', 'y', 'e', 'a', 'h' };
+    uint8_t out[65 + 16 + sizeof(in) + 32];
+    uint8_t plain[9];
     ucrypto_ecc_ctx bob;
-    ucrypto_ecc_public_key pubkey;
     if (!err) err = ucrypto_ecc_key_init_new(&bob);
-    if (!err) err = ucrypto_ecc_ptob(&bob, &pubkey);
-    if (!err) err = ucrypto_ecies_encrypt(&pubkey, test, 4, out);
-    if (!err) err = ucrypto_ecies_decrypt(&bob, out, sizeof(out), test_result);
+    if (!err) err = ucrypto_ecies_encrypt(&bob, in, 9, out);
+    if (!err) err = ucrypto_ecies_decrypt(&bob, out, sizeof(out), plain);
     ucrypto_ecc_key_deinit(&bob);
     return err;
 }
