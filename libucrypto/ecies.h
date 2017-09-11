@@ -27,6 +27,7 @@ extern "C" {
  *        [ecies-pubkey:65||aes-iv:16||cipher-text:194||ecies-mac:32]
  */
 
+#include "aes.h"
 #include "ecc.h"
 #include "hmac.h"
 #include "mbedtls/sha256.h"

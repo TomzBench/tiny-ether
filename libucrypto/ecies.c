@@ -57,6 +57,8 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     uint8_t key[32];  // kdf(ecdh_agree(secret,ecies-pubkey));
     uint8_t mkey[32]; // sha256(key[16]);
     uint8_t tmac[32]; // hmac_sha256(iv+ciphertext)
+    ucrypto_aes_iv* iv = (ucrypto_aes_iv*)&cipher[65];
+    ucrypto_aes_128_ctr_key* ekey = (ucrypto_aes_128_ctr_key*)key;
 
     // Get shared secret key
     err = ucrypto_ecc_agree(secret, (ucrypto_ecc_public_key*)cipher);
@@ -75,6 +77,8 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     }
 
     // decrypt aes-128-ctr
+    err = ucrypto_aes_crypt(ekey, iv, &cipher[81], cipher_len - 32 - 16 - 65,
+                            plain);
 
     return err;
 }

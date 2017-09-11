@@ -211,12 +211,16 @@ int
 test_ecies()
 {
     int err = -1;
-    size_t l = 300;
+    size_t l = 194, slen = 400;
     uint8_t plain[l];
+    char str_plain[slen];
+    memset(plain, 0, l);
     ucrypto_ecc_ctx ctxb;
     ucrypto_ecc_key_init_string(&ctxb, 16, bob_pkey_str);
     err = ucrypto_ecies_decrypt_string(&ctxb, 16, auth_cipher, plain, l);
     if (!(err == 0)) goto EXIT;
+    ucrypto_mpi_btoa(plain, l, 16, str_plain, &slen);
+    printf("%s\n\n", str_plain);
 
     err = 0;
 EXIT:

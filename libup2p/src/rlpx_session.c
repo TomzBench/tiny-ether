@@ -46,7 +46,7 @@ rlpx_session_read_auth(rlpx_session* session,
     //                          plaintext, 307);
 
     int err = 0;
-    err = ucrypto_ecies_decrypt(secret, cipher, cipher_sz, plain, plain_sz);
+    // err = ucrypto_ecies_decrypt(secret, cipher, cipher_sz, plain, plain_sz);
 
     return err;
 }
