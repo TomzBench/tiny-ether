@@ -27,12 +27,12 @@ const char* bob_ekey_str =
 const char* expect_secret_str =
     "E3F407F83FC012470C26A93FDFF534100F2C6F736439CE0CA90E9914F7D1C381";
 const char* auth_plain =
-    "884c36f7ae6b406637c1f61b2f57e1d2cab813d24c6559aaf843c3f48962f32f46662c066d"
-    "39669b7b2e3ba14781477417600e7728399278b1b5d801a519aa570034fdb5419558137e0d"
-    "44cd13d319afe5629eeccb47fd9dfe55cc6089426e46cc762dd8a0636e07a54b31169eba0c"
-    "7a20a1ac1ef68596f1f283b5c676bae4064abfcce24799d09f67e392632d3ffdc12e3d6430"
-    "dcb0ea19c318343ffa7aae74d4cd26fecb93657d1cd9e9eaf4f8be720b56dd1d39f190c4e1"
-    "c6b7ec66f077bb1100";
+    "884C36F7AE6B406637C1F61B2F57E1D2CAB813D24C6559AAF843C3F48962F32F46662C066D"
+    "39669B7B2E3BA14781477417600E7728399278B1B5D801A519AA570034FDB5419558137E0D"
+    "44CD13D319AFE5629EECCB47FD9DFE55CC6089426E46CC762DD8A0636E07A54B31169EBA0C"
+    "7A20A1AC1EF68596F1F283B5C676BAE4064ABFCCE24799D09F67E392632D3FFDC12E3D6430"
+    "DCB0EA19C318343FFA7AAE74D4CD26FECB93657D1CD9E9EAF4F8BE720B56DD1D39F190C4E1"
+    "C6B7EC66F077BB1100";
 const char* auth_cipher =
     "04a0274c5951e32132e7f088c9bdfdc76c9d91f0dc6078e848f8e3361193dbdc43b94351ea"
     "3d89e4ff33ddcefbc80070498824857f499656c4f79bbd97b6c51a514251d69fd1785ef876"
@@ -217,12 +217,12 @@ test_ecies()
     memset(plain, 0, l);
     ucrypto_ecc_ctx ctxb;
     ucrypto_ecc_key_init_string(&ctxb, 16, bob_pkey_str);
-    err = ucrypto_ecies_decrypt_string(&ctxb, 16, auth_cipher, plain, l);
+    err = ucrypto_ecies_decrypt_string(&ctxb, 16, auth_cipher, plain);
     if (!(err == 0)) goto EXIT;
     ucrypto_mpi_btoa(plain, l, 16, str_plain, &slen);
-    printf("%s\n\n", str_plain);
 
-    err = 0;
+    err = memcmp(auth_plain, str_plain, slen) ? -1 : 0;
+
 EXIT:
     ucrypto_ecc_key_deinit(&ctxb);
     return err;

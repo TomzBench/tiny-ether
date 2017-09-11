@@ -4,8 +4,7 @@ int
 ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
                              int radix,
                              const char* cipher,
-                             uint8_t* plain,
-                             size_t plain_len)
+                             uint8_t* plain)
 {
     int err = -1;
     ucrypto_mpi bin;
@@ -16,17 +15,14 @@ ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
     if (!(err == 0)) goto EXIT;
 
     // Decrypt
-    err = ucrypto_ecies_decrypt_mpi(s, &bin, plain, plain_len);
+    err = ucrypto_ecies_decrypt_mpi(s, &bin, plain);
 EXIT:
     ucrypto_mpi_free(&bin);
     return err;
 }
 
 int
-ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
-                          ucrypto_mpi* bin,
-                          uint8_t* plain,
-                          size_t plain_len)
+ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s, ucrypto_mpi* bin, uint8_t* plain)
 {
     int err = -1;
     size_t l = ucrypto_mpi_size(bin);
@@ -37,7 +33,7 @@ ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
     if (!(err == 0)) goto EXIT;
 
     // Decrypt
-    err = ucrypto_ecies_decrypt(s, buff, l, plain, plain_len);
+    err = ucrypto_ecies_decrypt(s, buff, l, plain);
 EXIT:
     return err;
 }
@@ -46,8 +42,7 @@ int
 ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
                       const uint8_t* cipher,
                       size_t cipher_len,
-                      uint8_t* plain,
-                      size_t plain_len)
+                      uint8_t* plain)
 {
     // 0x04 + echd-random-pubk + iv + aes(kdf(shared-secret), plaintext) + hmac
     // * offset 0                65         81               275

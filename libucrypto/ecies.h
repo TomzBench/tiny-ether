@@ -36,19 +36,16 @@ extern "C" {
 int ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
                                  int radix,
                                  const char* cipher,
-                                 uint8_t* plain,
-                                 size_t plain_len);
+                                 uint8_t* plain);
 
 int ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
                               ucrypto_mpi* bin,
-                              uint8_t* plain,
-                              size_t plain_len);
+                              uint8_t* plain);
 
 int ucrypto_ecies_decrypt(ucrypto_ecc_ctx* s,
                           const uint8_t* cipher,
                           size_t cipher_len,
-                          uint8_t* plain,
-                          size_t plain_len);
+                          uint8_t* plain);
 
 int ucrypto_ecies_kdf_string(const char* str,
                              int radix,
