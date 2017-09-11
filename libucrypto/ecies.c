@@ -74,6 +74,8 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
         if (!(tmac[i] == cipher[cipher_len - 32 + i])) return -1;
     }
 
+    // decrypt aes-128-ctr
+
     return err;
 }
 
@@ -129,11 +131,14 @@ ucrypto_ecies_kdf(uint8_t* z, size_t zlen, uint8_t* b, size_t keylen)
         b += 32;
 
         // Nifty short circuit condition big endian counter
-        if (++ctr[3] || ++ctr[2] || ++ctr[1] || ++ctr[0]) {
-            continue;
-        }
+        if (++ctr[3] || ++ctr[2] || ++ctr[1] || ++ctr[0]) continue;
     }
 }
+
+// ref: cpp_ethereum libdevcrypto common.cpp, cryptopp.cpp
+// plain = aes(SecureFixedHash<16>(eKey), iv,cipherNoIV).makeInsecure();
+// bytesSec dev::decryptAES128CTR(bytesConstRef _k, h128 const& _iv,
+// bytesConstRef _cipher)
 
 //
 //
