@@ -95,8 +95,8 @@ test_ecc()
     if (!(err == 0)) goto EXIT; // note our write fn prints in caps
 
     // Generate shared secret with known private keys with binary public key
-    ucrypto_ecc_ptob(&ctxa, &pubkeya);
-    ucrypto_ecc_ptob(&ctxb, &pubkeyb);
+    ucrypto_ecc_ptob(&ctxa.Q, &pubkeya);
+    ucrypto_ecc_ptob(&ctxb.Q, &pubkeyb);
     err |= ucrypto_ecc_agree(&ctxa, &pubkeyb);
     err |= ucrypto_ecc_agree(&ctxb, &pubkeya);
     if (!(err == 0)) goto EXIT;
@@ -218,8 +218,9 @@ test_ecies_encrypt()
     uint8_t plain[9];
     ucrypto_ecc_ctx bob;
     if (!err) err = ucrypto_ecc_key_init_new(&bob);
-    if (!err) err = ucrypto_ecies_encrypt(&bob, in, 9, out);
+    if (!err) err = ucrypto_ecies_encrypt(&bob.Q, in, 9, out);
     if (!err) err = ucrypto_ecies_decrypt(&bob, out, sizeof(out), plain);
+    if (!err) err = memcmp(plain, in, sizeof(plain)) ? -1 : 0;
     ucrypto_ecc_key_deinit(&bob);
     return err;
 }

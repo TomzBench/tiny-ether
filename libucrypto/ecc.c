@@ -130,13 +130,36 @@ EXIT:
 }
 
 int
-ucrypto_ecc_ptob(ucrypto_ecc_ctx* ctx, ucrypto_ecc_public_key* b)
+ucrypto_ecc_ptob(ucrypto_ecp_point* p, ucrypto_ecc_public_key* b)
 {
     int err;
     size_t len = 65;
-    err = mbedtls_ecp_point_write_binary(
-        &ctx->grp, &ctx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *b, 65);
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_init(&grp);
+    err = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1);
+    if (!err) {
+        err = mbedtls_ecp_point_write_binary(
+            &grp, p, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *b, 65);
+    }
+    mbedtls_ecp_group_free(&grp);
     return err ? -1 : 0;
+}
+
+int
+ucrypto_ecc_btop(ucrypto_ecc_public_key* k, ucrypto_ecp_point* p)
+{
+    int err = -1;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_init(&grp);
+    err = mbedtls_ecp_point_read_binary(&grp, p, *k, 65);
+    mbedtls_ecp_group_free(&grp);
+    return err;
+}
+
+int
+ucrypto_ecc_point_copy(const ucrypto_ecp_point* src, ucrypto_ecp_point* dst)
+{
+    return mbedtls_ecp_copy(dst, src) == 0 ? 0 : -1;
 }
 
 int

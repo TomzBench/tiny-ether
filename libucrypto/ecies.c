@@ -6,7 +6,7 @@
 // *                        ||-----------hmac-----------||
 
 int
-ucrypto_ecies_encrypt_string(ucrypto_ecc_ctx* ctx,
+ucrypto_ecies_encrypt_string(ucrypto_ecp_point* p,
                              int radix,
                              const char* plain,
                              uint8_t* cipher)
@@ -16,12 +16,12 @@ ucrypto_ecies_encrypt_string(ucrypto_ecc_ctx* ctx,
     ucrypto_mpi bin;
     ucrypto_mpi_init(&bin);
     err = ucrypto_mpi_read_string(&bin, radix, plain);
-    if (!err) err = ucrypto_ecies_encrypt_mpi(ctx, &bin, cipher);
+    if (!err) err = ucrypto_ecies_encrypt_mpi(p, &bin, cipher);
     return err;
 }
 
 int
-ucrypto_ecies_encrypt_mpi(ucrypto_ecc_ctx* ctx,
+ucrypto_ecies_encrypt_mpi(ucrypto_ecp_point* p,
                           ucrypto_mpi* bin,
                           uint8_t* cipher)
 {
@@ -30,12 +30,12 @@ ucrypto_ecies_encrypt_mpi(ucrypto_ecc_ctx* ctx,
     size_t l = ucrypto_mpi_size(bin);
     uint8_t buff[l];
     err = ucrypto_mpi_write_binary(bin, buff, l);
-    if (!err) err = ucrypto_ecies_encrypt(ctx, buff, l, cipher);
+    if (!err) err = ucrypto_ecies_encrypt(p, buff, l, cipher);
     return err;
 }
 
 int
-ucrypto_ecies_encrypt(ucrypto_ecc_ctx* ctx,
+ucrypto_ecies_encrypt(ucrypto_ecp_point* p,
                       const uint8_t* in,
                       size_t inlen,
                       uint8_t* out)
@@ -48,14 +48,14 @@ ucrypto_ecies_encrypt(ucrypto_ecc_ctx* ctx,
     ucrypto_aes_128_ctr_key* ekey = (ucrypto_aes_128_ctr_key*)&key[0];
     ucrypto_aes_iv* iv_dst = (ucrypto_aes_iv*)&out[65];
     ucrypto_ecc_key_init_new(&ecc);
-    err = ucrypto_ecc_agree_point(&ecc, &ctx->Q);
+    err = ucrypto_ecc_agree_point(&ecc, p);
     if (!err) {
         // 0x04 || R || IV || aes(kdf(agree(pub)),in) || tag
         ucrypto_ecies_kdf_mpi(&ecc.z, key, 32);
         ucrypto_sha256(&key[16], 16, mkey);
         memcpy(iv_dst, "0123456789012345", 16); // TODO init iv
         memcpy(iv, "0123456789012345", 16);     // TODO init iv
-        err = ucrypto_ecc_ptob(&ecc, ours);
+        err = ucrypto_ecc_ptob(&ecc.Q, ours);
         if (!err) err = ucrypto_aes_crypt(ekey, &iv, in, inlen, &out[81]);
         if (!err) {
             ucrypto_hmac_sha256(mkey, 32, &out[65], 16 + inlen,

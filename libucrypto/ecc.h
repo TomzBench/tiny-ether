@@ -56,8 +56,28 @@ int ucrypto_ecc_atop(const char* str, int rdx, ucrypto_ecp_point* q);
  *
  * @return
  */
-int ucrypto_ecc_ptob(ucrypto_ecc_ctx*, ucrypto_ecc_public_key* b);
+int ucrypto_ecc_ptob(ucrypto_ecp_point*, ucrypto_ecc_public_key* b);
 
+/**
+ * @brief
+ *
+ * @param k
+ * @param p
+ *
+ * @return
+ */
+int ucrypto_ecc_btop(ucrypto_ecc_public_key* k, ucrypto_ecp_point* p);
+
+/**
+ * @brief
+ *
+ * @param src
+ * @param dst
+ *
+ * @return
+ */
+int ucrypto_ecc_point_copy(const ucrypto_ecp_point* src,
+                           ucrypto_ecp_point* dst);
 /**
  * @brief
  *
