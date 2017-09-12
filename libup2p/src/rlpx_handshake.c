@@ -45,6 +45,14 @@ rlpx_read_auth(rlpx_handshake* hs,
     return err;
 }
 
+// cpp-ethereum reads [sig,key,nonce,ver]
+//_remotePubk.ref().copyTo(m_remote.ref());
+//_remoteNonce.ref().copyTo(m_remoteNonce.ref());
+// m_remoteVersion = _remoteVersion;
+// Secret sharedSecret;
+// crypto::ecdh::agree(m_host->m_alias.secret(), _remotePubk, sharedSecret);
+// m_ecdheRemote = recover(_sig, sharedSecret.makeInsecure() ^ _remoteNonce);
+
 //
 //
 //
