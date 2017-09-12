@@ -219,7 +219,8 @@ test_ecies_encrypt()
     ucrypto_ecc_ctx bob;
     if (!err) err = ucrypto_ecc_key_init_new(&bob);
     if (!err) err = ucrypto_ecies_encrypt(&bob.Q, in, 9, out);
-    if (!err) err = ucrypto_ecies_decrypt(&bob, out, sizeof(out), plain);
+    if (!err)
+        err = ucrypto_ecies_decrypt(&bob, NULL, 0, out, sizeof(out), plain);
     if (!err) err = memcmp(plain, in, sizeof(plain)) ? -1 : 0;
     ucrypto_ecc_key_deinit(&bob);
     return err;
@@ -235,7 +236,7 @@ test_ecies_decrypt()
     memset(plain, 0, l);
     ucrypto_ecc_ctx ctxb;
     ucrypto_ecc_key_init_string(&ctxb, 16, bob_pkey_str);
-    err = ucrypto_ecies_decrypt_string(&ctxb, 16, auth_cipher, plain);
+    err = ucrypto_ecies_decrypt_string(&ctxb, NULL, 0, 16, auth_cipher, plain);
     if (!(err == 0)) goto EXIT;
     ucrypto_mpi_btoa(plain, l, 16, str_plain, &slen);
 

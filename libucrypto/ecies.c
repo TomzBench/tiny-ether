@@ -69,6 +69,8 @@ ucrypto_ecies_encrypt(ucrypto_ecp_point* p,
 
 int
 ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
+                             const uint8_t* smac,
+                             size_t smaclen,
                              int radix,
                              const char* cipher,
                              uint8_t* plain)
@@ -78,25 +80,31 @@ ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
     ucrypto_mpi bin;
     ucrypto_mpi_init(&bin);
     err = ucrypto_mpi_read_string(&bin, radix, cipher);
-    if (!err) err = ucrypto_ecies_decrypt_mpi(s, &bin, plain);
+    if (!err) err = ucrypto_ecies_decrypt_mpi(s, smac, smaclen, &bin, plain);
     ucrypto_mpi_free(&bin);
     return err;
 }
 
 int
-ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s, ucrypto_mpi* bin, uint8_t* plain)
+ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
+                          const uint8_t* smac,
+                          size_t smaclen,
+                          ucrypto_mpi* bin,
+                          uint8_t* plain)
 {
     // Convert to binary and decrypt
     int err = -1;
     size_t l = ucrypto_mpi_size(bin);
     uint8_t buff[l];
     err = ucrypto_mpi_write_binary(bin, buff, l);
-    if (!err) err = ucrypto_ecies_decrypt(s, buff, l, plain);
+    if (!err) err = ucrypto_ecies_decrypt(s, smac, smaclen, buff, l, plain);
     return err;
 }
 
 int
 ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
+                      const uint8_t* smac,
+                      size_t smaclen,
                       const uint8_t* cipher,
                       size_t len,
                       uint8_t* plain)
@@ -107,6 +115,7 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     uint8_t tmac[32]; // hmac_sha256(iv+ciphertext)
     ucrypto_aes_iv* iv = (ucrypto_aes_iv*)&cipher[65];
     ucrypto_aes_128_ctr_key* ekey = (ucrypto_aes_128_ctr_key*)key;
+    ucrypto_hmac_sha256_ctx hmac;
 
     // Get shared secret key
     err = ucrypto_ecc_agree(secret, (ucrypto_ecc_public_key*)cipher);
@@ -119,7 +128,12 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     // Verify tag
     ucrypto_ecies_kdf_mpi(&secret->z, key, 32);
     ucrypto_sha256(&key[16], 16, mkey);
-    ucrypto_hmac_sha256(mkey, 32, &cipher[65], len - 32 - 65, tmac);
+    ucrypto_hmac_sha256_init(&hmac, mkey, 32);
+    ucrypto_hmac_sha256_update(&hmac, &cipher[65], len - 32 - 65);
+    ucrypto_hmac_sha256_update(&hmac, smac, smaclen);
+    ucrypto_hmac_sha256_finish(&hmac, tmac);
+    ucrypto_hmac_sha256_free(&hmac);
+    // ucrypto_hmac_sha256(mkey, 32, &cipher[65], len - 32 - 65, tmac);
     for (uint32_t i = 0; i < 32; i++) {
         if (!(tmac[i] == cipher[len - 32 + i])) return -1;
     }

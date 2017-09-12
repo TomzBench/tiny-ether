@@ -48,15 +48,21 @@ int ucrypto_ecies_encrypt(ucrypto_ecp_point*,
                           uint8_t* cipher);
 
 int ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
+                                 const uint8_t*,
+                                 size_t,
                                  int radix,
                                  const char* cipher,
                                  uint8_t* plain);
 
 int ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
+                              const uint8_t*,
+                              size_t,
                               ucrypto_mpi* bin,
                               uint8_t* plain);
 
 int ucrypto_ecies_decrypt(ucrypto_ecc_ctx* s,
+                          const uint8_t*,
+                          size_t,
                           const uint8_t* cipher,
                           size_t cipher_len,
                           uint8_t* plain);

@@ -124,6 +124,7 @@ test_handshake()
     ucrypto_ecc_key_init_string(&bob_e, 16, g_bob_e);
 
     while (tv->auth) {
+        blen = 1000;
         err = ucrypto_mpi_atob(16, tv->auth, b, &blen);
         if (!err) {
             err = rlpx_read_auth(&bob_s, b, blen);
