@@ -116,6 +116,7 @@ test_handshake()
     int err = 0;
     size_t blen = 1000;
     uint8_t b[blen]; // buffer
+    rlpx_handshake handshake;
     test_vector* tv = &g_test_vectors[0];
     ucrypto_ecc_ctx alice_s, alice_e, bob_s, bob_e;
     ucrypto_ecc_key_init_string(&alice_s, 16, g_alice_s);
@@ -125,9 +126,10 @@ test_handshake()
 
     while (tv->auth) {
         blen = 1000;
+        rlpx_handshake_init(&handshake);
         err = ucrypto_mpi_atob(16, tv->auth, b, &blen);
         if (!err) {
-            err = rlpx_read_auth(&bob_s, b, blen);
+            err = rlpx_read_auth(&handshake, &bob_s, b, blen);
         }
         tv++;
     }

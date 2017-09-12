@@ -5,6 +5,14 @@
 extern "C" {
 #endif
 
+#include "rlpx_types.h"
+
+void rlpx_handshake_init(rlpx_handshake*);
+void rlpx_handshake_deinit(rlpx_handshake**);
+int rlpx_read_auth(rlpx_handshake* handshake,
+                   ucrypto_ecc_ctx* skey,
+                   uint8_t* auth,
+                   size_t l);
 
 // E(remote-pubk, S(ecdhe-random, ecdh-shared-secret^nonce) ||
 // H(ecdhe-random-pubk) || pubk || nonce || 0x0)
