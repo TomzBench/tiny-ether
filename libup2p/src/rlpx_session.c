@@ -42,7 +42,7 @@ rlpx_session_read_auth(rlpx_session* session,
                        uint8_t* plain)
 {
     // ecies decrypt with static_key_ref private key.
-    int err;
+    int err = 0;
     // err = ucrypto_ecies_decrypt(secret, cipher, len, plain);
 
     return err;

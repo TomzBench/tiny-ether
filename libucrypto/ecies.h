@@ -33,10 +33,10 @@ extern "C" {
 #include "mbedtls/sha256.h"
 #include <string.h>
 
-int ucrypto_ecies_encrypt_string(ucrypto_ecp_point*,
-                                 int radix,
-                                 const char* plain,
-                                 uint8_t* cipher);
+int ucrypto_ecies_encrypt_str(ucrypto_ecp_point*,
+                              int radix,
+                              const char* plain,
+                              uint8_t* cipher);
 
 int ucrypto_ecies_encrypt_mpi(ucrypto_ecp_point*,
                               ucrypto_mpi* bin,
@@ -47,12 +47,12 @@ int ucrypto_ecies_encrypt(ucrypto_ecp_point*,
                           size_t plain_len,
                           uint8_t* cipher);
 
-int ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
-                                 const uint8_t*,
-                                 size_t,
-                                 int radix,
-                                 const char* cipher,
-                                 uint8_t* plain);
+int ucrypto_ecies_decrypt_str(ucrypto_ecc_ctx* s,
+                              const uint8_t*,
+                              size_t,
+                              int radix,
+                              const char* cipher,
+                              uint8_t* plain);
 
 int ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
                               const uint8_t*,
@@ -67,10 +67,10 @@ int ucrypto_ecies_decrypt(ucrypto_ecc_ctx* s,
                           size_t cipher_len,
                           uint8_t* plain);
 
-int ucrypto_ecies_kdf_string(const char* str,
-                             int radix,
-                             uint8_t* b,
-                             size_t keylen);
+int ucrypto_ecies_kdf_str(const char* str,
+                          int radix,
+                          uint8_t* b,
+                          size_t keylen);
 int ucrypto_ecies_kdf_mpi(const ucrypto_mpi* secret, uint8_t* b, size_t keylen);
 void ucrypto_ecies_kdf(uint8_t* z, size_t zlen, uint8_t* key, size_t keylen);
 

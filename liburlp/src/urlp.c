@@ -173,7 +173,7 @@ urlp_read_sz(uint8_t* b, uint32_t* result)
         *result = *b - 0xc0;
         sz = 1;
     } else {
-        szsz = *b - 0xc0;
+        szsz = *b - 0xf7;
         urlp_read_big_endian(&sz, szsz, ++b);
         *result = sz;
         sz = 1 + szsz;
@@ -336,6 +336,7 @@ urlp*
 urlp_parse(uint8_t* b, uint32_t l)
 {
     urlp* rlp = NULL;
+    uint32_t sz = 0;
     if (!b) return NULL;
     if (*b < 0xc0) {
         // Handle case where this is a single item and not a list
@@ -345,7 +346,8 @@ urlp_parse(uint8_t* b, uint32_t l)
     } else {
         if (*b > 0xc0) {
             // regular list
-            rlp = urlp_parse_walk(++b, l - 1);
+            b += urlp_read_sz(b, &sz);
+            rlp = urlp_parse_walk(b, sz);
         } else {
             // empty list []
             return urlp_list();

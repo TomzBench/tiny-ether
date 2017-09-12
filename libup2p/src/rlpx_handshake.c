@@ -17,9 +17,10 @@ rlpx_read_auth(ucrypto_ecc_ctx* skey, uint8_t* auth, size_t l)
     uint8_t plain[sz];
     int err = 0;
     urlp* rlp;
-    err = ucrypto_ecies_decrypt(skey, auth, 2, &auth[2], l - 2, plain);
-    if (!err) {
-        rlp = urlp_parse(plain, 1000);
+    l = ucrypto_ecies_decrypt(skey, auth, 2, &auth[2], l - 2, plain);
+    if (l > 0) {
+        rlp = urlp_parse(plain, l);
+        urlp_free(&rlp);
     }
     return err;
 }

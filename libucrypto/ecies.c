@@ -6,10 +6,10 @@
 // *                        ||-----------hmac-----------||
 
 int
-ucrypto_ecies_encrypt_string(ucrypto_ecp_point* p,
-                             int radix,
-                             const char* plain,
-                             uint8_t* cipher)
+ucrypto_ecies_encrypt_str(ucrypto_ecp_point* p,
+                          int radix,
+                          const char* plain,
+                          uint8_t* cipher)
 {
     // Convert to bignum and encrypt
     int err = -1;
@@ -68,21 +68,21 @@ ucrypto_ecies_encrypt(ucrypto_ecp_point* p,
 }
 
 int
-ucrypto_ecies_decrypt_string(ucrypto_ecc_ctx* s,
-                             const uint8_t* smac,
-                             size_t smaclen,
-                             int radix,
-                             const char* cipher,
-                             uint8_t* plain)
+ucrypto_ecies_decrypt_str(ucrypto_ecc_ctx* s,
+                          const uint8_t* smac,
+                          size_t smaclen,
+                          int radix,
+                          const char* cipher,
+                          uint8_t* plain)
 {
     // Convert to bignum and decrypt
-    int err = -1;
+    int sz = -1;
     ucrypto_mpi bin;
     ucrypto_mpi_init(&bin);
-    err = ucrypto_mpi_read_string(&bin, radix, cipher);
-    if (!err) err = ucrypto_ecies_decrypt_mpi(s, smac, smaclen, &bin, plain);
+    sz = ucrypto_mpi_read_string(&bin, radix, cipher);
+    if (!sz) sz = ucrypto_ecies_decrypt_mpi(s, smac, smaclen, &bin, plain);
     ucrypto_mpi_free(&bin);
-    return err;
+    return sz;
 }
 
 int
@@ -93,12 +93,12 @@ ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
                           uint8_t* plain)
 {
     // Convert to binary and decrypt
-    int err = -1;
+    int sz = -1;
     size_t l = ucrypto_mpi_size(bin);
     uint8_t buff[l];
-    err = ucrypto_mpi_write_binary(bin, buff, l);
-    if (!err) err = ucrypto_ecies_decrypt(s, smac, smaclen, buff, l, plain);
-    return err;
+    sz = ucrypto_mpi_write_binary(bin, buff, l);
+    if (!sz) sz = ucrypto_ecies_decrypt(s, smac, smaclen, buff, l, plain);
+    return sz;
 }
 
 int
@@ -109,7 +109,7 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
                       size_t len,
                       uint8_t* plain)
 {
-    int err = 0;
+    int sz = 0;
     uint8_t key[32];  // kdf(ecdh_agree(secret,ecies-pubkey));
     uint8_t mkey[32]; // sha256(key[16]);
     uint8_t tmac[32]; // hmac_sha256(iv+ciphertext)
@@ -118,12 +118,12 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     ucrypto_hmac_sha256_ctx hmac;
 
     // Get shared secret key
-    err = ucrypto_ecc_agree(secret, (ucrypto_ecc_public_key*)cipher);
-    if (err) return err;
+    sz = ucrypto_ecc_agree(secret, (ucrypto_ecc_public_key*)cipher);
+    if (sz) return sz;
 
     // Check key
-    err = ucrypto_mpi_size(&secret->z) == 32 ? 0 : -1;
-    if (err) return err;
+    sz = ucrypto_mpi_size(&secret->z) == 32 ? 0 : -1;
+    if (sz) return sz;
 
     // Verify tag
     ucrypto_ecies_kdf_mpi(&secret->z, key, 32);
@@ -139,13 +139,14 @@ ucrypto_ecies_decrypt(ucrypto_ecc_ctx* secret,
     }
 
     // decrypt aes-128-ctr
-    err = ucrypto_aes_crypt(ekey, iv, &cipher[81], len - 32 - 16 - 65, plain);
+    sz = ucrypto_aes_crypt(ekey, iv, &cipher[81], len - 32 - 16 - 65, plain);
 
-    return err;
+    // return < -1 or length of plain
+    return sz ? sz : len - 32 - 16 - 65;
 }
 
 int
-ucrypto_ecies_kdf_string(const char* str, int radix, uint8_t* b, size_t keylen)
+ucrypto_ecies_kdf_str(const char* str, int radix, uint8_t* b, size_t keylen)
 {
     ucrypto_mpi z;
     int err = -1;

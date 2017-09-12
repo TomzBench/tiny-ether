@@ -2,6 +2,16 @@
 #include "mtm/ecies.h"
 #include <string.h>
 
+#define IF_ERR_EXIT(f)                                                         \
+    do {                                                                       \
+        if ((err = (f)) != 0) goto EXIT;                                       \
+    } while (0)
+
+#define IF_NEG_EXIT(val, f)                                                    \
+    do {                                                                       \
+        if ((val = (f)) < 0) goto EXIT;                                        \
+    } while (0)
+
 /**
  * @brief Test vectors
  */
@@ -33,7 +43,7 @@ const char* auth_plain =
     "7A20A1AC1EF68596F1F283B5C676BAE4064ABFCCE24799D09F67E392632D3FFDC12E3D6430"
     "DCB0EA19C318343FFA7AAE74D4CD26FECB93657D1CD9E9EAF4F8BE720B56DD1D39F190C4E1"
     "C6B7EC66F077BB1100";
-const char* auth_cipher =
+const char* auth =
     "04a0274c5951e32132e7f088c9bdfdc76c9d91f0dc6078e848f8e3361193dbdc43b94351ea"
     "3d89e4ff33ddcefbc80070498824857f499656c4f79bbd97b6c51a514251d69fd1785ef876"
     "4bd1d262a883f780964cce6a14ff206daf1206aa073a2d35ce2697ebf3514225bef186631b"
@@ -160,7 +170,7 @@ test_kdf()
         memset(result_str, 0, 66);
 
         // kdf
-        err = ucrypto_ecies_kdf_string(k, 16, result_bin, len[i]);
+        err = ucrypto_ecies_kdf_str(k, 16, result_bin, len[i]);
         if (!(err == 0)) goto EXIT;
 
         // mpi_to_b
@@ -215,13 +225,16 @@ test_ecies_encrypt()
     int err = 0;
     uint8_t in[] = { 't', 'e', 's', 't', ' ', 'y', 'e', 'a', 'h' };
     uint8_t out[65 + 16 + sizeof(in) + 32];
-    uint8_t plain[9];
+    uint8_t clr[9];
+    size_t sz;
     ucrypto_ecc_ctx bob;
-    if (!err) err = ucrypto_ecc_key_init_new(&bob);
-    if (!err) err = ucrypto_ecies_encrypt(&bob.Q, in, 9, out);
-    if (!err)
-        err = ucrypto_ecies_decrypt(&bob, NULL, 0, out, sizeof(out), plain);
-    if (!err) err = memcmp(plain, in, sizeof(plain)) ? -1 : 0;
+
+    IF_ERR_EXIT(ucrypto_ecc_key_init_new(&bob));
+    IF_ERR_EXIT(ucrypto_ecies_encrypt(&bob.Q, in, 9, out));
+    IF_NEG_EXIT(sz, ucrypto_ecies_decrypt(&bob, 0, 0, out, sizeof(out), clr));
+    IF_ERR_EXIT(memcmp(clr, in, sizeof(clr)) ? -1 : 0);
+
+EXIT:
     ucrypto_ecc_key_deinit(&bob);
     return err;
 }
@@ -232,15 +245,14 @@ test_ecies_decrypt()
     int err = -1;
     size_t l = 194, slen = 400;
     uint8_t plain[l];
+    size_t sz;
     char str_plain[slen];
     memset(plain, 0, l);
     ucrypto_ecc_ctx ctxb;
     ucrypto_ecc_key_init_string(&ctxb, 16, bob_pkey_str);
-    err = ucrypto_ecies_decrypt_string(&ctxb, NULL, 0, 16, auth_cipher, plain);
-    if (!(err == 0)) goto EXIT;
-    ucrypto_mpi_btoa(plain, l, 16, str_plain, &slen);
-
-    err = memcmp(auth_plain, str_plain, slen) ? -1 : 0;
+    IF_NEG_EXIT(sz, ucrypto_ecies_decrypt_str(&ctxb, NULL, 0, 16, auth, plain));
+    IF_ERR_EXIT(ucrypto_mpi_btoa(plain, l, 16, str_plain, &slen));
+    IF_ERR_EXIT(memcmp(auth_plain, str_plain, slen) ? -1 : 0);
 
 EXIT:
     ucrypto_ecc_key_deinit(&ctxb);
