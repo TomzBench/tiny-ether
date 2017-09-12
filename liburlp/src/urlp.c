@@ -245,6 +245,12 @@ urlp_item_u8(const uint8_t* b, uint32_t sz)
     return rlp;
 }
 
+urlp*
+urlp_item_str(const char* b, uint32_t sz)
+{
+    return urlp_item_u8((uint8_t*)b, sz);
+}
+
 uint64_t
 urlp_ref_u64(urlp* rlp)
 {
@@ -273,6 +279,28 @@ urlp_ref_u8(urlp* rlp)
     return urlp_read(rlp, &ret, sizeof(uint8_t)) == 1 ? ret : 0;
 }
 
+const char*
+urlp_str(urlp* rlp)
+{
+    return (const char*)urlp_ref(rlp, NULL);
+}
+
+const uint8_t*
+urlp_mem(urlp* rlp, uint32_t* sz)
+{
+    return urlp_ref(rlp, sz);
+}
+
+const uint8_t*
+urlp_ref(urlp* rlp, uint32_t* sz)
+{
+    uint32_t l = 0;
+    if (!sz) sz = &l; // caller doesn't care about length so passed NULL
+    const uint8_t* b = rlp->sz ? rlp->b + urlp_read_sz(rlp->b, sz) : NULL;
+    if (!b) *sz = 0;
+    return b;
+}
+
 int
 urlp_read(urlp* rlp, void* mem, uint32_t szof)
 {
@@ -287,14 +315,6 @@ urlp_read(urlp* rlp, void* mem, uint32_t szof)
         return n / szof;
     }
     return 0;
-}
-
-const uint8_t*
-urlp_ref(urlp* rlp, uint32_t* sz)
-{
-    const uint8_t* b = rlp->sz ? rlp->b + urlp_read_sz(rlp->b, sz) : NULL;
-    if (!b) *sz = 0;
-    return b;
 }
 
 urlp*
@@ -323,7 +343,7 @@ urlp_push(urlp* parent, urlp* child)
 }
 
 uint32_t
-urlp_size(urlp* rlp)
+urlp_size_rlp(urlp* rlp)
 {
     return rlp->sz; //
 }

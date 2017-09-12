@@ -5,7 +5,6 @@ INCDIR:=../../target/include/
 SRCDIR:=./
 
 defines+=-DURLP_CONFIG_LINUX_EMU
-cflags+=-Wno-pointer-sign
 
 incs+=-I../../target/include
 incs+=-I./
