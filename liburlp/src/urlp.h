@@ -14,7 +14,7 @@ extern "C" {
 
 typedef struct urlp urlp; /*!< opaque class */
 
-#define urlp_item(b, l) urlp_item_u8(b, l) /*!< alias */
+#define urlp_item(b, l) urlp_item_str(b, l) /*!< alias */
 #define urlp_is_list(rlp) (!(rlp->sz)) /*!< empty node signal start of list */
 
 urlp* urlp_alloc(uint32_t);
@@ -32,7 +32,8 @@ uint8_t urlp_ref_u8(urlp*);
 const char* urlp_str(urlp* rlp);
 const uint8_t* urlp_mem(urlp* rlp, uint32_t*);
 const uint8_t* urlp_ref(urlp*, uint32_t*);
-int urlp_read(urlp*, void* m, uint32_t);
+int urlp_read_int(urlp*, void* m, uint32_t);
+urlp* urlp_at(urlp*, uint32_t);
 urlp* urlp_push(urlp*, urlp*);
 uint32_t urlp_size_rlp(urlp* rlp);
 const uint8_t* urlp_data(urlp* rlp);

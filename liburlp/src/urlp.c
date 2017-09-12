@@ -28,6 +28,7 @@
 typedef struct urlp
 {
     struct urlp *next, *child; /*!< list pointers FIFO */
+    uint32_t n;                /*!< Number of children */
     uint32_t sz;               /*!< Number of bytes of rlp */
     uint8_t b[];               /*!< Bytes of RLP stored here */
 } urlp;
@@ -255,28 +256,28 @@ uint64_t
 urlp_ref_u64(urlp* rlp)
 {
     uint64_t ret = 0;
-    return urlp_read(rlp, &ret, sizeof(uint64_t)) == 1 ? ret : 0;
+    return urlp_read_int(rlp, &ret, sizeof(uint64_t)) == 1 ? ret : 0;
 }
 
 uint32_t
 urlp_ref_u32(urlp* rlp)
 {
     uint32_t ret = 0;
-    return urlp_read(rlp, &ret, sizeof(uint32_t)) == 1 ? ret : 0;
+    return urlp_read_int(rlp, &ret, sizeof(uint32_t)) == 1 ? ret : 0;
 }
 
 uint16_t
 urlp_ref_u16(urlp* rlp)
 {
     uint16_t ret = 0;
-    return urlp_read(rlp, &ret, sizeof(uint16_t)) == 1 ? ret : 0;
+    return urlp_read_int(rlp, &ret, sizeof(uint16_t)) == 1 ? ret : 0;
 }
 
 uint8_t
 urlp_ref_u8(urlp* rlp)
 {
     uint8_t ret = 0;
-    return urlp_read(rlp, &ret, sizeof(uint8_t)) == 1 ? ret : 0;
+    return urlp_read_int(rlp, &ret, sizeof(uint8_t)) == 1 ? ret : 0;
 }
 
 const char*
@@ -302,19 +303,23 @@ urlp_ref(urlp* rlp, uint32_t* sz)
 }
 
 int
-urlp_read(urlp* rlp, void* mem, uint32_t szof)
+urlp_read_int(urlp* rlp, void* mem, uint32_t szof)
 {
     uint32_t n;
     const uint8_t* b = urlp_ref(rlp, &n);
-    if (!b) return -1;
-    if (n <= szof) {
-        urlp_read_big_endian(mem, n < szof ? n : szof, b);
-        return 1;
-    } else if (n % szof == 0) {
-        memcpy(mem, b, n / szof);
-        return n / szof;
-    }
+    if (!(b && n <= szof)) return -1;
+    urlp_read_big_endian(mem, n < szof ? n : szof, b);
+    return 1;
     return 0;
+}
+
+urlp*
+urlp_at(urlp* rlp, uint32_t where)
+{
+    uint32_t n = rlp->n - (where + 1);
+    rlp = rlp->child;
+    while (rlp && n--) rlp = rlp->next;
+    return rlp;
 }
 
 urlp*
@@ -339,6 +344,7 @@ urlp_push(urlp* parent, urlp* child)
     } else {
         parent->child = child;
     }
+    parent->n++;
     return parent;
 }
 
@@ -414,7 +420,7 @@ urlp_parse(uint8_t* b, uint32_t l)
         // Handle case where this is a single item and not a list
         uint32_t sz;
         b += urlp_read_sz(b, &sz);
-        rlp = urlp_item(b, sz);
+        rlp = urlp_item_u8(b, sz);
     } else {
         if (*b > 0xc0) {
             // regular list
@@ -450,7 +456,7 @@ urlp_parse_walk(uint8_t* b, uint32_t l)
         } else {
             // This is an item.
             b += urlp_read_sz(b, &sz);
-            rlp = urlp_push(rlp, urlp_item(b, sz));
+            rlp = urlp_push(rlp, urlp_item_u8(b, sz));
             b += sz;
         }
     }
