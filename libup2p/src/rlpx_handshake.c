@@ -39,7 +39,7 @@ rlpx_read_auth(rlpx_handshake* hs,
         // if((seek=urlp_at(1))) //read pubkey
         // if((seek=urlp_at(2))) //read nonce
         // if((seek=urlp_at(3))) //read ver
-        if ((seek = urlp_at(rlp, 3))) hs->remote_version = urlp_ref_u64(seek);
+        if ((seek = urlp_at(rlp, 3))) hs->remote_version = urlp_as_u64(seek);
         urlp_free(&rlp);
     }
     return err;

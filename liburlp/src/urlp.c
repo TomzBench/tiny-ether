@@ -253,28 +253,28 @@ urlp_item_str(const char* b, uint32_t sz)
 }
 
 uint64_t
-urlp_ref_u64(urlp* rlp)
+urlp_as_u64(urlp* rlp)
 {
     uint64_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint64_t)) == 1 ? ret : 0;
 }
 
 uint32_t
-urlp_ref_u32(urlp* rlp)
+urlp_as_u32(urlp* rlp)
 {
     uint32_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint32_t)) == 1 ? ret : 0;
 }
 
 uint16_t
-urlp_ref_u16(urlp* rlp)
+urlp_as_u16(urlp* rlp)
 {
     uint16_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint16_t)) == 1 ? ret : 0;
 }
 
 uint8_t
-urlp_ref_u8(urlp* rlp)
+urlp_as_u8(urlp* rlp)
 {
     uint8_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint8_t)) == 1 ? ret : 0;
