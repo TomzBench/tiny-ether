@@ -10,7 +10,8 @@ cflags+=-Wno-pointer-sign
 incs+=-I../../target/include
 incs+=-I./
 
-libs+=-L../../target/lib -l:liburlp.a
+alibs+=-L../../target/lib -l:liburlp.a
+olibs+=-L../../target/lib -lurlp
 
 # create some dirs
 dirs+=./obj

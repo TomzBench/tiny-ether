@@ -16,7 +16,8 @@ dirs+=${BINDIR}
 defines+=-DURLPX_CONFIG_LINUX_EMU
 defines+=-DURLP_CONFIG_LINUX_EMU
 
-libs+=-L../target/lib -l:libucrypto.a -l:liburlp.a 
+alibs+=-L../target/lib -l:libucrypto.a -l:liburlp.a 
+olibs+=-L../target/lib -lucrypto -lurlp
 
 # source directories
 incs+=-I../target/include/
@@ -47,8 +48,8 @@ all: \
 	${obj-y} \
 	${relobj-y} \
 	${LIBDIR}/libup2p.a \
+	${LIBDIR}/libup2p.so \
 	${hdrs} 
-	#${LIBDIR}/libup2p.so \
 
 board: ${ld-obj} ${ld-relobj}
 	$(MAKE) -s -C ../board/linux-emu

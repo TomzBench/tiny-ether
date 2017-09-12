@@ -1,7 +1,6 @@
 #include "mtm/ecc.h"
 #include "mtm/mpi.h"
 #include "mtm/rlpx.h"
-#include "mtm/sha.h"
 #include <string.h>
 
 typedef struct

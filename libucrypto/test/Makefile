@@ -6,7 +6,7 @@ incs+=-I./
 incs+=-I../
 incs+=-I../../target/include/
 
-libs+=-L../../target/lib -l:libucrypto.a
+alibs+=-L../../target/lib -l:libucrypto.a
 
 # create some dirs
 dirs+=./obj

@@ -70,6 +70,7 @@ clean:
 	@echo "CLEAN"
 	@rm -rf ./obj/ 
 	@rm -f ${ld-obj}
+	@rm -f ${ld-relobj-y}
 	@rm -f ${LIBDIR}/libucrypto.a
 	@rm -f ${LIBDIR}/libucrypto.so
 	@rm -f ${hdrs} #careful when headers is an empty /

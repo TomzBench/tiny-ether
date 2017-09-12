@@ -6,7 +6,7 @@ MKDIR_P:= mkdir -p
 CFLAGS?=-O0 -g -Wall -DNDEBUG
 CFLAGS+= ${defines}
 CFLAGS+=${cflags}
-LDFLAGS+=${libs}
+#LDFLAGS+=${libs}
 
 CC:=cc -std=gnu11 
 CC+= ${incs}
@@ -18,11 +18,11 @@ ${dirs}:
 
 ${LIBDIR}/%.so: ${dirs} ${relobj-y} ${obj-y} ${hdrs}
 	@echo "LINK $@"
-	@${CC} -shared ${relobj-y} ${ld-relobj} ${LDFLAGS} -o $@
+	@${CC} -shared ${relobj-y} ${ld-relobj} ${LDFLAGS} ${olibs} -o $@
 
 ${LIBDIR}/%.a: ${dirs} ${obj-y} ${hdrs} ${ld-obj}
 	@echo "LINK $@"
-	@ar rcs $@ ${obj-y} ${ld-obj}
+	@ar rcs $@ ${obj-y} ${ld-obj} #${alibs}
 
 ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 	@echo "COPY $@"
@@ -46,7 +46,7 @@ ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 
 app_%: ${dirs} ${obj-y}
 	@echo "LINK $@"
-	@${CC} ${ld-obj} ${obj-y} ${LDFLAGS} -o $@
+	@${CC} ${ld-obj} ${obj-y} ${LDFLAGS} ${alibs} -o $@
 
 
 
