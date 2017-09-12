@@ -80,10 +80,17 @@ test_u8()
 
     // 0x0f
     rlp = urlp_item("\x0f", 1);
+    err |= urlp_ref_u8(rlp) == 15 ? 0 : -1;
+    err |= urlp_ref_u16(rlp) == 15 ? 0 : -1;
+    err |= urlp_ref_u32(rlp) == 15 ? 0 : -1;
+    err |= urlp_ref_u64(rlp) == 15 ? 0 : -1;
     err |= test_item(rlp_15, sizeof(rlp_15), &rlp);
 
     // 0x400x00
     rlp = urlp_item("\x04\x00", 2);
+    err |= urlp_ref_u16(rlp) == 1024 ? 0 : -1;
+    err |= urlp_ref_u32(rlp) == 1024 ? 0 : -1;
+    err |= urlp_ref_u64(rlp) == 1024 ? 0 : -1;
     err |= test_item(rlp_1024, sizeof(rlp_1024), &rlp);
 
     // []

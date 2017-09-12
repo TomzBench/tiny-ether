@@ -134,7 +134,7 @@ urlp_write_big_endian(uint8_t* b, const void* dat, int szof)
 }
 
 uint32_t
-urlp_read_big_endian(void* dat, int szof, uint8_t* b)
+urlp_read_big_endian(void* dat, int szof, const uint8_t* b)
 {
     static int test = 1;
     uint8_t* x = (&((uint8_t*)dat)[szof - 1]);
@@ -243,6 +243,58 @@ urlp_item_u8(const uint8_t* b, uint32_t sz)
         }
     }
     return rlp;
+}
+
+uint64_t
+urlp_ref_u64(urlp* rlp)
+{
+    uint64_t ret = 0;
+    return urlp_read(rlp, &ret, sizeof(uint64_t)) == 1 ? ret : 0;
+}
+
+uint32_t
+urlp_ref_u32(urlp* rlp)
+{
+    uint32_t ret = 0;
+    return urlp_read(rlp, &ret, sizeof(uint32_t)) == 1 ? ret : 0;
+}
+
+uint16_t
+urlp_ref_u16(urlp* rlp)
+{
+    uint16_t ret = 0;
+    return urlp_read(rlp, &ret, sizeof(uint16_t)) == 1 ? ret : 0;
+}
+
+uint8_t
+urlp_ref_u8(urlp* rlp)
+{
+    uint8_t ret = 0;
+    return urlp_read(rlp, &ret, sizeof(uint8_t)) == 1 ? ret : 0;
+}
+
+int
+urlp_read(urlp* rlp, void* mem, uint32_t szof)
+{
+    uint32_t n;
+    const uint8_t* b = urlp_ref(rlp, &n);
+    if (!b) return -1;
+    if (n <= szof) {
+        urlp_read_big_endian(mem, n < szof ? n : szof, b);
+        return 1;
+    } else if (n % szof == 0) {
+        memcpy(mem, b, n / szof);
+        return n / szof;
+    }
+    return 0;
+}
+
+const uint8_t*
+urlp_ref(urlp* rlp, uint32_t* sz)
+{
+    const uint8_t* b = rlp->sz ? rlp->b + urlp_read_sz(rlp->b, sz) : NULL;
+    if (!b) *sz = 0;
+    return b;
 }
 
 urlp*
