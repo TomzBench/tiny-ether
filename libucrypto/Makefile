@@ -56,11 +56,13 @@ hdrs+=${INCDIR}/mtm/hmac.h
 
 
 relobj-y:=${obj-y:.o=.lo}
+ld-relobj-y:=${ld-obj:.o=.lo}
 
 #targets
-all: ${LIBDIR}/libucrypto.a ${hdrs} ${ld-obj} ${obj-y}
+all: ${LIBDIR}/libucrypto.a ${LIBDIR}/libucrypto.so
 
-#all: ${dirs} ${obj-y} ${ld-obj} ${relobj-y}
+${LIBDIR}/libucrypto.a: ${hdrs} ${ld-obj} ${obj-y}
+${LIBDIR}/libucrypto.so: ${hdrs} ${ld-relobj-y} ${relobj-y}
 
 include ../common.mk
 

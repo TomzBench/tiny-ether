@@ -10,7 +10,10 @@ cflags+=-Wno-pointer-sign
 incs+=-I../../target/include
 incs+=-I./
 
-libs+=-L../../target/lib -l:liburlp.a -l:libup2p.a -l:libucrypto.a
+libs+=-L../../target/lib \
+			-l:libup2p.a \
+			-l:libucrypto.a\
+			-l:liburlp.a 
 
 # create some dirs
 dirs+=./obj

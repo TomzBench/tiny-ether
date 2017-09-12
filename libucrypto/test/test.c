@@ -187,25 +187,25 @@ test_hmac()
 {
     int err = -1;
     ucrypto_hmac_sha256_ctx h256;
-    uint8_t hmac[16], hmac_input[10];
+    size_t olen_result = 100, olen_hmac = 16, olen_hmac_input = 10;
+    uint8_t hmac[olen_hmac], hmac_input[olen_hmac_input];
     uint8_t hmac_result[32];
-    size_t olen = 100;
-    char str_result[olen];
+    char str_result[olen_result];
 
-    memset(str_result, 0, olen);
+    memset(str_result, 0, olen_result);
 
-    err = ucrypto_mpi_atob(16, g_hmac, hmac, 16);
-    if (!err) ucrypto_mpi_atob(16, g_hmac_input, hmac_input, 10);
+    err = ucrypto_mpi_atob(16, g_hmac, hmac, &olen_hmac);
+    if (!err) ucrypto_mpi_atob(16, g_hmac_input, hmac_input, &olen_hmac_input);
     if (err) return err;
 
     ucrypto_hmac_sha256_init(&h256, hmac, 16);
     ucrypto_hmac_sha256_update(&h256, hmac_input, 10);
     ucrypto_hmac_sha256_finish(&h256, hmac_result);
 
-    err = ucrypto_mpi_btoa(hmac_result, 32, 16, str_result, &olen);
+    err = ucrypto_mpi_btoa(hmac_result, 32, 16, str_result, &olen_result);
     if (err) return err;
 
-    err = memcmp(g_hmac_result, str_result, olen) ? -1 : 0;
+    err = memcmp(g_hmac_result, str_result, olen_result) ? -1 : 0;
     return err;
 }
 

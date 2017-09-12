@@ -40,6 +40,10 @@ ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 	@echo "  CC $@"
 	@${CC} -c ${CFLAGS} ${LDFLAGS} $< -o $@ 
 
+%.lo: %.c
+	@echo "  CC $@"
+	@${CC} -c -fPIC ${CFLAGS} ${LDFLAGS} $< -o $@ 
+
 app_%: ${dirs} ${obj-y}
 	@echo "LINK $@"
 	@${CC} ${ld-obj} ${obj-y} ${LDFLAGS} -o $@

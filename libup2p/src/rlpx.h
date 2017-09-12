@@ -15,15 +15,16 @@ extern "C" {
 
 #include "rlpx_types.h"
 
+/**
+ * @brief rlpx_session class
+ */
 rlpx_session* rlpx_session_alloc();
-
 void rlpx_session_free(rlpx_session** session_p);
 
-int rlpx_session_read_auth(rlpx_session* session,
-                           const ucrypto_ecc_ctx* secret,
-                           uint8_t* cipher,
-                           uint32_t cipher_sz,
-                           uint8_t*);
+/**
+ * @brief rlpx_handshake class
+ */
+int rlpx_read_auth(ucrypto_ecc_ctx* skey, uint8_t* auth, size_t l);
 
 #ifdef __cplusplus
 }

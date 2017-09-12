@@ -24,7 +24,7 @@ int ucrypto_mpi_btoa(const uint8_t* b,
                      int radix,
                      char* a,
                      size_t* olen);
-int ucrypto_mpi_atob(int radix, const char* str, uint8_t* b, size_t olen);
+int ucrypto_mpi_atob(int radix, const char* str, uint8_t* b, size_t* olen);
 
 #ifdef __cplusplus
 }

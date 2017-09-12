@@ -6,6 +6,7 @@
 
 #include "board_net.h"
 
+#include "mtm/urlp.h"
 #include "rlpx_session.h"
 
 typedef struct

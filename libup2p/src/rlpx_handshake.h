@@ -5,8 +5,11 @@
 extern "C" {
 #endif
 
+
 // E(remote-pubk, S(ecdhe-random, ecdh-shared-secret^nonce) ||
 // H(ecdhe-random-pubk) || pubk || nonce || 0x0)
+
+// uint16_be || E(remote-pubk, rlp.list(sig,pubk,nonce,ver))
 
 //
 // Write Auth message to socket and transitions to AckAuth.
