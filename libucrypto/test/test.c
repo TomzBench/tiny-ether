@@ -84,68 +84,68 @@ test_ecc()
     size_t l = 100;     // buffer sz
     uint8_t stest[l];   // binary buffer
     char secret_str[l]; // ascii buffer
-    ucrypto_ecc_ctx ctxa, ctxa_clone, ctxb, ctxc;
-    ucrypto_ecc_public_key pubkeya, pubkeyb;
-    ucrypto_ecc_signature sig;
+    uecc_ctx ctxa, ctxa_clone, ctxb, ctxc;
+    uecc_public_key pubkeya, pubkeyb;
+    uecc_signature sig;
 
     // Init stack
-    ucrypto_ecc_key_init_string(&ctxa, 16, alice_ekey_str);
-    ucrypto_ecc_key_init_string(&ctxb, 16, bob_ekey_str);
-    ucrypto_ecc_key_init_binary(&ctxa_clone, &ctxa.d);
-    ucrypto_ecc_key_init_new(&ctxc);
+    uecc_key_init_string(&ctxa, 16, alice_ekey_str);
+    uecc_key_init_string(&ctxb, 16, bob_ekey_str);
+    uecc_key_init_binary(&ctxa_clone, &ctxa.d);
+    uecc_key_init_new(&ctxc);
     memset(stest, 'a', l);
 
     // Generate a shared secret with known private keys with point public key
-    err |= ucrypto_ecc_agree_point(&ctxa, &ctxb.Q);
-    err |= ucrypto_ecc_agree_point(&ctxb, &ctxa.Q);
+    err |= uecc_agree_point(&ctxa, &ctxb.Q);
+    err |= uecc_agree_point(&ctxb, &ctxa.Q);
     if (!(err == 0)) goto EXIT;
-    err |= ucrypto_mpi_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
+    err |= ubn_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
-    ucrypto_mpi_write_string(&ctxa.z, 16, secret_str, l, &l);
+    ubn_write_string(&ctxa.z, 16, secret_str, l, &l);
     err = memcmp(expect_secret_str, secret_str, strlen(secret_str)) ? -1 : 0;
     if (!(err == 0)) goto EXIT; // note our write fn prints in caps
 
     // Generate shared secret with known private keys with binary public key
-    ucrypto_ecc_ptob(&ctxa.Q, &pubkeya);
-    ucrypto_ecc_ptob(&ctxb.Q, &pubkeyb);
-    err |= ucrypto_ecc_agree(&ctxa, &pubkeyb);
-    err |= ucrypto_ecc_agree(&ctxb, &pubkeya);
+    uecc_ptob(&ctxa.Q, &pubkeya);
+    uecc_ptob(&ctxb.Q, &pubkeyb);
+    err |= uecc_agree(&ctxa, &pubkeyb);
+    err |= uecc_agree(&ctxb, &pubkeya);
     if (!(err == 0)) goto EXIT;
-    err |= ucrypto_mpi_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
+    err |= ubn_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
 
     // Generated shared secret with random key
-    err |= ucrypto_ecc_agree_point(&ctxa, &ctxc.Q);
-    err |= ucrypto_ecc_agree_point(&ctxc, &ctxa.Q);
+    err |= uecc_agree_point(&ctxa, &ctxc.Q);
+    err |= uecc_agree_point(&ctxc, &ctxa.Q);
     if (!(err == 0)) goto EXIT;
-    err |= ucrypto_mpi_cmp(&ctxa.z, &ctxc.z) ? -1 : 0;
+    err |= ubn_cmp(&ctxa.z, &ctxc.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
 
     // Sign our test blob
-    err = ucrypto_ecc_sign(&ctxa, stest, 66, &sig);
+    err = uecc_sign(&ctxa, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
     // Verify with public key
-    err = ucrypto_ecc_verify(&ctxa.Q, stest, 66, &sig);
+    err = uecc_verify(&ctxa.Q, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
-    err = ucrypto_ecc_verify(&ctxa_clone.Q, stest, 66, &sig);
+    err = uecc_verify(&ctxa_clone.Q, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
     memset(&sig, 0, sizeof(sig));
 
     // Verify same key created with key import
-    err = ucrypto_ecc_sign(&ctxa_clone, stest, 66, &sig);
+    err = uecc_sign(&ctxa_clone, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
-    err = ucrypto_ecc_verify(&ctxa_clone.Q, stest, 66, &sig);
+    err = uecc_verify(&ctxa_clone.Q, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
 EXIT:
-    ucrypto_ecc_key_deinit(&ctxa);
-    ucrypto_ecc_key_deinit(&ctxa_clone);
-    ucrypto_ecc_key_deinit(&ctxb);
-    ucrypto_ecc_key_deinit(&ctxc);
+    uecc_key_deinit(&ctxa);
+    uecc_key_deinit(&ctxa_clone);
+    uecc_key_deinit(&ctxb);
+    uecc_key_deinit(&ctxc);
     return err;
 }
 
@@ -159,8 +159,8 @@ test_kdf()
     char result_str[66]; // worst case size
 
     // Init stack
-    ucrypto_mpi result_mpi;
-    ucrypto_mpi_init(&result_mpi);
+    ubn result_mpi;
+    ubn_init(&result_mpi);
 
     for (int i = 0; i < 2; i++) {
         const char* k = kdf[i];
@@ -171,15 +171,15 @@ test_kdf()
         memset(result_str, 0, 66);
 
         // kdf
-        err = ucrypto_ecies_kdf_str(k, 16, result_bin, len[i]);
+        err = uecies_kdf_str(k, 16, result_bin, len[i]);
         if (!(err == 0)) goto EXIT;
 
         // mpi_to_b
-        err = ucrypto_mpi_read_binary(&result_mpi, result_bin, len[i]);
+        err = ubn_read_binary(&result_mpi, result_bin, len[i]);
         if (!(err == 0)) goto EXIT;
 
         // btoa
-        err = ucrypto_mpi_write_string(&result_mpi, 16, result_str, 66, &rlen);
+        err = ubn_write_string(&result_mpi, 16, result_str, 66, &rlen);
         if (!(err == 0)) goto EXIT;
 
         // Check result
@@ -189,7 +189,7 @@ test_kdf()
 
     err = 0;
 EXIT:
-    ucrypto_mpi_free(&result_mpi);
+    ubn_free(&result_mpi);
     return err;
 }
 
@@ -197,7 +197,7 @@ int
 test_hmac()
 {
     int err = -1;
-    ucrypto_hmac_sha256_ctx h256;
+    uhmac_sha256_ctx h256;
     size_t olen_result = 100, olen_hmac = 16, olen_hmac_input = 10;
     uint8_t hmac[olen_hmac], hmac_input[olen_hmac_input];
     uint8_t hmac_result[32];
@@ -205,15 +205,15 @@ test_hmac()
 
     memset(str_result, 0, olen_result);
 
-    err = ucrypto_mpi_atob(16, g_hmac, hmac, &olen_hmac);
-    if (!err) ucrypto_mpi_atob(16, g_hmac_input, hmac_input, &olen_hmac_input);
+    err = ubn_atob(16, g_hmac, hmac, &olen_hmac);
+    if (!err) ubn_atob(16, g_hmac_input, hmac_input, &olen_hmac_input);
     if (err) return err;
 
-    ucrypto_hmac_sha256_init(&h256, hmac, 16);
-    ucrypto_hmac_sha256_update(&h256, hmac_input, 10);
-    ucrypto_hmac_sha256_finish(&h256, hmac_result);
+    uhmac_sha256_init(&h256, hmac, 16);
+    uhmac_sha256_update(&h256, hmac_input, 10);
+    uhmac_sha256_finish(&h256, hmac_result);
 
-    err = ucrypto_mpi_btoa(hmac_result, 32, 16, str_result, &olen_result);
+    err = ubn_btoa(hmac_result, 32, 16, str_result, &olen_result);
     if (err) return err;
 
     err = memcmp(g_hmac_result, str_result, olen_result) ? -1 : 0;
@@ -229,20 +229,20 @@ test_ecies_encrypt()
     uint8_t out[65 + 16 + sizeof(in) + 32];
     uint8_t clr[9];
     size_t sz;
-    ucrypto_ecc_ctx bob;
-    IF_ERR_EXIT(ucrypto_ecc_key_init_new(&bob));
+    uecc_ctx bob;
+    IF_ERR_EXIT(uecc_key_init_new(&bob));
 
-    IF_ERR_EXIT(ucrypto_ecies_encrypt(&bob.Q, 0, 0, in, 9, out));
-    IF_NEG_EXIT(sz, ucrypto_ecies_decrypt(&bob, 0, 0, out, sizeof(out), clr));
+    IF_ERR_EXIT(uecies_encrypt(&bob.Q, 0, 0, in, 9, out));
+    IF_NEG_EXIT(sz, uecies_decrypt(&bob, 0, 0, out, sizeof(out), clr));
     IF_ERR_EXIT(memcmp(clr, in, sizeof(clr)) ? -1 : 0);
     memset(out, 0, 65 + 16 + sizeof(in) + 32);
     memset(clr, 0, 9);
-    IF_ERR_EXIT(ucrypto_ecies_encrypt(&bob.Q, mac, 3, in, 9, out));
-    IF_NEG_EXIT(sz, ucrypto_ecies_decrypt(&bob, mac, 3, out, sizeof(out), clr));
+    IF_ERR_EXIT(uecies_encrypt(&bob.Q, mac, 3, in, 9, out));
+    IF_NEG_EXIT(sz, uecies_decrypt(&bob, mac, 3, out, sizeof(out), clr));
     IF_ERR_EXIT(memcmp(clr, in, sizeof(clr)) ? -1 : 0);
 
 EXIT:
-    ucrypto_ecc_key_deinit(&bob);
+    uecc_key_deinit(&bob);
     return err;
 }
 
@@ -255,14 +255,14 @@ test_ecies_decrypt()
     size_t sz;
     char str_plain[slen];
     memset(plain, 0, l);
-    ucrypto_ecc_ctx ctxb;
-    ucrypto_ecc_key_init_string(&ctxb, 16, bob_pkey_str);
-    IF_NEG_EXIT(sz, ucrypto_ecies_decrypt_str(&ctxb, NULL, 0, 16, auth, plain));
-    IF_ERR_EXIT(ucrypto_mpi_btoa(plain, l, 16, str_plain, &slen));
+    uecc_ctx ctxb;
+    uecc_key_init_string(&ctxb, 16, bob_pkey_str);
+    IF_NEG_EXIT(sz, uecies_decrypt_str(&ctxb, NULL, 0, 16, auth, plain));
+    IF_ERR_EXIT(ubn_btoa(plain, l, 16, str_plain, &slen));
     IF_ERR_EXIT(memcmp(auth_plain, str_plain, slen) ? -1 : 0);
 
 EXIT:
-    ucrypto_ecc_key_deinit(&ctxb);
+    uecc_key_deinit(&ctxb);
     return err;
 }
 

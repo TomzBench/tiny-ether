@@ -2,13 +2,11 @@
 #include <string.h>
 
 void
-ucrypto_hmac_sha256_init(ucrypto_hmac_sha256_ctx* ctx,
-                         const uint8_t* key,
-                         size_t klen)
+uhmac_sha256_init(uhmac_sha256_ctx* ctx, const uint8_t* key, size_t klen)
 {
     static uint8_t i_key_pad[64];
     memset(i_key_pad, 0, 64);
-    memset(ctx, 0, sizeof(ucrypto_hmac_sha256_ctx));
+    memset(ctx, 0, sizeof(uhmac_sha256_ctx));
     if (klen > 64) {
         ucrypto_sha256(key, klen, i_key_pad);
     } else {
@@ -25,15 +23,13 @@ ucrypto_hmac_sha256_init(ucrypto_hmac_sha256_ctx* ctx,
 }
 
 void
-ucrypto_hmac_sha256_update(ucrypto_hmac_sha256_ctx* ctx,
-                           const uint8_t* b,
-                           size_t l)
+uhmac_sha256_update(uhmac_sha256_ctx* ctx, const uint8_t* b, size_t l)
 {
     mbedtls_sha256_update(&ctx->sha, b, l);
 }
 
 void
-ucrypto_hmac_sha256_finish(ucrypto_hmac_sha256_ctx* ctx, uint8_t* hmac)
+uhmac_sha256_finish(uhmac_sha256_ctx* ctx, uint8_t* hmac)
 {
     mbedtls_sha256_finish(&ctx->sha, hmac);
     mbedtls_sha256_init(&ctx->sha);
@@ -44,23 +40,23 @@ ucrypto_hmac_sha256_finish(ucrypto_hmac_sha256_ctx* ctx, uint8_t* hmac)
 }
 
 void
-ucrypto_hmac_sha256_free(ucrypto_hmac_sha256_ctx* ctx)
+uhmac_sha256_free(uhmac_sha256_ctx* ctx)
 {
     mbedtls_sha256_free(&ctx->sha);
 }
 
 void
-ucrypto_hmac_sha256(const uint8_t* key,
-                    size_t keylen,
-                    const uint8_t* msg,
-                    size_t msglen,
-                    uint8_t* hmac)
+uhmac_sha256(const uint8_t* key,
+             size_t keylen,
+             const uint8_t* msg,
+             size_t msglen,
+             uint8_t* hmac)
 {
-    ucrypto_hmac_sha256_ctx ctx;
-    ucrypto_hmac_sha256_init(&ctx, key, keylen);
-    ucrypto_hmac_sha256_update(&ctx, msg, msglen);
-    ucrypto_hmac_sha256_finish(&ctx, hmac);
-    ucrypto_hmac_sha256_free(&ctx);
+    uhmac_sha256_ctx ctx;
+    uhmac_sha256_init(&ctx, key, keylen);
+    uhmac_sha256_update(&ctx, msg, msglen);
+    uhmac_sha256_finish(&ctx, hmac);
+    uhmac_sha256_free(&ctx);
 }
 
 void

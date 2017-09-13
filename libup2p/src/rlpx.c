@@ -13,13 +13,13 @@
 
 typedef struct
 {
-    board_socket_fd conn;               /*!< os socket handle */
-    ucrypto_ecc_ctx ekey;               /*!< our epheremal key */
-    ucrypto_ecc_ctx skey;               /*!< our static key */
-    h512 remote_node_id;                /*!< remote public address */
-    h256 remote_nonce;                  /*!< remote nonce */
-    ucrypto_ecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
-    uint64_t remote_version;            /*!< remote version from auth */
+    board_socket_fd conn;        /*!< os socket handle */
+    uecc_ctx ekey;               /*!< our epheremal key */
+    uecc_ctx skey;               /*!< our static key */
+    h512 remote_node_id;         /*!< remote public address */
+    h256 remote_nonce;           /*!< remote nonce */
+    uecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
+    uint64_t remote_version;     /*!< remote version from auth */
 } rlpx;
 
 rlpx* rlpx_alloc();
@@ -45,14 +45,14 @@ rlpx_alloc_keypair(const char* s, const char* e)
     rlpx* session = rlpx_malloc_fn(sizeof(rlpx));
     if (session) {
         if (s) {
-            ucrypto_ecc_key_init_string(&session->skey, 16, s);
+            uecc_key_init_string(&session->skey, 16, s);
         } else {
-            ucrypto_ecc_key_init_new(&session->skey);
+            uecc_key_init_new(&session->skey);
         }
         if (e) {
-            ucrypto_ecc_key_init_string(&session->ekey, 16, e);
+            uecc_key_init_string(&session->ekey, 16, e);
         } else {
-            ucrypto_ecc_key_init_new(&session->ekey);
+            uecc_key_init_new(&session->ekey);
         }
     }
     return session;
@@ -63,8 +63,8 @@ rlpx_free(rlpx** session_p)
 {
     rlpx* s = *session_p;
     *session_p = NULL;
-    ucrypto_ecc_key_deinit(&s->skey);
-    ucrypto_ecc_key_deinit(&s->ekey);
+    uecc_key_deinit(&s->skey);
+    uecc_key_deinit(&s->ekey);
     rlpx_free_fn(s);
 }
 
@@ -80,10 +80,10 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
     static int x = 1;
     uint16_t sz = *(uint8_t*)&x ? (auth[0] << 8 | auth[1]) : *(uint16_t*)auth;
     uint8_t plain[sz];
-    ucrypto_ecc_public_key remote_skey;
+    uecc_public_key remote_skey;
     int err = 0;
     urlp *rlp, *seek = NULL;
-    l = ucrypto_ecies_decrypt(&s->skey, auth, 2, &auth[2], l - 2, plain);
+    l = uecies_decrypt(&s->skey, auth, 2, &auth[2], l - 2, plain);
     if (l > 0) {
         rlp = urlp_parse(plain, l);
         // if((seek=urlp_at(3))) //read ver
@@ -99,15 +99,15 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
             memcpy(s->remote_nonce.b, urlp_ref(seek, NULL), sizeof(h256));
         }
         if ((seek = urlp_at(rlp, 1)) &&
-            urlp_size(seek) + 1 == sizeof(ucrypto_ecc_public_key)) {
+            urlp_size(seek) + 1 == sizeof(uecc_public_key)) {
             // Get secret from remote public key
             remote_skey.b[0] = 0x04;
             memcpy(&remote_skey.b[1], urlp_ref(seek, NULL), urlp_size(seek));
-            err = ucrypto_ecc_agree(&s->skey, &remote_skey); //
+            err = uecc_agree(&s->skey, &remote_skey); //
         }
         if ((seek = urlp_at(rlp, 0)) &&
             // TODO Get remote ephemeral public key from signature
-            urlp_size(seek) == sizeof(ucrypto_ecc_signature)) {
+            urlp_size(seek) == sizeof(uecc_signature)) {
         }
         urlp_free(&rlp);
     }

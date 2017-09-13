@@ -121,7 +121,7 @@ test_handshake()
     while (tv->auth) {
         size_t len = 1000;
         uint8_t cipher[len];
-        if (ucrypto_mpi_atob(16, tv->auth, cipher, &len)) break;
+        if (ubn_atob(16, tv->auth, cipher, &len)) break;
         if (rlpx_read_auth(bob, cipher, len)) break;
         if (!(rlpx_version_remote(bob) == tv->authver)) break;
         tv++;

@@ -12,30 +12,30 @@
 // clang-format off
 
 int
-ucrypto_ecc_key_init(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
+uecc_key_init(uecc_ctx* ctx, const ubn* d)
 {
-    return d ? ucrypto_ecc_key_init_binary(ctx, d)
-             : ucrypto_ecc_key_init_new(ctx);
+    return d ? uecc_key_init_binary(ctx, d)
+             : uecc_key_init_new(ctx);
 }
 
 int
-ucrypto_ecc_key_init_string(ucrypto_ecc_ctx* ctx, int radix, const char* s)
+uecc_key_init_string(uecc_ctx* ctx, int radix, const char* s)
 {
     int err = -1;
-    ucrypto_mpi d;
-    ucrypto_mpi_init(&d);
-    err = ucrypto_mpi_read_string(&d, radix, s);
+    ubn d;
+    ubn_init(&d);
+    err = ubn_read_string(&d, radix, s);
     if (!(err == 0)) goto EXIT;
-    err = ucrypto_ecc_key_init_binary(ctx, &d);
+    err = uecc_key_init_binary(ctx, &d);
     if (!(err == 0)) goto EXIT;
     err = 0;
 EXIT:
-    ucrypto_mpi_free(&d);
+    ubn_free(&d);
     return err;
 }
 
 int
-ucrypto_ecc_key_init_binary(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
+uecc_key_init_binary(uecc_ctx* ctx, const ubn* d)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -71,7 +71,7 @@ EXIT:
 }
 
 int
-ucrypto_ecc_key_init_new(ucrypto_ecc_ctx* ctx)
+uecc_key_init_new(uecc_ctx* ctx)
 {
     int ret;
     mbedtls_entropy_context entropy;
@@ -103,13 +103,13 @@ EXIT:
 }
 
 void
-ucrypto_ecc_key_deinit(ucrypto_ecc_ctx* ctx)
+uecc_key_deinit(uecc_ctx* ctx)
 {
     mbedtls_ecdh_free(ctx);
 }
 
 int
-ucrypto_ecc_atop(const char* str, int rdx, ucrypto_ecp_point* q)
+uecc_atop(const char* str, int rdx, ucrypto_ecp_point* q)
 {
     int err = -1;
     uint8_t buff[65];
@@ -141,7 +141,7 @@ EXIT:
 }
 
 int
-ucrypto_ecc_ptob(ucrypto_ecp_point* p, ucrypto_ecc_public_key* b)
+uecc_ptob(ucrypto_ecp_point* p, uecc_public_key* b)
 {
     int err;
     size_t len = 65;
@@ -157,7 +157,7 @@ ucrypto_ecc_ptob(ucrypto_ecp_point* p, ucrypto_ecc_public_key* b)
 }
 
 int
-ucrypto_ecc_btop(ucrypto_ecc_public_key* k, ucrypto_ecp_point* p)
+uecc_btop(uecc_public_key* k, ucrypto_ecp_point* p)
 {
     int err = -1;
     mbedtls_ecp_group grp;
@@ -168,13 +168,13 @@ ucrypto_ecc_btop(ucrypto_ecc_public_key* k, ucrypto_ecp_point* p)
 }
 
 int
-ucrypto_ecc_point_copy(const ucrypto_ecp_point* src, ucrypto_ecp_point* dst)
+uecc_point_copy(const ucrypto_ecp_point* src, ucrypto_ecp_point* dst)
 {
     return mbedtls_ecp_copy(dst, src) == 0 ? 0 : -1;
 }
 
 int
-ucrypto_ecc_agree(ucrypto_ecc_ctx* ctx, const ucrypto_ecc_public_key* key)
+uecc_agree(uecc_ctx* ctx, const uecc_public_key* key)
 {
     int err;
     ucrypto_ecp_point point;
@@ -185,15 +185,15 @@ ucrypto_ecc_agree(ucrypto_ecc_ctx* ctx, const ucrypto_ecc_public_key* key)
      * where key[0] is 0x04...
      */
     mbedtls_ecp_point_read_binary(&ctx->grp, &point, (uint8_t*)key,
-                                  sizeof(ucrypto_ecc_public_key));
+                                  sizeof(uecc_public_key));
 
-    err = ucrypto_ecc_agree_point(ctx, &point);
+    err = uecc_agree_point(ctx, &point);
     mbedtls_ecp_point_free(&point);
     return err;
 }
 
 int
-ucrypto_ecc_agree_point(ucrypto_ecc_ctx* ctx, const ucrypto_ecp_point* qp)
+uecc_agree_point(uecc_ctx* ctx, const ucrypto_ecp_point* qp)
 {
     int err;
     mbedtls_ctr_drbg_context rng;
@@ -218,14 +218,14 @@ EXIT:
 }
 
 int
-ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
+uecc_sign(uecc_ctx* ctx,
                  const uint8_t* b,
                  uint32_t sz,
-                 ucrypto_ecc_signature* sig_p)
+                 uecc_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = sig_p->b;
-    ucrypto_mpi r, s;
+    ubn r, s;
     mbedtls_ctr_drbg_context rng;
     mbedtls_entropy_context entropy;
     for (int i = 0; i < 65; i++) sig[0] = 0;
@@ -233,8 +233,8 @@ ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
     // Init stack content
     mbedtls_ctr_drbg_init(&rng);
     mbedtls_entropy_init(&entropy);
-    ucrypto_mpi_init(&r);
-    ucrypto_mpi_init(&s);
+    ubn_init(&r);
+    ubn_init(&s);
 
     // Seed RNG
     err = mbedtls_ctr_drbg_seed(&rng, mbedtls_entropy_func, &entropy, NULL, 0);
@@ -258,28 +258,28 @@ ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
     sig[64] = mbedtls_mpi_get_bit(&ctx->Q.Y, 0) ? 1 : 0;
 
 EXIT:
-    ucrypto_mpi_free(&r);
-    ucrypto_mpi_free(&s);
+    ubn_free(&r);
+    ubn_free(&s);
     mbedtls_ctr_drbg_free(&rng);
     mbedtls_entropy_free(&entropy);
     return ret;
 }
 
 int
-ucrypto_ecc_verify(const ucrypto_ecp_point* q,
+uecc_verify(const ucrypto_ecp_point* q,
                    const uint8_t* b,
                    uint32_t sz,
-                   ucrypto_ecc_signature* sig_p)
+                   uecc_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = sig_p->b;
     mbedtls_ecp_group grp;
-    ucrypto_mpi r, s;
+    ubn r, s;
 
     // Init stack content
     mbedtls_ecp_group_init(&grp);
-    ucrypto_mpi_init(&r);
-    ucrypto_mpi_init(&s);
+    ubn_init(&r);
+    ubn_init(&s);
     err = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1);
     if (!(err == 0)) goto EXIT;
 
@@ -296,18 +296,18 @@ ucrypto_ecc_verify(const ucrypto_ecp_point* q,
     ret = 0;
 EXIT:
     mbedtls_ecp_group_free(&grp);
-    ucrypto_mpi_free(&r);
-    ucrypto_mpi_free(&s);
+    ubn_free(&r);
+    ubn_free(&s);
     return ret;
 }
 int
-ucrypto_ecc_recover(const ucrypto_ecc_signature* sig,
+uecc_recover(const uecc_signature* sig,
                     const uint8_t* digest,
                     int recid,
-                    ucrypto_ecc_public_key* key)
+                    uecc_public_key* key)
 {
     int err = 0;
-    ucrypto_mpi r, s, e;
+    ubn r, s, e;
     ucrypto_ecp_point cp, cp2;
     mbedtls_ecp_group grp;
     mbedtls_ecp_group_init(&grp);
