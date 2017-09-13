@@ -80,6 +80,7 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
     static int x = 1;
     uint16_t sz = *(uint8_t*)&x ? (auth[0] << 8 | auth[1]) : *(uint16_t*)auth;
     uint8_t plain[sz];
+    ucrypto_ecc_public_key remote_skey;
     int err = 0;
     urlp *rlp, *seek = NULL;
     l = ucrypto_ecies_decrypt(&s->skey, auth, 2, &auth[2], l - 2, plain);
@@ -90,17 +91,22 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
         // if((seek=urlp_at(1))) //read pubkey
         // if((seek=urlp_at(0))) //read signature
         if ((seek = urlp_at(rlp, 3))) {
+            // Get version
             s->remote_version = urlp_as_u64(seek);
         }
         if ((seek = urlp_at(rlp, 2)) && urlp_size(seek) == sizeof(h256)) {
+            // Read remote nonce
             memcpy(s->remote_nonce.b, urlp_ref(seek, NULL), sizeof(h256));
         }
         if ((seek = urlp_at(rlp, 1)) &&
-            urlp_size(seek) == sizeof(ucrypto_ecc_public_key)) {
-            // TODO key is 64 without format header
-            memcpy(&s->remote_ekey, urlp_ref(seek, NULL), urlp_size(seek));
+            urlp_size(seek) + 1 == sizeof(ucrypto_ecc_public_key)) {
+            // Get secret from remote public key
+            remote_skey.b[0] = 0x04;
+            memcpy(&remote_skey.b[1], urlp_ref(seek, NULL), urlp_size(seek));
+            err = ucrypto_ecc_agree(&s->skey, &remote_skey); //
         }
         if ((seek = urlp_at(rlp, 0)) &&
+            // TODO Get remote ephemeral public key from signature
             urlp_size(seek) == sizeof(ucrypto_ecc_signature)) {
         }
         urlp_free(&rlp);
