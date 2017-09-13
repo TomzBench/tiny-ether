@@ -114,31 +114,44 @@ int
 test_handshake()
 {
     int err = 0;
-    size_t blen = 1000;
-    uint8_t b[blen]; // buffer
-    rlpx_handshake handshake;
-    test_vector* tv = &g_test_vectors[0];
-    ucrypto_ecc_ctx alice_s, alice_e, bob_s, bob_e;
-    ucrypto_ecc_key_init_string(&alice_s, 16, g_alice_s);
-    ucrypto_ecc_key_init_string(&alice_e, 16, g_alice_e);
-    ucrypto_ecc_key_init_string(&bob_s, 16, g_bob_s);
-    ucrypto_ecc_key_init_string(&bob_e, 16, g_bob_e);
-
+    test_vector* tv = g_test_vectors;
+    rlpx *alice, *bob;
+    alice = rlpx_alloc_keypair(g_alice_s, g_alice_e);
+    bob = rlpx_alloc_keypair(g_bob_s, g_bob_e);
     while (tv->auth) {
-        blen = 1000;
-        rlpx_handshake_init(&handshake);
-        err = ucrypto_mpi_atob(16, tv->auth, b, &blen);
-        if (!err) {
-            err = rlpx_read_auth(&handshake, &bob_s, b, blen);
-        }
+        size_t len = 1000;
+        uint8_t cipher[len];
+        err = ucrypto_mpi_atob(16, tv->auth, cipher, &len);
+        if (!err) err = rlpx_read_auth(bob, cipher, len);
         tv++;
     }
-
-    ucrypto_ecc_key_deinit(&alice_e);
-    ucrypto_ecc_key_deinit(&alice_s);
-    ucrypto_ecc_key_deinit(&bob_e);
-    ucrypto_ecc_key_deinit(&bob_s);
-    err = 0;
+    rlpx_free(&alice);
+    rlpx_free(&bob);
+    //    size_t blen = 1000;
+    //    uint8_t b[blen]; // buffer
+    //    rlpx_handshake handshake;
+    //    test_vector* tv = &g_test_vectors[0];
+    //    ucrypto_ecc_ctx alice_s, alice_e, bob_s, bob_e;
+    //    ucrypto_ecc_key_init_string(&alice_s, 16, g_alice_s);
+    //    ucrypto_ecc_key_init_string(&alice_e, 16, g_alice_e);
+    //    ucrypto_ecc_key_init_string(&bob_s, 16, g_bob_s);
+    //    ucrypto_ecc_key_init_string(&bob_e, 16, g_bob_e);
+    //
+    //    while (tv->auth) {
+    //        blen = 1000;
+    //        rlpx_handshake_init(&handshake);
+    //        err = ucrypto_mpi_atob(16, tv->auth, b, &blen);
+    //        if (!err) {
+    //            err = rlpx_read_auth(&handshake, &bob_s, b, blen);
+    //        }
+    //        tv++;
+    //    }
+    //
+    //    ucrypto_ecc_key_deinit(&alice_e);
+    //    ucrypto_ecc_key_deinit(&alice_s);
+    //    ucrypto_ecc_key_deinit(&bob_e);
+    //    ucrypto_ecc_key_deinit(&bob_s);
+    //    err = 0;
     return err;
 }
 

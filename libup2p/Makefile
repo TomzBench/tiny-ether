@@ -26,8 +26,7 @@ incs+=-I.
 incs+=-I./src
 
 # compile objects
-obj-y+=./obj/rlpx_handshake.o
-obj-y+=./obj/rlpx_session.o
+obj-y+=./obj/rlpx.o
 
 # linker (external) dependencies
 ld-obj+=../board/linux-emu/obj/board_net.o

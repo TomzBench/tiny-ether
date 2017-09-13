@@ -12,12 +12,7 @@ extern "C" {
 
 #include "mtm/ecc.h"
 
-typedef struct rlpx_session rlpx_session;
-typedef struct
-{
-    uint64_t remote_version;
-    ucrypto_ecp_point remote_ekey;
-} rlpx_handshake;
+typedef struct rlpx rlpx;
 
 #ifdef __cplusplus
 }
