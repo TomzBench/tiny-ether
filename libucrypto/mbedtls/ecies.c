@@ -17,7 +17,7 @@ uecies_encrypt_str(ucrypto_ecp_point* p,
     int err = -1;
     ubn bin;
     ubn_init(&bin);
-    err = ubn_read_string(&bin, radix, plain);
+    err = ubn_str(&bin, radix, plain);
     if (!err) err = uecies_encrypt_mpi(p, s, slen, &bin, cipher);
     return err;
 }
@@ -33,7 +33,7 @@ uecies_encrypt_mpi(ucrypto_ecp_point* p,
     int err = -1;
     size_t l = ubn_size(bin);
     uint8_t buff[l];
-    err = ubn_write_binary(bin, buff, l);
+    err = ubn_tob(bin, buff, l);
     if (!err) err = uecies_encrypt(p, s, slen, buff, l, cipher);
     return err;
 }
@@ -91,7 +91,7 @@ uecies_decrypt_str(uecc_ctx* s,
     int sz = -1;
     ubn bin;
     ubn_init(&bin);
-    sz = ubn_read_string(&bin, radix, cipher);
+    sz = ubn_str(&bin, radix, cipher);
     if (!sz) sz = uecies_decrypt_mpi(s, smac, smaclen, &bin, plain);
     ubn_free(&bin);
     return sz;
@@ -108,7 +108,7 @@ uecies_decrypt_mpi(uecc_ctx* s,
     int sz = -1;
     size_t l = ubn_size(bin);
     uint8_t buff[l];
-    sz = ubn_write_binary(bin, buff, l);
+    sz = ubn_tob(bin, buff, l);
     if (!sz) sz = uecies_decrypt(s, smac, smaclen, buff, l, plain);
     return sz;
 }
@@ -163,7 +163,7 @@ uecies_kdf_str(const char* str, int radix, uint8_t* b, size_t keylen)
     ubn z;
     int err = -1;
     ubn_init(&z);
-    err = ubn_read_string(&z, radix, str);
+    err = ubn_str(&z, radix, str);
     if (!err) err = uecies_kdf_mpi(&z, b, keylen);
     ubn_free(&z);
     return err;
@@ -174,7 +174,7 @@ uecies_kdf_mpi(const ubn* secret, uint8_t* b, size_t keylen)
 {
     int err, zlen = mbedtls_mpi_size(secret);
     uint8_t z[zlen];
-    err = mbedtls_mpi_write_binary(secret, z, zlen);
+    err = ubn_tob(secret, z, zlen);
     if (!err) uecies_kdf(z, zlen, b, keylen);
     return err;
 }

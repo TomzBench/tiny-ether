@@ -24,7 +24,7 @@ uecc_key_init_string(uecc_ctx* ctx, int radix, const char* s)
     int err = -1;
     ubn d;
     ubn_init(&d);
-    err = ubn_read_string(&d, radix, s);
+    err = ubn_str(&d, radix, s);
     if (!(err == 0)) goto EXIT;
     err = uecc_key_init_binary(ctx, &d);
     if (!(err == 0)) goto EXIT;

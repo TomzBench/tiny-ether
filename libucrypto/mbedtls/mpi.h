@@ -23,10 +23,10 @@ typedef mbedtls_mpi ubn; /*!< multi precesion integer */
 #define ubn_init(x) mbedtls_mpi_init(x)
 #define ubn_free(x) mbedtls_mpi_free(x)
 #define ubn_cmp(x, y) mbedtls_mpi_cmp_mpi(x, y)
-#define ubn_write_binary(x, b, l) mbedtls_mpi_write_binary(x, b, l)
-#define ubn_read_binary(x, b, l) mbedtls_mpi_read_binary(x, b, l)
-#define ubn_write_string(x, r, b, l, o) mbedtls_mpi_write_string(x, r, b, l, o)
-#define ubn_read_string(x, r, s) mbedtls_mpi_read_string(x, r, s)
+#define ubn_tob(x, b, l) mbedtls_mpi_write_binary(x, b, l)
+#define ubn_bin(x, b, l) mbedtls_mpi_read_binary(x, b, l)
+#define ubn_toa(x, r, b, l, o) mbedtls_mpi_write_string(x, r, b, l, o)
+#define ubn_str(x, r, s) mbedtls_mpi_read_string(x, r, s)
 #define ubn_size(x) mbedtls_mpi_size(x)
 
 int ubn_btoa(const uint8_t* b, size_t blen, int radix, char* a, size_t* olen);

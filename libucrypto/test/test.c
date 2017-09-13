@@ -101,7 +101,7 @@ test_ecc()
     if (!(err == 0)) goto EXIT;
     err |= ubn_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
-    ubn_write_string(&ctxa.z, 16, secret_str, l, &l);
+    ubn_toa(&ctxa.z, 16, secret_str, l, &l);
     err = memcmp(expect_secret_str, secret_str, strlen(secret_str)) ? -1 : 0;
     if (!(err == 0)) goto EXIT; // note our write fn prints in caps
 
@@ -175,11 +175,11 @@ test_kdf()
         if (!(err == 0)) goto EXIT;
 
         // mpi_to_b
-        err = ubn_read_binary(&result_mpi, result_bin, len[i]);
+        err = ubn_bin(&result_mpi, result_bin, len[i]);
         if (!(err == 0)) goto EXIT;
 
         // btoa
-        err = ubn_write_string(&result_mpi, 16, result_str, 66, &rlen);
+        err = ubn_toa(&result_mpi, 16, result_str, 66, &rlen);
         if (!(err == 0)) goto EXIT;
 
         // Check result
