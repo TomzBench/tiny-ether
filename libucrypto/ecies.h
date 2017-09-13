@@ -34,15 +34,21 @@ extern "C" {
 #include <string.h>
 
 int ucrypto_ecies_encrypt_str(ucrypto_ecp_point*,
+                              const uint8_t* smac,
+                              size_t smaclen,
                               int radix,
                               const char* plain,
                               uint8_t* cipher);
 
 int ucrypto_ecies_encrypt_mpi(ucrypto_ecp_point*,
+                              const uint8_t* smac,
+                              size_t smaclen,
                               ucrypto_mpi* bin,
                               uint8_t* cipher);
 
 int ucrypto_ecies_encrypt(ucrypto_ecp_point*,
+                          const uint8_t* smac,
+                          size_t smaclen,
                           const uint8_t* plain,
                           size_t plain_len,
                           uint8_t* cipher);

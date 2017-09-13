@@ -7,6 +7,8 @@
 
 int
 ucrypto_ecies_encrypt_str(ucrypto_ecp_point* p,
+                          const uint8_t* s,
+                          size_t slen,
                           int radix,
                           const char* plain,
                           uint8_t* cipher)
@@ -16,12 +18,14 @@ ucrypto_ecies_encrypt_str(ucrypto_ecp_point* p,
     ucrypto_mpi bin;
     ucrypto_mpi_init(&bin);
     err = ucrypto_mpi_read_string(&bin, radix, plain);
-    if (!err) err = ucrypto_ecies_encrypt_mpi(p, &bin, cipher);
+    if (!err) err = ucrypto_ecies_encrypt_mpi(p, s, slen, &bin, cipher);
     return err;
 }
 
 int
 ucrypto_ecies_encrypt_mpi(ucrypto_ecp_point* p,
+                          const uint8_t* s,
+                          size_t slen,
                           ucrypto_mpi* bin,
                           uint8_t* cipher)
 {
@@ -30,12 +34,14 @@ ucrypto_ecies_encrypt_mpi(ucrypto_ecp_point* p,
     size_t l = ucrypto_mpi_size(bin);
     uint8_t buff[l];
     err = ucrypto_mpi_write_binary(bin, buff, l);
-    if (!err) err = ucrypto_ecies_encrypt(p, buff, l, cipher);
+    if (!err) err = ucrypto_ecies_encrypt(p, s, slen, buff, l, cipher);
     return err;
 }
 
 int
 ucrypto_ecies_encrypt(ucrypto_ecp_point* p,
+                      const uint8_t* s,
+                      size_t slen,
                       const uint8_t* in,
                       size_t inlen,
                       uint8_t* out)
@@ -43,6 +49,7 @@ ucrypto_ecies_encrypt(ucrypto_ecp_point* p,
     int err = 0;
     uint8_t key[32], mkey[32];
     uint8_t iv[16];
+    ucrypto_hmac_sha256_ctx hmac;
     ucrypto_ecc_ctx ecc;
     ucrypto_ecc_public_key* ours = (ucrypto_ecc_public_key*)&out[0];
     ucrypto_aes_128_ctr_key* ekey = (ucrypto_aes_128_ctr_key*)&key[0];
@@ -58,8 +65,13 @@ ucrypto_ecies_encrypt(ucrypto_ecp_point* p,
         err = ucrypto_ecc_ptob(&ecc.Q, ours);
         if (!err) err = ucrypto_aes_crypt(ekey, &iv, in, inlen, &out[81]);
         if (!err) {
-            ucrypto_hmac_sha256(mkey, 32, &out[65], 16 + inlen,
-                                &out[65 + 16 + inlen]);
+            // ucrypto_hmac_sha256(mkey, 32, &out[65], 16 + inlen,
+            //                    &out[65 + 16 + inlen]);
+            ucrypto_hmac_sha256_init(&hmac, mkey, 32);
+            ucrypto_hmac_sha256_update(&hmac, &out[65], 16 + inlen);
+            ucrypto_hmac_sha256_update(&hmac, s, slen);
+            ucrypto_hmac_sha256_finish(&hmac, &out[65 + 16 + inlen]);
+            ucrypto_hmac_sha256_free(&hmac);
         }
     }
 

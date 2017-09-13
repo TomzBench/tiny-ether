@@ -224,14 +224,20 @@ test_ecies_encrypt()
 {
     int err = 0;
     uint8_t in[] = { 't', 'e', 's', 't', ' ', 'y', 'e', 'a', 'h' };
+    uint8_t mac[3] = { 0x30, 0x11, 0x47 };
     uint8_t out[65 + 16 + sizeof(in) + 32];
     uint8_t clr[9];
     size_t sz;
     ucrypto_ecc_ctx bob;
-
     IF_ERR_EXIT(ucrypto_ecc_key_init_new(&bob));
-    IF_ERR_EXIT(ucrypto_ecies_encrypt(&bob.Q, in, 9, out));
+
+    IF_ERR_EXIT(ucrypto_ecies_encrypt(&bob.Q, 0, 0, in, 9, out));
     IF_NEG_EXIT(sz, ucrypto_ecies_decrypt(&bob, 0, 0, out, sizeof(out), clr));
+    IF_ERR_EXIT(memcmp(clr, in, sizeof(clr)) ? -1 : 0);
+    memset(out, 0, 65 + 16 + sizeof(in) + 32);
+    memset(clr, 0, 9);
+    IF_ERR_EXIT(ucrypto_ecies_encrypt(&bob.Q, mac, 3, in, 9, out));
+    IF_NEG_EXIT(sz, ucrypto_ecies_decrypt(&bob, mac, 3, out, sizeof(out), clr));
     IF_ERR_EXIT(memcmp(clr, in, sizeof(clr)) ? -1 : 0);
 
 EXIT:
