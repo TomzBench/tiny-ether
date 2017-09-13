@@ -38,7 +38,6 @@ relobj-y:=${obj-y:.o=.lo}
 hdrs+=${INCDIR}/mtm/rlpx.h
 hdrs+=${INCDIR}/mtm/rlpx_types.h
 hdrs+=${INCDIR}/mtm/rlpx_config.h
-hdrs+=${INCDIR}/mtm/rlpx_handshake.h
 hdrs+=${INCDIR}/mtm/rlpx_config_linux_emu.h
 
 # targets
