@@ -13,9 +13,10 @@
 
 typedef struct
 {
-    board_socket_fd conn; /*!< os socket handle */ //
-    ucrypto_ecc_ctx ekey;
-    ucrypto_ecc_ctx skey;
+    board_socket_fd conn;               /*!< os socket handle */
+    ucrypto_ecc_ctx ekey;               /*!< our epheremal key */
+    ucrypto_ecc_ctx skey;               /*!< our static key */
+    ucrypto_ecc_public_key ekey_remote; /*!< their ephermeral pubkey */
     uint64_t version_remote;
 } rlpx;
 
@@ -23,6 +24,10 @@ rlpx* rlpx_alloc();
 rlpx* rlpx_alloc_key(const char*);
 rlpx* rlpx_alloc_keypair(const char*, const char*);
 void rlpx_free(rlpx** session_p);
+
+int rlpx_rlp_to_public_key(urlp*, ucrypto_ecc_public_key* key);
+int rlpx_rlp_to_signature(urlp*, ucrypto_ecc_signature* sig);
+int rlpx_rlp_to_nonce(urlp* rlp, uint8_t*); // todo make type
 
 rlpx*
 rlpx_alloc()
@@ -65,6 +70,12 @@ rlpx_free(rlpx** session_p)
     rlpx_free_fn(s);
 }
 
+uint64_t
+rlpx_version_remote(rlpx* s)
+{
+    return s->version_remote;
+}
+
 int
 rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
 {
@@ -80,10 +91,36 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
         // if((seek=urlp_at(1))) //read pubkey
         // if((seek=urlp_at(2))) //read nonce
         // if((seek=urlp_at(3))) //read ver
-        if ((seek = urlp_at(rlp, 3))) s->version_remote = urlp_as_u64(seek);
+        if ((seek = urlp_at(rlp, 0))) {
+        }
+        if ((seek = urlp_at(rlp, 1))) {
+        }
+        if ((seek = urlp_at(rlp, 2))) {
+        }
+        if ((seek = urlp_at(rlp, 3))) {
+            s->version_remote = urlp_as_u64(seek);
+        }
         urlp_free(&rlp);
     }
     return err;
+}
+
+int
+rlpx_rlp_to_public_key(urlp* rlp, ucrypto_ecc_public_key* key)
+{
+    return 0;
+}
+
+int
+rlpx_rlp_to_signature(urlp* rlp, ucrypto_ecc_signature* sig)
+{
+    return 0;
+}
+
+int
+rlpx_rlp_to_nonce(urlp* rlp, uint8_t* n)
+{
+    return 0;
 }
 
 // cpp-ethereum reads [sig,key,nonce,ver]

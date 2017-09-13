@@ -123,35 +123,16 @@ test_handshake()
         uint8_t cipher[len];
         err = ucrypto_mpi_atob(16, tv->auth, cipher, &len);
         if (!err) err = rlpx_read_auth(bob, cipher, len);
+        if (!((rlpx_version_remote(bob) == tv->authver) && //
+              (1)                                          //
+              )) {
+            err = -1;
+        }
+
         tv++;
     }
     rlpx_free(&alice);
     rlpx_free(&bob);
-    //    size_t blen = 1000;
-    //    uint8_t b[blen]; // buffer
-    //    rlpx_handshake handshake;
-    //    test_vector* tv = &g_test_vectors[0];
-    //    ucrypto_ecc_ctx alice_s, alice_e, bob_s, bob_e;
-    //    ucrypto_ecc_key_init_string(&alice_s, 16, g_alice_s);
-    //    ucrypto_ecc_key_init_string(&alice_e, 16, g_alice_e);
-    //    ucrypto_ecc_key_init_string(&bob_s, 16, g_bob_s);
-    //    ucrypto_ecc_key_init_string(&bob_e, 16, g_bob_e);
-    //
-    //    while (tv->auth) {
-    //        blen = 1000;
-    //        rlpx_handshake_init(&handshake);
-    //        err = ucrypto_mpi_atob(16, tv->auth, b, &blen);
-    //        if (!err) {
-    //            err = rlpx_read_auth(&handshake, &bob_s, b, blen);
-    //        }
-    //        tv++;
-    //    }
-    //
-    //    ucrypto_ecc_key_deinit(&alice_e);
-    //    ucrypto_ecc_key_deinit(&alice_s);
-    //    ucrypto_ecc_key_deinit(&bob_e);
-    //    ucrypto_ecc_key_deinit(&bob_s);
-    //    err = 0;
     return err;
 }
 

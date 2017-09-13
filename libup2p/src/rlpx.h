@@ -26,11 +26,17 @@ extern "C" {
  *
  * @return
  */
+
+// constructors
 extern rlpx* rlpx_alloc();
 extern rlpx* rlpx_alloc_key(const char*);
 extern rlpx* rlpx_alloc_keypair(const char*, const char*);
 extern void rlpx_free(rlpx** session_p);
 
+// setters / getters
+extern uint64_t rlpx_version_remote(rlpx*);
+
+// methods
 extern int rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l);
 
 #ifdef __cplusplus
