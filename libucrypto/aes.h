@@ -7,10 +7,8 @@ extern "C" {
 #include "mbedtls/aes.h"
 #include "mpi.h"
 
-// typedef uint8_t ucrypto_aes_128_ctr_key[16];
-// typedef uint8_t ucrypto_aes_iv[16];
-typedef b128 ucrypto_aes_128_ctr_key;
-typedef b128 ucrypto_aes_iv;
+typedef h128 ucrypto_aes_128_ctr_key;
+typedef h128 ucrypto_aes_iv;
 
 typedef mbedtls_aes_context ucrypto_aes_ctx;
 
