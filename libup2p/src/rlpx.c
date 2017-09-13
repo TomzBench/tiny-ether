@@ -106,7 +106,8 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
             err = uecc_agree(&s->skey, &remote_skey); //
         }
         if ((seek = urlp_at(rlp, 0)) &&
-            // TODO Get remote ephemeral public key from signature
+            // Get remote ephemeral public key from signature
+            // TODO need better libucrypto support...
             urlp_size(seek) == sizeof(uecc_signature)) {
         }
         urlp_free(&rlp);
