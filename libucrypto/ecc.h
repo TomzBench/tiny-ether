@@ -10,7 +10,6 @@ extern "C" {
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/entropy.h"
 
-#include "bits.h"
 #include "mpi.h"
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */

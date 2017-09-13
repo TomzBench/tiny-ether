@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-#include "bits.h"
 #include "mbedtls/aes.h"
+#include "mpi.h"
 
 // typedef uint8_t ucrypto_aes_128_ctr_key[16];
 // typedef uint8_t ucrypto_aes_iv[16];

@@ -17,6 +17,7 @@ typedef struct
     ucrypto_ecc_ctx ekey;               /*!< our epheremal key */
     ucrypto_ecc_ctx skey;               /*!< our static key */
     ucrypto_ecc_public_key ekey_remote; /*!< their ephermeral pubkey */
+    b256 nonce_remote;                  /*!< remote nonce */
     uint64_t version_remote;
 } rlpx;
 
