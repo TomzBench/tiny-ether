@@ -1,5 +1,16 @@
 #include "ecc.h"
 
+// clang-format off
+#define IF_ERR_EXIT(f)                    \
+    do {                                  \
+        if ((err = (f)) != 0) goto EXIT;  \
+    } while (0)
+#define IF_NEG_EXIT(val, f)               \
+    do {                                  \
+        if ((val = (f)) < 0) goto EXIT;   \
+    } while (0)
+// clang-format off
+
 int
 ucrypto_ecc_key_init(ucrypto_ecc_ctx* ctx, const ucrypto_mpi* d)
 {
@@ -288,6 +299,63 @@ EXIT:
     ucrypto_mpi_free(&r);
     ucrypto_mpi_free(&s);
     return ret;
+}
+int
+ucrypto_ecc_recover(const ucrypto_ecc_signature* sig,
+                    const uint8_t* digest,
+                    int recid,
+                    ucrypto_ecc_public_key* key)
+{
+    int err = 0;
+    ucrypto_mpi r, s, e;
+    ucrypto_ecp_point cp, cp2;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_group_init(&grp);
+    mbedtls_mpi_init(&r);
+    mbedtls_mpi_init(&s);
+    mbedtls_mpi_init(&e);
+    mbedtls_ecp_point_init(&cp);
+    mbedtls_ecp_point_init(&cp2);
+
+    // external/trezor-crypto/ecdsa.c
+    IF_ERR_EXIT(mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1));
+    IF_ERR_EXIT(mbedtls_mpi_read_binary(&r, sig->b, 32));
+    IF_ERR_EXIT(mbedtls_mpi_read_binary(&s, &sig->b[32], 32));
+    IF_NEG_EXIT(err, mbedtls_mpi_cmp_mpi(&r, &grp.N));
+    IF_NEG_EXIT(err, mbedtls_mpi_cmp_mpi(&s, &grp.N));
+
+    // cp = R = k * G (k is secret nonce when signing)
+    mbedtls_mpi_copy(&cp.X, &r);
+    if (recid & 2) {
+        mbedtls_mpi_add_mpi(&cp.X, &cp.X, &grp.N);
+        IF_NEG_EXIT(err, mbedtls_mpi_cmp_mpi(&cp.X, &grp.N));
+    }
+
+// TODO -
+
+// compute y from x
+// uncompress_coords(curve, recid & 1, &cp.x, &cp.y);
+// y is x
+// y is x^2
+// y is x^2+a
+// y is x^3+ax
+// Y is x^3+ax+b
+// y = sqrt(y)
+// e = -digest
+// r := r^-1
+// cp := s * R = s * k *G
+// cp2 := -digest * G
+// cp := (s * k - digest) * G = (r*priv) * G = r * Pub
+// cp := r^{-1} * r * Pub = Pub
+
+EXIT:
+    mbedtls_ecp_group_free(&grp);
+    mbedtls_mpi_free(&r);
+    mbedtls_mpi_free(&s);
+    mbedtls_mpi_free(&e);
+    mbedtls_ecp_point_free(&cp);
+    mbedtls_ecp_point_free(&cp2);
+    return err;
 }
 
 //

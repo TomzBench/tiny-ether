@@ -16,10 +16,10 @@ typedef struct
     board_socket_fd conn;               /*!< os socket handle */
     ucrypto_ecc_ctx ekey;               /*!< our epheremal key */
     ucrypto_ecc_ctx skey;               /*!< our static key */
-    ucrypto_ecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
-    h256 remote_nonce;                  /*!< remote nonce */
     h512 remote_node_id;                /*!< remote public address */
-    uint64_t remote_version;
+    h256 remote_nonce;                  /*!< remote nonce */
+    ucrypto_ecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
+    uint64_t remote_version;            /*!< remote version from auth */
 } rlpx;
 
 rlpx* rlpx_alloc();

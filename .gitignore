@@ -17,6 +17,7 @@ target
 #cscope
 **/*cscope.files
 **/*cscope.out
+**/*cscope.sh
 
 #latex
 output/doc/*

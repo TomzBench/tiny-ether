@@ -2,15 +2,16 @@
 #include "mtm/ecies.h"
 #include <string.h>
 
-#define IF_ERR_EXIT(f)                                                         \
-    do {                                                                       \
-        if ((err = (f)) != 0) goto EXIT;                                       \
+// clang-format off
+#define IF_ERR_EXIT(f)                    \
+    do {                                  \
+        if ((err = (f)) != 0) goto EXIT;  \
     } while (0)
-
-#define IF_NEG_EXIT(val, f)                                                    \
-    do {                                                                       \
-        if ((val = (f)) < 0) goto EXIT;                                        \
+#define IF_NEG_EXIT(val, f)               \
+    do {                                  \
+        if ((val = (f)) < 0) goto EXIT;   \
     } while (0)
+// clang-format off
 
 /**
  * @brief Test vectors
