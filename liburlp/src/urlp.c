@@ -354,6 +354,13 @@ urlp_size_rlp(urlp* rlp)
     return rlp->sz; //
 }
 
+uint32_t
+urlp_size(urlp* rlp)
+{
+    uint32_t sz;
+    return (urlp_ref(rlp, &sz)) ? sz : 0;
+}
+
 const uint8_t*
 urlp_data(urlp* rlp)
 {

@@ -16,9 +16,10 @@ typedef struct
     board_socket_fd conn;               /*!< os socket handle */
     ucrypto_ecc_ctx ekey;               /*!< our epheremal key */
     ucrypto_ecc_ctx skey;               /*!< our static key */
-    ucrypto_ecc_public_key ekey_remote; /*!< their ephermeral pubkey */
-    b256 nonce_remote;                  /*!< remote nonce */
-    uint64_t version_remote;
+    ucrypto_ecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
+    h256 remote_nonce;                  /*!< remote nonce */
+    h512 remote_node_id;                /*!< remote public address */
+    uint64_t remote_version;
 } rlpx;
 
 rlpx* rlpx_alloc();
@@ -70,7 +71,7 @@ rlpx_free(rlpx** session_p)
 uint64_t
 rlpx_version_remote(rlpx* s)
 {
-    return s->version_remote;
+    return s->remote_version;
 }
 
 int
@@ -84,18 +85,23 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
     l = ucrypto_ecies_decrypt(&s->skey, auth, 2, &auth[2], l - 2, plain);
     if (l > 0) {
         rlp = urlp_parse(plain, l);
-        // if((seek=urlp_at(0))) //read signature
-        // if((seek=urlp_at(1))) //read pubkey
-        // if((seek=urlp_at(2))) //read nonce
         // if((seek=urlp_at(3))) //read ver
-        if ((seek = urlp_at(rlp, 0))) {
-        }
-        if ((seek = urlp_at(rlp, 1))) {
-        }
-        if ((seek = urlp_at(rlp, 2))) {
-        }
+        // if((seek=urlp_at(2))) //read nonce
+        // if((seek=urlp_at(1))) //read pubkey
+        // if((seek=urlp_at(0))) //read signature
         if ((seek = urlp_at(rlp, 3))) {
-            s->version_remote = urlp_as_u64(seek);
+            s->remote_version = urlp_as_u64(seek);
+        }
+        if ((seek = urlp_at(rlp, 2)) && urlp_size(seek) == sizeof(h256)) {
+            memcpy(s->remote_nonce.b, urlp_ref(seek, NULL), sizeof(h256));
+        }
+        if ((seek = urlp_at(rlp, 1)) &&
+            urlp_size(seek) == sizeof(ucrypto_ecc_public_key)) {
+            // TODO key is 64 without format header
+            memcpy(&s->remote_ekey, urlp_ref(seek, NULL), urlp_size(seek));
+        }
+        if ((seek = urlp_at(rlp, 0)) &&
+            urlp_size(seek) == sizeof(ucrypto_ecc_signature)) {
         }
         urlp_free(&rlp);
     }

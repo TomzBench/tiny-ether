@@ -36,6 +36,7 @@ int urlp_read_int(urlp*, void* m, uint32_t);
 urlp* urlp_at(urlp*, uint32_t);
 urlp* urlp_push(urlp*, urlp*);
 uint32_t urlp_size_rlp(urlp* rlp);
+uint32_t urlp_size(urlp*);
 const uint8_t* urlp_data(urlp* rlp);
 uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t sz);
 urlp* urlp_parse(uint8_t* b, uint32_t);
