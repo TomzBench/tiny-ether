@@ -113,7 +113,7 @@ main(int argc, char* argv[])
 int
 test_handshake()
 {
-    int err = 0;
+    int err;
     test_vector* tv = g_test_vectors;
     rlpx *alice, *bob;
     alice = rlpx_alloc_keypair(g_alice_s, g_alice_e);
@@ -121,16 +121,12 @@ test_handshake()
     while (tv->auth) {
         size_t len = 1000;
         uint8_t cipher[len];
-        err = ucrypto_mpi_atob(16, tv->auth, cipher, &len);
-        if (!err) err = rlpx_read_auth(bob, cipher, len);
-        if (!((rlpx_version_remote(bob) == tv->authver) && //
-              (1)                                          //
-              )) {
-            err = -1;
-        }
-
+        if (ucrypto_mpi_atob(16, tv->auth, cipher, &len)) break;
+        if (rlpx_read_auth(bob, cipher, len)) break;
+        if (!(rlpx_version_remote(bob) == tv->authver)) break;
         tv++;
     }
+    err = tv->auth ? -1 : 0; // broke loop early ? -> error
     rlpx_free(&alice);
     rlpx_free(&bob);
     return err;

@@ -48,7 +48,7 @@ ucrypto_ecies_encrypt(ucrypto_ecp_point* p,
 {
     int err = 0;
     uint8_t key[32], mkey[32];
-    uint8_t iv[16];
+    ucrypto_aes_iv iv;
     ucrypto_hmac_sha256_ctx hmac;
     ucrypto_ecc_ctx ecc;
     ucrypto_ecc_public_key* ours = (ucrypto_ecc_public_key*)&out[0];
@@ -60,8 +60,8 @@ ucrypto_ecies_encrypt(ucrypto_ecp_point* p,
         // 0x04 || R || IV || aes(kdf(agree(pub)),in) || tag
         ucrypto_ecies_kdf_mpi(&ecc.z, key, 32);
         ucrypto_sha256(&key[16], 16, mkey);
-        memcpy(iv_dst, "0123456789012345", 16); // TODO init iv
-        memcpy(iv, "0123456789012345", 16);     // TODO init iv
+        memcpy(iv_dst->b, "0123456789012345", 16); // TODO init iv
+        memcpy(iv.b, "0123456789012345", 16);      // TODO init iv
         err = ucrypto_ecc_ptob(&ecc.Q, ours);
         if (!err) err = ucrypto_aes_crypt(ekey, &iv, in, inlen, &out[81]);
         if (!err) {

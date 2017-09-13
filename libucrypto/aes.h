@@ -4,10 +4,14 @@
 extern "C" {
 #endif
 
+#include "bits.h"
 #include "mbedtls/aes.h"
 
-typedef uint8_t ucrypto_aes_128_ctr_key[16];
-typedef uint8_t ucrypto_aes_iv[16];
+// typedef uint8_t ucrypto_aes_128_ctr_key[16];
+// typedef uint8_t ucrypto_aes_iv[16];
+typedef b128 ucrypto_aes_128_ctr_key;
+typedef b128 ucrypto_aes_iv;
+
 typedef mbedtls_aes_context ucrypto_aes_ctx;
 
 int ucrypto_aes_init(ucrypto_aes_ctx* ctx, ucrypto_aes_128_ctr_key* key);

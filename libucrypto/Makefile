@@ -49,6 +49,7 @@ ld-obj+=../external/mbedtls/library/sha512.o
 ld-obj+=../external/mbedtls/library/timing.o
 
 hdrs+=${INCDIR}/mtm/aes.h
+hdrs+=${INCDIR}/mtm/bits.h
 hdrs+=${INCDIR}/mtm/ecc.h
 hdrs+=${INCDIR}/mtm/mpi.h
 hdrs+=${INCDIR}/mtm/ecies.h

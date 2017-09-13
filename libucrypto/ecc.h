@@ -9,11 +9,15 @@ extern "C" {
 #include "mbedtls/ecdh.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/entropy.h"
+
+#include "bits.h"
 #include "mpi.h"
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */
-typedef uint8_t ucrypto_ecc_signature[65];
-typedef uint8_t ucrypto_ecc_public_key[65];
+// typedef uint8_t ucrypto_ecc_signature[65];
+// typedef uint8_t ucrypto_ecc_public_key[65];
+typedef b520 ucrypto_ecc_signature;
+typedef b520 ucrypto_ecc_public_key;
 typedef ucrypto_mpi ucrypto_ecc_private_key;
 typedef mbedtls_ecdh_context ucrypto_ecc_ctx; /*!< caller ref */
 typedef mbedtls_ecp_point ucrypto_ecp_point;  /*!< curve struct */

@@ -139,7 +139,7 @@ ucrypto_ecc_ptob(ucrypto_ecp_point* p, ucrypto_ecc_public_key* b)
     err = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256K1);
     if (!err) {
         err = mbedtls_ecp_point_write_binary(
-            &grp, p, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, *b, 65);
+            &grp, p, MBEDTLS_ECP_PF_UNCOMPRESSED, &len, b->b, 65);
     }
     mbedtls_ecp_group_free(&grp);
     return err ? -1 : 0;
@@ -151,7 +151,7 @@ ucrypto_ecc_btop(ucrypto_ecc_public_key* k, ucrypto_ecp_point* p)
     int err = -1;
     mbedtls_ecp_group grp;
     mbedtls_ecp_group_init(&grp);
-    err = mbedtls_ecp_point_read_binary(&grp, p, *k, 65);
+    err = mbedtls_ecp_point_read_binary(&grp, p, k->b, 65);
     mbedtls_ecp_group_free(&grp);
     return err;
 }
@@ -213,7 +213,7 @@ ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
                  ucrypto_ecc_signature* sig_p)
 {
     int err, ret = -1;
-    uint8_t* sig = *sig_p;
+    uint8_t* sig = sig_p->b;
     ucrypto_mpi r, s;
     mbedtls_ctr_drbg_context rng;
     mbedtls_entropy_context entropy;
@@ -261,7 +261,7 @@ ucrypto_ecc_verify(const ucrypto_ecp_point* q,
                    ucrypto_ecc_signature* sig_p)
 {
     int err, ret = -1;
-    uint8_t* sig = *sig_p;
+    uint8_t* sig = sig_p->b;
     mbedtls_ecp_group grp;
     ucrypto_mpi r, s;
 

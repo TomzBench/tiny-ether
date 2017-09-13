@@ -25,10 +25,6 @@ rlpx* rlpx_alloc_key(const char*);
 rlpx* rlpx_alloc_keypair(const char*, const char*);
 void rlpx_free(rlpx** session_p);
 
-int rlpx_rlp_to_key(urlp*, ucrypto_ecc_public_key* key);
-int rlpx_rlp_to_sig(urlp*, ucrypto_ecc_signature* sig);
-int rlpx_rlp_to_nonce(urlp* rlp, uint8_t*); // todo make type
-
 rlpx*
 rlpx_alloc()
 {
@@ -103,24 +99,6 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
         urlp_free(&rlp);
     }
     return err;
-}
-
-int
-rlpx_rlp_to_key(urlp* rlp, ucrypto_ecc_public_key* key)
-{
-    return 0;
-}
-
-int
-rlpx_rlp_to_sig(urlp* rlp, ucrypto_ecc_signature* sig)
-{
-    return 0;
-}
-
-int
-rlpx_rlp_to_nonce(urlp* rlp, uint8_t* n)
-{
-    return 0;
 }
 
 // cpp-ethereum reads [sig,key,nonce,ver]

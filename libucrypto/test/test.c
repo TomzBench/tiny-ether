@@ -131,7 +131,7 @@ test_ecc()
     err = ucrypto_ecc_verify(&ctxa_clone.Q, stest, 66, &sig);
     if (!(err == 0)) goto EXIT;
 
-    memset(sig, 0, sizeof(sig));
+    memset(&sig, 0, sizeof(sig));
 
     // Verify same key created with key import
     err = ucrypto_ecc_sign(&ctxa_clone, stest, 66, &sig);
