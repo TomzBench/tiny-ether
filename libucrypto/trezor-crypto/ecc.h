@@ -10,32 +10,32 @@ extern "C" {
 #include "mpi.h"
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */
-// typedef uint8_t ucrypto_ecc_signature[65];
-// typedef uint8_t ucrypto_ecc_public_key[65];
-typedef h520 ucrypto_ecc_signature;
-typedef h520 ucrypto_ecc_public_key;
-typedef ucrypto_mpi ucrypto_ecc_private_key;
-typedef ecdsa_curve ucrypto_ecc_ctx; /*!< caller ref */
-typedef curve_point ucrypto_ecp_point;  /*!< curve struct */
+// typedef uint8_t uecc_signature[65];
+// typedef uint8_t uecc_public_key[65];
+typedef h520 uecc_signature;
+typedef h520 uecc_public_key;
+typedef ubn uecc_private_key;
+typedef ecdsa_curve uecc_ctx;   /*!< caller ref */
+typedef curve_point uecp_point; /*!< curve struct */
 
 /**
  * @brief initialize a key context
  *
- * @param ucrypto_ecc_ctx
+ * @param uecc_ctx
  *
  * @return
  */
-int ucrypto_ecc_key_init(ucrypto_ecc_ctx*, const ucrypto_mpi* d);
-int ucrypto_ecc_key_init_string(ucrypto_ecc_ctx* ctx, int radix, const char*);
-int ucrypto_ecc_key_init_binary(ucrypto_ecc_ctx*, const ucrypto_mpi* d);
-int ucrypto_ecc_key_init_new(ucrypto_ecc_ctx*);
+int uecc_key_init(uecc_ctx*, const ubn* d);
+int uecc_key_init_string(uecc_ctx* ctx, int radix, const char*);
+int uecc_key_init_binary(uecc_ctx*, const ubn* d);
+int uecc_key_init_new(uecc_ctx*);
 
 /**
  * @brief
  *
- * @param ucrypto_ecc_ctx
+ * @param uecc_ctx
  */
-void ucrypto_ecc_key_deinit(ucrypto_ecc_ctx*);
+void uecc_key_deinit(uecc_ctx*);
 
 /**
  * @brief
@@ -46,17 +46,17 @@ void ucrypto_ecc_key_deinit(ucrypto_ecc_ctx*);
  *
  * @return
  */
-int ucrypto_ecc_atop(const char* str, int rdx, ucrypto_ecp_point* q);
+int uecc_atop(const char* str, int rdx, uecp_point* q);
 
 /**
  * @brief
  *
- * @param ucrypto_ecc_ctx
+ * @param uecc_ctx
  * @param b
  *
  * @return
  */
-int ucrypto_ecc_ptob(ucrypto_ecp_point*, ucrypto_ecc_public_key* b);
+int uecc_ptob(uecp_point*, uecc_public_key* b);
 
 /**
  * @brief
@@ -66,7 +66,7 @@ int ucrypto_ecc_ptob(ucrypto_ecp_point*, ucrypto_ecc_public_key* b);
  *
  * @return
  */
-int ucrypto_ecc_btop(ucrypto_ecc_public_key* k, ucrypto_ecp_point* p);
+int uecc_btop(uecc_public_key* k, uecp_point* p);
 
 /**
  * @brief
@@ -76,8 +76,7 @@ int ucrypto_ecc_btop(ucrypto_ecc_public_key* k, ucrypto_ecp_point* p);
  *
  * @return
  */
-int ucrypto_ecc_point_copy(const ucrypto_ecp_point* src,
-                           ucrypto_ecp_point* dst);
+int uecc_point_copy(const uecp_point* src, uecp_point* dst);
 /**
  * @brief
  *
@@ -86,7 +85,7 @@ int ucrypto_ecc_point_copy(const ucrypto_ecp_point* src,
  *
  * @return
  */
-int ucrypto_ecc_agree(ucrypto_ecc_ctx* ctx, const ucrypto_ecc_public_key* k);
+int uecc_agree(uecc_ctx* ctx, const uecc_public_key* k);
 
 /**
  * @brief Compute a shared secret. Secret is updated into ctx z param
@@ -95,7 +94,7 @@ int ucrypto_ecc_agree(ucrypto_ecc_ctx* ctx, const ucrypto_ecc_public_key* k);
  *
  * @return 0 OK or -1 err
  */
-int ucrypto_ecc_agree_point(ucrypto_ecc_ctx* ctx, const ucrypto_ecp_point*);
+int uecc_agree_point(uecc_ctx* ctx, const uecp_point*);
 
 /**
  * @brief
@@ -103,14 +102,11 @@ int ucrypto_ecc_agree_point(ucrypto_ecc_ctx* ctx, const ucrypto_ecp_point*);
  * @param ctx
  * @param b
  * @param sz
- * @param ucrypto_ecc_signature
+ * @param uecc_signature
  *
  * @return
  */
-int ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
-                     const uint8_t* b,
-                     uint32_t sz,
-                     ucrypto_ecc_signature*);
+int uecc_sign(uecc_ctx* ctx, const uint8_t* b, uint32_t sz, uecc_signature*);
 
 /**
  * @brief
@@ -118,14 +114,14 @@ int ucrypto_ecc_sign(ucrypto_ecc_ctx* ctx,
  * @param q
  * @param b
  * @param sz
- * @param ucrypto_ecc_signature
+ * @param uecc_signature
  *
  * @return
  */
-int ucrypto_ecc_verify(const ucrypto_ecp_point* q,
-                       const uint8_t* b,
-                       uint32_t sz,
-                       ucrypto_ecc_signature*);
+int uecc_verify(const uecp_point* q,
+                const uint8_t* b,
+                uint32_t sz,
+                uecc_signature*);
 
 #ifdef __cplusplus
 }

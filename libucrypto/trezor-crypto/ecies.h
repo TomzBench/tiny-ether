@@ -33,52 +33,49 @@ extern "C" {
 #include "trezor-crypto/sha2.h"
 #include <string.h>
 
-int ucrypto_ecies_encrypt_str(ucrypto_ecp_point*,
-                              const uint8_t* smac,
-                              size_t smaclen,
-                              int radix,
-                              const char* plain,
-                              uint8_t* cipher);
+int uecies_encrypt_str(uecp_point*,
+                       const uint8_t* smac,
+                       size_t smaclen,
+                       int radix,
+                       const char* plain,
+                       uint8_t* cipher);
 
-int ucrypto_ecies_encrypt_mpi(ucrypto_ecp_point*,
-                              const uint8_t* smac,
-                              size_t smaclen,
-                              ucrypto_mpi* bin,
-                              uint8_t* cipher);
+int uecies_encrypt_mpi(uecp_point*,
+                       const uint8_t* smac,
+                       size_t smaclen,
+                       ubn* bin,
+                       uint8_t* cipher);
 
-int ucrypto_ecies_encrypt(ucrypto_ecp_point*,
-                          const uint8_t* smac,
-                          size_t smaclen,
-                          const uint8_t* plain,
-                          size_t plain_len,
-                          uint8_t* cipher);
+int uecies_encrypt(uecp_point*,
+                   const uint8_t* smac,
+                   size_t smaclen,
+                   const uint8_t* plain,
+                   size_t plain_len,
+                   uint8_t* cipher);
 
-int ucrypto_ecies_decrypt_str(ucrypto_ecc_ctx* s,
-                              const uint8_t*,
-                              size_t,
-                              int radix,
-                              const char* cipher,
-                              uint8_t* plain);
+int uecies_decrypt_str(uecc_ctx* s,
+                       const uint8_t*,
+                       size_t,
+                       int radix,
+                       const char* cipher,
+                       uint8_t* plain);
 
-int ucrypto_ecies_decrypt_mpi(ucrypto_ecc_ctx* s,
-                              const uint8_t*,
-                              size_t,
-                              ucrypto_mpi* bin,
-                              uint8_t* plain);
+int uecies_decrypt_mpi(uecc_ctx* s,
+                       const uint8_t*,
+                       size_t,
+                       ubn* bin,
+                       uint8_t* plain);
 
-int ucrypto_ecies_decrypt(ucrypto_ecc_ctx* s,
-                          const uint8_t*,
-                          size_t,
-                          const uint8_t* cipher,
-                          size_t cipher_len,
-                          uint8_t* plain);
+int uecies_decrypt(uecc_ctx* s,
+                   const uint8_t*,
+                   size_t,
+                   const uint8_t* cipher,
+                   size_t cipher_len,
+                   uint8_t* plain);
 
-int ucrypto_ecies_kdf_str(const char* str,
-                          int radix,
-                          uint8_t* b,
-                          size_t keylen);
-int ucrypto_ecies_kdf_mpi(const ucrypto_mpi* secret, uint8_t* b, size_t keylen);
-void ucrypto_ecies_kdf(uint8_t* z, size_t zlen, uint8_t* key, size_t keylen);
+int uecies_kdf_str(const char* str, int radix, uint8_t* b, size_t keylen);
+int uecies_kdf_mpi(const ubn* secret, uint8_t* b, size_t keylen);
+void uecies_kdf(uint8_t* z, size_t zlen, uint8_t* key, size_t keylen);
 
 #ifdef __cplusplus
 }
