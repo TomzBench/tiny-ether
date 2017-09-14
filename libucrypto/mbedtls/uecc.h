@@ -95,6 +95,15 @@ int uecc_point_cmp(const ucrypto_ecp_point* src, const ucrypto_ecp_point* dst);
 /**
  * @brief
  *
+ * @param p
+ *
+ * @return
+ */
+int uecc_ztoa(const ucrypto_ecp_point* p);
+
+/**
+ * @brief
+ *
  * @param ctx
  * @param k
  *

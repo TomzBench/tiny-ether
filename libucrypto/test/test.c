@@ -11,7 +11,7 @@
     do {                                  \
         if ((val = (f)) < 0) goto EXIT;   \
     } while (0)
-// clang-format off
+// clang-format on
 
 /**
  * @brief Test vectors

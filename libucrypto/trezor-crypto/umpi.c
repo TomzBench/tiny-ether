@@ -1,4 +1,5 @@
 #include "umpi.h"
+#include <stdio.h>
 #include <string.h>
 
 #define ciL (sizeof(uint32_t)) /* chars in limb  */
@@ -29,18 +30,17 @@ ubn_atob(int radix, const char* str, uint8_t* b, size_t* olen)
 int
 ubn_toa(ubn* X, int radix, char* buf, size_t blen, size_t* olen)
 {
-    return 0;
 }
 
 int
 ubn_str(ubn* mpi, int radix, const char* s)
 {
-    uint8_t buff[9];
+    uint8_t buff[4 * 9];
     size_t n, i, j, slen = strlen(s);
     uint32_t d;
     n = BITS_TO_LIMBS(slen << 2);
     if (!(n < 9)) return -1;
-    memset(buff, 0, 9);
+    memset(buff, 0, 4 * 9);
 
     for (i = slen, j = 0; i > 0; i--, j++) {
         if (i == 1 && s[i - 1] == '-') {

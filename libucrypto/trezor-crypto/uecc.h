@@ -96,6 +96,14 @@ int uecc_btop(uecc_public_key* k, uecp_point* p);
  */
 int uecc_point_copy(const uecp_point* src, uecp_point* dst);
 
+/**
+ * @brief 
+ *
+ * @param src
+ * @param dst
+ *
+ * @return 
+ */
 int uecc_point_cmp(const uecp_point* src, const uecp_point* dst);
 
 /**

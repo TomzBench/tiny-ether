@@ -181,6 +181,7 @@ uecc_point_cmp(const ucrypto_ecp_point* src, const ucrypto_ecp_point* dst)
 int
 uecc_ztoa(const ucrypto_ecp_point* p)
 {
+    return -1;
 }
 
 int
