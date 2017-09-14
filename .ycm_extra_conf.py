@@ -78,7 +78,7 @@ flags = [
 '-I',
 './external',
 '-I',
-'./external/trezor-crypto/',
+'./external/secp256k1/include/',
 '-I',
 './crypto/mbedtls/',
 '-I',
