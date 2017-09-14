@@ -13,7 +13,9 @@
     } while (0)
 // clang-format on
 
+// private
 const byte* fromhex(const char* str);
+
 int
 uecc_key_init(uecc_ctx* ctx, const uecc_private_key* d)
 {
@@ -55,18 +57,6 @@ uecc_atop(const char* str, int rdx, uecc_public_key* q)
 {
     return 0;
 }
-
-// int
-// uecc_ptob(uecc_public_key* p, uecc_public_key* b)
-//{
-//    return 0;
-//}
-
-// int
-// uecc_btop(uecc_public_key* k, uecc_public_key* p)
-//{
-//    return 0;
-//}
 
 int
 uecc_point_copy(const uecc_public_key* src, uecc_public_key* dst)
