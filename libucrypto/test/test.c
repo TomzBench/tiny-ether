@@ -1,5 +1,4 @@
 #include "mtm/uecc.h"
-#include "mtm/uecies.h"
 #include <string.h>
 
 const uint8_t* fromhex(const char* str);
