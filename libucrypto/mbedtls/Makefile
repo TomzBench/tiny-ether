@@ -14,11 +14,11 @@ incs+=-I../../external/mbedtls/include
 dirs+=./obj
 
 #build objects
-obj-y+=./obj/aes.o
-obj-y+=./obj/ecc.o
-obj-y+=./obj/mpi.o
-obj-y+=./obj/ecies.o
-obj-y+=./obj/hmac.o
+obj-y+=./obj/uaes.o
+obj-y+=./obj/uecc.o
+obj-y+=./obj/umpi.o
+obj-y+=./obj/uecies.o
+obj-y+=./obj/uhmac.o
 
 #external dependencies
 ld-obj+=../../external/mbedtls/library/aes.o
@@ -46,11 +46,11 @@ ld-obj+=../../external/mbedtls/library/sha256.o
 ld-obj+=../../external/mbedtls/library/sha512.o
 ld-obj+=../../external/mbedtls/library/timing.o
 
-hdrs+=${INCDIR}/mtm/aes.h
-hdrs+=${INCDIR}/mtm/ecc.h
-hdrs+=${INCDIR}/mtm/mpi.h
-hdrs+=${INCDIR}/mtm/ecies.h
-hdrs+=${INCDIR}/mtm/hmac.h
+hdrs+=${INCDIR}/mtm/uaes.h
+hdrs+=${INCDIR}/mtm/uecc.h
+hdrs+=${INCDIR}/mtm/umpi.h
+hdrs+=${INCDIR}/mtm/uecies.h
+hdrs+=${INCDIR}/mtm/uhmac.h
 
 
 relobj-y:=${obj-y:.o=.lo}

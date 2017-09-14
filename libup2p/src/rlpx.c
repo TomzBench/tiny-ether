@@ -7,8 +7,8 @@
 #include "mtm/urlp.h"
 
 #include "board_net.h"
-#include "mtm/ecc.h"
-#include "mtm/ecies.h"
+#include "mtm/uecc.h"
+#include "mtm/uecies.h"
 #include "rlpx_config.h"
 
 typedef struct

@@ -1,4 +1,4 @@
-#include "mpi.h"
+#include "umpi.h"
 #include <string.h>
 
 #define ciL (sizeof(mbedtls_mpi_uint)) /* chars in limb  */

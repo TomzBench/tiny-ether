@@ -10,7 +10,7 @@ extern "C" {
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/entropy.h"
 
-#include "mpi.h"
+#include "umpi.h"
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */
 // typedef uint8_t uecc_signature[65];

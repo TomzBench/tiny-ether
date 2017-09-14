@@ -1,4 +1,4 @@
-#include "ecc.h"
+#include "uecc.h"
 
 // clang-format off
 #define IF_ERR_EXIT(f)                    \

@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #include "mbedtls/aes.h"
-#include "mpi.h"
+#include "umpi.h"
 
 typedef h128 uaes_128_ctr_key;
 typedef h128 uaes_iv;

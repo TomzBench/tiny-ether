@@ -1,5 +1,5 @@
-#include "mtm/ecc.h"
-#include "mtm/ecies.h"
+#include "mtm/uecc.h"
+#include "mtm/uecies.h"
 #include <string.h>
 
 // clang-format off
