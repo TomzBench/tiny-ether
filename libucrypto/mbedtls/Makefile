@@ -17,7 +17,7 @@ dirs+=./obj
 obj-y+=./obj/uaes.o
 obj-y+=./obj/uecc.o
 obj-y+=./obj/umpi.o
-obj-y+=./obj/uecies.o
+#obj-y+=./obj/uecies.o
 obj-y+=./obj/uhmac.o
 
 #external dependencies
@@ -49,7 +49,7 @@ ld-obj+=../../external/mbedtls/library/timing.o
 hdrs+=${INCDIR}/mtm/uaes.h
 hdrs+=${INCDIR}/mtm/uecc.h
 hdrs+=${INCDIR}/mtm/umpi.h
-hdrs+=${INCDIR}/mtm/uecies.h
+#hdrs+=${INCDIR}/mtm/uecies.h
 hdrs+=${INCDIR}/mtm/uhmac.h
 
 

@@ -9,7 +9,9 @@ extern "C" {
 #include "mbedtls/ecdh.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/entropy.h"
+#include "mbedtls/sha256.h"
 
+#include "uhmac.h"
 #include "umpi.h"
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */
@@ -146,6 +148,50 @@ int uecc_verify(const uecc_point* q,
                 const uint8_t* b,
                 uint32_t sz,
                 uecc_signature*);
+
+int uecies_encrypt_str(uecc_point*,
+                       const uint8_t* smac,
+                       size_t smaclen,
+                       int radix,
+                       const char* plain,
+                       uint8_t* cipher);
+
+int uecies_encrypt_mpi(uecc_point*,
+                       const uint8_t* smac,
+                       size_t smaclen,
+                       ubn* bin,
+                       uint8_t* cipher);
+
+int uecies_encrypt(uecc_point*,
+                   const uint8_t* smac,
+                   size_t smaclen,
+                   const uint8_t* plain,
+                   size_t plain_len,
+                   uint8_t* cipher);
+
+int uecies_decrypt_str(uecc_ctx* s,
+                       const uint8_t*,
+                       size_t,
+                       int radix,
+                       const char* cipher,
+                       uint8_t* plain);
+
+int uecies_decrypt_mpi(uecc_ctx* s,
+                       const uint8_t*,
+                       size_t,
+                       ubn* bin,
+                       uint8_t* plain);
+
+int uecies_decrypt(uecc_ctx* s,
+                   const uint8_t*,
+                   size_t,
+                   const uint8_t* cipher,
+                   size_t cipher_len,
+                   uint8_t* plain);
+
+int uecies_kdf_str(const char* str, int radix, uint8_t* b, size_t keylen);
+int uecies_kdf_mpi(const ubn* secret, uint8_t* b, size_t keylen);
+void uecies_kdf(uint8_t* z, size_t zlen, uint8_t* key, size_t keylen);
 
 #ifdef __cplusplus
 }

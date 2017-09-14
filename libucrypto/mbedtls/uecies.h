@@ -29,7 +29,7 @@ extern "C" {
 
 #include "mbedtls/sha256.h"
 #include "uaes.h"
-#include "uecc.h"
+//#include "uecc.h"
 #include "uhmac.h"
 #include <string.h>
 
