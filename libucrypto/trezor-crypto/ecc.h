@@ -14,9 +14,22 @@ extern "C" {
 // typedef uint8_t uecc_public_key[65];
 typedef h520 uecc_signature;
 typedef h520 uecc_public_key;
-typedef ubn uecc_private_key;
-typedef ecdsa_curve uecc_ctx;   /*!< caller ref */
-typedef curve_point uecp_point; /*!< curve struct */
+typedef h256 uecc_private_key;
+typedef h256 uecc_shared_secret;
+
+typedef struct
+{
+    bignum256 x, y, z;
+} uecp_point; /*!< curve struct */
+
+typedef struct
+{
+    ecdsa_curve grp; /*!< export from trezor lib */
+    h256 d;          /*!< private key */
+    uecp_point Q;    /*!< public key */
+    uecp_point Qp;   /*!< remote public key */
+    h256 z;          /*!< shared secret */
+} uecc_ctx;
 
 /**
  * @brief initialize a key context
