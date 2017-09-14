@@ -41,7 +41,7 @@ ld-obj+=../../external/trezor-crypto/nist256p1.o
 ld-obj+=../../external/trezor-crypto/pbkdf2.o
 ld-obj+=../../external/trezor-crypto/rand.o
 ld-obj+=../../external/trezor-crypto/rc4.o
-ld-obj+=../../external/trezor-crypto/rfc6979.o
+#ld-obj+=../../external/trezor-crypto/rfc6979.o
 ld-obj+=../../external/trezor-crypto/ripemd160.o
 ld-obj+=../../external/trezor-crypto/script.o
 ld-obj+=../../external/trezor-crypto/secp256k1.o
@@ -73,10 +73,10 @@ relobj-y:=${obj-y:.o=.lo}
 ld-relobj-y:=${ld-obj:.o=.lo}
 
 #targets
-all: ${LIBDIR}/libucrypto.a ${LIBDIR}/libucrypto.so
+all: ${LIBDIR}/libucrypto-trezor.a ${LIBDIR}/libucrypto-trezor.so
 
-${LIBDIR}/libucrypto.a: ${hdrs} ${ld-obj} ${obj-y}
-${LIBDIR}/libucrypto.so: ${hdrs} ${ld-relobj-y} ${relobj-y}
+${LIBDIR}/libucrypto-trezor.a: ${hdrs} ${ld-obj} ${obj-y}
+${LIBDIR}/libucrypto-trezor.so: ${hdrs} ${ld-relobj-y} ${relobj-y}
 
 include ../../common.mk
 
@@ -85,6 +85,6 @@ clean:
 	@rm -rf ./obj/ 
 	@rm -f ${ld-obj}
 	@rm -f ${ld-relobj-y}
-	@rm -f ${LIBDIR}/libucrypto.a
-	@rm -f ${LIBDIR}/libucrypto.so
+	@rm -f ${LIBDIR}/libucrypto-trezor.a
+	@rm -f ${LIBDIR}/libucrypto-trezor.so
 	@rm -f ${hdrs} #careful when headers is an empty /

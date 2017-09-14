@@ -1,4 +1,5 @@
 #include "ecc.h"
+#include <string.h>
 
 // clang-format off
 #define IF_ERR_EXIT(f)                    \
@@ -31,7 +32,9 @@ EXIT:
 int
 uecc_key_init_binary(uecc_ctx* ctx, const ubn* d)
 {
-    return 0;
+    int ret = 0;
+    bn_copy(d, &ctx->d);
+    return ret;
 }
 
 int

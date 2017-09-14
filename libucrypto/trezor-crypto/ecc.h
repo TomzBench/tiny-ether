@@ -14,7 +14,7 @@ extern "C" {
 // typedef uint8_t uecc_public_key[65];
 typedef h520 uecc_signature;
 typedef h520 uecc_public_key;
-typedef h256 uecc_private_key;
+typedef ubn uecc_private_key;
 typedef h256 uecc_shared_secret;
 
 typedef struct
@@ -25,7 +25,7 @@ typedef struct
 typedef struct
 {
     const ecdsa_curve* grp; /*!< export from trezor lib */
-    h256 d;                 /*!< private key */
+    ubn d;                  /*!< private key */
     uecp_point Q;           /*!< public key */
     uecp_point Qp;          /*!< remote public key */
     h256 z;                 /*!< shared secret */
