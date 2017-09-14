@@ -14,15 +14,21 @@ incs+=-I../../external/trezor-crypto/aes
 incs+=-I../../external/trezor-crypto/ed25519-donna
 
 #create dirs
+dirs+=${INCDIR}/mtm
+dirs+=${INCDIR}/mtm/trezor-crypto
+dirs+=${INCDIR}/mtm/trezor-crypto/aes
+dirs+=${LIBDIR}
+dirs+=${BINDIR}
 dirs+=./obj
 
+
 #build objects
-obj-y+=./obj/aes.o
-obj-y+=./obj/ecc.o
-obj-y+=./obj/mpi.o
-obj-y+=./obj/ecies.o
-obj-y+=./obj/hmac.o
-obj-y+=./obj/rand.o
+obj-y+=./obj/uaes.o
+obj-y+=./obj/uecc.o
+obj-y+=./obj/umpi.o
+obj-y+=./obj/uecies.o
+obj-y+=./obj/uhmac.o
+obj-y+=./obj/urand.o
 
 #external dependencies
 ld-obj+=../../external/trezor-crypto/address.o
@@ -63,20 +69,28 @@ ld-obj+=../../external/trezor-crypto/aes/aeskey.o
 ld-obj+=../../external/trezor-crypto/aes/aestab.o
 ld-obj+=../../external/trezor-crypto/aes/aestst.o
 
-hdrs+=${INCDIR}/mtm/aes.h
-hdrs+=${INCDIR}/mtm/ecc.h
-hdrs+=${INCDIR}/mtm/mpi.h
-hdrs+=${INCDIR}/mtm/ecies.h
-hdrs+=${INCDIR}/mtm/hmac.h
+hdrs+=${INCDIR}/mtm/uaes.h
+hdrs+=${INCDIR}/mtm/uecc.h
+hdrs+=${INCDIR}/mtm/umpi.h
+hdrs+=${INCDIR}/mtm/uecies.h
+hdrs+=${INCDIR}/mtm/uhmac.h
 
 relobj-y:=${obj-y:.o=.lo}
 ld-relobj-y:=${ld-obj:.o=.lo}
 
 #targets
-all: ${LIBDIR}/libucrypto-trezor.a ${LIBDIR}/libucrypto-trezor.so
+all: ${LIBDIR}/libucrypto-trezor.a ${LIBDIR}/libucrypto-trezor.so completed
 
 ${LIBDIR}/libucrypto-trezor.a: ${hdrs} ${ld-obj} ${obj-y}
+
 ${LIBDIR}/libucrypto-trezor.so: ${hdrs} ${ld-relobj-y} ${relobj-y}
+
+completed:
+	@echo "COPY install"
+	@cp ../../external/trezor-crypto/*.h ${INCDIR}/mtm/trezor-crypto
+	@cp ../../external/trezor-crypto/aes/*.h ${INCDIR}/mtm/trezor-crypto/aes
+	@cp ../../external/trezor-crypto/ed25519-donna/*.h ${INCDIR}/mtm/trezor-crypto
+
 
 include ../../common.mk
 
@@ -85,6 +99,7 @@ clean:
 	@rm -rf ./obj/ 
 	@rm -f ${ld-obj}
 	@rm -f ${ld-relobj-y}
+	@rm -rf ${INCDIR}/mtm/trezor-crypto
 	@rm -f ${LIBDIR}/libucrypto-trezor.a
 	@rm -f ${LIBDIR}/libucrypto-trezor.so
 	@rm -f ${hdrs} #careful when headers is an empty /

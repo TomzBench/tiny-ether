@@ -1,4 +1,4 @@
-#include "rand.h"
+#include "urand.h"
 
 int
 urand(void* os, uint8_t* b, size_t l)

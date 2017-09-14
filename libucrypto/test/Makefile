@@ -5,6 +5,7 @@ SRCDIR:=./
 incs+=-I./
 incs+=-I../
 incs+=-I../../target/include/
+incs+=-I../../target/include/mtm
 
 alibs+=-L../../target/lib -l:libucrypto.a
 

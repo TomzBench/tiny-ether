@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "mpi.h"
+#include "umpi.h"
 #include "trezor-crypto/aes/aes.h"
 
 typedef h128 uaes_128_ctr_key;
