@@ -25,7 +25,7 @@ typedef struct { byte b[8]   ;} h64;
 /*!< r: [0, 32), s: [32, 64), v: 64 */
 typedef h520 uecc_signature;
 typedef h520 uecc_public_key_recoverable;
-typedef h512 uecc_public_key;
+typedef secp256k1_pubkey uecc_public_key;
 typedef h256 uecc_private_key;
 typedef h256 uecc_shared_secret;
 

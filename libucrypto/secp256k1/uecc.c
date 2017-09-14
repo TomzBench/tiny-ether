@@ -1,4 +1,5 @@
 #include "uecc.h"
+#include <stdlib.h> /*!< temporary for rand */
 #include <string.h>
 
 // clang-format off
@@ -12,6 +13,7 @@
     } while (0)
 // clang-format on
 
+const byte* fromhex(const char* str);
 int
 uecc_key_init(uecc_ctx* ctx, const uecc_private_key* d)
 {
@@ -21,12 +23,19 @@ uecc_key_init(uecc_ctx* ctx, const uecc_private_key* d)
 int
 uecc_key_init_string(uecc_ctx* ctx, int radix, const char* s)
 {
-    return 0;
+    if (!(radix == 16)) return -1;
+    return uecc_key_init_binary(ctx, (uecc_private_key*)fromhex(s));
 }
 
 int
 uecc_key_init_new(uecc_ctx* ctx)
 {
+    for (int i = 0; i < 32; i++) ctx->d.b[i] = rand();
+    ctx->grp = secp256k1_context_create(SECP256K1_CONTEXT_SIGN |
+                                        SECP256K1_CONTEXT_VERIFY);
+    if (!secp256k1_ec_pubkey_create(ctx->grp, &ctx->Q, ctx->d.b)) {
+        return -1;
+    }
     return 0;
 }
 
@@ -97,6 +106,28 @@ uecc_recover(const uecc_signature* sig,
              uecc_public_key* key)
 {
     return 0;
+}
+
+#define FROMHEX_MAXLEN 512
+const byte*
+fromhex(const char* str)
+{
+    static byte buf[FROMHEX_MAXLEN];
+    size_t len = strlen(str) / 2;
+    if (len > FROMHEX_MAXLEN) len = FROMHEX_MAXLEN;
+    for (size_t i = 0; i < len; i++) {
+        byte c = 0;
+        if (str[i * 2] >= '0' && str[i * 2] <= '9')
+            c += (str[i * 2] - '0') << 4;
+        if ((str[i * 2] & ~0x20) >= 'A' && (str[i * 2] & ~0x20) <= 'F')
+            c += (10 + (str[i * 2] & ~0x20) - 'A') << 4;
+        if (str[i * 2 + 1] >= '0' && str[i * 2 + 1] <= '9')
+            c += (str[i * 2 + 1] - '0');
+        if ((str[i * 2 + 1] & ~0x20) >= 'A' && (str[i * 2 + 1] & ~0x20) <= 'F')
+            c += (10 + (str[i * 2 + 1] & ~0x20) - 'A');
+        buf[i] = c;
+    }
+    return buf;
 }
 
 //
