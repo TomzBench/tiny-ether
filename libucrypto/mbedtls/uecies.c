@@ -6,7 +6,7 @@
 // *                        ||-----------hmac-----------||
 
 int
-uecies_encrypt_str(ucrypto_ecp_point* p,
+uecies_encrypt_str(uecc_point* p,
                    const uint8_t* s,
                    size_t slen,
                    int radix,
@@ -23,7 +23,7 @@ uecies_encrypt_str(ucrypto_ecp_point* p,
 }
 
 int
-uecies_encrypt_mpi(ucrypto_ecp_point* p,
+uecies_encrypt_mpi(uecc_point* p,
                    const uint8_t* s,
                    size_t slen,
                    ubn* bin,
@@ -39,7 +39,7 @@ uecies_encrypt_mpi(ucrypto_ecp_point* p,
 }
 
 int
-uecies_encrypt(ucrypto_ecp_point* p,
+uecies_encrypt(uecc_point* p,
                const uint8_t* s,
                size_t slen,
                const uint8_t* in,

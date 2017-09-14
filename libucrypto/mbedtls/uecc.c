@@ -108,7 +108,7 @@ uecc_key_deinit(uecc_ctx* ctx)
 }
 
 int
-uecc_atop(const char* str, int rdx, ucrypto_ecp_point* q)
+uecc_atop(const char* str, int rdx, uecc_point* q)
 {
     int err = -1;
     uint8_t buff[65];
@@ -140,7 +140,7 @@ EXIT:
 }
 
 int
-uecc_ptob(ucrypto_ecp_point* p, uecc_public_key* b)
+uecc_ptob(uecc_point* p, uecc_public_key* b)
 {
     int err;
     size_t len = 65;
@@ -156,7 +156,7 @@ uecc_ptob(ucrypto_ecp_point* p, uecc_public_key* b)
 }
 
 int
-uecc_btop(uecc_public_key* k, ucrypto_ecp_point* p)
+uecc_btop(uecc_public_key* k, uecc_point* p)
 {
     int err = -1;
     mbedtls_ecp_group grp;
@@ -167,19 +167,19 @@ uecc_btop(uecc_public_key* k, ucrypto_ecp_point* p)
 }
 
 int
-uecc_point_copy(const ucrypto_ecp_point* src, ucrypto_ecp_point* dst)
+uecc_point_copy(const uecc_point* src, uecc_point* dst)
 {
     return mbedtls_ecp_copy(dst, src) == 0 ? 0 : -1;
 }
 
 int
-uecc_point_cmp(const ucrypto_ecp_point* src, const ucrypto_ecp_point* dst)
+uecc_point_cmp(const uecc_point* src, const uecc_point* dst)
 {
     return mbedtls_ecp_point_cmp(src, dst);
 }
 
 int
-uecc_ztoa(const ucrypto_ecp_point* p)
+uecc_ztoa(const uecc_point* p)
 {
     return -1;
 }
@@ -188,7 +188,7 @@ int
 uecc_agree(uecc_ctx* ctx, const uecc_public_key* key)
 {
     int err;
-    ucrypto_ecp_point point;
+    uecc_point point;
     mbedtls_ecp_point_init(&point);
 
     /**
@@ -204,7 +204,7 @@ uecc_agree(uecc_ctx* ctx, const uecc_public_key* key)
 }
 
 int
-uecc_agree_point(uecc_ctx* ctx, const ucrypto_ecp_point* qp)
+uecc_agree_point(uecc_ctx* ctx, const uecc_point* qp)
 {
     int err;
     mbedtls_ctr_drbg_context rng;
@@ -274,7 +274,7 @@ EXIT:
 }
 
 int
-uecc_verify(const ucrypto_ecp_point* q,
+uecc_verify(const uecc_point* q,
             const uint8_t* b,
             uint32_t sz,
             uecc_signature* sig_p)
@@ -316,7 +316,7 @@ uecc_recover(const uecc_signature* sig,
 {
     int err = 0;
     ubn r, s, e;
-    ucrypto_ecp_point cp, cp2;
+    uecc_point cp, cp2;
     mbedtls_ecp_group grp;
     mbedtls_ecp_group_init(&grp);
     mbedtls_mpi_init(&r);

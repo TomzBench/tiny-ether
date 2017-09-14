@@ -27,26 +27,26 @@ extern "C" {
  *        [ecies-pubkey:65||aes-iv:16||cipher-text:194||ecies-mac:32]
  */
 
+#include "mbedtls/sha256.h"
 #include "uaes.h"
 #include "uecc.h"
 #include "uhmac.h"
-#include "mbedtls/sha256.h"
 #include <string.h>
 
-int uecies_encrypt_str(ucrypto_ecp_point*,
+int uecies_encrypt_str(uecc_point*,
                        const uint8_t* smac,
                        size_t smaclen,
                        int radix,
                        const char* plain,
                        uint8_t* cipher);
 
-int uecies_encrypt_mpi(ucrypto_ecp_point*,
+int uecies_encrypt_mpi(uecc_point*,
                        const uint8_t* smac,
                        size_t smaclen,
                        ubn* bin,
                        uint8_t* cipher);
 
-int uecies_encrypt(ucrypto_ecp_point*,
+int uecies_encrypt(uecc_point*,
                    const uint8_t* smac,
                    size_t smaclen,
                    const uint8_t* plain,

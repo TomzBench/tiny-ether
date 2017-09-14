@@ -18,8 +18,8 @@ extern "C" {
 typedef h520 uecc_signature;
 typedef h520 uecc_public_key;
 typedef ubn uecc_private_key;
-typedef mbedtls_ecdh_context uecc_ctx;       /*!< caller ref */
-typedef mbedtls_ecp_point ucrypto_ecp_point; /*!< curve struct */
+typedef mbedtls_ecdh_context uecc_ctx; /*!< caller ref */
+typedef mbedtls_ecp_point uecc_point;  /*!< curve struct */
 #define uecc_z_cmp(x, y) ubn_cmp(x, y)
 
 /**
@@ -50,7 +50,7 @@ void uecc_key_deinit(uecc_ctx*);
  *
  * @return
  */
-int uecc_atop(const char* str, int rdx, ucrypto_ecp_point* q);
+int uecc_atop(const char* str, int rdx, uecc_point* q);
 
 /**
  * @brief
@@ -60,7 +60,7 @@ int uecc_atop(const char* str, int rdx, ucrypto_ecp_point* q);
  *
  * @return
  */
-int uecc_ptob(ucrypto_ecp_point*, uecc_public_key* b);
+int uecc_ptob(uecc_point*, uecc_public_key* b);
 
 /**
  * @brief
@@ -70,7 +70,7 @@ int uecc_ptob(ucrypto_ecp_point*, uecc_public_key* b);
  *
  * @return
  */
-int uecc_btop(uecc_public_key* k, ucrypto_ecp_point* p);
+int uecc_btop(uecc_public_key* k, uecc_point* p);
 
 /**
  * @brief
@@ -80,7 +80,7 @@ int uecc_btop(uecc_public_key* k, ucrypto_ecp_point* p);
  *
  * @return
  */
-int uecc_point_copy(const ucrypto_ecp_point* src, ucrypto_ecp_point* dst);
+int uecc_point_copy(const uecc_point* src, uecc_point* dst);
 
 /**
  * @brief
@@ -90,7 +90,7 @@ int uecc_point_copy(const ucrypto_ecp_point* src, ucrypto_ecp_point* dst);
  *
  * @return
  */
-int uecc_point_cmp(const ucrypto_ecp_point* src, const ucrypto_ecp_point* dst);
+int uecc_point_cmp(const uecc_point* src, const uecc_point* dst);
 
 /**
  * @brief
@@ -99,7 +99,7 @@ int uecc_point_cmp(const ucrypto_ecp_point* src, const ucrypto_ecp_point* dst);
  *
  * @return
  */
-int uecc_ztoa(const ucrypto_ecp_point* p);
+int uecc_ztoa(const uecc_point* p);
 
 /**
  * @brief
@@ -118,7 +118,7 @@ int uecc_agree(uecc_ctx* ctx, const uecc_public_key* k);
  *
  * @return 0 OK or -1 err
  */
-int uecc_agree_point(uecc_ctx* ctx, const ucrypto_ecp_point*);
+int uecc_agree_point(uecc_ctx* ctx, const uecc_point*);
 
 /**
  * @brief
@@ -142,7 +142,7 @@ int uecc_sign(uecc_ctx* ctx, const uint8_t* b, uint32_t sz, uecc_signature*);
  *
  * @return
  */
-int uecc_verify(const ucrypto_ecp_point* q,
+int uecc_verify(const uecc_point* q,
                 const uint8_t* b,
                 uint32_t sz,
                 uecc_signature*);
