@@ -2,6 +2,9 @@
 #include "mtm/uecies.h"
 #include <string.h>
 
+const uint8_t* fromhex(const char* str);
+int test_check_cmp(ubn*, const char* hex);
+
 // clang-format off
 #define IF_ERR_EXIT(f)                    \
     do {                                  \
@@ -81,9 +84,8 @@ int
 test_ecc()
 {
     int err = 0;
-    size_t l = 100;     // buffer sz
-    uint8_t stest[l];   // binary buffer
-    char secret_str[l]; // ascii buffer
+    size_t l = 100;   // buffer sz
+    uint8_t stest[l]; // binary buffer
     uecc_ctx ctxa, ctxa_clone, ctxb, ctxc;
     uecc_public_key pubkeya, pubkeyb;
     uecc_signature sig;
@@ -101,8 +103,8 @@ test_ecc()
     if (!(err == 0)) goto EXIT;
     err |= uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
-    ubn_toa(&ctxa.z, 16, secret_str, l, &l);
-    err = memcmp(expect_secret_str, secret_str, strlen(secret_str)) ? -1 : 0;
+    err |= test_check_cmp(&ctxa.z, expect_secret_str);
+    if (!(err == 0)) goto EXIT;
     if (!(err == 0)) goto EXIT; // note our write fn prints in caps
 
     // Generate shared secret with known private keys with binary public key
@@ -264,6 +266,35 @@ test_ecies_decrypt()
 EXIT:
     uecc_key_deinit(&ctxb);
     return err;
+}
+
+const uint8_t*
+fromhex(const char* str)
+{
+    static uint8_t buf[512];
+    size_t len = strlen(str) / 2;
+    if (len > 512) len = 512;
+    for (size_t i = 0; i < len; i++) {
+        uint8_t c = 0;
+        if (str[i * 2] >= '0' && str[i * 2] <= '9')
+            c += (str[i * 2] - '0') << 4;
+        if ((str[i * 2] & ~0x20) >= 'A' && (str[i * 2] & ~0x20) <= 'F')
+            c += (10 + (str[i * 2] & ~0x20) - 'A') << 4;
+        if (str[i * 2 + 1] >= '0' && str[i * 2 + 1] <= '9')
+            c += (str[i * 2 + 1] - '0');
+        if ((str[i * 2 + 1] & ~0x20) >= 'A' && (str[i * 2 + 1] & ~0x20) <= 'F')
+            c += (10 + (str[i * 2 + 1] & ~0x20) - 'A');
+        buf[i] = c;
+    }
+    return buf;
+}
+
+int
+test_check_cmp(ubn* bn, const char* hex)
+{
+    uint8_t check[ubn_size(bn)];
+    ubn_tob(bn, check, ubn_size(bn));
+    return memcmp(check, fromhex(hex), ubn_size(bn));
 }
 
 //

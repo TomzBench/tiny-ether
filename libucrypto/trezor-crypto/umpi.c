@@ -58,7 +58,7 @@ ubn_str(ubn* mpi, int radix, const char* s)
 int
 ubn_size(ubn* mpi)
 {
-    return 0;
+    return 4 * 9;
 }
 
 static int
