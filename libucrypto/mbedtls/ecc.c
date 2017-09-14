@@ -9,13 +9,12 @@
     do {                                  \
         if ((val = (f)) < 0) goto EXIT;   \
     } while (0)
-// clang-format off
+// clang-format on
 
 int
 uecc_key_init(uecc_ctx* ctx, const ubn* d)
 {
-    return d ? uecc_key_init_binary(ctx, d)
-             : uecc_key_init_new(ctx);
+    return d ? uecc_key_init_binary(ctx, d) : uecc_key_init_new(ctx);
 }
 
 int
@@ -218,10 +217,7 @@ EXIT:
 }
 
 int
-uecc_sign(uecc_ctx* ctx,
-                 const uint8_t* b,
-                 uint32_t sz,
-                 uecc_signature* sig_p)
+uecc_sign(uecc_ctx* ctx, const uint8_t* b, uint32_t sz, uecc_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = sig_p->b;
@@ -267,9 +263,9 @@ EXIT:
 
 int
 uecc_verify(const ucrypto_ecp_point* q,
-                   const uint8_t* b,
-                   uint32_t sz,
-                   uecc_signature* sig_p)
+            const uint8_t* b,
+            uint32_t sz,
+            uecc_signature* sig_p)
 {
     int err, ret = -1;
     uint8_t* sig = sig_p->b;
@@ -302,9 +298,9 @@ EXIT:
 }
 int
 uecc_recover(const uecc_signature* sig,
-                    const uint8_t* digest,
-                    int recid,
-                    uecc_public_key* key)
+             const uint8_t* digest,
+             int recid,
+             uecc_public_key* key)
 {
     int err = 0;
     ubn r, s, e;

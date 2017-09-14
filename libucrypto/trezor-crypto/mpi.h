@@ -26,8 +26,11 @@ typedef bignum256 ubn; /*!< multi precesion integer */
 #define ubn_tob(x, b, l) bn_write_be(x, b)
 #define ubn_bin(x, b, l) bn_read_be(x, b)
 
+int ubn_size(ubn*);
 int ubn_btoa(const uint8_t* b, size_t blen, int radix, char* a, size_t* olen);
 int ubn_atob(int radix, const char* str, uint8_t* b, size_t* olen);
+int ubn_toa(ubn* X, int radix, char* buf, size_t blen, size_t* olen);
+int ubn_str(ubn* X, int radix, const char* s);
 
 #ifdef __cplusplus
 }

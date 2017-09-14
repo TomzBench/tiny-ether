@@ -25,13 +25,12 @@ typedef mbedtls_mpi ubn; /*!< multi precesion integer */
 #define ubn_cmp(x, y) mbedtls_mpi_cmp_mpi(x, y)
 #define ubn_tob(x, b, l) mbedtls_mpi_write_binary(x, b, l)
 #define ubn_bin(x, b, l) mbedtls_mpi_read_binary(x, b, l)
-//#define ubn_str(x, r, s) mbedtls_mpi_read_string(x, r, s)
 #define ubn_size(x) mbedtls_mpi_size(x)
 
 int ubn_btoa(const uint8_t* b, size_t blen, int radix, char* a, size_t* olen);
 int ubn_atob(int radix, const char* str, uint8_t* b, size_t* olen);
 int ubn_toa(ubn* X, int radix, char* buf, size_t blen, size_t* olen);
-int ubn_str(mbedtls_mpi* X, int radix, const char* s);
+int ubn_str(ubn* X, int radix, const char* s);
 
 #ifdef __cplusplus
 }
