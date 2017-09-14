@@ -13,7 +13,7 @@ ubn_atob(int radix, const char* str, uint8_t* b, size_t* olen)
 }
 
 int
-ubn_toa(ubn* mpi, int radix, uint8_t* b, size_t* olen)
+ubn_toa(ubn* X, int radix, char* buf, size_t blen, size_t* olen)
 {
     return 0;
 }

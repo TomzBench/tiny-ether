@@ -24,11 +24,11 @@ typedef struct
 
 typedef struct
 {
-    ecdsa_curve grp; /*!< export from trezor lib */
-    h256 d;          /*!< private key */
-    uecp_point Q;    /*!< public key */
-    uecp_point Qp;   /*!< remote public key */
-    h256 z;          /*!< shared secret */
+    const ecdsa_curve* grp; /*!< export from trezor lib */
+    h256 d;                 /*!< private key */
+    uecp_point Q;           /*!< public key */
+    uecp_point Qp;          /*!< remote public key */
+    h256 z;                 /*!< shared secret */
 } uecc_ctx;
 
 /**
