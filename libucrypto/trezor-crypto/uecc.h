@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "trezor-crypto/ecdsa.h"
+#include "trezor-crypto/rand.h"
 
 #include "umpi.h"
 
@@ -17,10 +18,12 @@ typedef h520 uecc_public_key;
 typedef ubn uecc_private_key;
 typedef h256 uecc_shared_secret;
 
-typedef struct
-{
-    bignum256 x, y, z;
-} uecp_point; /*!< curve struct */
+// typedef struct
+//{
+//    bignum256 x, y, z;
+//} uecp_point; /*!< curve struct */
+//
+typedef curve_point uecp_point;
 
 typedef struct
 {
@@ -28,8 +31,10 @@ typedef struct
     ubn d;                  /*!< private key */
     uecp_point Q;           /*!< public key */
     uecp_point Qp;          /*!< remote public key */
-    h256 z;                 /*!< shared secret */
+    uecp_point z;           /*!< shared secret */
 } uecc_ctx;
+
+#define uecc_z_cmp(x, y) uecc_point_cmp(x, y)
 
 /**
  * @brief initialize a key context
@@ -90,6 +95,9 @@ int uecc_btop(uecc_public_key* k, uecp_point* p);
  * @return
  */
 int uecc_point_copy(const uecp_point* src, uecp_point* dst);
+
+int uecc_point_cmp(const uecp_point* src, const uecp_point* dst);
+
 /**
  * @brief
  *

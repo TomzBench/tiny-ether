@@ -7,7 +7,7 @@ extern "C" {
 
 #include "trezor-crypto/hmac.h"
 
-typedef struct HMAC_SHA256_CTX uhmac_sha256_ctx;
+typedef HMAC_SHA256_CTX uhmac_sha256_ctx;
 
 void uhmac_sha256_init(uhmac_sha256_ctx*, const uint8_t*, size_t);
 void uhmac_sha256_update(uhmac_sha256_ctx*, const uint8_t*, size_t);

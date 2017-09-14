@@ -20,6 +20,7 @@ typedef h520 uecc_public_key;
 typedef ubn uecc_private_key;
 typedef mbedtls_ecdh_context uecc_ctx;       /*!< caller ref */
 typedef mbedtls_ecp_point ucrypto_ecp_point; /*!< curve struct */
+#define uecc_z_cmp(x, y) ubn_cmp(x, y)
 
 /**
  * @brief initialize a key context
@@ -80,6 +81,17 @@ int uecc_btop(uecc_public_key* k, ucrypto_ecp_point* p);
  * @return
  */
 int uecc_point_copy(const ucrypto_ecp_point* src, ucrypto_ecp_point* dst);
+
+/**
+ * @brief
+ *
+ * @param src
+ * @param dst
+ *
+ * @return
+ */
+int uecc_point_cmp(const ucrypto_ecp_point* src, const ucrypto_ecp_point* dst);
+
 /**
  * @brief
  *

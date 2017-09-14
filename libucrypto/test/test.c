@@ -99,7 +99,7 @@ test_ecc()
     err |= uecc_agree_point(&ctxa, &ctxb.Q);
     err |= uecc_agree_point(&ctxb, &ctxa.Q);
     if (!(err == 0)) goto EXIT;
-    err |= ubn_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
+    err |= uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
     ubn_toa(&ctxa.z, 16, secret_str, l, &l);
     err = memcmp(expect_secret_str, secret_str, strlen(secret_str)) ? -1 : 0;
@@ -111,14 +111,14 @@ test_ecc()
     err |= uecc_agree(&ctxa, &pubkeyb);
     err |= uecc_agree(&ctxb, &pubkeya);
     if (!(err == 0)) goto EXIT;
-    err |= ubn_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
+    err |= uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
 
     // Generated shared secret with random key
     err |= uecc_agree_point(&ctxa, &ctxc.Q);
     err |= uecc_agree_point(&ctxc, &ctxa.Q);
     if (!(err == 0)) goto EXIT;
-    err |= ubn_cmp(&ctxa.z, &ctxc.z) ? -1 : 0;
+    err |= uecc_z_cmp(&ctxa.z, &ctxc.z) ? -1 : 0;
     if (!(err == 0)) goto EXIT;
 
     // Sign our test blob

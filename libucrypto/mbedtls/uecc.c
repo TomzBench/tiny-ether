@@ -173,6 +173,17 @@ uecc_point_copy(const ucrypto_ecp_point* src, ucrypto_ecp_point* dst)
 }
 
 int
+uecc_point_cmp(const ucrypto_ecp_point* src, const ucrypto_ecp_point* dst)
+{
+    return mbedtls_ecp_point_cmp(src, dst);
+}
+
+int
+uecc_ztoa(const ucrypto_ecp_point* p)
+{
+}
+
+int
 uecc_agree(uecc_ctx* ctx, const uecc_public_key* key)
 {
     int err;

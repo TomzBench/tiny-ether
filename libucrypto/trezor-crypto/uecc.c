@@ -12,6 +12,9 @@
     } while (0)
 // clang-format on
 
+static void uecc_create_key(bignum256* k, const bignum256* prime);
+extern ecdsa_curve secp256k1;
+
 int
 uecc_key_init(uecc_ctx* ctx, const ubn* d)
 {
@@ -30,17 +33,24 @@ EXIT:
 }
 
 int
-uecc_key_init_binary(uecc_ctx* ctx, const ubn* d)
+uecc_key_init_new(uecc_ctx* ctx)
 {
-    int ret = 0;
-    bn_copy(d, &ctx->d);
-    return ret;
+    memset(ctx, 0, sizeof(uecc_ctx));
+    ctx->grp = &secp256k1;
+    uecc_create_key(&ctx->d, &ctx->grp->order);
+    scalar_multiply(ctx->grp, &ctx->d, &ctx->Q);
+    return 0;
 }
 
 int
-uecc_key_init_new(uecc_ctx* ctx)
+uecc_key_init_binary(uecc_ctx* ctx, const ubn* d)
 {
-    return 0;
+    int err = 0;
+    memset(ctx, 0, sizeof(uecc_ctx));
+    bn_copy(d, &ctx->d);
+    ctx->grp = &secp256k1;
+    scalar_multiply(ctx->grp, &ctx->d, &ctx->Q);
+    return err;
 }
 
 void
@@ -69,18 +79,33 @@ uecc_btop(uecc_public_key* k, uecp_point* p)
 int
 uecc_point_copy(const uecp_point* src, uecp_point* dst)
 {
+    point_copy(src, dst);
     return 0;
+}
+
+int
+uecc_point_cmp(const uecp_point* a, const uecp_point* b)
+{
+    return !(bn_is_equal(&a->x, &b->x) && bn_is_equal(&a->y, &b->y));
 }
 
 int
 uecc_agree(uecc_ctx* ctx, const uecc_public_key* key)
 {
-    return 0;
+    int err;
+    curve_point p;
+    IF_ERR_EXIT(ecdsa_read_pubkey(ctx->grp, key->b, &p));
+    point_copy(&p, &ctx->Qp);
+    IF_ERR_EXIT(uecc_agree_point(ctx, &p));
+EXIT:
+    return err;
 }
 
 int
 uecc_agree_point(uecc_ctx* ctx, const uecp_point* qp)
 {
+
+    point_multiply(ctx->grp, &ctx->d, qp, &ctx->z);
     return 0;
 }
 
@@ -105,6 +130,20 @@ uecc_recover(const uecc_signature* sig,
              uecc_public_key* key)
 {
     return 0;
+}
+
+// generate random K for signing/side-channel noise
+static void
+uecc_create_key(bignum256* k, const bignum256* prime)
+{
+    do {
+        int i;
+        for (i = 0; i < 8; i++) {
+            k->val[i] = random32() & 0x3FFFFFFF;
+        }
+        k->val[8] = random32() & 0xFFFF;
+        // check that k is in range and not zero.
+    } while (bn_is_zero(k) || !bn_is_less(k, prime));
 }
 
 //
