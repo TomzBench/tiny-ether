@@ -105,8 +105,7 @@ test_ecc()
     IF_ERR_EXIT(uecc_agree(&ctxa, &ctxb.Q));
     IF_ERR_EXIT(uecc_agree(&ctxb, &ctxa.Q));
     IF_ERR_EXIT(uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0);
-    /****IF_ERR_EXIT(uecc_z_cmp_str(&ctxa.z, expect_secret_str)); */
-    uecc_z_cmp_str(&ctxa.z, expect_secret_str); // temp debug str
+    IF_ERR_EXIT(uecc_z_cmp_str(&ctxa.z, expect_secret_str));
 
     // Generate shared secret with known private keys with binary public key
     /**** uecc_ptob(&ctxa.Q, &pubkeya);*/

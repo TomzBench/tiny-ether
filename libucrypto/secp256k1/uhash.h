@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 #include "secp256k1_sha256.h"
-#include "hash.h"
 
 typedef secp256k1_hmac_sha256_t uhmac_sha256_ctx;
 typedef secp256k1_sha256_t usha256_ctx;

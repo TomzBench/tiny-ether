@@ -6,8 +6,7 @@ SRCDIR:=./
 
 incs+=-I.
 incs+=-I${SRCDIR}
-incs+=-I../../external/secp256k1/include
-incs+=-I../../external/secp256k1/src
+incs+=-I../../target/include
 
 dirs+=${INCDIR}/mtm
 dirs+=./obj

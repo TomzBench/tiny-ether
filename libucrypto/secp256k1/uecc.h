@@ -16,6 +16,7 @@ typedef struct { byte b[256] ;} h2048;
 typedef struct { byte b[128] ;} h1024;
 typedef struct { byte b[65]  ;} h520;
 typedef struct { byte b[64]  ;} h512;
+typedef struct { byte b[33]  ;} h264;
 typedef struct { byte b[32]  ;} h256;
 typedef struct { byte b[20]  ;} h160;
 typedef struct { byte b[16]  ;} h128;
@@ -28,15 +29,16 @@ typedef secp256k1_pubkey uecc_public_key; // without header
 typedef h520 uecc_public_key_w_header;    // with header.
 typedef h256 uecc_private_key;
 typedef h256 uecc_shared_secret;
+typedef h264 uecc_shared_secret_w_header;
 typedef uecc_public_key uecc_point;
 
 typedef struct
 {
-    secp256k1_context* grp; /*!< lib export */
-    uecc_private_key d;     /*!< private key */
-    uecc_public_key Q;      /*!< public key */
-    uecc_public_key Qp;     /*!< remote public key */
-    uecc_shared_secret z;   /*!< shared secret */
+    secp256k1_context* grp;        /*!< lib export */
+    uecc_private_key d;            /*!< private key */
+    uecc_public_key Q;             /*!< public key */
+    uecc_public_key Qp;            /*!< remote public key */
+    uecc_shared_secret_w_header z; /*!< shared secret */
 } uecc_ctx;
 
 /**
@@ -82,9 +84,10 @@ int uecc_sign(uecc_ctx* ctx, const byte* b, size_t sz, uecc_signature*);
 
 int uecc_point_cmp(const uecc_public_key* a, const uecc_public_key* b);
 
-int uecc_z_cmp(const uecc_shared_secret* a, const uecc_shared_secret* b);
+int uecc_z_cmp(const uecc_shared_secret_w_header* a,
+               const uecc_shared_secret_w_header* b);
 
-int uecc_z_cmp_str(const uecc_shared_secret* a, const char* b);
+int uecc_z_cmp_str(const uecc_shared_secret_w_header* a, const char* b);
 
 /**
  * @brief

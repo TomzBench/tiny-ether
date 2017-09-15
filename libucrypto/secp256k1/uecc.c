@@ -70,19 +70,14 @@ uecc_point_copy(const uecc_public_key* src, uecc_public_key* dst)
 }
 
 int
-uecc_z_cmp_str(const uecc_shared_secret* a, const char* b)
+uecc_z_cmp_str(const uecc_shared_secret_w_header* a, const char* b)
 {
-    uint8_t hash[32];
-    usha256(fromhex(b), 32, hash);
-    int e1, e2;
-    e1 = memcmp(a->b, hash, 32);
-    e2 = memcmp(a->b, fromhex(b), 32);
-    return e1;
-    // return memcmp(a->b, fromhex(b), 32);
+    return memcmp(&a->b[1], fromhex(b), 32);
 }
 
 int
-uecc_z_cmp(const uecc_shared_secret* a, const uecc_shared_secret* b)
+uecc_z_cmp(const uecc_shared_secret_w_header* a,
+           const uecc_shared_secret_w_header* b)
 {
     return memcmp(a->b, b->b, 32);
 }
