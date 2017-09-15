@@ -23,11 +23,12 @@ typedef struct { byte b[8]   ;} h64;
 // clang-format on
 
 /*!< r: [0, 32), s: [32, 64), v: 64 */
-typedef h520 uecc_signature;
-typedef h520 uecc_public_key_recoverable;
-typedef secp256k1_pubkey uecc_public_key;
+typedef secp256k1_ecdsa_recoverable_signature uecc_signature;
+typedef secp256k1_pubkey uecc_public_key; // without header
+typedef h520 uecc_public_key_w_header;    // with header.
 typedef h256 uecc_private_key;
 typedef h256 uecc_shared_secret;
+typedef uecc_public_key uecc_point;
 
 typedef struct
 {
@@ -37,8 +38,6 @@ typedef struct
     uecc_public_key Qp;     /*!< remote public key */
     uecc_shared_secret z;   /*!< shared secret */
 } uecc_ctx;
-
-#define uecc_z_cmp(x, y) uecc_point_cmp(x, y)
 
 /**
  * @brief initialize a key context
@@ -80,6 +79,12 @@ int uecc_agree(uecc_ctx* ctx, const uecc_public_key* k);
  * @return
  */
 int uecc_sign(uecc_ctx* ctx, const byte* b, size_t sz, uecc_signature*);
+
+int uecc_point_cmp(const uecc_public_key* a, const uecc_public_key* b);
+
+int uecc_z_cmp(const uecc_shared_secret* a, const uecc_shared_secret* b);
+
+int uecc_z_cmp_str(const uecc_shared_secret* a, const char* b);
 
 /**
  * @brief

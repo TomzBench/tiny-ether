@@ -397,6 +397,7 @@ EXIT:
     mbedtls_ecp_point_free(&cp2);
     return err;
 }
+
 int
 uecies_encrypt_str(uecc_point* p,
                    const uint8_t* s,

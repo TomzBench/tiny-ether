@@ -4,7 +4,7 @@
 
 typedef h256 ubn;
 
-//const uint8_t* fromhex(const char* str);
+// const uint8_t* fromhex(const char* str);
 int test_check_cmp(ubn*, const char* hex);
 
 // clang-format off
@@ -41,7 +41,7 @@ const char* bob_pkey_str =
 const char* bob_ekey_str =
     "d25688cf0ab10afa1a0e2dba7853ed5f1e5bf1c631757ed4e103b593ff3f5620";
 const char* expect_secret_str =
-    "E3F407F83FC012470C26A93FDFF534100F2C6F736439CE0CA90E9914F7D1C381";
+    "e3f407f83fc012470c26a93fdff534100f2c6f736439ce0ca90e9914f7d1c381";
 const char* auth_plain =
     "884C36F7AE6B406637C1F61B2F57E1D2CAB813D24C6559AAF843C3F48962F32F46662C066D"
     "39669B7B2E3BA14781477417600E7728399278B1B5D801A519AA570034FDB5419558137E0D"
@@ -102,50 +102,35 @@ test_ecc()
     memset(stest, 'a', l);
 
     // Generate a shared secret with known private keys with point public key
-    err |= uecc_agree(&ctxa, &ctxb.Q);
-    err |= uecc_agree(&ctxb, &ctxa.Q);
-    if (!(err == 0)) goto EXIT;
-    /**** err |= uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;*/
-    if (!(err == 0)) goto EXIT;
-    /**** err |= test_check_cmp(&ctxa.z, expect_secret_str);*/
-    if (!(err == 0)) goto EXIT;
-    if (!(err == 0)) goto EXIT; // note our write fn prints in caps
+    IF_ERR_EXIT(uecc_agree(&ctxa, &ctxb.Q));
+    IF_ERR_EXIT(uecc_agree(&ctxb, &ctxa.Q));
+    IF_ERR_EXIT(uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0);
+    /****IF_ERR_EXIT(uecc_z_cmp_str(&ctxa.z, expect_secret_str)); */
 
     // Generate shared secret with known private keys with binary public key
     /**** uecc_ptob(&ctxa.Q, &pubkeya);*/
     /**** uecc_ptob(&ctxb.Q, &pubkeyb);*/
-    err |= uecc_agree(&ctxa, &pubkeyb);
-    err |= uecc_agree(&ctxb, &pubkeya);
-    if (!(err == 0)) goto EXIT;
+    /****err |= uecc_agree(&ctxa, &pubkeyb);*/
+    /****err |= uecc_agree(&ctxb, &pubkeya);*/
+    /****if (!(err == 0)) goto EXIT;*/
     /**** err |= uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;*/
-    if (!(err == 0)) goto EXIT;
+    /****if (!(err == 0)) goto EXIT;*/
 
     // Generated shared secret with random key
     /**** err |= uecc_agree_point(&ctxa, &ctxc.Q);*/
-    err |= uecc_agree(&ctxc, &ctxa.Q);
-    if (!(err == 0)) goto EXIT;
+    IF_ERR_EXIT(uecc_agree(&ctxc, &ctxa.Q));
     /**** err |= uecc_z_cmp(&ctxa.z, &ctxc.z) ? -1 : 0;*/
-    if (!(err == 0)) goto EXIT;
 
-    // Sign our test blob
-    err = uecc_sign(&ctxa, stest, 66, &sig);
-    if (!(err == 0)) goto EXIT;
-
-    // Verify with public key
-    err = uecc_verify(&ctxa.Q, stest, 66, &sig);
-    if (!(err == 0)) goto EXIT;
-
-    err = uecc_verify(&ctxa_clone.Q, stest, 66, &sig);
-    if (!(err == 0)) goto EXIT;
-
+    // Sign our test blob verify with pubkey
+    IF_ERR_EXIT(uecc_sign(&ctxa, stest, 32, &sig));
+    IF_ERR_EXIT(uecc_verify(&ctxa.Q, stest, 32, &sig));
+    IF_ERR_EXIT(uecc_verify(&ctxa_clone.Q, stest, 32, &sig));
     memset(&sig, 0, sizeof(sig));
 
-    // Verify same key created with key import
-    err = uecc_sign(&ctxa_clone, stest, 66, &sig);
-    if (!(err == 0)) goto EXIT;
-
-    err = uecc_verify(&ctxa_clone.Q, stest, 66, &sig);
-    if (!(err == 0)) goto EXIT;
+    // Verify same key created with key import, check bad sig returns err
+    IF_ERR_EXIT(uecc_sign(&ctxa_clone, stest, 32, &sig));
+    ctxa_clone.Q.data[3] = 0xff; // fail the sig
+    IF_ERR_EXIT(uecc_verify(&ctxa_clone.Q, stest, 32, &sig) == 1 ? 0 : -1);
 
 EXIT:
     uecc_key_deinit(&ctxa);

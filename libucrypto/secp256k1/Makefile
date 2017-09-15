@@ -23,11 +23,9 @@ relobj-y:=${obj-y:.o=.lo}
 ld-relobj-y:=${ld-obj:.o=.lo}
 
 #targets
-all: ${LIBDIR}/libucrypto-secp256k1.a ${LIBDIR}/libucrypto-secp256k1.la ${LIBDIR}/libucrypto-secp256k1.so
+all: ${LIBDIR}/libucrypto-secp256k1.a #${LIBDIR}/libucrypto-secp256k1.so
 
 ${LIBDIR}/libucrypto-secp256k1.a: ${hdrs} ${ld-obj} ${obj-y}
-
-${LIBDIR}/libucrypto-secp256k1.la: ${hdrs} ${ld-obj} ${obj-y}
 
 ${LIBDIR}/libucrypto-secp256k1.so: ${hdrs} ${ld-relobj-y} ${relobj-y}
 
