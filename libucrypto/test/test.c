@@ -106,6 +106,7 @@ test_ecc()
     IF_ERR_EXIT(uecc_agree(&ctxb, &ctxa.Q));
     IF_ERR_EXIT(uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0);
     /****IF_ERR_EXIT(uecc_z_cmp_str(&ctxa.z, expect_secret_str)); */
+    uecc_z_cmp_str(&ctxa.z, expect_secret_str); // temp debug str
 
     // Generate shared secret with known private keys with binary public key
     /**** uecc_ptob(&ctxa.Q, &pubkeya);*/
@@ -117,9 +118,9 @@ test_ecc()
     /****if (!(err == 0)) goto EXIT;*/
 
     // Generated shared secret with random key
-    /**** err |= uecc_agree_point(&ctxa, &ctxc.Q);*/
+    IF_ERR_EXIT(uecc_agree(&ctxa, &ctxc.Q));
     IF_ERR_EXIT(uecc_agree(&ctxc, &ctxa.Q));
-    /**** err |= uecc_z_cmp(&ctxa.z, &ctxc.z) ? -1 : 0;*/
+    IF_ERR_EXIT(uecc_z_cmp(&ctxa.z, &ctxc.z) ? -1 : 0);
 
     // Sign our test blob verify with pubkey
     IF_ERR_EXIT(uecc_sign(&ctxa, stest, 32, &sig));
@@ -130,7 +131,7 @@ test_ecc()
     // Verify same key created with key import, check bad sig returns err
     IF_ERR_EXIT(uecc_sign(&ctxa_clone, stest, 32, &sig));
     ctxa_clone.Q.data[3] = 0xff; // fail the sig
-    IF_ERR_EXIT(uecc_verify(&ctxa_clone.Q, stest, 32, &sig) == 1 ? 0 : -1);
+    IF_ERR_EXIT(uecc_verify(&ctxa_clone.Q, stest, 32, &sig) ? 0 : -1);
 
 EXIT:
     uecc_key_deinit(&ctxa);

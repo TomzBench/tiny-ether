@@ -91,7 +91,7 @@ int
 uecc_agree(uecc_ctx* ctx, const uecc_public_key* key)
 {
     int ok = secp256k1_ecdh(ctx->grp, ctx->z.b, key, ctx->d.b);
-    return !ok;
+    return ok ? 0 : -1;
 }
 
 int
@@ -100,7 +100,7 @@ uecc_sign(uecc_ctx* ctx, const byte* msg, size_t sz, uecc_signature* sig)
     if (!(sz == 32)) return -1;
     int ok = secp256k1_ecdsa_sign_recoverable(ctx->grp, sig, msg, ctx->d.b,
                                               NULL, NULL);
-    return !ok;
+    return ok ? 0 : -1;
 }
 
 int
@@ -119,7 +119,7 @@ uecc_verify(const uecc_public_key* q,
     secp256k1_ecdsa_recoverable_signature_convert(ctx.grp, &rawsig, recsig);
     ok = secp256k1_ecdsa_verify(ctx.grp, &rawsig, msg, q);
     secp256k1_context_destroy(ctx.grp);
-    return !ok;
+    return ok ? 0 : -1;
 }
 
 int
