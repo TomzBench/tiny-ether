@@ -72,7 +72,13 @@ uecc_point_copy(const uecc_public_key* src, uecc_public_key* dst)
 int
 uecc_z_cmp_str(const uecc_shared_secret* a, const char* b)
 {
-    return memcmp(a->b, fromhex(b), 32);
+    uint8_t hash[32];
+    usha256(fromhex(b), 32, hash);
+    int e1, e2;
+    e1 = memcmp(a->b, hash, 32);
+    e2 = memcmp(a->b, fromhex(b), 32);
+    return e1;
+    // return memcmp(a->b, fromhex(b), 32);
 }
 
 int
@@ -90,7 +96,7 @@ uecc_point_cmp(const uecc_public_key* a, const uecc_public_key* b)
 int
 uecc_agree(uecc_ctx* ctx, const uecc_public_key* key)
 {
-    int ok = secp256k1_ecdh(ctx->grp, ctx->z.b, key, ctx->d.b);
+    int ok = secp256k1_ecdh_raw(ctx->grp, ctx->z.b, key, ctx->d.b);
     return ok ? 0 : -1;
 }
 

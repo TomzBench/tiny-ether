@@ -91,7 +91,7 @@ test_ecc()
     size_t l = 100;   // buffer sz
     uint8_t stest[l]; // binary buffer
     uecc_ctx ctxa, ctxa_clone, ctxb, ctxc;
-    uecc_public_key pubkeya, pubkeyb;
+    /****uecc_public_key pubkeya, pubkeyb;*/
     uecc_signature sig;
 
     // Init stack
