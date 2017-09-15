@@ -67,6 +67,7 @@ uecc_point_copy(const uecc_public_key* src, uecc_public_key* dst)
 int
 uecc_point_cmp(const uecc_public_key* a, const uecc_public_key* b)
 {
+    return 0;
 }
 
 int

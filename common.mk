@@ -3,13 +3,13 @@
 BRAND:=mtm
 MKDIR_P:= mkdir -p
 
-CFLAGS?=-O0 -g -Wall -DNDEBUG
-CFLAGS+= ${defines}
+CFLAGS?=-O0 -g -Wall  -DNDEBUG -std=gnu11
+CFLAGS+=${defines}
+CFLAGS+=${incs}
 CFLAGS+=${cflags}
 #LDFLAGS+=${libs}
 
-CC:=cc -std=gnu11 
-CC+= ${incs}
+CC:=cc
 
 relobj-y:=${obj-y:.o=.lo}
 
@@ -20,9 +20,13 @@ ${LIBDIR}/%.so: ${dirs} ${relobj-y} ${obj-y} ${hdrs}
 	@echo "LINK $@"
 	@${CC} -shared ${relobj-y} ${ld-relobj} ${LDFLAGS} ${olibs} -o $@
 
+${LIBDIR}/%.la: ${dirs} ${obj-y} ${hdrs} ${ld-obj}
+	@echo "LINK $@"
+	@libtool --mode=link gcc ${CFLAGS} -o $@ ${obj-y} ${ld-obj}
+
 ${LIBDIR}/%.a: ${dirs} ${obj-y} ${hdrs} ${ld-obj}
 	@echo "LINK $@"
-	@ar rcs $@ ${obj-y} ${ld-obj} #${alibs}
+	@ar rcs $@ ${obj-y} ${ld-obj} 
 
 ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 	@echo "COPY $@"

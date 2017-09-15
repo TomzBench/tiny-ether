@@ -80,6 +80,8 @@ flags = [
 '-I',
 './external/secp256k1/include/',
 '-I',
+'./external/secp256k1/src/',
+'-I',
 './crypto/mbedtls/',
 '-I',
 './crypto/wolfssl/',
