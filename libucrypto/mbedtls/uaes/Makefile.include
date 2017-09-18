@@ -1,4 +1,8 @@
 #Makefile.include
-src-y+=$(BASE)/libucrypto/mbedtls/uaes/uaes.c
-obj-y+=$(TARGET)/libucrypto/mbedtls/uaes/uaes.o
-hdr-y+=$(TARGET)/libucrypto/mbedtls/uaes/include/uaes.h
+MODULE:=libucrypto/mbedtls/uaes
+LIB:=libucrypto-mbedtls-uaes.a
+SRC:=$(BASE)/$(MODULE)
+INC:=$(BASE)/$(MODULE)
+SRCS+=$(SRC)/uaes.c
+INCS+=$(INC)/uaes.h
+include $(BASE)/Makefile.common

@@ -1,0 +1,16 @@
+#Makefile.common
+
+DIRS+=$(TARGET)/$(MODULE)
+OBJS+=$(patsubst %.c,%.o,$(TARGET)/$(MODULE)/$(notdir $(SRCS)))
+INCS:=$(addprefix -I,$(INC))
+LIBS:=$(addprefix $(TARGET)/$(MODULE)/,$(LIB))
+
+test+=$(LIBS)
+
+$(TARGET)/$(MODULE)/%.o: $(SRC)/%.c
+	@echo "xxx  CC $@"
+	@${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
+
+$(LIBS): $(DIRS) $(OBJS)
+	@echo "LINK $@"
+	@ar rcs $@ $(OBJS) 
