@@ -15,5 +15,6 @@ include ${BASE}/Makefile.include
 print:
 	@echo \
 		DEPS: ${DEPS} \
-		INCS: ${USEMODULE_INCLUDES} \
+		DIRS: $(DIRS) \
+		OBJS: $(OBJS) \
 		| sed -e 's/\s\+/\n/g' 

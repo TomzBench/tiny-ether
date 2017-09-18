@@ -1,1 +1,3 @@
+TARGET?=target
 include $(BASE)/libucrypto/Makefile.include
+include $(BASE)/Makefile.base

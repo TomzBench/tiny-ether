@@ -1,0 +1,14 @@
+MKDIR_P:= mkdir -p
+
+# .o , .a outputs
+MODULE_DIRS:=$(addprefix $(TARGET)/,$(USEMODULE))
+
+# make dirs if need
+DIRS+=$(MODULE_DIRS)
+
+$(APPLICATION): \
+	$(DIRS) \
+	$(OBJS)
+
+${DIRS}:
+	${MKDIR_P} ${DIRS}
