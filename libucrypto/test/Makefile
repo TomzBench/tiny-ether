@@ -4,9 +4,9 @@ APPLICATION:=libucrypto-test
 BOARD:=linux-emu
 BASE:=../..
 
-USEMODULE+=mbedtls-uaes
-USEMODULE+=secp256k1-uecc
-USEMODULE+=secp256k1-uhash
+USEMODULE+=$(BASE)/libucrypto/mbedtls/uaes
+USEMODULE+=$(BASE)/libucrypto/secp256k1/uecc
+USEMODULE+=$(BASE)/libucrypto/secp256k1/uhash
 
 include ${BASE}/Makefile.include
 
