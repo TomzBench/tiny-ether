@@ -1,0 +1,1 @@
+include $(BASE)/libucrypto/Makefile.include

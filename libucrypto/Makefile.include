@@ -1,0 +1,31 @@
+ifneq (,$(filter mbedtls-uaes,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(BASE)/libucrypto/mbedtls/aes
+endif
+
+ifneq (,$(filter mbedtls-uecc,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(BASE)/libucrypto/mbedtls/ecc
+endif
+
+ifneq (,$(filter mbedtls-uhash,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(BASE)/libucrypto/mbedtls/hash
+endif
+
+ifneq (,$(filter secp256k1-uaes,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(BASE)/libucrypto/secp256k1/aes
+endif
+
+ifneq (,$(filter secp256k1-uecc,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(BASE)/libucrypto/secp256k1/ecc
+endif
+
+ifneq (,$(filter secp256k1-uhash,$(USEMODULE)))
+  USEMODULE_INCLUDES += $(BASE)/libucrypto/secp256k1/hash
+endif
+
+ifneq (,$(filter mbedtls,$(USEMODULE)))
+  DEPS += ${BASE}/external/mbedtls
+endif
+
+ifneq (,$(filter secp256k1,$(USEMODULE)))
+  DEPS += ${BASE}/external/secp256k1
+endif

@@ -1,28 +1,19 @@
 #crypto test makefile
 
-SRCDIR:=./
+APPLICATION:=libucrypto-test
+BOARD:=linux-emu
+BASE:=../..
 
-incs+=-I./
-incs+=-I../
-incs+=-I../../external/secp256k1/include
-incs+=-I../../external/secp256k1/src
-incs+=-I../../target/include/
-incs+=-I../../target/include/mtm
+USEMODULE+=mbedtls
+USEMODULE+=secp256k1
+USEMODULE+=mbedtls-uaes
+USEMODULE+=secp256k1-uecc
+USEMODULE+=secp256k1-uhash
 
-alibs+=-L../../target/lib -l:libucrypto-secp256k1.a -l:libsecp256k1.a
+include ${BASE}/Makefile.include
 
-# create some dirs
-dirs+=./obj
-
-# compiled objects
-obj-y+=./obj/test.o
-
-# note - common.mk target requires app_*
-app: ${dirs} ${obj-y} app_test
-
-include ../../common.mk
-
-clean:
-	@echo "CLEAN"
-	@rm -rf ./obj/ 
-	@rm -f app_test
+print:
+	@echo \
+		DEPS: ${DEPS} \
+		INCS: ${USEMODULE_INCLUDES} \
+		| sed -e 's/\s\+/\n/g' 
