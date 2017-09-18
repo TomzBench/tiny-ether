@@ -12,9 +12,7 @@ include ${BASE}/Makefile.include
 
 print:
 	@echo \
-		DEPS: ${DEPS} \
 		DIRS: $(DIRS) \
-		OBJS: $(OBJS) \
-		INCS: $(INCS) \
 		SRCS: $(SRCS) \
+		OBJS: $(OBJS) \
 		| sed -e 's/\s\+/\n/g' 

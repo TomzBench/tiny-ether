@@ -1,3 +1,4 @@
 #Makefile.include
-OBJS-Y+=uecc.o
-HDRS-Y+=uecc.h
+src-y+=$(BASE)/libucrypto/secp256k1/uecc/uecc.c
+obj-y+=$(TARGET)/libucrypto/secp256k1/uecc/uecc.o
+hdr-y+=$(TARGET)/libucrypto/secp256k1/uecc/include/uecc.h

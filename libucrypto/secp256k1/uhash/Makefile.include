@@ -1,3 +1,4 @@
 #Makefile.include
-OBJS-Y+=uhash.o
-HDRS-Y+=uhash.h
+src-y+=$(BASE)/libucrypto/secp256k1/uhash/uhash.c
+obj-y+=$(TARGET)/libucrypto/secp256k1/uhash/uhash.o
+hdr-y+=$(TARGET)/libucrypto/secp256k1/uhash/include/uhash.h

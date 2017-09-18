@@ -1,3 +1,4 @@
 #Makefile.include
-OBJS-Y+=uaes.o
-HDRS-Y+=uaes.h
+src-y+=$(BASE)/libucrypto/mbedtls/uaes/uaes.c
+obj-y+=$(TARGET)/libucrypto/mbedtls/uaes/uaes.o
+hdr-y+=$(TARGET)/libucrypto/mbedtls/uaes/include/uaes.h

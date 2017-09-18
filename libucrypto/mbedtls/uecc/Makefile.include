@@ -1,0 +1,3 @@
+#Makefile.include
+obj-y+=uecc.o
+hdr-y+=uecc.h

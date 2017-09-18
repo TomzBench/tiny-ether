@@ -5,18 +5,19 @@ CFLAGS?=-O0 -g -Wall  -DNDEBUG -std=gnu11
 CC:=gcc
 
 # build output directories
-DIRS+=$(addprefix $(TARGET)/, $(USEMODULE))
+DIRS+=$(addprefix $(TARGET)/,$(USEMODULE))
+OBJS+=$(obj-y)
+SRCS+=$(src-y)
 
 # build objects
-OBJS+=$(OBJS-Y)
 
 $(APPLICATION): \
 	$(DIRS) \
-	$(DIRS)/$(OBJS) 
+	$(OBJS)
 
 ${DIRS}:
 	${MKDIR_P} ${DIRS}
 
-#$(TARGET)/$(USEMODULE)/%.o $(USEMODULE)/%.c:
-#	echo $< 
-#	echo $@
+$(OBJS):$(SRCS)
+	@echo "  CC $@"
+	@${CC} -c ${CFLAGS} ${LDFLAGS} $< -o $@ 
