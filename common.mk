@@ -16,14 +16,6 @@ relobj-y:=${obj-y:.o=.lo}
 ${dirs}:
 	${MKDIR_P} ${dirs}
 
-${LIBDIR}/%.so: ${dirs} ${relobj-y} ${obj-y} ${hdrs}
-	@echo "LINK $@"
-	@${CC} -shared ${relobj-y} ${ld-relobj} ${LDFLAGS} ${olibs} -o $@
-
-${LIBDIR}/%.la: ${dirs} ${obj-y} ${hdrs} ${ld-obj}
-	@echo "LINK $@"
-	@libtool --mode=link gcc ${CFLAGS} -o $@ ${obj-y} ${ld-obj}
-
 ${LIBDIR}/%.a: ${dirs} ${obj-y} ${hdrs} ${ld-obj}
 	@echo "LINK $@"
 	@ar rcs $@ ${obj-y} ${ld-obj} 
@@ -31,10 +23,6 @@ ${LIBDIR}/%.a: ${dirs} ${obj-y} ${hdrs} ${ld-obj}
 ${INCDIR}/${BRAND}/%.h: ${SRCDIR}/%.h
 	@echo "COPY $@"
 	@cp $< $@
-
-./obj/%.lo: ${SRCDIR}/%.c
-	@echo "  CC $@"
-	@${CC} -c -fPIC ${CFLAGS} ${LDFLAGS} $< -o $@ 
 
 ./obj/%.o: ${SRCDIR}/%.c
 	@echo "  CC $@"

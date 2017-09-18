@@ -1,31 +1,35 @@
 ifneq (,$(filter mbedtls-uaes,$(USEMODULE)))
-  USEMODULE_SRCS += $(BASE)/libucrypto/mbedtls/aes
+  SRCS+=$(BASE)/libucrypto/mbedtls/aes
+  INCS+=-I$(BASE)/libucrypto/mbedtls/aes
+  XOBJ+=$(patsubst %.c,%.o,$(addprefix $(TARGET)/mbedtls-uaes/, $(notdir $(shell find $(BASE)/libucrypto/mbedtls/aes -name '*.c'))))
 endif
 
 ifneq (,$(filter mbedtls-uecc,$(USEMODULE)))
-  USEMODULE_SRCS += $(BASE)/libucrypto/mbedtls/ecc
+  SRCS+=$(BASE)/libucrypto/mbedtls/ecc
+  INCS+=-I$(BASE)/libucrypto/mbedtls/ecc
+  XOBJ+=$(patsubst %.c,%.o,$(addprefix $(TARGET)/mbedtls-uecc/, $(notdir $(shell find $(BASE)/libucrypto/mbedtls/ecc -name '*.c'))))
 endif
 
 ifneq (,$(filter mbedtls-uhash,$(USEMODULE)))
-  USEMODULE_SRCS += $(BASE)/libucrypto/mbedtls/hash
+  SRCS+=$(BASE)/libucrypto/mbedtls/hash
+  INCS+=-I$(BASE)/libucrypto/mbedtls/hash
+  XOBJ+=$(patsubst %.c,%.o,$(addprefix $(TARGET)/mbedtls-uhash/, $(notdir $(shell find $(BASE)/libucrypto/mbedtls/hash -name '*.c'))))
 endif
 
 ifneq (,$(filter secp256k1-uaes,$(USEMODULE)))
-  USEMODULE_SRCS += $(BASE)/libucrypto/secp256k1/aes
+  SRCS+=$(BASE)/libucrypto/secp256k1/aes
+  INCS+=-I$(BASE)/libucrypto/secp256k1/aes
+  XOBJ+=$(patsubst %.c,%.o,$(addprefix $(TARGET)/secp256k1-uaes/,$(notdir $(shell find $(BASE)/libucrypto/secp256k1/aes -name '*.c'))))
 endif
 
 ifneq (,$(filter secp256k1-uecc,$(USEMODULE)))
-  USEMODULE_SRCS += $(BASE)/libucrypto/secp256k1/ecc
+  SRCS+=$(BASE)/libucrypto/secp256k1/ecc
+  INCS+=-I$(BASE)/libucrypto/secp256k1/ecc
+  XOBJ+=$(patsubst %.c,%.o,$(addprefix $(TARGET)/secp256k1-uecc/, $(notdir $(shell find $(BASE)/libucrypto/secp256k1/ecc -name '*.c'))))
 endif
 
 ifneq (,$(filter secp256k1-uhash,$(USEMODULE)))
-  USEMODULE_SRCS += $(BASE)/libucrypto/secp256k1/hash
-endif
-
-ifneq (,$(filter mbedtls,$(USEMODULE)))
-  DEPS += ${BASE}/external/mbedtls
-endif
-
-ifneq (,$(filter secp256k1,$(USEMODULE)))
-  DEPS += ${BASE}/external/secp256k1
+  SRCS+=$(BASE)/libucrypto/secp256k1/hash
+  INCS+=-I$(BASE)/libucrypto/secp256k1/hash
+  XOBJ+=$(patsubst %.c,%.o,$(addprefix $(TARGET)/secp256k1-uhash/,$(notdir $(shell find $(BASE)/libucrypto/secp256k1/hash -name '*.c'))))
 endif

@@ -4,8 +4,6 @@ APPLICATION:=libucrypto-test
 BOARD:=linux-emu
 BASE:=../..
 
-USEMODULE+=mbedtls
-USEMODULE+=secp256k1
 USEMODULE+=mbedtls-uaes
 USEMODULE+=secp256k1-uecc
 USEMODULE+=secp256k1-uhash
@@ -17,4 +15,6 @@ print:
 		DEPS: ${DEPS} \
 		DIRS: $(DIRS) \
 		OBJS: $(OBJS) \
+		INCS: $(INCS) \
+		SRCS: $(SRCS) \
 		| sed -e 's/\s\+/\n/g' 
