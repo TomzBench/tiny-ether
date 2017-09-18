@@ -1,20 +1,5 @@
 #Makefile.base
-
-MKDIR_P:= mkdir -p
-CFLAGS?=-O0 -g -Wall  -DNDEBUG -std=gnu11
-CC:=gcc
-
-# build output directories
-#DIRS+=$(addprefix $(TARGET)/,$(USEMODULE))
-OBJS+=$(obj-y)
-SRCS+=$(src-y)
-
-# build objects
-
 $(APPLICATION): \
 	$(DIRS) \
 	$(OBJS) \
 	$(LIBS)
-
-${DIRS}:
-	${MKDIR_P} ${DIRS}
