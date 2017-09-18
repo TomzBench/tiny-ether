@@ -1,0 +1,3 @@
+#Makefile.include
+OBJS-Y+=uecc.o
+HDRS-Y+=uecc.h

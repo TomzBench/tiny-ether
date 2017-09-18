@@ -1,0 +1,3 @@
+#Makefile.include
+OBJS-Y+=uhash.o
+HDRS-Y+=uhash.h
