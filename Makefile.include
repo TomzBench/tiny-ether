@@ -1,3 +1,7 @@
+# output root directory relative to application
 TARGET?=target
-include $(addsuffix /Makefile.include, $(USEMODULE))
+
+# module includes
+include $(addprefix $(BASE)/, $(addsuffix /Makefile.include,$(USEMODULE)))
+
 include $(BASE)/Makefile.base
