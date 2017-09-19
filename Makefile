@@ -5,11 +5,11 @@ PREFIX		?=	target
 MKDIR_P		:= 	mkdir -p
 CC		:=	gcc
 
-# configurations
+# Configurations switches -D
 CONFIGS_D 	+= 	URLP_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 
-# Get lib objects
+# Collect lib objects *.o
 MODULES 	+=	liburlp
 #MODULES 	+=	libucrypto/mbedtls/uaes
 #MODULES 	+=	libucrypto/mbedtls/uecc
@@ -33,14 +33,7 @@ INCS		+=	$(addprefix -I./, $(MODULES))
 INCS		+=	$(addsuffix /include,$(addprefix -I./, $(MODULES)))
 INCS	 	+=	$(addprefix -I./,$(PREFIX)/include)
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
-
 CFLAGS 		+= 	$(DEFS)
-
-OBJ_DIR 	:= 	$(dir $(OBJS))
-SRC_DIR 	:= 	$(dir $(SRCS))
-
-test 		:=	$(patsubst %.o,%.c,$(subst $(PREFIX)/obj/,,$(OBJS)))
-
 
 all: $(DIRS) $(OBJS)
 
@@ -50,17 +43,13 @@ $(PREFIX)/obj/%.o: %.c
 	@echo "  CC $@"
 	@${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
 
-#$(PREFIX)/obj/%.o: %.c
-#	@echo "  CC $@"
-#	@echo "  CC $<"
-#	${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
-
 $(DIRS):
 	@echo "MKDR $@"
 	@${MKDIR_P} ${DIRS}
 
 clean:
-	rm -rf target
+	@echo "CLEAN"
+	@rm -rf target
 
 # Makefile debug print
 print:
@@ -75,3 +64,7 @@ print:
 		SRC_DIR: $(SRC_DIR) \
 		test: $(test) \
 		| sed -e 's/\s\+/\n/g' 
+
+#
+#
+#

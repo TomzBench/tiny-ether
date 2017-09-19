@@ -1,8 +1,0 @@
-#Makefile.include
-MODULE:=libucrypto/secp256k1/uhash
-LIB:=libucrypto-secp256k1-uhash.a
-SRC:=$(BASE)/$(MODULE)
-SRCS+=$(SRC)/uhash.c
-INCS+=$(BASE)/$(MODULE)
-INCS+=$(BASE)/external/secp256k1/include
-include $(BASE)/Makefile.common

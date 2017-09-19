@@ -1,8 +1,0 @@
-#Makefile.include
-MODULE:=libucrypto/mbedtls/uhash
-LIB:=libucrypto-mbedtls-uhash.a
-SRC:=$(BASE)/$(MODULE)
-INC:=$(BASE)/$(MODULE)
-SRCS+=$(SRC)/uhash.c
-INCS+=$(INC)/uhash.h
-include $(BASE)/Makefile.common
