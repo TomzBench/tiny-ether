@@ -13,7 +13,6 @@ CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 # Collect lib objects *.o
 MODULES 	+=	liburlp
 MODULES 	+=	libucrypto/mbedtls/uaes
-MODULES 	+=	libucrypto/mbedtls/uecc
 MODULES 	+=	libucrypto/mbedtls/uhash
 MODULES 	+=	libucrypto/secp256k1/uecc
 MODULES 	+=	libucrypto/secp256k1/uhash
@@ -48,6 +47,10 @@ $(PREFIX)/obj/%.o: %.c
 $(DIRS):
 	@echo "MKDR $@"
 	@${MKDIR_P} ${DIRS}
+
+#${PREFIX}/include/%.h: ${SRCDIR}/%.h
+#	@echo "COPY $@"
+#	@cp $< $@
 
 clean:
 	@echo "CLEAN"
