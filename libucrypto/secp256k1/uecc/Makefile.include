@@ -1,8 +1,4 @@
 #Makefile.include
-SRCS:=
-INCS:=
-DIRS:=
-OBJS:=
 MODULE:=libucrypto/secp256k1/uecc
 LIB:=libucrypto-secp256k1-uecc.a
 SRC:=$(BASE)/$(MODULE)

@@ -15,13 +15,13 @@ LIBS+=$(LIB)
 #
 
 $(TARGET)/$(MODULE)/%.o: $(SRC)/%.c
-	echo "  CC $@"
-	${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
+	@echo "  CC $@"
+	@${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
 
 $(LIB): $(DIRS) $(OBJS)
-	echo "LINK $@"
-	ar rcs $@ $(OBJS) 
+	@echo "LINK $@"
+	@ar rcs $@ $(OBJS) 
 
 ${DIRS}:
-	echo "MKDR $@"
-	${MKDIR_P} ${DIRS}
+	@echo "MKDR $@"
+	@${MKDIR_P} ${DIRS}

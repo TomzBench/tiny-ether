@@ -1,8 +1,4 @@
 #Makefile.include
-SRCS:=
-INCS:=
-DIRS:=
-OBJS:=
 MODULE:=libucrypto/secp256k1/uhash
 LIB:=libucrypto-secp256k1-uhash.a
 SRC:=$(BASE)/$(MODULE)
