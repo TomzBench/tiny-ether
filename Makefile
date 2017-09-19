@@ -60,13 +60,7 @@ $(DIRS):
 
 clean:
 	@echo "CLEAN"
-	@rm -rf $(TARGET)/lib/libucrypto
-	@rm -rf $(TARGET)/lib/liburlp
-	@rm -rf $(TARGET)/lib/liburlp.a
-	@rm -rf $(TARGET)/lib/libucrypto-mbedtls-uaes.a
-	@rm -rf $(TARGET)/lib/libucrypto-mbedtls-uhash.a
-	@rm -rf $(TARGET)/lib/libucrypto-secp256k1-uecc.a
-	@rm -rf $(TARGET)/lib/libucrypto-secp256k1-uhash.a
+	@rm -rf $(LIBS)
 	@rm -rf $(TARGET)/obj
 
 # Makefile debug print
