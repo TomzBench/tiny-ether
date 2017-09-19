@@ -1,4 +1,4 @@
-# output root directory relative to application
+# output root directory relative to application (DEPRECIATED)
 TARGET?=target
 
 # module includes
