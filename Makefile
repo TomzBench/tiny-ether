@@ -4,11 +4,9 @@
 # directory structure:
 # module
 #     src
-#         lib.c
-#         internal.h
-#         private.h
+#         srcs.(c|h)
 #     include
-#         lib.h
+#         public.h
 
 # setup install directory
 TARGET		?=	target
@@ -73,7 +71,6 @@ $(DIRS):
 $(TARGET)/include/%.h:
 	@echo "COPY $@"
 	@cp $(shell find $(MODULE_INCS) -maxdepth '1' -name $(notdir $@)) $@
-
 
 .PHONY: clean test print
 
