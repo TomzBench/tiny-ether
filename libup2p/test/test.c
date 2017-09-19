@@ -1,4 +1,4 @@
-#include "mtm/rlpx.h"
+#include "rlpx.h"
 #include <string.h>
 
 typedef struct

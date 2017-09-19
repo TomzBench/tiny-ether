@@ -27,27 +27,38 @@ MODULES 	+=	libucrypto/secp256k1/uhash
 # Build test applications
 APPLICATIONS 	+=	liburlp/test
 APPLICATIONS 	+=	libucrypto/test
-APPLICATIONS 	+=	libup2p/test
+#APPLICATIONS 	+=	libup2p/test
 
 # Build vars
+APP_SRCS	+=	$(APPLICATIONS)
 MODULE_SRCS 	+= 	$(addsuffix /src,$(MODULES))
 MODULE_INCS 	+= 	$(addsuffix /include,$(MODULES))
 MODULE_DIRS 	+=	$(MODULE_INCS) $(MODULE_SRCS)
 DIRS 		+=	$(addprefix $(TARGET)/obj/,$(MODULE_SRCS))
-DIRS 		+=	$(addprefix $(TARGET)/obj/,$(APPLICATIONS))
-LIBS 		+= 	$(addprefix $(TARGET)/lib/, \
-			$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod)))))
+DIRS 		+=	$(addprefix $(TARGET)/obj/,$(APP_SRCS))
+DIRS 		+=	$(TARGET)/bin
+LIBS 		+= 	$(addprefix $(TARGET)/lib/,$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod)))))
+APPS 		+= 	$(addprefix $(TARGET)/bin/,$(foreach bin, $(APPLICATIONS),$(subst /,-,$(bin))))
 SRCS 		+=	$(shell find $(MODULE_SRCS) -maxdepth '1' -name '*.c')
+SRCS 		+=	$(shell find $(APP_SRCS) -maxdepth '1' -name '*.c')
 HDRS 		+= 	$(shell find $(MODULE_INCS) -maxdepth '1' -name '*.h')
 OBJS		+=	$(addprefix $(TARGET)/obj/,$(SRCS:.c=.o))
 INCS		+=	$(addprefix -I./,$(MODULE_DIRS))
 INCS	 	+=	$(addprefix -I./,$(TARGET)/include)
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
 CFLAGS 		+= 	$(DEFS)
+LDFLAGS 	+=	$(LIBS) $(addprefix $(TARGET)/lib/, libmbedcrypto.a libsecp256k1.a)
 INSTALL 	+= 	$(LIBS)
+INSTALL 	+= 	$(APPS)
 INSTALL 	+= 	$(addprefix $(TARGET)/include/,$(notdir $(HDRS)))
 
 all: $(DIRS) $(OBJS) $(INSTALL)
+
+$(APPS): $(DIRS) $(LIBS)
+	@echo "LINK $@ $(shell find \
+		$(subst $(TARGET)/bin,$(TARGET)/obj,$(subst -,/,$@)) -name '*.o')"
+	@$(CC) $(shell find $(subst $(TARGET)/bin,$(TARGET)/obj,$(subst -,/,$@)) -name '*.o') \
+		$(LDFLAGS) $(INCS) -o $@
 
 # The name convention allows collecting lib objects with find,
 # IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*/.o
@@ -60,7 +71,7 @@ $(TARGET)/lib/%.a:
 # .c->.o
 $(TARGET)/obj/%.o: %.c
 	@echo "  CC $@"
-	@${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
+	@${CC} -c ${CFLAGS} $(INCS) $< -o $@ 
 
 # create some output directories
 $(DIRS):
@@ -80,6 +91,14 @@ clean:
 	@rm -rf $(INSTALL)
 	@rm -rf $(TARGET)/obj
 
+test:
+	@$(foreach bin,$(APPS),echo TEST $(bin);valgrind \
+		--track-origins=yes \
+		--tool=memcheck \
+		--leak-check=full \
+		--quiet \
+		./$(bin);)
+
 # Makefile debug print
 print:
 	@echo \
@@ -90,10 +109,10 @@ print:
 		INCS: $(INCS) \
 		OBJS: $(OBJS) \
 		DEFS: $(DEFS) \
+		APPS: $(APPS) \
 		INST: $(INSTALL) \
 		OBJ_DIR: $(OBJ_DIR) \
 		SRC_DIR: $(SRC_DIR) \
-		test: $(test) \
 		| sed -e 's/\s\+/\n/g' 
 
 #

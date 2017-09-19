@@ -1,4 +1,4 @@
-#include "mtm/uecc.h"
+#include "uecc.h"
 #include <stdint.h>
 #include <string.h>
 
