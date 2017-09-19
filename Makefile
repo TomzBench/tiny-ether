@@ -1,8 +1,6 @@
 #ulib makefile
 
-# Intended to build on Linux Only and would like to eventually build for 
-# cross-compile
-#
+# Intended to build on Linux Only.
 # directory structure:
 # module
 #     src
