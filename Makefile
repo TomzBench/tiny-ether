@@ -1,5 +1,17 @@
 #ulib makefile
 
+# Intended to build on Linux Only and would like to eventually build for 
+# cross-compile
+#
+# directory structure:
+# module
+#     src
+#         lib.c
+#         internal.h
+#         private.h
+#     include
+#         lib.h
+
 # setup install directory
 TARGET		?=	target
 MKDIR_P		:= 	mkdir -p
