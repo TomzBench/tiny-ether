@@ -24,7 +24,7 @@ APPLICATIONS 	+=	libup2p/test
 # Build vars
 DIRS 		+=	$(addprefix $(TARGET)/obj/,$(MODULES))
 DIRS 		+=	$(addprefix $(TARGET)/obj/,$(APPLICATIONS))
-LIBS 		+= 	$(addprefix $(TARGET)/obj/, \
+LIBS 		+= 	$(addprefix $(TARGET)/lib/, \
 			$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod)))))
 SRCS 		+=	$(shell find $(MODULES) -maxdepth '1' -name '*.c')
 OBJS		+=	$(addprefix $(TARGET)/obj/,$(SRCS:.c=.o))
@@ -36,12 +36,13 @@ CFLAGS 		+= 	$(DEFS)
 
 all: $(DIRS) $(OBJS) $(LIBS)
 
-# The name convention allows finding lib objects with find,
+# The name convention allows collecting lib objects with find,
 # IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*/.o
-$(TARGET)/obj/%.a:
-	@echo "LINK $@ $(shell find $(subst .a,,$(subst -,/,$@)) -name '*.o')"
-	@ar rcs $(subst $(TARGET)/obj,$(TARGET)/lib,$@) \
-	       	$(shell find $(subst .a,,$(subst -,/,$@)) -name '*.o')
+$(TARGET)/lib/%.a:
+	@echo "LINK $@ $(shell find \
+		$(subst $(TARGET)/lib,$(TARGET)/obj,$(subst .a,,$(subst -,/,$@))) -name '*.o')"
+	@ar rcs $@ $(shell find \
+		$(subst $(TARGET)/lib,$(TARGET)/obj,$(subst .a,,$(subst -,/,$@))) -name '*.o')
 
 $(TARGET)/obj/%.o: %.c
 	@echo "  CC $@"
