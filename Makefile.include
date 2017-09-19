@@ -1,7 +1,0 @@
-# output root directory relative to application (DEPRECIATED)
-TARGET?=target
-
-# module includes
-include $(addprefix $(BASE)/, $(addsuffix /Makefile.include,$(USEMODULE)))
-
-include $(BASE)/Makefile.base
