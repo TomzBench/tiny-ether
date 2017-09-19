@@ -2,6 +2,7 @@
 
 # setup install directory
 PREFIX		?=	target
+BASE 		:= 	./
 MKDIR_P		:= 	mkdir -p
 CC		:=	gcc
 
@@ -11,11 +12,11 @@ CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 
 # Collect lib objects *.o
 MODULES 	+=	liburlp
-#MODULES 	+=	libucrypto/mbedtls/uaes
-#MODULES 	+=	libucrypto/mbedtls/uecc
-#MODULES 	+=	libucrypto/mbedtls/uhash
-#MODULES 	+=	libucrypto/secp256k1/uecc
-#MODULES 	+=	libucrypto/secp256k1/uhash
+MODULES 	+=	libucrypto/mbedtls/uaes
+MODULES 	+=	libucrypto/mbedtls/uecc
+MODULES 	+=	libucrypto/mbedtls/uhash
+MODULES 	+=	libucrypto/secp256k1/uecc
+MODULES 	+=	libucrypto/secp256k1/uhash
 
 # Build test applications
 APPLICATIONS 	+=	liburlp/test
@@ -32,6 +33,7 @@ OBJS		+=	$(addprefix $(PREFIX)/obj/,$(SRCS:.c=.o))
 INCS		+=	$(addprefix -I./, $(MODULES))
 INCS		+=	$(addsuffix /include,$(addprefix -I./, $(MODULES)))
 INCS	 	+=	$(addprefix -I./,$(PREFIX)/include)
+INCS 		+= 	$(addprefix -I./,$(BASE)/external/secp256k1/include)
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
 CFLAGS 		+= 	$(DEFS)
 
