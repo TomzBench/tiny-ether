@@ -22,19 +22,24 @@ APPLICATIONS 	+=	libucrypto/test
 APPLICATIONS 	+=	libup2p/test
 
 # Build vars
-DIRS 		+=	$(addprefix $(TARGET)/obj/,$(MODULES))
+MODULE_SRCS 	+= 	$(addsuffix /src,$(MODULES))
+MODULE_INCS 	+= 	$(addsuffix /include,$(MODULES))
+MODULE_DIRS 	+=	$(MODULE_INCS) $(MODULE_SRCS)
+DIRS 		+=	$(addprefix $(TARGET)/obj/,$(MODULE_SRCS))
 DIRS 		+=	$(addprefix $(TARGET)/obj/,$(APPLICATIONS))
 LIBS 		+= 	$(addprefix $(TARGET)/lib/, \
 			$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod)))))
-SRCS 		+=	$(shell find $(MODULES) -maxdepth '1' -name '*.c')
+SRCS 		+=	$(shell find $(MODULE_SRCS) -maxdepth '1' -name '*.c')
+HDRS 		+= 	$(shell find $(MODULE_INCS) -maxdepth '1' -name '*.h')
 OBJS		+=	$(addprefix $(TARGET)/obj/,$(SRCS:.c=.o))
-INCS		+=	$(addprefix -I./, $(MODULES))
-INCS		+=	$(addsuffix /include,$(addprefix -I./, $(MODULES)))
+INCS		+=	$(addprefix -I./,$(MODULE_DIRS))
 INCS	 	+=	$(addprefix -I./,$(TARGET)/include)
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
 CFLAGS 		+= 	$(DEFS)
+INSTALL 	+= 	$(LIBS)
+INSTALL 	+= 	$(addprefix $(TARGET)/include/,$(notdir $(HDRS)))
 
-all: $(DIRS) $(OBJS) $(LIBS)
+all: $(DIRS) $(OBJS) $(INSTALL)
 
 # The name convention allows collecting lib objects with find,
 # IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*/.o
@@ -44,23 +49,28 @@ $(TARGET)/lib/%.a:
 	@ar rcs $@ $(shell find \
 		$(subst $(TARGET)/lib,$(TARGET)/obj,$(subst .a,,$(subst -,/,$@))) -name '*.o')
 
+# .c->.o
 $(TARGET)/obj/%.o: %.c
 	@echo "  CC $@"
 	@${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
 
+# create some output directories
 $(DIRS):
 	@echo "MKDR $@"
 	@${MKDIR_P} ${DIRS}
 
-#${TARGET}/include/%.h: ${SRCDIR}/%.h
-#	@echo "COPY $@"
-#	@cp $< $@
+# All libraries must have an 'include' directory if they want headers installed
+$(TARGET)/include/%.h:
+	@echo "COPY $@"
+	@cp $(shell find $(MODULE_INCS) -maxdepth '1' -name $(notdir $@)) $@
 
-.PHONY: dirs libs clean test print
 
+.PHONY: clean test print
+
+# clean our mess
 clean:
 	@echo "CLEAN"
-	@rm -rf $(LIBS)
+	@rm -rf $(INSTALL)
 	@rm -rf $(TARGET)/obj
 
 # Makefile debug print
@@ -69,9 +79,11 @@ print:
 		DIRS: $(DIRS) \
 		LIBS: $(LIBS) \
 		SRCS: $(SRCS) \
+		HDRS: $(HDRS) \
 		INCS: $(INCS) \
 		OBJS: $(OBJS) \
 		DEFS: $(DEFS) \
+		INST: $(INSTALL) \
 		OBJ_DIR: $(OBJ_DIR) \
 		SRC_DIR: $(SRC_DIR) \
 		test: $(test) \
