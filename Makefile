@@ -1,8 +1,7 @@
 #ulib makefile
 
 # setup install directory
-PREFIX		?=	target
-BASE 		:= 	./
+TARGET		?=	target
 MKDIR_P		:= 	mkdir -p
 CC		:=	gcc
 
@@ -23,24 +22,28 @@ APPLICATIONS 	+=	libucrypto/test
 APPLICATIONS 	+=	libup2p/test
 
 # Build vars
-DIRS 		+=	$(addprefix $(PREFIX)/lib/,$(MODULES))
-DIRS 		+=	$(addprefix $(PREFIX)/obj/,$(MODULES))
-DIRS 		+=	$(addprefix $(PREFIX)/obj/,$(APPLICATIONS))
-LIBS 		+= 	$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod))))
+DIRS 		+=	$(addprefix $(TARGET)/obj/,$(MODULES))
+DIRS 		+=	$(addprefix $(TARGET)/obj/,$(APPLICATIONS))
+LIBS 		+= 	$(addprefix $(TARGET)/obj/, \
+			$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod)))))
 SRCS 		+=	$(shell find $(MODULES) -maxdepth '1' -name '*.c')
-OBJS		+=	$(addprefix $(PREFIX)/obj/,$(SRCS:.c=.o))
+OBJS		+=	$(addprefix $(TARGET)/obj/,$(SRCS:.c=.o))
 INCS		+=	$(addprefix -I./, $(MODULES))
 INCS		+=	$(addsuffix /include,$(addprefix -I./, $(MODULES)))
-INCS	 	+=	$(addprefix -I./,$(PREFIX)/include)
-INCS 		+= 	$(addprefix -I./,$(BASE)/external/secp256k1/include)
+INCS	 	+=	$(addprefix -I./,$(TARGET)/include)
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
 CFLAGS 		+= 	$(DEFS)
 
-all: $(DIRS) $(OBJS)
+all: $(DIRS) $(OBJS) $(LIBS)
 
-.PHONY: dirs libs clean test print
+# The name convention allows finding lib objects with find,
+# IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*/.o
+$(TARGET)/obj/%.a:
+	@echo "LINK $@ $(shell find $(subst .a,,$(subst -,/,$@)) -name '*.o')"
+	@ar rcs $(subst $(TARGET)/obj,$(TARGET)/lib,$@) \
+	       	$(shell find $(subst .a,,$(subst -,/,$@)) -name '*.o')
 
-$(PREFIX)/obj/%.o: %.c
+$(TARGET)/obj/%.o: %.c
 	@echo "  CC $@"
 	@${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
 
@@ -48,13 +51,22 @@ $(DIRS):
 	@echo "MKDR $@"
 	@${MKDIR_P} ${DIRS}
 
-#${PREFIX}/include/%.h: ${SRCDIR}/%.h
+#${TARGET}/include/%.h: ${SRCDIR}/%.h
 #	@echo "COPY $@"
 #	@cp $< $@
 
+.PHONY: dirs libs clean test print
+
 clean:
 	@echo "CLEAN"
-	@rm -rf target
+	@rm -rf $(TARGET)/lib/libucrypto
+	@rm -rf $(TARGET)/lib/liburlp
+	@rm -rf $(TARGET)/lib/liburlp.a
+	@rm -rf $(TARGET)/lib/libucrypto-mbedtls-uaes.a
+	@rm -rf $(TARGET)/lib/libucrypto-mbedtls-uhash.a
+	@rm -rf $(TARGET)/lib/libucrypto-secp256k1-uecc.a
+	@rm -rf $(TARGET)/lib/libucrypto-secp256k1-uhash.a
+	@rm -rf $(TARGET)/obj
 
 # Makefile debug print
 print:
