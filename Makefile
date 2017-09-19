@@ -40,9 +40,9 @@ all: $(DIRS) $(OBJS) $(LIBS)
 # IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*/.o
 $(TARGET)/lib/%.a:
 	@echo "LINK $@ $(shell find \
-		$(subst $(TARGET)/lib,$(TARGET)/obj,$(subst .a,,$(subst -,/,$@))) -name '*.o')"
+		$(subst $(TARGET)/lib,$(TARGET)/obj,$(basename $(subst -,/,$@))) -name '*.o')"
 	@ar rcs $@ $(shell find \
-		$(subst $(TARGET)/lib,$(TARGET)/obj,$(subst .a,,$(subst -,/,$@))) -name '*.o')
+		$(subst $(TARGET)/lib,$(TARGET)/obj,$(basename $(subst -,/,$@))) -name '*.o')
 
 $(TARGET)/obj/%.o: %.c
 	@echo "  CC $@"
