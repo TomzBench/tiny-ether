@@ -6,22 +6,22 @@ CC:=gcc
 
 DIRS+=$(TARGET)/$(MODULE)
 OBJS+=$(patsubst %.c,%.o,$(TARGET)/$(MODULE)/$(notdir $(SRCS)))
-INCS:=$(addprefix -I,$(INC))
-LIBS:=$(addprefix $(TARGET)/$(MODULE)/,$(LIB))
+INCS:=$(addprefix -I,$(INCS))
+LIB:=$(addprefix $(TARGET)/$(MODULE)/,$(LIB))
+LIBS+=$(LIB)
 
 #
 # the order of this matters need to make more robust
 #
 
 $(TARGET)/$(MODULE)/%.o: $(SRC)/%.c
-	@echo "  CC $@"
-	@${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
+	echo "  CC $@"
+	${CC} -c ${CFLAGS} ${LDFLAGS} $(INCS) $< -o $@ 
 
-$(LIBS): $(DIRS) $(OBJS)
-	@echo "LINK $@"
-	@ar rcs $@ $(OBJS) 
+$(LIB): $(DIRS) $(OBJS)
+	echo "LINK $@"
+	ar rcs $@ $(OBJS) 
 
 ${DIRS}:
-	@echo "MKDR $@"
-	@${MKDIR_P} ${DIRS}
-
+	echo "MKDR $@"
+	${MKDIR_P} ${DIRS}

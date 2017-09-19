@@ -1,5 +1,3 @@
 #Makefile.base
 $(APPLICATION): \
-	$(DIRS) \
-	$(OBJS) \
 	$(LIBS)

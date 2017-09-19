@@ -1,3 +1,7 @@
 #Makefile.include
-obj-y+=uecc.o
-hdr-y+=uecc.h
+MODULE:=libucrypto/mbedtls/uecc
+LIB:=libucrypto-mbedtls-uecc.a
+SRC:=$(BASE)/$(MODULE)
+SRCS+=$(SRC)/uecc.c
+INCS+=$(BASE)/$(MODULE)
+include $(BASE)/Makefile.common

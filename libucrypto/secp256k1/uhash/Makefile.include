@@ -1,4 +1,12 @@
 #Makefile.include
-src-y+=$(BASE)/libucrypto/secp256k1/uhash/uhash.c
-obj-y+=$(TARGET)/libucrypto/secp256k1/uhash/uhash.o
-hdr-y+=$(TARGET)/libucrypto/secp256k1/uhash/include/uhash.h
+SRCS:=
+INCS:=
+DIRS:=
+OBJS:=
+MODULE:=libucrypto/secp256k1/uhash
+LIB:=libucrypto-secp256k1-uhash.a
+SRC:=$(BASE)/$(MODULE)
+SRCS+=$(SRC)/uhash.c
+INCS+=$(BASE)/$(MODULE)
+INCS+=$(BASE)/external/secp256k1/include
+include $(BASE)/Makefile.common

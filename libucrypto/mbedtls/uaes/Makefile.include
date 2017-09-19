@@ -2,7 +2,6 @@
 MODULE:=libucrypto/mbedtls/uaes
 LIB:=libucrypto-mbedtls-uaes.a
 SRC:=$(BASE)/$(MODULE)
-INC:=$(BASE)/$(MODULE)
 SRCS+=$(SRC)/uaes.c
-INCS+=$(INC)/uaes.h
+INCS+=$(BASE)/$(MODULE)
 include $(BASE)/Makefile.common

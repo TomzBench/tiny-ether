@@ -1,5 +1,4 @@
 #include "uecc.h"
-#include "uhash.h"
 #include <stdlib.h> /*!< temporary for rand */
 #include <string.h>
 
