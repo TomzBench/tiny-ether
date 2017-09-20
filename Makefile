@@ -47,22 +47,20 @@ INSTALL 	+= 	$(addprefix $(TARGET)/include/,$(notdir $(HDRS)))
 all: $(DIRS) $(OBJS) $(INSTALL)
 
 $(APPS): $(DIRS) $(LIBS)
-	@echo "LINK $@ $(shell find \
-		$(subst $(TARGET)/bin,$(TARGET)/obj,$(subst -,/,$@)) -name '*.o')"
+	@echo "LINK $(notdir $@)"
 	@$(CC) $(shell find $(subst $(TARGET)/bin,$(TARGET)/obj,$(subst -,/,$@)) -name '*.o') \
 		$(LDFLAGS) $(INCS) -o $@
 
 # The name convention allows collecting lib objects with find,
 # IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*.o
 $(TARGET)/lib/%.a:
-	@echo "LINK $@ $(shell find \
-		$(subst $(TARGET)/lib,$(TARGET)/obj,$(subst .a,,$(subst -,/,$@))) -name '*.o')"
+	@echo "LINK $(notdir $@)"
 	@ar rcs $@ $(shell find \
 		$(subst $(TARGET)/lib,$(TARGET)/obj,$(subst .a,,$(subst -,/,$@))) -name '*.o')
 
 # .c->.o
 $(TARGET)/obj/%.o: %.c
-	@echo "  CC $@"
+	@echo "  CC $(notdir $@)"
 	@${CC} -c ${CFLAGS} $(INCS) $< -o $@ 
 
 # create some output directories
@@ -72,7 +70,7 @@ $(DIRS):
 
 # All libraries must have an 'include' directory if they want headers installed
 $(TARGET)/include/%.h:
-	@echo "COPY $@"
+	@echo "COPY $(notdir $@)"
 	@cp $(shell find $(MODULE_INCS) -maxdepth '1' -name $(notdir $@)) $@
 
 .PHONY: clean test print
