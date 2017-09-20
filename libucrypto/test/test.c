@@ -77,8 +77,8 @@ main(int argc, char* argv[])
     int err = 0;
     err |= test_ecc();
     err |= test_kdf();
-    /*
     err |= test_hmac();
+    /*
     err |= test_ecies_encrypt();
     err |= test_ecies_decrypt();
     */
@@ -158,35 +158,34 @@ EXIT:
     return err;
 }
 
-/*
-
 int
 test_hmac()
 {
-    int err = -1;
     uhmac_sha256_ctx h256;
-    size_t olen_result = 100, olen_hmac = 16, olen_hmac_input = 10;
-    uint8_t hmac[olen_hmac], hmac_input[olen_hmac_input];
-    uint8_t hmac_result[32];
-    char str_result[olen_result];
+    int err = -1;
+    size_t lkey = strlen(g_hmac) / 2, lin = strlen(g_hmac_input) / 2,
+           lres = strlen(g_hmac_result) / 2;
+    uint8_t key[lkey];
+    uint8_t input[lin];
+    uint8_t result[lres];
+    uint8_t expect[lres];
+    memcpy(key, makebin(g_hmac, NULL), lkey);
+    memcpy(input, makebin(g_hmac_input, NULL), lin);
+    memcpy(expect, makebin(g_hmac_result, NULL), lres);
 
-    memset(str_result, 0, olen_result);
+    uhmac_sha256_init(&h256, key, 16);
+    uhmac_sha256_update(&h256, input, 10);
+    uhmac_sha256_finish(&h256, result);
+    err = memcmp(expect, result, lres) ? -1 : 0;
 
-    err = ubn_atob(16, g_hmac, hmac, &olen_hmac);
-    if (!err) ubn_atob(16, g_hmac_input, hmac_input, &olen_hmac_input);
-    if (err) return err;
+    // err = ubn_btoa(hmac_result, 32, 16, str_result, &olen_result);
+    // if (err) return err;
+    // err = memcmp(g_hmac_result, str_result, olen_result) ? -1 : 0;
 
-    uhmac_sha256_init(&h256, hmac, 16);
-    uhmac_sha256_update(&h256, hmac_input, 10);
-    uhmac_sha256_finish(&h256, hmac_result);
-
-    err = ubn_btoa(hmac_result, 32, 16, str_result, &olen_result);
-    if (err) return err;
-
-    err = memcmp(g_hmac_result, str_result, olen_result) ? -1 : 0;
     return err;
 }
 
+/*
 int
 test_ecies_encrypt()
 {
