@@ -131,9 +131,10 @@ test_handshake()
         uint8_t cipher[len];
         memcpy(cipher, makebin(tv->auth, NULL), len);
         if (rlpx_read_auth(bob, cipher, len)) break;
-        if (!(rlpx_version_remote(bob) == tv->authver)) break;
         uecc_qtob(rlpx_remote_public_ekey(bob), testa, 65);
         uecc_qtob(rlpx_public_ekey(alice), testb, 65);
+        if (!(rlpx_version_remote(bob) == tv->authver)) break;
+        if (memcmp(testa, testb, 65)) break;
         tv++;
     }
     err = tv->auth ? -1 : 0; // broke loop early ? -> error
