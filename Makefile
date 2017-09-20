@@ -11,10 +11,11 @@ CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 
 # Collect lib objects *.o
 MODULES 	+=	liburlp
-MODULES 	+=	libucrypto/mbedtls/uaes
-MODULES 	+=	libucrypto/mbedtls/uhash
-MODULES 	+=	libucrypto/secp256k1/uecc
-MODULES 	+=	libucrypto/secp256k1/uhash
+MODULES 	+= 	libucrypto
+#MODULES 	+=	libucrypto/mbedtls/uaes
+#MODULES 	+=	libucrypto/mbedtls/uhash
+#MODULES 	+=	libucrypto/secp256k1/uecc
+#MODULES 	+=	libucrypto/secp256k1/uhash
 
 # Build test applications
 APPLICATIONS 	+=	liburlp/test
@@ -26,18 +27,17 @@ APP_SRCS	+=	$(APPLICATIONS)
 MODULE_SRCS 	+= 	$(addsuffix /src,$(MODULES))
 MODULE_INCS 	+= 	$(addsuffix /include,$(MODULES))
 MODULE_DIRS 	+=	$(MODULE_INCS) $(MODULE_SRCS)
-DIRS 		+=	$(addprefix $(TARGET)/obj/,$(MODULE_SRCS))
-DIRS 		+=	$(addprefix $(TARGET)/obj/,$(APP_SRCS))
-DIRS 		+=	$(TARGET)/bin
 LIBS 		+= 	$(addprefix $(TARGET)/lib/,$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod)))))
 APPS 		+= 	$(addprefix $(TARGET)/bin/,$(foreach bin, $(APPLICATIONS),$(subst /,-,$(bin))))
-SRCS 		+=	$(shell find $(MODULE_SRCS) -maxdepth '1' -name '*.c')
-SRCS 		+=	$(shell find $(APP_SRCS) -maxdepth '1' -name '*.c')
-HDRS 		+= 	$(shell find $(MODULE_INCS) -maxdepth '1' -name '*.h')
+SRCS 		+=	$(shell find $(MODULE_SRCS) -name '*.c')
+SRCS 		+=	$(shell find $(APP_SRCS) -name '*.c')
+HDRS 		+= 	$(shell find $(MODULE_INCS) -name '*.h')
 OBJS		+=	$(addprefix $(TARGET)/obj/,$(SRCS:.c=.o))
 INCS		+=	$(addprefix -I./,$(MODULE_DIRS))
 INCS	 	+=	$(addprefix -I./,$(TARGET)/include)
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
+DIRS 		+= 	$(sort $(dir $(OBJS)))
+DIRS 		+=	$(TARGET)/bin
 CFLAGS 		+= 	$(DEFS)
 LDFLAGS 	+=	$(LIBS) $(addprefix $(TARGET)/lib/, libmbedcrypto.a libsecp256k1.a)
 INSTALL 	+= 	$(LIBS)
@@ -71,7 +71,7 @@ $(DIRS):
 # All libraries must have an 'include' directory if they want headers installed
 $(TARGET)/include/%.h:
 	@echo "COPY $(notdir $@)"
-	@cp $(shell find $(MODULE_INCS) -maxdepth '1' -name $(notdir $@)) $@
+	@cp $(shell find $(MODULE_INCS) -name $(notdir $@)) $@
 
 .PHONY: clean test print
 
@@ -104,8 +104,6 @@ print:
 		DEFS: $(DEFS) \
 		APPS: $(APPS) \
 		INST: $(INSTALL) \
-		OBJ_DIR: $(OBJ_DIR) \
-		SRC_DIR: $(SRC_DIR) \
 		| sed -e 's/\s\+/\n/g' 
 
 #
