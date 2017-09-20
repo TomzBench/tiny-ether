@@ -1,13 +1,5 @@
 #ulib makefile
 
-# Intended to build on Linux Only.
-# directory structure:
-# module
-#     src
-#         srcs.(c|h)
-#     include
-#         public.h
-
 # setup install directory
 TARGET		?=	target
 MKDIR_P		:= 	mkdir -p
