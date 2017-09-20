@@ -107,15 +107,6 @@ test_ecc()
     IF_ERR_EXIT(uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0);
     IF_ERR_EXIT(uecc_z_cmp_str(&ctxa.z, expect_secret_str));
 
-    // Generate shared secret with known private keys with binary public key
-    /**** uecc_ptob(&ctxa.Q, &pubkeya);*/
-    /**** uecc_ptob(&ctxb.Q, &pubkeyb);*/
-    /****err |= uecc_agree(&ctxa, &pubkeyb);*/
-    /****err |= uecc_agree(&ctxb, &pubkeya);*/
-    /****if (!(err == 0)) goto EXIT;*/
-    /**** err |= uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0;*/
-    /****if (!(err == 0)) goto EXIT;*/
-
     // Generated shared secret with random key
     IF_ERR_EXIT(uecc_agree(&ctxa, &ctxc.Q));
     IF_ERR_EXIT(uecc_agree(&ctxc, &ctxa.Q));
