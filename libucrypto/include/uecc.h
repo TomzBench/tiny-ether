@@ -30,7 +30,6 @@ typedef h520 uecc_public_key_w_header;    // with header.
 typedef h256 uecc_private_key;
 typedef h256 uecc_shared_secret;
 typedef h264 uecc_shared_secret_w_header;
-typedef uecc_public_key uecc_point;
 
 typedef struct
 {
@@ -60,7 +59,7 @@ int uecc_key_init_new(uecc_ctx*);
  */
 void uecc_key_deinit(uecc_ctx*);
 
-int uecc_qtop(uecc_public_key* q, byte* b, size_t l);
+int uecc_qtob(const uecc_public_key* q, byte* b, size_t l);
 int uecc_btoq(const byte*, size_t l, uecc_public_key* q);
 
 /**
@@ -104,6 +103,19 @@ int uecc_verify(const uecc_public_key* q,
                 const byte* b,
                 size_t sz,
                 uecc_signature*);
+
+/**
+ * @brief
+ *
+ * @param bytes
+ * @param digest
+ * @param key
+ *
+ * @return
+ */
+int uecc_recover_bin(const byte* bytes,
+                     uecc_shared_secret* digest,
+                     uecc_public_key* key);
 
 #ifdef __cplusplus
 }

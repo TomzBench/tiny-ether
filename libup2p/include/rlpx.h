@@ -35,6 +35,9 @@ extern void rlpx_free(rlpx** session_p);
 
 // setters / getters
 extern uint64_t rlpx_version_remote(rlpx*);
+extern const uecc_public_key* rlpx_public_skey(rlpx*);
+extern const uecc_public_key* rlpx_public_ekey(rlpx*);
+extern const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
 
 // methods
 extern int rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l);

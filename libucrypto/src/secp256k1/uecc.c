@@ -67,9 +67,16 @@ uecc_z_cmp(const uecc_shared_secret_w_header* a,
 }
 
 int
-uecc_qtop(uecc_public_key* q, byte* b, size_t l)
+uecc_qtob(const uecc_public_key* q, byte* b, size_t l)
 {
-    return -1;
+    int ok;
+    size_t tmp = l;
+    secp256k1_context* ctx;
+    ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
+    ok = secp256k1_ec_pubkey_serialize(ctx, b, &tmp, q,
+                                       SECP256K1_EC_UNCOMPRESSED);
+    secp256k1_context_destroy(ctx);
+    return ok == 1 ? 0 : -1;
 }
 
 int
@@ -127,11 +134,23 @@ uecc_verify(const uecc_public_key* q,
 }
 
 int
-uecc_recover(const uecc_point* sig,
-             const byte* digest,
-             int recid,
-             uecc_public_key* key)
+uecc_recover_bin(const byte* b,
+                 uecc_shared_secret* digest,
+                 uecc_public_key* key)
 {
+    secp256k1_context* ctx;
+    uecc_signature rawsig;
+    int v = b[64], err;
+    ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN |
+                                   SECP256K1_CONTEXT_VERIFY);
+    if (!ctx) return -1;
+
+    IF_ERR_EXIT(!secp256k1_ecdsa_recoverable_signature_parse_compact(
+        ctx, &rawsig, b, v));
+    IF_ERR_EXIT(!secp256k1_ecdsa_recover(ctx, key, &rawsig, digest->b));
+
+EXIT:
+    secp256k1_context_destroy(ctx);
     return 0;
 }
 

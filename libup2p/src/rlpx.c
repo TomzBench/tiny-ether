@@ -75,6 +75,24 @@ rlpx_version_remote(rlpx* s)
     return s->remote_version;
 }
 
+const uecc_public_key*
+rlpx_public_skey(rlpx* s)
+{
+    return &s->skey.Q;
+}
+
+const uecc_public_key*
+rlpx_public_ekey(rlpx* s)
+{
+    return &s->ekey.Q;
+}
+
+const uecc_public_key*
+rlpx_remote_public_ekey(rlpx* s)
+{
+    return &s->remote_ekey;
+}
+
 int
 rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
 {
@@ -105,8 +123,12 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
         }
         if ((seek = urlp_at(rlp, 0)) &&
             // Get remote ephemeral public key from signature
-            // TODO need better libucrypto support...
             urlp_size(seek) == sizeof(uecc_signature)) {
+            uecc_shared_secret x;
+            for (int i = 0; i < 32; i++) {
+                x.b[i] = s->remote_nonce.b[i] ^ s->skey.z.b[i + 1];
+            }
+            uecc_recover_bin(urlp_ref(seek, NULL), &x, &s->remote_ekey);
         }
         urlp_free(&rlp);
     }

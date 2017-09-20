@@ -115,6 +115,8 @@ test_handshake()
 {
     int err;
     uecc_private_key alice_e, alice_s, bob_s, bob_e;
+    uint8_t testa[65];
+    uint8_t testb[65];
     test_vector* tv = g_test_vectors;
     rlpx *alice, *bob;
     memcpy(alice_e.b, makebin(g_alice_e, NULL), 32);
@@ -130,6 +132,8 @@ test_handshake()
         memcpy(cipher, makebin(tv->auth, NULL), len);
         if (rlpx_read_auth(bob, cipher, len)) break;
         if (!(rlpx_version_remote(bob) == tv->authver)) break;
+        uecc_qtob(rlpx_remote_public_ekey(bob), testa, 65);
+        uecc_qtob(rlpx_public_ekey(alice), testb, 65);
         tv++;
     }
     err = tv->auth ? -1 : 0; // broke loop early ? -> error
