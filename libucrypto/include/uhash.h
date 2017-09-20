@@ -26,6 +26,8 @@ void uhmac_sha256(const uint8_t* key,
                   const uint8_t* msg,
                   size_t msglen,
                   uint8_t* hmac);
+void uhash_kdf(uint8_t*, size_t, uint8_t*, size_t);
+
 #ifdef __cplusplus
 }
 #endif

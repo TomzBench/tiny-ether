@@ -1,11 +1,12 @@
 #include "uecc.h"
+#include "uhash.h"
 #include <stdint.h>
 #include <string.h>
 
 typedef h256 ubn;
 
-// const uint8_t* fromhex(const char* str);
 int test_check_cmp(ubn*, const char* hex);
+const uint8_t* makebin(const char* str, size_t* len);
 
 // clang-format off
 #define IF_ERR_EXIT(f)                    \
@@ -23,9 +24,9 @@ int test_check_cmp(ubn*, const char* hex);
  */
 const char* kdf1 =
     "0de72f1223915fa8b8bf45dffef67aef8d89792d116eb61c9a1eb02c422a4663";
-const char* kdf1_result = "1D0C446F9899A3426F2B89A8CB75C14B";
 const char* kdf2 =
     "961c065873443014e0371f1ed656c586c6730bf927415757f389d92acf8268df";
+const char* kdf1_result = "1D0C446F9899A3426F2B89A8CB75C14B";
 const char* kdf2_result =
     "4050C52E6D9C08755E5A818AC66FABE478B825B1836FD5EFC4D44E40D04DABCC";
 const char* g_hmac = "af6623e52208c596e17c72cea6f1cb09";
@@ -75,8 +76,8 @@ main(int argc, char* argv[])
     ((void)argv);
     int err = 0;
     err |= test_ecc();
-    /*
     err |= test_kdf();
+    /*
     err |= test_hmac();
     err |= test_ecies_encrypt();
     err |= test_ecies_decrypt();
@@ -131,50 +132,33 @@ EXIT:
     return err;
 }
 
-/*
 int
 test_kdf()
 {
     int err = -1;
-    const char* expect[] = { kdf1_result, kdf2_result };
-    const char* kdf[] = { kdf1, kdf2 };
+    const char* expects[] = { kdf1_result, kdf2_result };
+    const char* kdfs[] = { kdf1, kdf2 };
     size_t len[] = { 16, 32 };
-    char result_str[66]; // worst case size
-
-    // Init stack
-    ubn result_mpi;
-    ubn_init(&result_mpi);
 
     for (int i = 0; i < 2; i++) {
-        const char* k = kdf[i];
-        const char* r = expect[i];
-        uint8_t result_bin[len[i]];
-        size_t rlen = 0;
-        memset(result_bin, 0, len[i]);
-        memset(result_str, 0, 66);
+        size_t rlen = len[i], kdflen = strlen(kdfs[i]) / 2;
+        uint8_t kdf[kdflen];
+        uint8_t expect[rlen];
+        uint8_t result[rlen];
+        memset(result, 0, rlen);
+        memcpy(expect, makebin(expects[i], NULL), rlen);
+        memcpy(kdf, makebin(kdfs[i], NULL), kdflen);
 
-        // kdf
-        err = uecies_kdf_str(k, 16, result_bin, len[i]);
-        if (!(err == 0)) goto EXIT;
-
-        // mpi_to_b
-        err = ubn_bin(&result_mpi, result_bin, len[i]);
-        if (!(err == 0)) goto EXIT;
-
-        // btoa
-        err = ubn_toa(&result_mpi, 16, result_str, 66, &rlen);
-        if (!(err == 0)) goto EXIT;
-
-        // Check result
-        err = memcmp(r, result_str, strlen(result_str));
-        if (!(err == 0)) goto EXIT;
+        uhash_kdf(kdf, kdflen, result, rlen);
+        IF_ERR_EXIT(memcmp(result, expect, rlen) ? -1 : 0);
     }
 
     err = 0;
 EXIT:
-    ubn_free(&result_mpi);
     return err;
 }
+
+/*
 
 int
 test_hmac()
@@ -251,14 +235,15 @@ EXIT:
 
 */
 
-/*
 const uint8_t*
-fromhex(const char* str)
+makebin(const char* str, size_t* len)
 {
     static uint8_t buf[512];
-    size_t len = strlen(str) / 2;
-    if (len > 512) len = 512;
-    for (size_t i = 0; i < len; i++) {
+    size_t s;
+    if (!len) len = &s;
+    *len = strlen(str) / 2;
+    if (*len > 512) *len = 512;
+    for (size_t i = 0; i < *len; i++) {
         uint8_t c = 0;
         if (str[i * 2] >= '0' && str[i * 2] <= '9')
             c += (str[i * 2] - '0') << 4;
@@ -272,7 +257,6 @@ fromhex(const char* str)
     }
     return buf;
 }
-*/
 
 /*
 int

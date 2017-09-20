@@ -4,6 +4,7 @@
 TARGET		?=	target
 MKDIR_P		:= 	mkdir -p
 CC		:=	gcc
+CFLAGS 		:=	-O0 -g -Wall -DNDEBUG
 
 # Configurations switches -D
 CONFIGS_D 	+= 	URLP_CONFIG_LINUX_EMU
@@ -49,7 +50,7 @@ all: $(DIRS) $(OBJS) $(INSTALL)
 $(APPS): $(DIRS) $(LIBS)
 	@echo "LINK $(notdir $@)"
 	@$(CC) $(shell find $(subst $(TARGET)/bin,$(TARGET)/obj,$(subst -,/,$@)) -name '*.o') \
-		$(LDFLAGS) $(INCS) -o $@
+		$(CFLAGS) $(LDFLAGS) $(INCS) -o $@
 
 # The name convention allows collecting lib objects with find,
 # IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*.o

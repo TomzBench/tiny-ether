@@ -73,6 +73,29 @@ uhmac_sha256(const uint8_t* key,
     uhmac_sha256_free(&ctx);
 }
 
+void
+uhash_kdf(uint8_t* z, size_t zlen, uint8_t* b, size_t keylen)
+{
+    usha256_ctx sha;
+    uint8_t ctr[4] = { 0, 0, 0, 1 };
+    uint8_t* end = &b[keylen];
+    uint8_t s1 = 0;
+    while (b < end) {
+        uint8_t tmp[32];
+        usha256_init(&sha);
+        usha256_update(&sha, ctr, 4);
+        usha256_update(&sha, z, zlen);
+        usha256_update(&sha, &s1, 0);
+        usha256_finish(&sha, tmp);
+        memcpy(b, tmp, b + 32 <= end ? 32 : end - b);
+        usha256_free(&sha);
+        b += 32;
+
+        // Nifty short circuit condition big endian counter
+        if (++ctr[3] || ++ctr[2] || ++ctr[1] || ++ctr[0]) continue;
+    }
+}
+
 //
 //
 //
