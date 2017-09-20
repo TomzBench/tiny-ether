@@ -60,7 +60,7 @@ $(TARGET)/lib/%.a:
 
 # .c->.o
 $(TARGET)/obj/%.o: %.c
-	@echo "  CC $(notdir $@)"
+	@echo "  CC $(notdir $<)"
 	@${CC} -c ${CFLAGS} $(INCS) $< -o $@ 
 
 # create some output directories
