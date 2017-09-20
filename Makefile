@@ -53,7 +53,7 @@ $(APPS): $(DIRS) $(LIBS)
 		$(LDFLAGS) $(INCS) -o $@
 
 # The name convention allows collecting lib objects with find,
-# IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*/.o
+# IE: $(TARGET)/lib/libucrypto-mbedtls-uaes.a:=$(TARGET)/obj/libucrypto/mbedtls/uaes/**/*.o
 $(TARGET)/lib/%.a:
 	@echo "LINK $@ $(shell find \
 		$(subst $(TARGET)/lib,$(TARGET)/obj,$(subst .a,,$(subst -,/,$@))) -name '*.o')"
@@ -84,12 +84,15 @@ clean:
 	@rm -rf $(TARGET)/obj
 
 test:
-	@$(foreach bin,$(APPS),echo TEST $(bin);valgrind \
+	@$(foreach bin,$(APPS),     \
+		echo TEST $(bin);   \
+		valgrind            \
 		--track-origins=yes \
-		--tool=memcheck \
-		--leak-check=full \
-		--quiet \
-		./$(bin);)
+		--tool=memcheck     \
+		--leak-check=full   \
+		--quiet             \
+		./$(bin);           \
+		)
 
 # Makefile debug print
 print:
