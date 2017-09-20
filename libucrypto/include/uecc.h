@@ -82,8 +82,6 @@ int uecc_agree_bin(uecc_ctx* ctx, const byte* bytes, size_t blen);
  */
 int uecc_sign(uecc_ctx* ctx, const byte* b, size_t sz, uecc_signature*);
 
-int uecc_point_cmp(const uecc_public_key* a, const uecc_public_key* b);
-
 int uecc_z_cmp(const uecc_shared_secret_w_header* a,
                const uecc_shared_secret_w_header* b);
 

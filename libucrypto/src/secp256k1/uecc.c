@@ -54,21 +54,6 @@ uecc_key_deinit(uecc_ctx* ctx)
 }
 
 int
-uecc_atop(const char* str, int rdx, uecc_public_key* q)
-{
-    if (!(rdx == 16)) return -1;
-    memcpy(q, fromhex(str), sizeof(uecc_public_key));
-    return 0;
-}
-
-int
-uecc_point_copy(const uecc_public_key* src, uecc_public_key* dst)
-{
-    memcpy(dst, src, sizeof(uecc_public_key));
-    return 0;
-}
-
-int
 uecc_z_cmp_str(const uecc_shared_secret_w_header* a, const char* b)
 {
     return memcmp(&a->b[1], fromhex(b), 32);
@@ -79,12 +64,6 @@ uecc_z_cmp(const uecc_shared_secret_w_header* a,
            const uecc_shared_secret_w_header* b)
 {
     return memcmp(a->b, b->b, 32);
-}
-
-int
-uecc_point_cmp(const uecc_public_key* a, const uecc_public_key* b)
-{
-    return memcmp(a, b, sizeof(uecc_public_key));
 }
 
 int
