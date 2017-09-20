@@ -88,6 +88,15 @@ uecc_point_cmp(const uecc_public_key* a, const uecc_public_key* b)
 }
 
 int
+uecc_agree_bin(uecc_ctx* ctx, const byte* bytes, size_t blen)
+{
+    int ok;
+    uecc_public_key key;
+    ok = secp256k1_ec_pubkey_parse(ctx->grp, &key, bytes, blen);
+    return ok ? uecc_agree(ctx, &key) : -1;
+}
+
+int
 uecc_agree(uecc_ctx* ctx, const uecc_public_key* key)
 {
     int ok = secp256k1_ecdh_raw(ctx->grp, ctx->z.b, key, ctx->d.b);
@@ -127,28 +136,6 @@ uecc_recover(const uecc_point* sig,
              const byte* digest,
              int recid,
              uecc_public_key* key)
-{
-    return 0;
-}
-
-int
-uecies_encrypt_str(uecc_ctx* p,
-                   const byte* s,
-                   size_t slen,
-                   int radix,
-                   const char* plain,
-                   byte* cipher)
-{
-    return -1;
-}
-
-int
-uecies_encrypt(uecc_point* p,
-               const byte* s,
-               size_t slen,
-               const byte* in,
-               size_t inlen,
-               byte* out)
 {
     return 0;
 }

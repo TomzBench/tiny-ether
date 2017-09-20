@@ -1,4 +1,6 @@
 #include "uecc.h"
+#include "uecies_decrypt.h"
+#include "uecies_encrypt.h"
 #include "uhash.h"
 #include <stdint.h>
 #include <string.h>
@@ -78,10 +80,8 @@ main(int argc, char* argv[])
     err |= test_ecc();
     err |= test_kdf();
     err |= test_hmac();
-    /*
     err |= test_ecies_encrypt();
     err |= test_ecies_decrypt();
-    */
     return err;
 }
 
@@ -104,14 +104,18 @@ test_ecc()
 
     // Generate a shared secret with known private keys with point public key
     IF_ERR_EXIT(uecc_agree(&ctxa, &ctxb.Q));
+    IF_ERR_EXIT(uecc_agree(&ctxa_clone, &ctxb.Q));
     IF_ERR_EXIT(uecc_agree(&ctxb, &ctxa.Q));
     IF_ERR_EXIT(uecc_z_cmp(&ctxa.z, &ctxb.z) ? -1 : 0);
+    IF_ERR_EXIT(uecc_z_cmp(&ctxa_clone.z, &ctxb.z) ? -1 : 0);
     IF_ERR_EXIT(uecc_z_cmp_str(&ctxa.z, expect_secret_str));
 
     // Generated shared secret with random key
     IF_ERR_EXIT(uecc_agree(&ctxa, &ctxc.Q));
+    IF_ERR_EXIT(uecc_agree(&ctxa_clone, &ctxc.Q));
     IF_ERR_EXIT(uecc_agree(&ctxc, &ctxa.Q));
     IF_ERR_EXIT(uecc_z_cmp(&ctxa.z, &ctxc.z) ? -1 : 0);
+    IF_ERR_EXIT(uecc_z_cmp(&ctxa_clone.z, &ctxc.z) ? -1 : 0);
 
     // Sign our test blob verify with pubkey
     IF_ERR_EXIT(uecc_sign(&ctxa, stest, 32, &sig));
@@ -178,14 +182,9 @@ test_hmac()
     uhmac_sha256_finish(&h256, result);
     err = memcmp(expect, result, lres) ? -1 : 0;
 
-    // err = ubn_btoa(hmac_result, 32, 16, str_result, &olen_result);
-    // if (err) return err;
-    // err = memcmp(g_hmac_result, str_result, olen_result) ? -1 : 0;
-
     return err;
 }
 
-/*
 int
 test_ecies_encrypt()
 {
@@ -215,24 +214,27 @@ EXIT:
 int
 test_ecies_decrypt()
 {
-    int err = -1;
-    size_t l = 194, slen = 400;
-    uint8_t plain[l];
-    size_t sz;
-    char str_plain[slen];
-    memset(plain, 0, l);
     uecc_ctx ctxb;
-    uecc_key_init_string(&ctxb, 16, bob_pkey_str);
-    IF_NEG_EXIT(sz, uecies_decrypt_str(&ctxb, NULL, 0, 16, auth, plain));
-    IF_ERR_EXIT(ubn_btoa(plain, l, 16, str_plain, &slen));
-    IF_ERR_EXIT(memcmp(auth_plain, str_plain, slen) ? -1 : 0);
+    uecc_private_key bobkey;
+    int err = -1;
+    size_t cipher_len = strlen(auth) / 2, sz, l = cipher_len;
+    size_t plain_len = strlen(auth_plain) / 2;
+    uint8_t cipher[cipher_len];
+    uint8_t result[plain_len];
+    uint8_t expect[plain_len];
 
+    memcpy(cipher, makebin(auth, NULL), cipher_len);
+    memcpy(expect, makebin(auth_plain, NULL), plain_len);
+    memcpy(bobkey.b, makebin(bob_pkey_str, NULL), 32);
+
+    uecc_key_init_binary(&ctxb, &bobkey);
+    IF_NEG_EXIT(sz, uecies_decrypt(&ctxb, NULL, 0, cipher, l, result));
+    IF_ERR_EXIT(memcmp(result, expect, plain_len) ? -1 : 0);
+    err = 0;
 EXIT:
     uecc_key_deinit(&ctxb);
     return err;
 }
-
-*/
 
 const uint8_t*
 makebin(const char* str, size_t* len)
@@ -256,16 +258,6 @@ makebin(const char* str, size_t* len)
     }
     return buf;
 }
-
-/*
-int
-test_check_cmp(ubn* bn, const char* hex)
-{
-    uint8_t check[ubn_size(bn)];
-    ubn_tob(bn, check, ubn_size(bn));
-    return memcmp(check, fromhex(hex), ubn_size(bn));
-}
-*/
 
 //
 //

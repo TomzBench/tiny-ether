@@ -69,7 +69,7 @@ void uecc_key_deinit(uecc_ctx*);
  * @return
  */
 int uecc_agree(uecc_ctx* ctx, const uecc_public_key* k);
-
+int uecc_agree_bin(uecc_ctx* ctx, const byte* bytes, size_t blen);
 /**
  * @brief
  *
