@@ -29,8 +29,8 @@ extern "C" {
 
 // constructors
 extern rlpx* rlpx_alloc();
-extern rlpx* rlpx_alloc_key(const char*);
-extern rlpx* rlpx_alloc_keypair(const char*, const char*);
+extern rlpx* rlpx_alloc_key(uecc_private_key*);
+extern rlpx* rlpx_alloc_keypair(uecc_private_key*, uecc_private_key*);
 extern void rlpx_free(rlpx** session_p);
 
 // setters / getters

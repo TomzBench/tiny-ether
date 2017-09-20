@@ -11,14 +11,14 @@ CONFIGS_D 	+= 	URLP_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 
 # Collect lib objects *.o
-MODULES 	+=	liburlp
-MODULES 	+= 	libucrypto
 MODULES 	+= 	libup2p
+MODULES 	+= 	libucrypto
+MODULES 	+=	liburlp
 
 # Build test applications
 APPLICATIONS 	+=	liburlp/test
 APPLICATIONS 	+=	libucrypto/test
-#APPLICATIONS 	+=	libup2p/test
+APPLICATIONS 	+=	libup2p/test
 
 # Build vars
 APP_SRCS	+=	$(APPLICATIONS)

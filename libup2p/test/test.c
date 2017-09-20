@@ -1,6 +1,8 @@
 #include "rlpx.h"
 #include <string.h>
 
+const uint8_t* makebin(const char* str, size_t* len);
+
 typedef struct
 {
     const char* auth;
@@ -112,14 +114,20 @@ int
 test_handshake()
 {
     int err;
+    uecc_private_key alice_e, alice_s, bob_s, bob_e;
     test_vector* tv = g_test_vectors;
     rlpx *alice, *bob;
-    alice = rlpx_alloc_keypair(g_alice_s, g_alice_e);
-    bob = rlpx_alloc_keypair(g_bob_s, g_bob_e);
+    memcpy(alice_e.b, makebin(g_alice_e, NULL), 32);
+    memcpy(alice_s.b, makebin(g_alice_s, NULL), 32);
+    memcpy(bob_e.b, makebin(g_bob_e, NULL), 32);
+    memcpy(bob_s.b, makebin(g_bob_s, NULL), 32);
+
+    alice = rlpx_alloc_keypair(&alice_s, &alice_e);
+    bob = rlpx_alloc_keypair(&bob_s, &bob_e);
     while (tv->auth) {
-        size_t len = 1000;
+        size_t len = strlen(tv->auth) / 2;
         uint8_t cipher[len];
-        if (ubn_atob(16, tv->auth, cipher, &len)) break;
+        memcpy(cipher, makebin(tv->auth, NULL), len);
         if (rlpx_read_auth(bob, cipher, len)) break;
         if (!(rlpx_version_remote(bob) == tv->authver)) break;
         tv++;
@@ -128,6 +136,29 @@ test_handshake()
     rlpx_free(&alice);
     rlpx_free(&bob);
     return err;
+}
+
+const uint8_t*
+makebin(const char* str, size_t* len)
+{
+    static uint8_t buf[512];
+    size_t s;
+    if (!len) len = &s;
+    *len = strlen(str) / 2;
+    if (*len > 512) *len = 512;
+    for (size_t i = 0; i < *len; i++) {
+        uint8_t c = 0;
+        if (str[i * 2] >= '0' && str[i * 2] <= '9')
+            c += (str[i * 2] - '0') << 4;
+        if ((str[i * 2] & ~0x20) >= 'A' && (str[i * 2] & ~0x20) <= 'F')
+            c += (10 + (str[i * 2] & ~0x20) - 'A') << 4;
+        if (str[i * 2 + 1] >= '0' && str[i * 2 + 1] <= '9')
+            c += (str[i * 2 + 1] - '0');
+        if ((str[i * 2 + 1] & ~0x20) >= 'A' && (str[i * 2 + 1] & ~0x20) <= 'F')
+            c += (10 + (str[i * 2 + 1] & ~0x20) - 'A');
+        buf[i] = c;
+    }
+    return buf;
 }
 
 //

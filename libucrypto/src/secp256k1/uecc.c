@@ -67,12 +67,28 @@ uecc_z_cmp(const uecc_shared_secret_w_header* a,
 }
 
 int
+uecc_qtop(uecc_public_key* q, byte* b, size_t l)
+{
+    return -1;
+}
+
+int
+uecc_btoq(const byte* b, size_t l, uecc_public_key* q)
+{
+    int err;
+    secp256k1_context* grp;
+    grp = secp256k1_context_create(SECP256K1_CONTEXT_SIGN |
+                                   SECP256K1_CONTEXT_VERIFY);
+    err = secp256k1_ec_pubkey_parse(grp, q, b, l) == 1 ? 0 : -1;
+    secp256k1_context_destroy(grp);
+    return err;
+}
+
+int
 uecc_agree_bin(uecc_ctx* ctx, const byte* bytes, size_t blen)
 {
-    int ok;
     uecc_public_key key;
-    ok = secp256k1_ec_pubkey_parse(ctx->grp, &key, bytes, blen);
-    return ok ? uecc_agree(ctx, &key) : -1;
+    return uecc_btoq(bytes, blen, &key) ? -1 : uecc_agree(ctx, &key);
 }
 
 int

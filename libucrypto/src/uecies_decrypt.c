@@ -32,5 +32,5 @@ uecies_decrypt(uecc_ctx* ctx,
 
     sz = uaes_crypt(ekey, iv, &cipher[81], len - 32 - 16 - 65, plain);
 
-    return sz ? sz : sz - 32 - 16 - 65;
+    return sz ? sz : len - 32 - 16 - 65;
 }

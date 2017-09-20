@@ -60,6 +60,9 @@ int uecc_key_init_new(uecc_ctx*);
  */
 void uecc_key_deinit(uecc_ctx*);
 
+int uecc_qtop(uecc_public_key* q, byte* b, size_t l);
+int uecc_btoq(const byte*, size_t l, uecc_public_key* q);
+
 /**
  * @brief
  *
