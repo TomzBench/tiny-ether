@@ -4,15 +4,17 @@
  * @brief
  */
 
-#include "mtm/urlp.h"
+#include "urlp.h"
 
-#include "board_net.h"
-#include "mtm/uecc.h"
+//#include "board_net.h"
+#include "uecc.h"
+#include "uecies_encrypt.h"
+#include "uecies_decrypt.h"
 #include "rlpx_config.h"
 
 typedef struct
 {
-    board_socket_fd conn;        /*!< os socket handle */
+    //board_socket_fd conn;        /*!< os socket handle */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
     h512 remote_node_id;         /*!< remote public address */
@@ -100,9 +102,9 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
         if ((seek = urlp_at(rlp, 1)) &&
             urlp_size(seek) + 1 == sizeof(uecc_public_key)) {
             // Get secret from remote public key
-            remote_skey.b[0] = 0x04;
-            memcpy(&remote_skey.b[1], urlp_ref(seek, NULL), urlp_size(seek));
-            err = uecc_agree(&s->skey, &remote_skey); //
+            // remote_skey.b[0] = 0x04;
+            // memcpy(&remote_skey.b[1], urlp_ref(seek, NULL), urlp_size(seek));
+            // err = uecc_agree(&s->skey, &remote_skey); //
         }
         if ((seek = urlp_at(rlp, 0)) &&
             // Get remote ephemeral public key from signature

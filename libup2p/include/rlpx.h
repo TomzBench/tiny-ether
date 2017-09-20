@@ -10,8 +10,8 @@
 extern "C" {
 #endif
 
-#include "mtm/uecc.h"
-#include "mtm/urlp.h"
+#include "uecc.h"
+#include "urlp.h"
 
 #include "rlpx_types.h"
 

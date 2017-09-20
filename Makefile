@@ -13,10 +13,7 @@ CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 # Collect lib objects *.o
 MODULES 	+=	liburlp
 MODULES 	+= 	libucrypto
-#MODULES 	+=	libucrypto/mbedtls/uaes
-#MODULES 	+=	libucrypto/mbedtls/uhash
-#MODULES 	+=	libucrypto/secp256k1/uecc
-#MODULES 	+=	libucrypto/secp256k1/uhash
+MODULES 	+= 	libup2p
 
 # Build test applications
 APPLICATIONS 	+=	liburlp/test
