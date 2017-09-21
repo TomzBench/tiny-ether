@@ -35,8 +35,7 @@ typedef struct urlp
 
 // private
 uint32_t urlp_szsz(uint32_t); // size of size
-uint32_t urlp_write_sz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
-uint32_t urlp_write_szsz(uint8_t*, uint32_t*, uint32_t, const uint8_t);
+uint32_t urlp_write_sz(uint8_t* b, uint32_t* s, uint32_t sz, int islist);
 uint32_t urlp_write_n_big_endian(uint8_t*, const void*, uint32_t, int);
 uint32_t urlp_write_big_endian(uint8_t*, const void*, int);
 uint32_t urlp_read_sz(uint8_t* b, uint32_t* result);
@@ -74,27 +73,49 @@ urlp_szsz(uint32_t size)
     return 4 - (urlp_clz_fn(size) / 8);
 }
 
-uint32_t
-urlp_write_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
-{
-    if (s <= 55) {
-        if (b) b[--*(c)] = p + s; // ie: b[x] = 0xc0 + sz
-        return 1;
-    } else {
-        return urlp_write_szsz(b, c, s, p);
-    }
-}
+// uint32_t
+// urlp_write_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
+//{
+//    if (s <= 55) {
+//        if (b) b[--*(c)] = p + s; // ie: b[x] = 0xc0 + sz
+//        return 1;
+//    } else {
+//        return urlp_write_szsz(b, c, s, p);
+//    }
+//}
+//
+// uint32_t
+// urlp_write_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
+//{
+//    uint32_t szsz = urlp_szsz(s);
+//    if (b) {
+//        *c -= szsz;
+//        urlp_write_big_endian(&b[*c], &s, 4);
+//        b[--*c] = p + szsz;
+//    }
+//    return szsz + 1;
+//}
+//
 
 uint32_t
-urlp_write_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
+urlp_write_sz(uint8_t* b, uint32_t* c, uint32_t s, int islist)
 {
-    uint32_t szsz = urlp_szsz(s);
-    if (b) {
-        *c -= szsz;
-        urlp_write_big_endian(&b[*c], &s, 4);
-        b[--*c] = p + szsz;
+    uint32_t sz = 0, szsz = 0;
+    if (s < 1) {
+        sz = 0;
+    } else if (s <= 55) {
+        if (b) b[--*(c)] = s + (islist ? 0xc0 : 0x80);
+        sz = 1;
+    } else {
+        szsz = urlp_szsz(s);
+        if (b) {
+            *c -= szsz;
+            urlp_write_big_endian(&b[*c], &s, 4);
+            b[--*c] = szsz + (islist ? 0xf7 : 0xb7);
+        }
+        sz = szsz + 1;
     }
-    return szsz + 1;
+    return sz;
 }
 
 uint32_t
@@ -242,7 +263,7 @@ urlp_item_u8(const uint8_t* b, uint32_t sz)
         rlp = urlp_alloc(size);
         if (rlp) {
             for (int i = sz; i; i--) rlp->b[--size] = b[i - 1];
-            urlp_write_szsz(rlp->b, &size, sz, 0xb7);
+            urlp_write_sz(rlp->b, &size, sz, 0);
         }
     }
     return rlp;
@@ -446,7 +467,7 @@ urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot)
         sz += rlp->sz;
         rlp = rlp->next;
     }
-    sz += urlp_write_sz(b, spot, sz, 0xc0);
+    sz += urlp_write_sz(b, spot, sz, 1);
     return sz;
 }
 
