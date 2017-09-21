@@ -249,12 +249,20 @@ int
 test_item(uint8_t* rlp, uint32_t rlplen, urlp** item_p)
 {
     uint8_t result[rlplen];
+    uint8_t resulta[rlplen];
     uint32_t len, ret = -1;
     urlp* item = *item_p;
     *item_p = NULL;
 
     // Check encoded
     len = urlp_print(item, result, rlplen);
+    if (!(len == rlplen)) goto EXIT;
+    if (memcmp(rlp, result, rlplen)) goto EXIT;
+    urlp_free(&item);
+
+    // Check our readback
+    item = urlp_parse(result, rlplen);
+    len = urlp_print(item, resulta, rlplen);
     if (!(len == rlplen)) goto EXIT;
     if (memcmp(rlp, result, rlplen)) goto EXIT;
     urlp_free(&item);
@@ -270,7 +278,7 @@ test_item(uint8_t* rlp, uint32_t rlplen, urlp** item_p)
     // Test pass
     ret = 0;
 EXIT:
-    urlp_free(&item);
+    if (item) urlp_free(&item);
     return ret;
 }
 
