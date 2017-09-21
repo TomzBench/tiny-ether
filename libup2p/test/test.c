@@ -2,6 +2,7 @@
 #include <string.h>
 
 const uint8_t* makebin(const char* str, size_t* len);
+int check_q(const uecc_public_key* key, const char* str);
 
 typedef struct
 {
@@ -87,14 +88,20 @@ test_vector g_test_vectors[] = {
      .ackver = 57 },
     { 0, 0, 0, 0 }
 };
-const char* g_alice_s =
+const char* g_alice_spri =
     "49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee";
-const char* g_alice_e =
+const char* g_alice_epri =
     "869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d";
-const char* g_bob_s =
+const char* g_bob_spri =
     "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291";
-const char* g_bob_e =
+const char* g_bob_epri =
     "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4";
+const char* g_alice_epub = "654d1044b69c577a44e5f01a1209523adb4026e70c62d1c13"
+                           "a067acabc09d2667a49821a0ad4b634554d330a15a58fe61f"
+                           "8a8e0544b310c6de7b0c8da7528a8d";
+const char* g_bob_epub = "b6d82fa3409da933dbf9cb0140c5dde89f4e64aec88d476af64"
+                         "8880f4a10e1e49fe35ef3e69e93dd300b4797765a747c6384a6"
+                         "ecf5db9c2690398607a86181e4";
 
 int test_handshake();
 
@@ -115,32 +122,48 @@ test_handshake()
 {
     int err;
     uecc_private_key alice_e, alice_s, bob_s, bob_e;
-    uint8_t testa[65];
-    uint8_t testb[65];
     test_vector* tv = g_test_vectors;
     rlpx *alice, *bob;
-    memcpy(alice_e.b, makebin(g_alice_e, NULL), 32);
-    memcpy(alice_s.b, makebin(g_alice_s, NULL), 32);
-    memcpy(bob_e.b, makebin(g_bob_e, NULL), 32);
-    memcpy(bob_s.b, makebin(g_bob_s, NULL), 32);
-
+    memcpy(alice_e.b, makebin(g_alice_epri, NULL), 32);
+    memcpy(alice_s.b, makebin(g_alice_spri, NULL), 32);
+    memcpy(bob_e.b, makebin(g_bob_epri, NULL), 32);
+    memcpy(bob_s.b, makebin(g_bob_spri, NULL), 32);
     alice = rlpx_alloc_keypair(&alice_s, &alice_e);
     bob = rlpx_alloc_keypair(&bob_s, &bob_e);
+    if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
+    if ((check_q(rlpx_public_ekey(bob), g_bob_epub))) return -1;
+
     while (tv->auth) {
-        size_t len = strlen(tv->auth) / 2;
-        uint8_t cipher[len];
-        memcpy(cipher, makebin(tv->auth, NULL), len);
-        if (rlpx_read_auth(bob, cipher, len)) break;
-        uecc_qtob(rlpx_remote_public_ekey(bob), testa, 65);
-        uecc_qtob(rlpx_public_ekey(alice), testb, 65);
+        size_t authlen = strlen(tv->auth) / 2;
+        size_t acklen = strlen(tv->ack) / 2;
+        uint8_t auth[authlen];
+        uint8_t ack[acklen];
+        memcpy(auth, makebin(tv->auth, NULL), authlen);
+        memcpy(ack, makebin(tv->ack, NULL), acklen);
+        if (rlpx_read_auth(bob, auth, authlen)) break;
+        if (rlpx_read_ack(alice, ack, acklen)) break;
         if (!(rlpx_version_remote(bob) == tv->authver)) break;
-        if (memcmp(testa, testb, 65)) break;
+        if (!(rlpx_version_remote(alice) == tv->ackver)) break;
+        if ((check_q(rlpx_remote_public_ekey(bob), g_alice_epub))) break;
+        if ((check_q(rlpx_remote_public_ekey(alice), g_bob_epub))) break;
         tv++;
     }
     err = tv->auth ? -1 : 0; // broke loop early ? -> error
     rlpx_free(&alice);
     rlpx_free(&bob);
     return err;
+}
+
+int
+check_q(const uecc_public_key* key, const char* str)
+{
+    size_t l = strlen(str) / 2;
+    uint8_t a[l];
+    uint8_t b[65];
+    if (!(l == 64)) return -1;
+    memcpy(a, makebin(str, NULL), l);
+    uecc_qtob(key, b, 65);
+    return memcmp(a, &b[1], 64) ? -1 : 0;
 }
 
 const uint8_t*
