@@ -100,15 +100,15 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
     static int x = 1;
     uint16_t sz = *(uint8_t*)&x ? (auth[0] << 8 | auth[1]) : *(uint16_t*)auth;
     uint8_t buffer[sz]; /*assert sz >65 we reuse buffer*/
-    int err = 0;
+    int err = -1;
     urlp *rlp, *seek = NULL;
     l = uecies_decrypt(&s->skey, auth, 2, &auth[2], l - 2, buffer);
     if (l > 0) {
-        rlp = urlp_parse(buffer, l);
         // if((seek=urlp_at(3))) //read ver
         // if((seek=urlp_at(2))) //read nonce
         // if((seek=urlp_at(1))) //read pubkey
         // if((seek=urlp_at(0))) //read signature
+        rlp = urlp_parse(buffer, l);
         if ((seek = urlp_at(rlp, 3))) {
             // Get version
             s->remote_version = urlp_as_u64(seek);
@@ -133,7 +133,7 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
             for (int i = 0; i < 32; i++) {
                 x.b[i] = s->skey.z.b[i + 1] ^ s->remote_nonce.b[i];
             }
-            uecc_recover_bin(urlp_ref(seek, NULL), &x, &s->remote_ekey);
+            err = uecc_recover_bin(urlp_ref(seek, NULL), &x, &s->remote_ekey);
         }
         urlp_free(&rlp);
     }
