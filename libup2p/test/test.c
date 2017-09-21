@@ -174,15 +174,15 @@ test_write()
     if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
     if ((check_q(rlpx_public_ekey(bob), g_bob_epub))) return -1;
 
-    err = rlpx_write_auth(alice,                 // ctx
-                          NULL,                  // from ekey
-                          rlpx_public_skey(bob), // to skey
-                          cipher,                // result
-                          &l                     // result_len
-                          );
+    err = rlpx_write_ack(bob,                     // ctx
+                         NULL,                    // from ekey
+                         rlpx_public_skey(alice), // to skey
+                         cipher,                  // result
+                         &l                       // result_len
+                         );
     if (err) goto EXIT;
 
-    err = rlpx_read_auth(bob, cipher, l);
+    err = rlpx_read_ack(alice, cipher, l);
     if (err) goto EXIT;
 
     err = 0;
