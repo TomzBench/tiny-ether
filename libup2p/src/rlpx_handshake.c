@@ -14,11 +14,11 @@
 int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
 
 int
-rlpx_write_auth(rlpx* s,
-                const uecc_public_key* from_e_key,
-                const uecc_public_key* to_s_key,
-                uint8_t* auth,
-                size_t* l)
+rlpx_write_ack(rlpx* s,
+               const uecc_public_key* from_e_key,
+               const uecc_public_key* to_s_key,
+               uint8_t* auth,
+               size_t* l)
 {
     h520 ekey;
     h256 nonce;
