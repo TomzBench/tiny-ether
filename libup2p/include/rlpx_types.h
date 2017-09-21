@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include "mtm/uecc.h"
+#include "uecc.h"
 
 typedef struct rlpx rlpx;
 

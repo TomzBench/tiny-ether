@@ -10,8 +10,8 @@
 extern "C" {
 #endif
 
-#include "mtm/uecc.h"
-#include "mtm/urlp.h"
+#include "uecc.h"
+#include "urlp.h"
 
 #include "rlpx_types.h"
 
@@ -29,15 +29,19 @@ extern "C" {
 
 // constructors
 extern rlpx* rlpx_alloc();
-extern rlpx* rlpx_alloc_key(const char*);
-extern rlpx* rlpx_alloc_keypair(const char*, const char*);
+extern rlpx* rlpx_alloc_key(uecc_private_key*);
+extern rlpx* rlpx_alloc_keypair(uecc_private_key*, uecc_private_key*);
 extern void rlpx_free(rlpx** session_p);
 
 // setters / getters
 extern uint64_t rlpx_version_remote(rlpx*);
+extern const uecc_public_key* rlpx_public_skey(rlpx*);
+extern const uecc_public_key* rlpx_public_ekey(rlpx*);
+extern const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
 
-// methods
+// methods rlpx_handshake exports
 extern int rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l);
+extern int rlpx_read_ack(rlpx* s, uint8_t* auth, size_t l);
 
 #ifdef __cplusplus
 }

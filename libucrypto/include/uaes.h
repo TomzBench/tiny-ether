@@ -5,10 +5,16 @@ extern "C" {
 #endif
 
 #include "mbedtls/aes.h"
-#include "umpi.h"
 
-typedef h128 uaes_128_ctr_key;
-typedef h128 uaes_iv;
+typedef struct
+{
+    uint8_t b[16];
+} uaes_128_ctr_key;
+
+typedef struct
+{
+    uint8_t b[16];
+} uaes_iv;
 
 typedef mbedtls_aes_context uaes_ctx;
 
