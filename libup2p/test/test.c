@@ -162,7 +162,6 @@ test_write()
     int err;
     size_t l = 800; // ecies+pad
     uint8_t buffer[l];
-    uint8_t* cipher = buffer;
     rlpx *alice, *bob;
     uecc_private_key alice_e, alice_s, bob_s, bob_e;
     memcpy(alice_e.b, makebin(g_alice_epri, NULL), 32);
@@ -177,12 +176,12 @@ test_write()
     err = rlpx_write_ack(bob,                     // ctx
                          NULL,                    // from ekey
                          rlpx_public_skey(alice), // to skey
-                         cipher,                  // result
+                         buffer,                  // result
                          &l                       // result_len
                          );
     if (err) goto EXIT;
 
-    err = rlpx_read_ack(alice, cipher, l);
+    err = rlpx_read_ack(alice, buffer, l);
     if (err) goto EXIT;
 
     err = 0;
