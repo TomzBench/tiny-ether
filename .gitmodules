@@ -8,3 +8,6 @@
 	path = external/secp256k1
 	url = https://github.com/chfast/secp256k1
 	branch = develop
+[submodule "external/keccak-tiny"]
+	path = external/keccak-tiny
+	url = https://github.com/coruus/keccak-tiny
