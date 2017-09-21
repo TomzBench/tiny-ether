@@ -1,5 +1,5 @@
 #include "uecc.h"
-#include <stdlib.h> /*!< temporary for rand */
+#include "urand.h"
 #include <string.h>
 
 // clang-format off
@@ -33,7 +33,7 @@ int
 uecc_key_init_new(uecc_ctx* ctx)
 {
     uecc_private_key d;
-    for (int i = 0; i < 32; i++) d.b[i] = rand(); // TODO not rnd
+    urand(d.b, 32);
     return uecc_key_init_binary(ctx, &d);
 }
 

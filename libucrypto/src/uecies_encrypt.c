@@ -1,4 +1,5 @@
 #include "uecies_encrypt.h"
+#include "urand.h"
 #include <string.h>
 
 int
@@ -26,8 +27,8 @@ uecies_encrypt(uecc_public_key* p,
     if (err) goto EXIT;
     uhash_kdf(&ecc.z.b[1], 32, key, 32);
     usha256(&key[16], 16, mkey);
-    memcpy(iv_dst->b, "123456789012345", 16);
-    memcpy(iv.b, "123456789012345", 16);
+    urand(iv_dst->b, 16);
+    memcpy(iv.b, iv_dst->b, 16);
     err = uaes_crypt(ekey, &iv, in, inlen, &out[81]);
     if (err) goto EXIT;
     uhmac_sha256_init(&hmac, mkey, 32);
