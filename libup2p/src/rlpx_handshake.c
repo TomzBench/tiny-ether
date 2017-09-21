@@ -7,14 +7,26 @@
 #include "rlpx_handshake.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
+#include "urand.h"
 #include "urlp.h"
+
+// Guard l(x_value);
+// if (!m_value)
+//{
+//	m_value = Secret::random();
+//	if (!m_value)
+//		BOOST_THROW_EXCEPTION(InvalidState());
+//}
+// m_value = sha3Secure(m_value.ref());
+// return sha3(~m_value);
 
 int
 rlpx_write_auth(rlpx* s, uint8_t** auth_p, size_t* l)
 {
-    // h512 ekey;
-    // h256 nonce;
-    // uecc_qtob(&s->remote_ekey, ekey.b, 64);
+    h512 ekey;
+    h256 nonce;
+    uecc_qtob(&s->remote_ekey, ekey.b, 64);
+    urand(nonce.b, 32);
     return -1;
 }
 
