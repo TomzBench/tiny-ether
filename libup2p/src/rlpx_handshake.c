@@ -10,6 +10,15 @@
 #include "urlp.h"
 
 int
+rlpx_write_auth(rlpx* s, uint8_t** auth_p, size_t* l)
+{
+    // h512 ekey;
+    // h256 nonce;
+    // uecc_qtob(&s->remote_ekey, ekey.b, 64);
+    return -1;
+}
+
+int
 rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
 {
     static int x = 1;
