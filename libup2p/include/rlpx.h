@@ -39,7 +39,7 @@ extern const uecc_public_key* rlpx_public_skey(rlpx*);
 extern const uecc_public_key* rlpx_public_ekey(rlpx*);
 extern const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
 
-// methods
+// methods rlpx_handshake exports
 extern int rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l);
 extern int rlpx_read_ack(rlpx* s, uint8_t* auth, size_t l);
 
