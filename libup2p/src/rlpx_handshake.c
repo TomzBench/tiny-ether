@@ -120,9 +120,9 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 {
     int err;
     static int x = 1;
-    size_t rlpsz = urlp_print_size(rlp), pad = urand_min_max_u8(100, 250);
-    uint16_t sz = uecies_encrypt_size(pad + rlpsz) + sizeof(uint16_t);
-    uint8_t plain[rlpsz + pad], *psz = (uint8_t *)&sz;
+    size_t rlpsz = urlp_print_size(rlp), padsz = urand_min_max_u8(100, 250);
+    uint16_t sz = uecies_encrypt_size(padsz + rlpsz) + sizeof(uint16_t);
+    uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&sz;
     *(uint16_t*)p = *(uint8_t*)&x ? (psz[0] << 8 | psz[1]) : *(uint16_t*)psz;
     if (!(sz <= *l)) {
         *l = sz;
@@ -130,8 +130,8 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
     }
     *l = sz;
     if (!(urlp_print(rlp, plain, rlpsz) == rlpsz)) return -1;
-    urand(&plain[rlpsz], pad);
-    err = uecies_encrypt(q, p, 2, plain, pad + rlpsz, &p[2]);
+    urand(&plain[rlpsz], padsz);
+    err = uecies_encrypt(q, p, 2, plain, padsz + rlpsz, &p[2]);
     return err;
 }
 
