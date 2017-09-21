@@ -38,10 +38,16 @@ extern uint64_t rlpx_version_remote(rlpx*);
 extern const uecc_public_key* rlpx_public_skey(rlpx*);
 extern const uecc_public_key* rlpx_public_ekey(rlpx*);
 extern const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
+extern const uecc_public_key* rlpx_remote_public_skey(rlpx*);
 
 // methods rlpx_handshake exports
 extern int rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l);
 extern int rlpx_read_ack(rlpx* s, uint8_t* auth, size_t l);
+extern int rlpx_write_auth(rlpx* s,
+                           const uecc_public_key*,
+                           const uecc_public_key*,
+                           uint8_t* auth,
+                           size_t l);
 
 #ifdef __cplusplus
 }

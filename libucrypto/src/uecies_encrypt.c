@@ -3,7 +3,7 @@
 #include <string.h>
 
 int
-uecies_encrypt(uecc_public_key* p,
+uecies_encrypt(const uecc_public_key* p,
                const uint8_t* shared_mac,
                size_t shared_mac_len,
                const uint8_t* in,
@@ -40,3 +40,13 @@ EXIT:
     uecc_key_deinit(&ecc);
     return err;
 }
+
+size_t
+uecies_encrypt_size(size_t len)
+{
+    return len + 32 + 16 + 65;
+}
+
+//
+//
+//

@@ -106,6 +106,8 @@ flags = [
 '-I',
 './libucrypto/src/secp256k1',
 '-I',
+'./libucrypto/src/keccak-tiny',
+'-I',
 './libup2p/src',
 '-I',
 './libup2p/include',

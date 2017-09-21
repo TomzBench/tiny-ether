@@ -36,6 +36,7 @@ uint64_t rlpx_version_remote(rlpx*);
 const uecc_public_key* rlpx_public_skey(rlpx*);
 const uecc_public_key* rlpx_public_ekey(rlpx*);
 const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
+const uecc_public_key* rlpx_remote_public_skey(rlpx*);
 
 #ifdef __cplusplus
 }

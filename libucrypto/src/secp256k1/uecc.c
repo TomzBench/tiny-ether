@@ -40,6 +40,7 @@ uecc_key_init_new(uecc_ctx* ctx)
 int
 uecc_key_init_binary(uecc_ctx* ctx, const uecc_private_key* d)
 {
+    memset(ctx, 0, sizeof(uecc_ctx));
     memcpy(&ctx->d, d, sizeof(uecc_private_key));
     ctx->grp = secp256k1_context_create(SECP256K1_CONTEXT_SIGN |
                                         SECP256K1_CONTEXT_VERIFY);

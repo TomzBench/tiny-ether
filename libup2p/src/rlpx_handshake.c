@@ -7,27 +7,42 @@
 #include "rlpx_handshake.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
+#include "unonce.h"
 #include "urand.h"
 #include "urlp.h"
 
-// Guard l(x_value);
-// if (!m_value)
-//{
-//	m_value = Secret::random();
-//	if (!m_value)
-//		BOOST_THROW_EXCEPTION(InvalidState());
-//}
-// m_value = sha3Secure(m_value.ref());
-// return sha3(~m_value);
+int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t l);
 
 int
-rlpx_write_auth(rlpx* s, uint8_t** auth_p, size_t* l)
+rlpx_write_auth(rlpx* s,
+                const uecc_public_key* from_e_key,
+                const uecc_public_key* to_s_key,
+                uint8_t* auth,
+                size_t l)
 {
-    h512 ekey;
+    h520 ekey;
     h256 nonce;
-    uecc_qtob(&s->remote_ekey, ekey.b, 64);
-    urand(nonce.b, 32);
-    return -1;
+    urlp* rlp;
+    uint64_t ver = 4;
+    int err = 0;
+    if (!from_e_key) from_e_key = &s->ekey.Q;
+    if (!to_s_key) to_s_key = &s->remote_skey;
+    if (uecc_qtob(from_e_key, ekey.b, sizeof(ekey.b))) return -1;
+    if (unonce(nonce.b)) return -1;
+    rlp = urlp_list();
+    if (rlp) {
+        urlp_push(rlp, urlp_item_u8(&ekey.b[1], 64));
+        urlp_push(rlp, urlp_item_u8(nonce.b, 32));
+        urlp_push(rlp, urlp_item_u64(&ver, 1));
+    }
+    if (!(urlp_children(rlp) == 3)) {
+        urlp_free(&rlp);
+        return -1;
+    }
+
+    err = rlpx_encrypt(rlp, to_s_key, auth, l);
+    urlp_free(&rlp);
+    return err;
 }
 
 int
@@ -38,8 +53,8 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
     uint8_t buffer[sz]; /*assert sz >65 we reuse buffer*/
     int err = -1;
     urlp *rlp, *seek = NULL;
-    l = uecies_decrypt(&s->skey, auth, 2, &auth[2], l - 2, buffer);
-    if ((l > 0) && (rlp = urlp_parse(buffer, l))) {
+    err = uecies_decrypt(&s->skey, auth, 2, &auth[2], l - 2, buffer);
+    if ((err > 0) && (rlp = urlp_parse(buffer, err))) {
         // if((seek=urlp_at(3))) //read ver
         // if((seek=urlp_at(2))) //read nonce
         // if((seek=urlp_at(1))) //read pubkey
@@ -100,6 +115,23 @@ rlpx_read_ack(rlpx* s, uint8_t* ack, size_t l)
     return err;
 }
 
+int
+rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t l)
+{
+    int err;
+    static int x = 1;
+    size_t rlpsz = urlp_print_size(rlp), pad = urand_min_max_u8(100, 250);
+    uint16_t sz = uecies_encrypt_size(pad + rlpsz) + sizeof(uint16_t);
+    uint8_t plain[pad + rlpsz], *psz = (uint8_t *)&sz;
+    *(uint16_t*)p = *(uint8_t*)&x ? (psz[0] << 8 | psz[1]) : *(uint16_t*)psz;
+    urand(&plain[rlpsz], pad);
+    if (!(sz <= l)) return -1;
+    if (!(urlp_print(rlp, plain, rlpsz) == rlpsz)) return -1;
+    err = uecies_encrypt(q, p, 2, plain, pad + rlpsz, &p[2]);
+    return err;
+}
+
+//
 //
 //
 //

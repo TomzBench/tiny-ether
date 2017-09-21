@@ -65,6 +65,12 @@ rlpx_remote_public_ekey(rlpx* s)
     return &s->remote_ekey;
 }
 
+const uecc_public_key*
+rlpx_remote_public_skey(rlpx* s)
+{
+    return &s->remote_skey;
+}
+
 //
 //
 //

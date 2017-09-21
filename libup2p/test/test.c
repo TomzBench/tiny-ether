@@ -103,7 +103,8 @@ const char* g_bob_epub = "b6d82fa3409da933dbf9cb0140c5dde89f4e64aec88d476af64"
                          "8880f4a10e1e49fe35ef3e69e93dd300b4797765a747c6384a6"
                          "ecf5db9c2690398607a86181e4";
 
-int test_handshake();
+int test_read();
+int test_write();
 
 int
 main(int argc, char* argv[])
@@ -112,13 +113,14 @@ main(int argc, char* argv[])
     ((void)argv);
     int err = 0;
 
-    err |= test_handshake();
+    err |= test_read();
+    err |= test_write();
 
     return err;
 }
 
 int
-test_handshake()
+test_read()
 {
     int err;
     uecc_private_key alice_e, alice_s, bob_s, bob_e;
@@ -149,6 +151,42 @@ test_handshake()
         tv++;
     }
     err = tv->auth ? -1 : 0; // broke loop early ? -> error
+    rlpx_free(&alice);
+    rlpx_free(&bob);
+    return err;
+}
+
+int
+test_write()
+{
+    int err;
+    size_t l = 800; // ecies+pad
+    uint8_t buffer[l];
+    uint8_t* cipher = buffer;
+    rlpx *alice, *bob;
+    uecc_private_key alice_e, alice_s, bob_s, bob_e;
+    memcpy(alice_e.b, makebin(g_alice_epri, NULL), 32);
+    memcpy(alice_s.b, makebin(g_alice_spri, NULL), 32);
+    memcpy(bob_e.b, makebin(g_bob_epri, NULL), 32);
+    memcpy(bob_s.b, makebin(g_bob_spri, NULL), 32);
+    alice = rlpx_alloc_keypair(&alice_s, &alice_e);
+    bob = rlpx_alloc_keypair(&bob_s, &bob_e);
+    if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
+    if ((check_q(rlpx_public_ekey(bob), g_bob_epub))) return -1;
+
+    err = rlpx_write_auth(alice,                 // ctx
+                          NULL,                  // from ekey
+                          rlpx_public_skey(bob), // to skey
+                          cipher,                // result
+                          l                      // result_len
+                          );
+    if (err) goto EXIT;
+
+    // err = rlpx_read_auth(bob, cipher, l);
+    // if (err) goto EXIT;
+
+    err = 0;
+EXIT:
     rlpx_free(&alice);
     rlpx_free(&bob);
     return err;

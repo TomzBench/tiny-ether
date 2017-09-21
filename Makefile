@@ -9,6 +9,7 @@ CFLAGS 		:=	-O0 -g -Wall -DNDEBUG
 # Configurations switches -D
 CONFIGS_D 	+= 	URLP_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
+CONFIGS_D 	+= 	"memset_s(W,WL,V,OL)=memset(W,V,OL)"
 
 # Collect lib objects *.o
 MODULES 	+= 	libup2p

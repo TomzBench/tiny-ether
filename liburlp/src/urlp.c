@@ -89,9 +89,11 @@ uint32_t
 urlp_write_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
 {
     uint32_t szsz = urlp_szsz(s);
-    *c -= szsz;
-    urlp_write_big_endian(&b[*c], &s, 4);
-    if (b) b[--*c] = p + szsz;
+    if (b) {
+        *c -= szsz;
+        urlp_write_big_endian(&b[*c], &s, 4);
+        b[--*c] = p + szsz;
+    }
     return szsz + 1;
 }
 
@@ -365,6 +367,37 @@ const uint8_t*
 urlp_data(urlp* rlp)
 {
     return rlp->b; //
+}
+
+uint32_t
+urlp_children(urlp* rlp)
+{
+    uint32_t n;
+    if (urlp_is_list(rlp)) {
+        n = rlp->n + urlp_children_walk(rlp->child);
+    } else {
+        n = 0;
+    }
+    return n;
+}
+
+uint32_t
+urlp_children_walk(urlp* rlp)
+{
+    uint32_t n = 0;
+    while (rlp) {
+        if (urlp_is_list(rlp)) {
+            n = rlp->n + urlp_children_walk(rlp->child);
+        }
+        rlp = rlp->next;
+    }
+    return n;
+}
+
+uint32_t
+urlp_print_size(urlp* rlp)
+{
+    return urlp_print_walk(rlp->child, NULL, 0);
 }
 
 uint32_t
