@@ -47,7 +47,7 @@ extern int rlpx_write_auth(rlpx* s,
                            const uecc_public_key*,
                            const uecc_public_key*,
                            uint8_t* auth,
-                           size_t l);
+                           size_t *l);
 
 #ifdef __cplusplus
 }

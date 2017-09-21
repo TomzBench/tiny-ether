@@ -178,12 +178,12 @@ test_write()
                           NULL,                  // from ekey
                           rlpx_public_skey(bob), // to skey
                           cipher,                // result
-                          l                      // result_len
+                          &l                     // result_len
                           );
     if (err) goto EXIT;
 
-    // err = rlpx_read_auth(bob, cipher, l);
-    // if (err) goto EXIT;
+    err = rlpx_read_auth(bob, cipher, l);
+    if (err) goto EXIT;
 
     err = 0;
 EXIT:

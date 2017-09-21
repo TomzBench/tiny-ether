@@ -19,7 +19,7 @@ int rlpx_write_auth(rlpx* s,
                     const uecc_public_key* from_e_key,
                     const uecc_public_key* to_s_key,
                     uint8_t* auth_p,
-                    size_t l);
+                    size_t *l);
 
 #ifdef __cplusplus
 }
