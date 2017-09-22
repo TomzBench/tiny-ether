@@ -5,13 +5,17 @@
 extern "C" {
 #endif
 
-#include "mbedtls/sha256.h"
+#include "secp256k1_sha256.h"
 
-typedef struct
-{
-    uint8_t pad[64];
-    mbedtls_sha256_context sha;
-} uhmac_sha256_ctx;
+typedef secp256k1_hmac_sha256_t uhmac_sha256_ctx;
+typedef secp256k1_sha256_t usha256_ctx;
+typedef secp256k1_rfc6979_hmac_sha256_t urfc6979_hmac_sha256_ctx;
+
+void usha256_init(usha256_ctx*);
+void usha256_update(usha256_ctx*, const uint8_t*, size_t);
+void usha256_finish(usha256_ctx*, uint8_t*);
+void usha256_free(usha256_ctx*);
+void usha256(const uint8_t* msg, size_t msglen, uint8_t* hmac);
 
 void uhmac_sha256_init(uhmac_sha256_ctx*, const uint8_t*, size_t);
 void uhmac_sha256_update(uhmac_sha256_ctx*, const uint8_t*, size_t);
@@ -22,7 +26,7 @@ void uhmac_sha256(const uint8_t* key,
                   const uint8_t* msg,
                   size_t msglen,
                   uint8_t* hmac);
-void ucrypto_sha256(const uint8_t*, size_t, uint8_t*);
+void uhash_kdf(uint8_t*, size_t, uint8_t*, size_t);
 
 #ifdef __cplusplus
 }

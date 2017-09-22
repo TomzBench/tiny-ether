@@ -1,4 +1,4 @@
-#include "mtm/urlp.h"
+#include "urlp.h"
 
 uint8_t rlp_null[] = { '\x80' };
 uint8_t rlp_15[] = { '\x0f' };
@@ -37,6 +37,20 @@ uint8_t rlp_lorem[] = {
     't',    'e',    't', 'u', 'r', ' ', 'a', 'd', 'i', 'p', 'i', 's',
     'i',    'c',    'i', 'n', 'g', ' ', 'e', 'l', 'i', 't' //
 };
+
+// TODO
+uint8_t rlp_2lorem[] = {
+    '\xb8', '\x38', 'L', 'o', 'r', 'e', 'm',    ' ',    'i', 'p', 's', 'u', 'm',
+    ' ',    'd',    'o', 'l', 'o', 'r', ' ',    's',    'i', 't', ' ', 'a', 'm',
+    'e',    't',    ',', ' ', 'c', 'o', 'n',    's',    'e', 'c', 't', 'e', 't',
+    'u',    'r',    ' ', 'a', 'd', 'i', 'p',    'i',    's', 'i', 'c', 'i', 'n',
+    'g',    ' ',    'e', 'l', 'i', 't', '\xb8', '\x38', 'L', 'o', 'r', 'e', 'm',
+    ' ',    'i',    'p', 's', 'u', 'm', ' ',    'd',    'o', 'l', 'o', 'r', ' ',
+    's',    'i',    't', ' ', 'a', 'm', 'e',    't',    ',', ' ', 'c', 'o', 'n',
+    's',    'e',    'c', 't', 'e', 't', 'u',    'r',    ' ', 'a', 'd', 'i', 'p',
+    'i',    's',    'i', 'c', 'i', 'n', 'g',    ' ',    'e', 'l', 'i', 't' //
+};
+
 uint8_t rlp_random[] = {
     '\xe1',                                               // [...
     '\x83', 'c',    'a', 't',                             // "cat"
@@ -249,12 +263,20 @@ int
 test_item(uint8_t* rlp, uint32_t rlplen, urlp** item_p)
 {
     uint8_t result[rlplen];
+    uint8_t resulta[rlplen];
     uint32_t len, ret = -1;
     urlp* item = *item_p;
     *item_p = NULL;
 
     // Check encoded
     len = urlp_print(item, result, rlplen);
+    if (!(len == rlplen)) goto EXIT;
+    if (memcmp(rlp, result, rlplen)) goto EXIT;
+    urlp_free(&item);
+
+    // Check our readback
+    item = urlp_parse(result, rlplen);
+    len = urlp_print(item, resulta, rlplen);
     if (!(len == rlplen)) goto EXIT;
     if (memcmp(rlp, result, rlplen)) goto EXIT;
     urlp_free(&item);
@@ -270,7 +292,7 @@ test_item(uint8_t* rlp, uint32_t rlplen, urlp** item_p)
     // Test pass
     ret = 0;
 EXIT:
-    urlp_free(&item);
+    if (item) urlp_free(&item);
     return ret;
 }
 
