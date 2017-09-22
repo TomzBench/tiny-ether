@@ -18,11 +18,16 @@ typedef struct
     // board_socket_fd conn;        /*!< os socket handle */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
+    uint64_t remote_version;     /*!< remote version from auth */
     h512 remote_node_id;         /*!< remote public address */
     h256 remote_nonce;           /*!< remote nonce */
     uecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
     uecc_public_key remote_skey; /*!< remote static pubkey */
-    uint64_t remote_version;     /*!< remote version from auth */
+    h256 emac;                   /*!< egress mac */
+    h256 imac;                   /*!< ingress mac */
+    h256 aes_enc;                /*!< aes ctr encryption key */
+    h256 aes_dec;                /*!< aes ctr decryption key */
+    h256 aes_mac;                /*!< aes ecb of egress/ingress mac updates */
 } rlpx;
 
 // constructors

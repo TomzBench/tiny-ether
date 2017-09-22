@@ -23,13 +23,18 @@ extern "C" {
  *		RLPXFrameCoder::setup(...
  * 	}
  *
- *Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
- *	        ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
- *Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
- *	        ingress-mac: sha3(mac-secret^recipient-nonce || auth-recvd-init)
+ * Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
+ *  	       ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
+ * Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
+ *	         ingress-mac: sha3(mac-secret^recipient-nonce ||auth-recvd-init)
+ *
+ * shared-secret = sha3(ecdhe-shared-secret || sha3(nonce || initiator-nonce))
+ * aes-secret = sha3(ecdhe-shared-secret || shared-secret)
+ * mac-secret = sha3(ecdhe-shared-secret || aes-secret)
  **/
 
 #include "uaes.h"
+#include "uecc.h"
 
 #ifdef __cplusplus
 }
