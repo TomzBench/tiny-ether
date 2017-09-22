@@ -1,5 +1,10 @@
 #include "uecies_decrypt.h"
 
+// 0x04 + echd-random-pubk + iv + aes(kdf(shared-secret), plaintext) + hmac
+// * offset 0                65         81               275
+// *        [ecies-pubkey:65||aes-iv:16||cipher-text:194||ecies-mac:32]
+// *                        ||-----------hmac-----------||
+
 int
 uecies_decrypt(uecc_ctx* ctx,
                const uint8_t* shared_mac,
