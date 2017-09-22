@@ -24,8 +24,6 @@ int
 rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 {
     int err;
-    // endian test
-    static int x = 1;
 
     // plain text size
     size_t rlpsz = urlp_print_size(rlp), padsz = urand_min_max_u8(100, 250);
@@ -35,6 +33,9 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 
     // Dynamic stack buffer for plain text
     uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&sz;
+
+    // endian test
+    static int x = 1;
     *(uint16_t*)p = *(uint8_t*)&x ? (psz[0] << 8 | psz[1]) : *(uint16_t*)psz;
 
     // Is caller buffer big enough?
@@ -103,7 +104,7 @@ rlpx_write_ack(rlpx* s,
     if (!to_s_key) to_s_key = &s->remote_skey;
     if (uecc_qtob(from_e_key, ekey.b, sizeof(ekey.b))) return -1;
     if (unonce(nonce.b)) return -1;
-    rlp = urlp_list();
+    if (!(rlp = urlp_list())) return -1;
     if (rlp) {
         urlp_push(rlp, urlp_item_u8(&ekey.b[1], 64));
         urlp_push(rlp, urlp_item_u8(nonce.b, 32));
