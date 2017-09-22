@@ -11,7 +11,44 @@
 #include "urand.h"
 #include "urlp.h"
 
-int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
+// rlp -> cipher text
+int rlpx_encrypt(urlp* rlp,
+                 const uecc_public_key* q,
+                 uint8_t* cipher,
+                 size_t* l);
+
+// cipher text -> rlp
+int rlpx_decrypt(uecc_ctx* ctx, const uint8_t* cipher, size_t l, urlp** rlp);
+
+int
+rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
+{
+    int err;
+    static int x = 1;
+    size_t rlpsz = urlp_print_size(rlp), padsz = urand_min_max_u8(100, 250);
+    uint16_t sz = uecies_encrypt_size(padsz + rlpsz) + sizeof(uint16_t);
+    uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&sz;
+    *(uint16_t*)p = *(uint8_t*)&x ? (psz[0] << 8 | psz[1]) : *(uint16_t*)psz;
+    if (!(sz <= *l)) {
+        *l = sz;
+        return -1;
+    }
+    *l = sz;
+    if (!(urlp_print(rlp, plain, rlpsz) == rlpsz)) return -1;
+    urand(&plain[rlpsz], padsz);
+    err = uecies_encrypt(q, p, 2, plain, padsz + rlpsz, &p[2]);
+    return err;
+}
+
+int
+rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
+{
+    static int x = 1;
+    uint16_t sz = *(uint8_t*)&x ? (c[0] << 8 | c[1]) : *(uint16_t*)c;
+    uint8_t buffer[sz];
+    int err = uecies_decrypt(ecc, c, 2, &c[2], l - 2, buffer);
+    return ((err > 0) && (*rlp_p = urlp_parse(buffer, err))) ? 0 : -1;
+}
 
 int
 rlpx_write_ack(rlpx* s,
@@ -48,13 +85,10 @@ rlpx_write_ack(rlpx* s,
 int
 rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
 {
-    static int x = 1;
-    uint16_t sz = *(uint8_t*)&x ? (auth[0] << 8 | auth[1]) : *(uint16_t*)auth;
-    uint8_t buffer[sz]; /*assert sz >65 we reuse buffer*/
-    int err = -1;
-    urlp *rlp, *seek = NULL;
-    err = uecies_decrypt(&s->skey, auth, 2, &auth[2], l - 2, buffer);
-    if ((err > 0) && (rlp = urlp_parse(buffer, err))) {
+    uint8_t buffer[65];
+    urlp *rlp, *seek;
+    int err = rlpx_decrypt(&s->skey, auth, l, &rlp);
+    if (!err) {
         // if((seek=urlp_at(3))) //read ver
         // if((seek=urlp_at(2))) //read nonce
         // if((seek=urlp_at(1))) //read pubkey
@@ -92,13 +126,10 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
 int
 rlpx_read_ack(rlpx* s, uint8_t* ack, size_t l)
 {
-    static int x = 1;
-    uint16_t sz = *(uint8_t*)&x ? (ack[0] << 8 | ack[1]) : *(uint16_t*)ack;
-    uint8_t buffer[sz]; /*assert sz >65 we reuse buffer*/
-    int err = -1;
-    urlp *rlp, *seek = NULL;
-    l = uecies_decrypt(&s->skey, ack, 2, &ack[2], l - 2, buffer);
-    if ((l > 0) && (rlp = urlp_parse(buffer, l))) {
+    uint8_t buffer[65];
+    urlp *rlp, *seek;
+    int err = rlpx_decrypt(&s->skey, ack, l, &rlp);
+    if (!err) {
         if ((seek = urlp_at(rlp, 0)) &&
             (urlp_size(seek) == sizeof(uecc_public_key))) {
             buffer[0] = 0x04;
@@ -112,26 +143,6 @@ rlpx_read_ack(rlpx* s, uint8_t* ack, size_t l)
         urlp_free(&rlp);
         err = 0;
     }
-    return err;
-}
-
-int
-rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
-{
-    int err;
-    static int x = 1;
-    size_t rlpsz = urlp_print_size(rlp), padsz = urand_min_max_u8(100, 250);
-    uint16_t sz = uecies_encrypt_size(padsz + rlpsz) + sizeof(uint16_t);
-    uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&sz;
-    *(uint16_t*)p = *(uint8_t*)&x ? (psz[0] << 8 | psz[1]) : *(uint16_t*)psz;
-    if (!(sz <= *l)) {
-        *l = sz;
-        return -1;
-    }
-    *l = sz;
-    if (!(urlp_print(rlp, plain, rlpsz) == rlpsz)) return -1;
-    urand(&plain[rlpsz], padsz);
-    err = uecies_encrypt(q, p, 2, plain, padsz + rlpsz, &p[2]);
     return err;
 }
 
