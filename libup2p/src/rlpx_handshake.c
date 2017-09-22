@@ -50,6 +50,17 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
     return ((err > 0) && (*rlp_p = urlp_parse(buffer, err))) ? 0 : -1;
 }
 
+/**
+ * @brief
+ *
+ * @param s
+ * @param from_e_key
+ * @param to_s_key
+ * @param auth
+ * @param l
+ *
+ * @return
+ */
 int
 rlpx_write_ack(rlpx* s,
                const uecc_public_key* from_e_key,
@@ -85,10 +96,10 @@ rlpx_write_ack(rlpx* s,
 /**
  * @brief Read RLPXHandshake
  *
- * if((seek=urlp_at(3))) //read ver
- * if((seek=urlp_at(2))) //read nonce
- * if((seek=urlp_at(1))) //read pubkey
- * if((seek=urlp_at(0))) //read signature
+ * if((seek=urlp_at(3))) { ...  //read ver
+ * if((seek=urlp_at(2))) { ...  //read nonce
+ * if((seek=urlp_at(1))) { ...  //read pubkey
+ * if((seek=urlp_at(0))) { ...  //read signature
  *
  * @param s
  * @param auth
