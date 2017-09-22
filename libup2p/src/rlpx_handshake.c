@@ -24,15 +24,26 @@ int
 rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 {
     int err;
+    // endian test
     static int x = 1;
+
+    // plain text size
     size_t rlpsz = urlp_print_size(rlp), padsz = urand_min_max_u8(100, 250);
+
+    // cipher prefix big endian
     uint16_t sz = uecies_encrypt_size(padsz + rlpsz) + sizeof(uint16_t);
+
+    // Dynamic stack buffer for plain text
     uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&sz;
     *(uint16_t*)p = *(uint8_t*)&x ? (psz[0] << 8 | psz[1]) : *(uint16_t*)psz;
+
+    // Is caller buffer big enough?
     if (!(sz <= *l)) {
         *l = sz;
         return -1;
     }
+
+    // Inform caller size, print and encrypt rlp
     *l = sz;
     if (!(urlp_print(rlp, plain, rlpsz) == rlpsz)) return -1;
     urand(&plain[rlpsz], padsz);
@@ -43,11 +54,26 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 int
 rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
 {
+    // endian test
     static int x = 1;
     uint16_t sz = *(uint8_t*)&x ? (c[0] << 8 | c[1]) : *(uint16_t*)c;
+
+    // Dynamic stack buffer for cipher text
     uint8_t buffer[sz];
+
+    // Decrypt and parse rlp
     int err = uecies_decrypt(ecc, c, 2, &c[2], l - 2, buffer);
     return ((err > 0) && (*rlp_p = urlp_parse(buffer, err))) ? 0 : -1;
+}
+
+int
+rlpx_write_auth(rlpx* s,
+                const uecc_public_key* from_e_key,
+                const uecc_public_key* to_s_key,
+                uint8_t* auth,
+                size_t* l)
+{
+    return -1;
 }
 
 /**
