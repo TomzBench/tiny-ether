@@ -59,6 +59,7 @@ int uecc_key_init_new(uecc_ctx*);
  */
 void uecc_key_deinit(uecc_ctx*);
 
+int uecc_sig_to_bin(const uecc_signature* sig, byte* b65);
 int uecc_qtob(const uecc_public_key* q, byte* b, size_t l);
 int uecc_btoq(const byte*, size_t l, uecc_public_key* q);
 

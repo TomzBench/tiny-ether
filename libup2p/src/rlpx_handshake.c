@@ -69,12 +69,35 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
 
 int
 rlpx_write_auth(rlpx* s,
-                const uecc_public_key* from_e_key,
                 const uecc_public_key* to_s_key,
                 uint8_t* auth,
                 size_t* l)
 {
-    return -1;
+    h256 nonce;
+    int err = 0;
+    uint64_t v = 4;
+    uint8_t rawsig[65];
+    uint8_t rawpub[65];
+    uecc_shared_secret x;
+    uecc_signature sig;
+    urlp* rlp;
+    if (uecc_agree(&s->skey, to_s_key)) return -1;
+    if (unonce(nonce.b)) return -1;
+    for (int i = 0; i < 32; i++) {
+        x.b[i] = s->skey.z.b[i + 1] ^ nonce.b[i];
+    }
+    if (uecc_sign(&s->ekey, x.b, 32, &sig)) return -1;
+    uecc_sig_to_bin(&sig, rawsig);
+    uecc_qtob(&s->skey.Q, rawpub, 65);
+    if ((rlp = urlp_list())) {
+        urlp_push(rlp, urlp_item_u8(rawsig, 65));
+        urlp_push(rlp, urlp_item_u8(&rawpub[1], 64));
+        urlp_push(rlp, urlp_item_u8(nonce.b, 32));
+        urlp_push(rlp, urlp_item_u64(&v, 1));
+    }
+    err = rlpx_encrypt(rlp, to_s_key, auth, l);
+    urlp_free(&rlp);
+    return err;
 }
 
 /**
@@ -90,7 +113,6 @@ rlpx_write_auth(rlpx* s,
  */
 int
 rlpx_write_ack(rlpx* s,
-               const uecc_public_key* from_e_key,
                const uecc_public_key* to_s_key,
                uint8_t* auth,
                size_t* l)
@@ -100,9 +122,8 @@ rlpx_write_ack(rlpx* s,
     urlp* rlp;
     uint64_t ver = 4;
     int err = 0;
-    if (!from_e_key) from_e_key = &s->ekey.Q;
     if (!to_s_key) to_s_key = &s->remote_skey;
-    if (uecc_qtob(from_e_key, ekey.b, sizeof(ekey.b))) return -1;
+    if (uecc_qtob(&s->ekey.Q, ekey.b, sizeof(ekey.b))) return -1;
     if (unonce(nonce.b)) return -1;
     if (!(rlp = urlp_list())) return -1;
     if (rlp) {

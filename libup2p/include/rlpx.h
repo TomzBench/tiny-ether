@@ -45,11 +45,9 @@ extern int rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l);
 extern int rlpx_read_ack(rlpx* s, uint8_t* auth, size_t l);
 extern int rlpx_write_auth(rlpx* s,
                            const uecc_public_key*,
-                           const uecc_public_key*,
                            uint8_t* auth,
                            size_t* l);
 extern int rlpx_write_ack(rlpx* s,
-                          const uecc_public_key*,
                           const uecc_public_key*,
                           uint8_t* auth,
                           size_t* l);

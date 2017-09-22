@@ -68,6 +68,19 @@ uecc_z_cmp(const uecc_shared_secret_w_header* a,
 }
 
 int
+uecc_sig_to_bin(const uecc_signature* sig, uint8_t* b65)
+{
+    secp256k1_context* ctx;
+    int id;
+    ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN |
+                                   SECP256K1_CONTEXT_VERIFY);
+    secp256k1_ecdsa_recoverable_signature_serialize_compact(ctx, b65, &id, sig);
+    b65[64] = id;
+    secp256k1_context_destroy(ctx);
+    return 0;
+}
+
+int
 uecc_qtob(const uecc_public_key* q, byte* b, size_t l)
 {
     int ok;
