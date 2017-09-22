@@ -82,6 +82,18 @@ rlpx_write_ack(rlpx* s,
     return err;
 }
 
+/**
+ * @brief Read RLPXHandshake
+ *
+ * if((seek=urlp_at(3))) //read ver
+ * if((seek=urlp_at(2))) //read nonce
+ * if((seek=urlp_at(1))) //read pubkey
+ * if((seek=urlp_at(0))) //read signature
+ *
+ * @param s
+ * @param auth
+ * @param l
+ */
 int
 rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
 {
@@ -89,10 +101,6 @@ rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
     urlp *rlp, *seek;
     int err = rlpx_decrypt(&s->skey, auth, l, &rlp);
     if (!err) {
-        // if((seek=urlp_at(3))) //read ver
-        // if((seek=urlp_at(2))) //read nonce
-        // if((seek=urlp_at(1))) //read pubkey
-        // if((seek=urlp_at(0))) //read signature
         if ((seek = urlp_at(rlp, 3))) {
             // Get version
             s->remote_version = urlp_as_u64(seek);
