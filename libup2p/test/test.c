@@ -3,8 +3,8 @@
 #include <string.h>
 
 test_vector g_test_vectors[] = {
-    {.auth = AUTH_1, .ack = ACK_1, .authver = 4, .ackver = 4 },
-    {.auth = AUTH_2, .ack = ACK_2, .authver = 56, .ackver = 57 },
+    {.auth = AUTH_1, .ack = ACK_1, .authver = AUTHVER_1, .ackver = ACKVER_1 },
+    {.auth = AUTH_2, .ack = ACK_2, .authver = AUTHVER_2, .ackver = ACKVER_2 },
     { 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;

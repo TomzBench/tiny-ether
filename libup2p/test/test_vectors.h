@@ -10,6 +10,11 @@
  * @return 0 pass
  */
 
+#define AUTHVER_1 4
+#define AUTHVER_2 56
+#define ACKVER_1 4
+#define ACKVER_2 57
+
 #define AUTH_1                                                                 \
     "01b304ab7578555167be8154d5cc456f567d5ba302662433674222360f08d5f1"         \
     "534499d3678b513b0fca474f3a514b18e75683032eb63fccb16c156dc6eb2c0b"         \
