@@ -13,13 +13,13 @@ extern "C" {
 
 #include "rlpx_internal.h"
 
-int rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l);
-int rlpx_read_ack(rlpx* s, uint8_t* auth, size_t l);
-int rlpx_write_auth(rlpx* s,
+int rlpx_auth_read(rlpx* s, uint8_t* auth, size_t l);
+int rlpx_auth_write(rlpx* s,
                     const uecc_public_key* to_s_key,
                     uint8_t* auth_p,
                     size_t* l);
-int rlpx_write_ack(rlpx* s,
+int rlpx_ack_read(rlpx* s, uint8_t* auth, size_t l);
+int rlpx_ack_write(rlpx* s,
                    const uecc_public_key* to_s_key,
                    uint8_t* auth_p,
                    size_t* l);

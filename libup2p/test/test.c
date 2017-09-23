@@ -142,8 +142,8 @@ test_read()
         uint8_t ack[acklen];
         memcpy(auth, makebin(tv->auth, NULL), authlen);
         memcpy(ack, makebin(tv->ack, NULL), acklen);
-        if (rlpx_read_auth(bob, auth, authlen)) break;
-        if (rlpx_read_ack(alice, ack, acklen)) break;
+        if (rlpx_auth_read(bob, auth, authlen)) break;
+        if (rlpx_ack_read(alice, ack, acklen)) break;
         if (!(rlpx_version_remote(bob) == tv->authver)) break;
         if (!(rlpx_version_remote(alice) == tv->ackver)) break;
         if ((check_q(rlpx_remote_public_ekey(bob), g_alice_epub))) break;
@@ -173,15 +173,15 @@ test_write()
     if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
     if ((check_q(rlpx_public_ekey(bob), g_bob_epub))) return -1;
 
-    err = rlpx_write_auth(alice, rlpx_public_skey(bob), buffer, &l);
+    err = rlpx_auth_write(alice, rlpx_public_skey(bob), buffer, &l);
     if (err) goto EXIT;
-    err = rlpx_read_auth(bob, buffer, l);
+    err = rlpx_auth_read(bob, buffer, l);
     if (err) goto EXIT;
 
     l = 800;
-    err = rlpx_write_ack(bob, rlpx_public_skey(alice), buffer, &l);
+    err = rlpx_ack_write(bob, rlpx_public_skey(alice), buffer, &l);
     if (err) goto EXIT;
-    err = rlpx_read_ack(alice, buffer, l);
+    err = rlpx_ack_read(alice, buffer, l);
     if (err) goto EXIT;
 
     if ((err = check_q(rlpx_remote_public_ekey(alice), g_bob_epub))) goto EXIT;
