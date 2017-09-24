@@ -3,8 +3,8 @@
 #include <string.h>
 
 test_vector g_test_vectors[] = {
-    {.auth = AUTH_1, .ack = ACK_1, .authver = AUTHVER_1, .ackver = ACKVER_1 },
     {.auth = AUTH_2, .ack = ACK_2, .authver = AUTHVER_2, .ackver = ACKVER_2 },
+    {.auth = AUTH_3, .ack = ACK_3, .authver = AUTHVER_3, .ackver = ACKVER_3 },
     { 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;
@@ -13,6 +13,10 @@ const char* g_alice_epub = ALICE_EPUB;
 const char* g_bob_spri = BOB_SPRI;
 const char* g_bob_epri = BOB_EPRI;
 const char* g_bob_epub = BOB_EPUB;
+const char* g_aes_secret = AES_SECRET;
+const char* g_mac_secret = MAC_SECRET;
+const char* g_nonce_a = NONCE_A;
+const char* g_nonce_b = NONCE_B;
 
 int
 main(int argc, char* argv[])

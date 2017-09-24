@@ -18,6 +18,7 @@ typedef struct
     // board_socket_fd conn;        /*!< os socket handle */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
+    h256 nonce;                  /*!< local nonce */
     uint64_t remote_version;     /*!< remote version from auth */
     h512 remote_node_id;         /*!< remote public address */
     h256 remote_nonce;           /*!< remote nonce */

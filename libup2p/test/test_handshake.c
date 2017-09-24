@@ -7,6 +7,13 @@ extern const char* g_bob_spri;
 extern const char* g_bob_epri;
 extern const char* g_alice_epub;
 extern const char* g_bob_epub;
+extern const char* g_aes_secret;
+extern const char* g_mac_secret;
+extern const char* g_nonce_a;
+extern const char* g_nonce_b;
+
+// Non-public prototypes methods for test
+void rlpx_test_nonce(rlpx* s, h256* nonce);
 
 int test_read();
 int test_write();
@@ -26,14 +33,19 @@ test_read()
 {
     int err;
     uecc_private_key alice_e, alice_s, bob_s, bob_e;
+    h256 nonce_a, nonce_b;
     test_vector* tv = g_test_vectors;
     rlpx *alice, *bob;
     memcpy(alice_e.b, makebin(g_alice_epri, NULL), 32);
     memcpy(alice_s.b, makebin(g_alice_spri, NULL), 32);
     memcpy(bob_e.b, makebin(g_bob_epri, NULL), 32);
     memcpy(bob_s.b, makebin(g_bob_spri, NULL), 32);
+    memcpy(nonce_a.b, makebin(g_nonce_a, NULL), 32);
+    memcpy(nonce_b.b, makebin(g_nonce_b, NULL), 32);
     alice = rlpx_alloc_keypair(&alice_s, &alice_e);
     bob = rlpx_alloc_keypair(&bob_s, &bob_e);
+    rlpx_test_nonce(alice, &nonce_a);
+    rlpx_test_nonce(bob, &nonce_b);
     if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
     if ((check_q(rlpx_public_ekey(bob), g_bob_epub))) return -1;
 

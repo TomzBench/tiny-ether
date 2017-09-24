@@ -7,15 +7,16 @@
  * RLPX Handshake test vectors
  * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-8.md
  *
+ * Note our test vectors skip AUTH_0/ACK_0 eip 8 only
  * @return 0 pass
  */
 
-#define AUTHVER_1 4
-#define AUTHVER_2 56
-#define ACKVER_1 4
-#define ACKVER_2 57
+#define AUTHVER_2 4
+#define AUTHVER_3 56
+#define ACKVER_2 4
+#define ACKVER_3 57
 
-#define AUTH_1                                                                 \
+#define AUTH_2                                                                 \
     "01b304ab7578555167be8154d5cc456f567d5ba302662433674222360f08d5f1"         \
     "534499d3678b513b0fca474f3a514b18e75683032eb63fccb16c156dc6eb2c0b"         \
     "1593f0d84ac74f6e475f1b8d56116b849634a8c458705bf83a626ea0384d4d73"         \
@@ -31,7 +32,7 @@
     "837129e547678c5190341e4f1693956c3bf7678318e2d5b5340c9e488eefea19"         \
     "8576344afbdf66db5f51204a6961a63ce072c8926c"
 
-#define AUTH_2                                                                 \
+#define AUTH_3                                                                 \
     "01b8044c6c312173685d1edd268aa95e1d495474c6959bcdd10067ba4c9013df"         \
     "9e40ff45f5bfd6f72471f93a91b493f8e00abc4b80f682973de715d77ba3a005"         \
     "a242eb859f9a211d93a347fa64b597bf280a6b88e26299cf263b01b8dfdb7122"         \
@@ -47,7 +48,7 @@
     "bc690163ee11f5b575a4b44e36e2bfb2f0fce91676fd64c7773bac6a003f481f"         \
     "ddd0bae0a1f31aa27504e2a533af4cef3b623f4791b2cca6d490"
 
-#define ACK_1                                                                  \
+#define ACK_2                                                                  \
     "01ea0451958701280a56482929d3b0757da8f7fbe5286784beead59d95089c217"        \
     "c9b917788989470b0e330cc6e4fb383c0340ed85fab836ec9fb8a49672712aeab"        \
     "bdfd1e837c1ff4cace34311cd7f4de05d59279e3524ab26ef753a0095637ac88f"        \
@@ -65,7 +66,7 @@
     "8223f45ac37f6487452ce626f549b3b5fdee26afd2072e4bc75833c2464c80524"        \
     "6155289f4"
 
-#define ACK_2                                                                  \
+#define ACK_3                                                                  \
     "01f004076e58aae772bb101ab1a8e64e01ee96e64857ce82b1113817c6cdd52c09"       \
     "d26f7b90981cd7ae835aeac72e1573b8a0225dd56d157a010846d888dac7464baf"       \
     "53f2ad4e3d584531fa203658fab03a06c9fd5e35737e417bc28c1cbf5e5dfc666d"       \
@@ -85,19 +86,36 @@
 
 #define ALICE_SPRI                                                             \
     "49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee"
+
 #define ALICE_EPRI                                                             \
     "869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d"
+
 #define ALICE_EPUB                                                             \
     "654d1044b69c577a44e5f01a1209523adb4026e70c62d1c13"                        \
     "a067acabc09d2667a49821a0ad4b634554d330a15a58fe61f"                        \
     "8a8e0544b310c6de7b0c8da7528a8d"
+
 #define BOB_SPRI                                                               \
     "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+
 #define BOB_EPRI                                                               \
     "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4";
+
 #define BOB_EPUB                                                               \
     "b6d82fa3409da933dbf9cb0140c5dde89f4e64aec88d476af64"                      \
     "8880f4a10e1e49fe35ef3e69e93dd300b4797765a747c6384a6"                      \
     "ecf5db9c2690398607a86181e4"
+
+#define NONCE_A                                                                \
+    "7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6"
+
+#define NONCE_B                                                                \
+    "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"
+
+#define AES_SECRET                                                             \
+    "80e8632c05fed6fc2a13b0f8d31a3cf645366239170ea067065aba8e28bac487"
+
+#define MAC_SECRET                                                             \
+    "2ea74ec5dae199227dff1af715362700e989d889d7a493cb0639691efb8e5f98"
 
 #endif
