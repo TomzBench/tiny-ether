@@ -1,6 +1,12 @@
 #include "uaes.h"
 
 int
+uaes_init_ctr_bin(uaes_ctx* ctx, uint8_t* key, int keylen)
+{
+    return uaes_init(ctx, keylen * 8, key);
+}
+
+int
 uaes_init_ctr_128(uaes_ctx* ctx, uaes_ctr_128_key* key)
 {
     return uaes_init(ctx, 128, key->b);

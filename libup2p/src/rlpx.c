@@ -77,18 +77,11 @@ rlpx_test_nonce(rlpx* s, h256* nonce)
     memcpy(s->nonce.b, nonce->b, 32);
 }
 
-const uint8_t*
-rlpx_aes_secret_debug_export(rlpx* s)
+void
+rlpx_remote_test_nonce(rlpx* s, h256* nonce)
 {
-    return s->aes_enc.b;
+    memcpy(s->remote_nonce.b, nonce->b, 32);
 }
-
-const uint8_t*
-rlpx_mac_secret_debug_export(rlpx* s)
-{
-    return s->aes_mac.b;
-}
-
 //
 //
 //

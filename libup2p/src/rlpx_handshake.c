@@ -231,10 +231,50 @@ rlpx_secrets(rlpx* s,
     memcpy(buff, &s->ekey.z.b[1], 32);         // (ephemeral || h(nonces))
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(nonces))
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(shared))
-    memcpy(s->aes_enc.b, out, 32);             // aes-secret save
-    memcpy(s->aes_dec.b, out, 32);             // aes-secret save
+    uaes_init_ctr_bin(&s->aes, out, 32);       // aes-secret save
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(aes-secret))
-    memcpy(s->aes_mac.b, out, 32);             // mac-secret save
+    memcpy(s->aes_mac.b, out, 32);             // mac-secret TODO uaes_init(...
+    memset(s->ekey.z.b, 0, 33);                // zero mem
+    memset(buff, 0, 64);                       // zero mem
+    return err;
+}
+
+/**
+ * @brief This routine only called for test, non-public no declarations.
+ *
+ * @param s
+ * @param nonce
+ * @param initiator_nonce
+ * @param cipher
+ * @param l
+ * @param aes
+ * @param mac
+ *
+ * @return
+ */
+int
+rlpx_expect_secrets(rlpx* s,
+                    h256* nonce,
+                    h256* initiator_nonce,
+                    uint8_t* cipher,
+                    uint32_t l,
+                    uint8_t* aes,
+                    uint8_t* mac)
+{
+    int err;
+    uint8_t buff[64], *out = &buff[32];
+    if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
+    memcpy(buff, nonce->b, 32);                // left nonce
+    memcpy(&buff[32], initiator_nonce->b, 32); // right nonce
+    usha3(buff, 64, out, 32);                  // h(nonces)
+    memcpy(buff, &s->ekey.z.b[1], 32);         // (ephemeral || h(nonces))
+    usha3(buff, 64, out, 32);                  // S(ephemeral || H(nonces))
+    usha3(buff, 64, out, 32);                  // S(ephemeral || H(shared))
+    uaes_init_ctr_bin(&s->aes, out, 32);       // aes-secret save
+    if (memcmp(out, aes, 32)) return -1;       // test
+    usha3(buff, 64, out, 32);                  // S(ephemeral || H(aes-secret))
+    memcpy(s->aes_mac.b, out, 32);             // mac-secret TODO uaes_init(...
+    if (memcmp(out, mac, 32)) return -1;       // test
     memset(s->ekey.z.b, 0, 33);                // zero mem
     memset(buff, 0, 64);                       // zero mem
     return err;

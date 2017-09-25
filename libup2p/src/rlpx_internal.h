@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 #include "rlpx_config.h"
+#include "uaes.h"
 #include "uecc.h"
 
 typedef struct
@@ -26,8 +27,7 @@ typedef struct
     uecc_public_key remote_skey; /*!< remote static pubkey */
     h256 emac;                   /*!< egress mac */
     h256 imac;                   /*!< ingress mac */
-    h256 aes_enc;                /*!< aes ctr encryption key */
-    h256 aes_dec;                /*!< aes ctr decryption key */
+    uaes_ctx aes;                /*!< aes enc/dec */
     h256 aes_mac;                /*!< aes ecb of egress/ingress mac updates */
 } rlpx;
 
