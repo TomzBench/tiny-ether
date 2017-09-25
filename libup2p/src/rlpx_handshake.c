@@ -231,7 +231,7 @@ rlpx_secrets(rlpx* s,
     memcpy(buff, &s->ekey.z.b[1], 32);         // (ephemeral || h(nonces))
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(nonces))
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(shared))
-    uaes_init_ctr_bin(&s->aes, out, 32);       // aes-secret save
+    uaes_init_bin(&s->aes, out, 32);           // aes-secret save
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(aes-secret))
     memcpy(s->aes_mac.b, out, 32);             // mac-secret TODO uaes_init(...
     memset(s->ekey.z.b, 0, 33);                // zero mem
@@ -241,6 +241,7 @@ rlpx_secrets(rlpx* s,
 
 /**
  * @brief This routine only called from test, non-public no declarations.
+ * Is a copy paste of rlpx_secrets() with memcmp()...
  */
 int
 rlpx_expect_secrets(rlpx* s,
@@ -260,7 +261,7 @@ rlpx_expect_secrets(rlpx* s,
     memcpy(buff, &s->ekey.z.b[1], 32);         // (ephemeral || h(nonces))
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(nonces))
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(shared))
-    uaes_init_ctr_bin(&s->aes, out, 32);       // aes-secret save
+    uaes_init_bin(&s->aes, out, 32);           // aes-secret save
     if (memcmp(out, aes, 32)) return -1;       // test
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(aes-secret))
     memcpy(s->aes_mac.b, out, 32);             // mac-secret TODO uaes_init(...
