@@ -191,6 +191,7 @@ test_recover()
     uecc_qtob(&pub, rawpub, 65);
     uecc_qtob(&alice.Q, alicepub, 65);
     err = memcmp(rawpub, alicepub, 65) ? -1 : 0;
+    uecc_key_deinit(&alice);
     return err;
 }
 
