@@ -41,6 +41,16 @@ uaes_crypt_ctr_128(uaes_ctr_128_key* key,
 }
 
 int
+uaes_crypt_ctr_256(uaes_ctr_256_key* key,
+                   uaes_iv_256* iv,
+                   const uint8_t* in,
+                   size_t inlen,
+                   uint8_t* out)
+{
+    return uaes_crypt(256, key->b, iv->b, in, inlen, out);
+}
+
+int
 uaes_crypt(int keysz,
            uint8_t* key,
            uint8_t* iv,
