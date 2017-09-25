@@ -71,17 +71,6 @@ rlpx_remote_public_skey(rlpx* s)
     return &s->remote_skey;
 }
 
-void
-rlpx_test_nonce(rlpx* s, h256* nonce)
-{
-    memcpy(s->nonce.b, nonce->b, 32);
-}
-
-void
-rlpx_remote_test_nonce(rlpx* s, h256* nonce)
-{
-    memcpy(s->remote_nonce.b, nonce->b, 32);
-}
 //
 //
 //

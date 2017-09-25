@@ -240,17 +240,7 @@ rlpx_secrets(rlpx* s,
 }
 
 /**
- * @brief This routine only called for test, non-public no declarations.
- *
- * @param s
- * @param nonce
- * @param initiator_nonce
- * @param cipher
- * @param l
- * @param aes
- * @param mac
- *
- * @return
+ * @brief This routine only called from test, non-public no declarations.
  */
 int
 rlpx_expect_secrets(rlpx* s,

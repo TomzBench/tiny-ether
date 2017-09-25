@@ -13,7 +13,6 @@ extern const char* g_alice_nonce;
 extern const char* g_bob_nonce;
 
 // Non-public prototypes methods for test
-void rlpx_test_nonce(rlpx* s, h256* nonce);
 int rlpx_expect_secrets(rlpx* s,
                         h256* nonce,
                         h256* initiator_nonce,
@@ -52,8 +51,6 @@ test_read()
     memcpy(bob_nonce.b, makebin(g_bob_nonce, NULL), 32);
     alice = rlpx_alloc_keypair(&alice_s, &alice_e);
     bob = rlpx_alloc_keypair(&bob_s, &bob_e);
-    rlpx_test_nonce(alice, &alice_nonce);
-    rlpx_test_nonce(bob, &bob_nonce);
     if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
     if ((check_q(rlpx_public_ekey(bob), g_bob_epub))) return -1;
 
@@ -95,8 +92,6 @@ test_write()
     memcpy(bob_nonce.b, makebin(g_bob_nonce, NULL), 32);
     alice = rlpx_alloc_keypair(&alice_s, &alice_e);
     bob = rlpx_alloc_keypair(&bob_s, &bob_e);
-    rlpx_test_nonce(alice, &alice_nonce);
-    rlpx_test_nonce(bob, &bob_nonce);
     if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
     if ((check_q(rlpx_public_ekey(bob), g_bob_epub))) return -1;
 
