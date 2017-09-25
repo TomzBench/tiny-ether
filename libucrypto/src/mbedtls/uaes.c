@@ -32,7 +32,7 @@ uaes_deinit(uaes_ctx** ctx_p)
 
 int
 uaes_crypt_ctr_128(uaes_ctr_128_key* key,
-                   uaes_iv_128* iv,
+                   uaes_iv* iv,
                    const uint8_t* in,
                    size_t inlen,
                    uint8_t* out)
@@ -42,7 +42,7 @@ uaes_crypt_ctr_128(uaes_ctr_128_key* key,
 
 int
 uaes_crypt_ctr_256(uaes_ctr_256_key* key,
-                   uaes_iv_256* iv,
+                   uaes_iv* iv,
                    const uint8_t* in,
                    size_t inlen,
                    uint8_t* out)

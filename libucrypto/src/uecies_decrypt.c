@@ -17,7 +17,7 @@ uecies_decrypt(uecc_ctx* ctx,
     uint8_t key[32];  // kdf(ecdh_agree(secret,ecies-pubkey));
     uint8_t mkey[32]; // sha256(key[16]);
     uint8_t tmac[32]; // hmac_sha256(iv+cipher+shared_mac)
-    uaes_iv_128* iv = (uaes_iv_128*)&cipher[65];
+    uaes_iv* iv = (uaes_iv*)&cipher[65];
     uaes_ctr_128_key* ekey = (uaes_ctr_128_key*)key;
     uhmac_sha256_ctx hmac;
 

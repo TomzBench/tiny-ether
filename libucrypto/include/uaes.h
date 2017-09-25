@@ -8,9 +8,10 @@ extern "C" {
 
 // clang-format off
 typedef struct{uint8_t b[16];} uaes_ctr_128_key;
-typedef struct{uint8_t b[16];} uaes_iv_128;
 typedef struct{uint8_t b[32];} uaes_ctr_256_key;
-typedef struct{uint8_t b[32];} uaes_iv_256;
+//typedef struct{uint8_t b[16];} uaes_iv_128;
+//typedef struct{uint8_t b[16];} uaes_iv_256;
+typedef struct{uint8_t b[16];} uaes_iv;
 // clang-format on
 
 typedef mbedtls_aes_context uaes_ctx;
@@ -28,12 +29,12 @@ int uaes_crypt(int keysz,
                size_t inlen,
                uint8_t* out);
 int uaes_crypt_ctr_128(uaes_ctr_128_key* key,
-                       uaes_iv_128* iv,
+                       uaes_iv* iv,
                        const uint8_t* in,
                        size_t inlen,
                        uint8_t* out);
 int uaes_crypt_ctr_256(uaes_ctr_256_key* key,
-                       uaes_iv_256* iv,
+                       uaes_iv* iv,
                        const uint8_t* in,
                        size_t inlen,
                        uint8_t* out);
