@@ -17,8 +17,8 @@ uecies_decrypt(uecc_ctx* ctx,
     uint8_t key[32];  // kdf(ecdh_agree(secret,ecies-pubkey));
     uint8_t mkey[32]; // sha256(key[16]);
     uint8_t tmac[32]; // hmac_sha256(iv+cipher+shared_mac)
-    uaes_iv* iv = (uaes_iv*)&cipher[65];
-    uaes_128_ctr_key* ekey = (uaes_128_ctr_key*)key;
+    uaes_iv_128* iv = (uaes_iv_128*)&cipher[65];
+    uaes_ctr_128_key* ekey = (uaes_ctr_128_key*)key;
     uhmac_sha256_ctx hmac;
 
     sz = uecc_agree_bin(ctx, cipher, 65);
@@ -35,7 +35,7 @@ uecies_decrypt(uecc_ctx* ctx,
         if (!(tmac[i] == cipher[len - 32 + i])) return -1;
     }
 
-    sz = uaes_crypt(ekey, iv, &cipher[81], len - 32 - 16 - 65, plain);
+    sz = uaes_crypt_ctr_128(ekey, iv, &cipher[81], len - 32 - 16 - 65, plain);
 
     return sz ? sz : len - 32 - 16 - 65;
 }
