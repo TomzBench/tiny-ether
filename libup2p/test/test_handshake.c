@@ -17,6 +17,7 @@ void rlpx_test_nonce(rlpx* s, h256* nonce);
 
 int test_read();
 int test_write();
+int test_secrets();
 
 int
 test_handshake()
@@ -24,6 +25,7 @@ test_handshake()
     int err = 0;
     err |= test_read();
     err |= test_write();
+    err |= test_secrets();
 
     return err;
 }
@@ -111,6 +113,25 @@ EXIT:
     rlpx_free(&alice);
     rlpx_free(&bob);
     return err;
+}
+
+int
+test_secrets()
+{
+    rlpx* bob;
+    uecc_private_key bob_s, bob_e;
+    h256 bob_nonce;
+    size_t authlen = strlen(g_test_vectors[0].auth) / 2;
+    uint8_t auth[authlen];
+    memcpy(bob_e.b, makebin(g_bob_epri, NULL), 32);
+    memcpy(bob_s.b, makebin(g_bob_spri, NULL), 32);
+    memcpy(bob_nonce.b, makebin(g_bob_nonce, NULL), 32);
+    memcpy(auth, makebin(g_test_vectors[0].auth, NULL), authlen);
+    bob = rlpx_alloc_keypair(&bob_s, &bob_e);
+    rlpx_test_nonce(bob, &bob_nonce);
+    rlpx_auth_read(bob, auth, authlen);
+    rlpx_free(&bob);
+    return 0;
 }
 
 //
