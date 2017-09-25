@@ -15,8 +15,8 @@ const char* g_bob_epri = BOB_EPRI;
 const char* g_bob_epub = BOB_EPUB;
 const char* g_aes_secret = AES_SECRET;
 const char* g_mac_secret = MAC_SECRET;
-const char* g_nonce_a = NONCE_A;
-const char* g_nonce_b = NONCE_B;
+const char* g_alice_nonce = NONCE_A;
+const char* g_bob_nonce = NONCE_B;
 
 int
 main(int argc, char* argv[])

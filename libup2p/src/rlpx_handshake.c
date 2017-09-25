@@ -222,8 +222,8 @@ rlpx_secrets(rlpx* s,
     // shared-secret = sha3(ephemeral || sha3(nonce || initiator_nonce))
     // aes-secret = sha3(ephemeral || shared-secret)
     // mac-secret = sha3(ephermal || aes-secret)
-    uint8_t buff[64], *out = &buff[32];
     int err;
+    uint8_t buff[64], *out = &buff[32];
     if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
     memcpy(buff, nonce->b, 32);                // left nonce
     memcpy(&buff[32], initiator_nonce->b, 32); // right nonce
@@ -231,10 +231,10 @@ rlpx_secrets(rlpx* s,
     memcpy(buff, &s->ekey.z.b[1], 32);         // (ephemeral || h(nonces))
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(nonces))
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(shared))
-    memcpy(s->aes_enc.b, &buff[32], 32);       // aes-secret save
-    memcpy(s->aes_dec.b, &buff[32], 32);       // aes-secret save
+    memcpy(s->aes_enc.b, out, 32);             // aes-secret save
+    memcpy(s->aes_dec.b, out, 32);             // aes-secret save
     usha3(buff, 64, out, 32);                  // S(ephemeral || H(aes-secret))
-    memcpy(s->aes_mac.b, &buff[32], 32);       // mac-secret save
+    memcpy(s->aes_mac.b, out, 32);             // mac-secret save
     memset(s->ekey.z.b, 0, 33);                // zero mem
     memset(buff, 0, 64);                       // zero mem
     return err;
