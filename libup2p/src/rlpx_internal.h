@@ -28,7 +28,7 @@ typedef struct
     h256 emac;                   /*!< egress mac */
     h256 imac;                   /*!< ingress mac */
     uaes_ctx aes;                /*!< aes enc/dec */
-    h256 aes_mac;                /*!< aes ecb of egress/ingress mac updates */
+    uaes_ctx mac;                /*!< aes ecb of egress/ingress mac updates */
 } rlpx;
 
 // constructors
