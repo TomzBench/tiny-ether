@@ -1,5 +1,8 @@
 #include "rlpx_internal.h"
 #include "usha3.h"
+/*
+ * This "test" feature is only to export data from normally opaque structures.
+ */
 
 void
 rlpx_test_nonce_set(rlpx* s, h256* nonce)

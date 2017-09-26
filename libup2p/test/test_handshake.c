@@ -1,5 +1,5 @@
 #include "test.h"
-#include "rlpx_test.h"
+#include "rlpx_test_helpers.h"
 
 // clang-format off
 #define IF_ERR_EXIT(f)                    \
@@ -13,17 +13,11 @@
 // clang-format on
 
 extern test_vector g_test_vectors[];
-extern const char* g_alice_spri;
-extern const char* g_alice_epri;
-extern const char* g_bob_spri;
-extern const char* g_bob_epri;
 extern const char* g_alice_epub;
 extern const char* g_bob_epub;
 extern const char* g_aes_secret;
 extern const char* g_mac_secret;
 extern const char* g_foo;
-extern const char* g_alice_nonce;
-extern const char* g_bob_nonce;
 
 int test_read();
 int test_write();
