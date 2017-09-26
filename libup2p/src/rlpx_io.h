@@ -20,5 +20,4 @@ int rlpx_io_on_recv();
 #ifdef __cplusplus
 }
 #endif
-
 #endif

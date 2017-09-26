@@ -18,13 +18,22 @@ int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
 // cipher text -> rlp
 int rlpx_decrypt(uecc_ctx* ctx, const uint8_t* cipher, size_t l, urlp** rlp);
 
+/*
+ * rlpx_session_start(...
+ * 	rlpx_auth_write(... // create auth pack
+ * 	rlpx_io_send(...    // send auth packet
+ * 	rlpx_ack_read(...   // read response
+ * 	rlpx_secrets(...    // Calculate secrets
+ */
+
 int
 rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 {
     int err;
 
     // plain text size
-    size_t rlpsz = urlp_print_size(rlp), padsz = urand_min_max_u8(100, 250);
+    size_t rlpsz = urlp_print_size(rlp);
+    size_t padsz = urand_min_max_u8(RLPX_MIN_PAD, RLPX_MAX_PAD);
 
     // cipher prefix big endian
     uint16_t sz = uecies_encrypt_size(padsz + rlpsz) + sizeof(uint16_t);
@@ -238,6 +247,10 @@ rlpx_secrets(rlpx* s, int orig, uint8_t* cipher, uint32_t l)
 /**
  * @brief This routine only called from test, non-public no declarations.
  * Is a copy paste of rlpx_secrets() with memcmp()...
+ * Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
+ *           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
+ * Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
+ *           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recvd-init)
  */
 int
 rlpx_expect_secrets(rlpx* s,
@@ -261,13 +274,8 @@ rlpx_expect_secrets(rlpx* s,
     usha3(buf, 64, out, 32);             // S(ephemeral || H(aes-secret))
     if (memcmp(out, mac, 32)) return -1; // test
     uaes_init_bin(&s->mac, out, 32);     // mac-secret save
-    // Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
-    //           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
-    // Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
-    //           ingress-mac: sha3(mac-secret^recipient-nonce ||
-    //           auth-recvd-init)
-    memset(s->ekey.z.b, 0, 33); // zero mem
-    memset(buf, 0, 64);         // zero mem
+    memset(s->ekey.z.b, 0, 33);          // zero mem
+    memset(buf, 0, 64);                  // zero mem
     return err;
 }
 
