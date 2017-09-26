@@ -40,6 +40,7 @@ rlpx_test_remote_nonce_set(rlpx* s, h256* nonce)
  * ingres-mac.update(aes(mac-secret,ingres-mac) ^
  *   left128(ingres-mac.update(frame-ciphertext).digest))
  */
+
 int
 rlpx_expect_secrets(rlpx* s,
                     int orig,
@@ -70,21 +71,23 @@ rlpx_expect_secrets(rlpx* s,
     if (memcmp(out, mac, 32)) return -1; // test
 
     // ingress / egress
-    XOR32_SET(buf, out, s->remote_nonce.b);  // mac-secret^nonce
-    memcpy(out, sent, sentlen);              // mac-secret^nonce || cipher
-    usha3(buf, 32 + sentlen, s->emac.b, 32); // S(mac-secret^nonce || cipher)
-    XOR32(buf, s->remote_nonce.b);           // UNDO xor
-    XOR32(buf, s->nonce.b);                  // mac-secret^nonce
-    memcpy(out, recv, recvlen);              // mac-secret^nonce || cipher
-    usha3(buf, 32 + recvlen, s->imac.b, 32); // S(mac-secret^nonce || cipher)
+    XOR32_SET(buf, out, s->nonce.b);         // (mac-secret^recepient-nonce);
+    memcpy(&buf[32], sent, sentlen);         // (m..^nonce)||auth-recvd-init)
+    usha3(buf, 32 + sentlen, s->imac.b, 32); // S(mac-secret^nonce || cipher)
+
+    // XOR32_SET(buf, out, s->remote_nonce.b);  // mac-secret^nonce
+    // memcpy(out, sent, sentlen);              // mac-secret^nonce || cipher
+    // usha3(buf, 32 + sentlen, s->emac.b, 32); // S(mac-secret^nonce || cipher)
+    // XOR32(buf, s->remote_nonce.b);           // UNDO xor
+    // XOR32(buf, s->nonce.b);                  // mac-secret^nonce
+    // memcpy(out, recv, recvlen);              // mac-secret^nonce || cipher
+    // usha3(buf, 32 + recvlen, s->imac.b, 32); // S(mac-secret^nonce || cipher)
 
     // foo test
     uint8_t test[32];
     memcpy(buf, s->imac.b, 32);
     memcpy(&buf[32], "foo", 3);
     usha3(buf, 32 + 3, test, 32);
-    memset(s->ekey.z.b, 0, 33); // zero mem
-    memset(buf, 0, 64);         // zero mem
     return err;
 }
 
