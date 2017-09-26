@@ -71,6 +71,19 @@ rlpx_remote_public_skey(rlpx* s)
     return &s->remote_skey;
 }
 
+// TODO move to rlpx_test.h as inline
+void
+rlpx_test_nonce_set(rlpx* s, h256* nonce)
+{
+    memcpy(s->nonce.b, nonce->b, 32);
+}
+
+void
+rlpx_test_remote_nonce_set(rlpx* s, h256* nonce)
+{
+    memcpy(s->remote_nonce.b, nonce->b, 32);
+}
+
 //
 //
 //

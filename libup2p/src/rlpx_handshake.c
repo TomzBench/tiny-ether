@@ -109,7 +109,7 @@ rlpx_auth_read(rlpx* s, uint8_t* auth, size_t l)
             }
             err = uecc_recover_bin(urlp_ref(seek, NULL), &x, &s->remote_ekey);
             if (!err) {
-                err = rlpx_secrets(s, &s->nonce, &s->remote_nonce, auth, l);
+                err = rlpx_secrets(s, 0, auth, l);
             }
         }
         urlp_free(&rlp);
@@ -166,7 +166,7 @@ rlpx_ack_read(rlpx* s, uint8_t* ack, size_t l)
             memcpy(s->remote_nonce.b, urlp_ref(seek, NULL), sizeof(h256));
         }
         if ((seek = urlp_at(rlp, 2))) s->remote_version = urlp_as_u64(seek);
-        err = rlpx_secrets(s, &s->remote_nonce, &s->nonce, ack, l);
+        err = rlpx_secrets(s, 1, ack, l);
         urlp_free(&rlp); // De-alloc
     }
     return err;
@@ -213,29 +213,25 @@ rlpx_ack_write(rlpx* s,
 }
 
 int
-rlpx_secrets(rlpx* s,
-             h256* nonce,
-             h256* initiator_nonce,
-             uint8_t* cipher,
-             uint32_t l)
+rlpx_secrets(rlpx* s, int orig, uint8_t* cipher, uint32_t l)
 {
     // shared-secret = sha3(ephemeral || sha3(nonce || initiator_nonce))
     // aes-secret = sha3(ephemeral || shared-secret)
     // mac-secret = sha3(ephermal || aes-secret)
     int err;
-    uint8_t buff[64], *out = &buff[32];
+    uint8_t buf[64], *out = &buf[32];
     if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
-    memcpy(buff, nonce->b, 32);                // left nonce
-    memcpy(&buff[32], initiator_nonce->b, 32); // right nonce
-    usha3(buff, 64, out, 32);                  // h(nonces)
-    memcpy(buff, &s->ekey.z.b[1], 32);         // (ephemeral || h(nonces))
-    usha3(buff, 64, out, 32);                  // S(ephemeral || H(nonces))
-    usha3(buff, 64, out, 32);                  // S(ephemeral || H(shared))
-    uaes_init_bin(&s->aes, out, 32);           // aes-secret save
-    usha3(buff, 64, out, 32);                  // S(ephemeral || H(aes-secret))
-    uaes_init_bin(&s->mac, out, 32);           // mac-secret save
-    memset(s->ekey.z.b, 0, 33);                // zero mem
-    memset(buff, 0, 64);                       // zero mem
+    memcpy(buf, orig ? s->remote_nonce.b : s->nonce.b, 32);
+    memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
+    usha3(buf, 64, out, 32);          // h(nonces)
+    memcpy(buf, &s->ekey.z.b[1], 32); // (ephemeral || h(nonces))
+    usha3(buf, 64, out, 32);          // S(ephemeral || H(nonces))
+    usha3(buf, 64, out, 32);          // S(ephemeral || H(shared))
+    uaes_init_bin(&s->aes, out, 32);  // aes-secret save
+    usha3(buf, 64, out, 32);          // S(ephemeral || H(aes-secret))
+    uaes_init_bin(&s->mac, out, 32);  // mac-secret save
+    memset(s->ekey.z.b, 0, 33);       // zero mem
+    memset(buf, 0, 64);               // zero mem
     return err;
 }
 
@@ -245,34 +241,33 @@ rlpx_secrets(rlpx* s,
  */
 int
 rlpx_expect_secrets(rlpx* s,
-                    h256* nonce,
-                    h256* initiator_nonce,
+                    int orig,
                     uint8_t* cipher,
                     uint32_t l,
                     uint8_t* aes,
                     uint8_t* mac)
 {
     int err;
-    uint8_t buff[64], *out = &buff[32];
+    uint8_t buf[64], *out = &buf[32];
     if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
-    memcpy(buff, nonce->b, 32);                // left nonce
-    memcpy(&buff[32], initiator_nonce->b, 32); // right nonce
-    usha3(buff, 64, out, 32);                  // h(nonces)
-    memcpy(buff, &s->ekey.z.b[1], 32);         // (ephemeral || h(nonces))
-    usha3(buff, 64, out, 32);                  // S(ephemeral || H(nonces))
-    usha3(buff, 64, out, 32);                  // S(ephemeral || H(shared))
-    if (memcmp(out, aes, 32)) return -1;       // test
-    uaes_init_bin(&s->aes, out, 32);           // aes-secret save
-    usha3(buff, 64, out, 32);                  // S(ephemeral || H(aes-secret))
-    if (memcmp(out, mac, 32)) return -1;       // test
-    uaes_init_bin(&s->mac, out, 32);           // mac-secret save
+    memcpy(buf, orig ? s->remote_nonce.b : s->nonce.b, 32);
+    memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
+    usha3(buf, 64, out, 32);             // h(nonces)
+    memcpy(buf, &s->ekey.z.b[1], 32);    // (ephemeral || h(nonces))
+    usha3(buf, 64, out, 32);             // S(ephemeral || H(nonces))
+    usha3(buf, 64, out, 32);             // S(ephemeral || H(shared))
+    if (memcmp(out, aes, 32)) return -1; // test
+    uaes_init_bin(&s->aes, out, 32);     // aes-secret save
+    usha3(buf, 64, out, 32);             // S(ephemeral || H(aes-secret))
+    if (memcmp(out, mac, 32)) return -1; // test
+    uaes_init_bin(&s->mac, out, 32);     // mac-secret save
     // Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
     //           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
     // Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
     //           ingress-mac: sha3(mac-secret^recipient-nonce ||
     //           auth-recvd-init)
     memset(s->ekey.z.b, 0, 33); // zero mem
-    memset(buff, 0, 64);        // zero mem
+    memset(buf, 0, 64);         // zero mem
     return err;
 }
 

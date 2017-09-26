@@ -24,7 +24,7 @@ int rlpx_ack_write(rlpx* s,
                    uint8_t* auth_p,
                    size_t* l);
 
-int rlpx_secrets(rlpx*, h256*, h256*, uint8_t*, uint32_t);
+int rlpx_secrets(rlpx*, int, uint8_t*, uint32_t);
 
 #ifdef __cplusplus
 }

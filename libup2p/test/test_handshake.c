@@ -13,9 +13,10 @@ extern const char* g_alice_nonce;
 extern const char* g_bob_nonce;
 
 // Non-public prototypes methods for test
+void rlpx_test_nonce_set(rlpx*, h256*);
+void rlpx_test_remote_nonce_set(rlpx*, h256*);
 int rlpx_expect_secrets(rlpx* s,
-                        h256* nonce,
-                        h256* initiator_nonce,
+                        int orig,
                         uint8_t* cipher,
                         uint32_t l,
                         uint8_t* aes,
@@ -40,19 +41,22 @@ test_read()
 {
     int err;
     uecc_private_key alice_e, alice_s, bob_s, bob_e;
-    h256 alice_nonce, bob_nonce;
+    h256 alice_n, bob_n;
     test_vector* tv = g_test_vectors;
     rlpx *alice, *bob;
     memcpy(alice_e.b, makebin(g_alice_epri, NULL), 32);
     memcpy(alice_s.b, makebin(g_alice_spri, NULL), 32);
     memcpy(bob_e.b, makebin(g_bob_epri, NULL), 32);
     memcpy(bob_s.b, makebin(g_bob_spri, NULL), 32);
-    memcpy(alice_nonce.b, makebin(g_alice_nonce, NULL), 32);
-    memcpy(bob_nonce.b, makebin(g_bob_nonce, NULL), 32);
+    memcpy(alice_n.b, makebin(g_alice_nonce, NULL), 32);
+    memcpy(bob_n.b, makebin(g_bob_nonce, NULL), 32);
     alice = rlpx_alloc_keypair(&alice_s, &alice_e);
     bob = rlpx_alloc_keypair(&bob_s, &bob_e);
     if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
     if ((check_q(rlpx_public_ekey(bob), g_bob_epub))) return -1;
+
+    rlpx_test_nonce_set(bob, &bob_n);
+    rlpx_test_remote_nonce_set(bob, &alice_n);
 
     while (tv->auth) {
         size_t authlen = strlen(tv->auth) / 2;
@@ -83,13 +87,13 @@ test_write()
     uint8_t buffer[l];
     rlpx *alice, *bob;
     uecc_private_key alice_e, alice_s, bob_s, bob_e;
-    h256 alice_nonce, bob_nonce;
+    h256 alice_n, bob_n;
     memcpy(alice_e.b, makebin(g_alice_epri, NULL), 32);
     memcpy(alice_s.b, makebin(g_alice_spri, NULL), 32);
     memcpy(bob_e.b, makebin(g_bob_epri, NULL), 32);
     memcpy(bob_s.b, makebin(g_bob_spri, NULL), 32);
-    memcpy(alice_nonce.b, makebin(g_alice_nonce, NULL), 32);
-    memcpy(bob_nonce.b, makebin(g_bob_nonce, NULL), 32);
+    memcpy(alice_n.b, makebin(g_alice_nonce, NULL), 32);
+    memcpy(bob_n.b, makebin(g_bob_nonce, NULL), 32);
     alice = rlpx_alloc_keypair(&alice_s, &alice_e);
     bob = rlpx_alloc_keypair(&bob_s, &bob_e);
     if ((check_q(rlpx_public_ekey(alice), g_alice_epub))) return -1;
@@ -136,8 +140,10 @@ test_secrets()
     bob = rlpx_alloc_keypair(&bob_s, &bob_e);
 
     // Calculate remote ekey then call debug version to calculate secrets
+    rlpx_test_nonce_set(bob, &bob_n);
+    rlpx_test_remote_nonce_set(bob, &alice_n);
     rlpx_auth_read(bob, auth, authlen);
-    err = rlpx_expect_secrets(bob, &bob_n, &alice_n, auth, authlen, aes, mac);
+    err = rlpx_expect_secrets(bob, 0, auth, authlen, aes, mac);
     rlpx_free(&bob);
     return err;
 }
