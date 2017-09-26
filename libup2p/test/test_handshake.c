@@ -87,14 +87,23 @@ test_secrets()
     int err;
     test_session s;
     test_session_init(&s, 0);
-    uint8_t aes[32], mac[32], f[32];
+    uint8_t aes[32], mac[32], foo[32];
     memcpy(aes, makebin(g_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_mac_secret, NULL), 32);
-    memcpy(f, makebin(g_foo, NULL), 32);
+    memcpy(foo, makebin(g_foo, NULL), 32);
+
+    // Set some phoney nonces to read expected secrets
+    rlpx_test_nonce_set(s.bob, &s.bob_n);
+    rlpx_test_nonce_set(s.alice, &s.alice_n);
+    rlpx_test_remote_nonce_set(s.bob, &s.alice_n);
+    rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
     rlpx_auth_read(s.bob, s.auth, s.authlen);
+    rlpx_ack_read(s.alice, s.ack, s.acklen);
     IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.auth, s.authlen, s.ack,
-                                    s.acklen, aes, mac, f));
+                                    s.acklen, aes, mac, foo));
+    IF_ERR_EXIT(rlpx_expect_secrets(s.alice, 1, s.ack, s.acklen, s.auth,
+                                    s.authlen, aes, mac, foo));
 EXIT:
     test_session_deinit(&s);
     return err;

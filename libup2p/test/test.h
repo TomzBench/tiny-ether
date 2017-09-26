@@ -17,7 +17,8 @@ typedef struct
 {
     rlpx *alice, *bob;           /*!< rlpx context */
     size_t authlen, acklen;      /*!< size of cipher */
-    uint8_t auth[800], ack[800]; /*!< cipher test buffers*/
+    uint8_t auth[800], ack[800]; /*!< cipher test buffers */
+    h256 alice_n, bob_n;         /*!< nonces used sometimes */
 } test_session;
 
 const uint8_t* makebin(const char* str, size_t* len);
