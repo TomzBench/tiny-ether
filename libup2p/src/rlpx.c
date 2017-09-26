@@ -17,6 +17,7 @@ rlpx_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
 {
     rlpx* session = rlpx_malloc_fn(sizeof(rlpx));
     if (session) {
+        memset(session, 0, sizeof(rlpx));
         if (s) {
             uecc_key_init_binary(&session->skey, s);
         } else {

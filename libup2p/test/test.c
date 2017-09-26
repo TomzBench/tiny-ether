@@ -1,5 +1,6 @@
 #include "test.h"
 #include "rlpx.h"
+#include "rlpx_test.h"
 #include <string.h>
 
 test_vector g_test_vectors[] = {
@@ -28,6 +29,42 @@ main(int argc, char* argv[])
 
     err = test_handshake();
     return err;
+}
+
+int
+test_session_init(test_session* s, int vec)
+{
+    // buffers for keys, nonces, cipher text, etc
+    uecc_private_key alice_e, alice_s, bob_s, bob_e;
+    h256 alice_n, bob_n;
+    memset(s, 0, sizeof(test_session));
+    // read in test vectors
+    s->authlen = strlen(g_test_vectors[vec].auth) / 2;
+    s->acklen = strlen(g_test_vectors[vec].ack) / 2;
+    memcpy(alice_e.b, makebin(g_alice_epri, NULL), 32);
+    memcpy(alice_s.b, makebin(g_alice_spri, NULL), 32);
+    memcpy(bob_e.b, makebin(g_bob_epri, NULL), 32);
+    memcpy(bob_s.b, makebin(g_bob_spri, NULL), 32);
+    memcpy(s->auth, makebin(g_test_vectors[vec].auth, NULL), s->authlen);
+    memcpy(s->ack, makebin(g_test_vectors[vec].ack, NULL), s->acklen);
+    memcpy(alice_n.b, makebin(g_alice_nonce, NULL), 32);
+    memcpy(bob_n.b, makebin(g_bob_nonce, NULL), 32);
+    // init test_session with alice,bob,etc
+    s->alice = rlpx_alloc_keypair(&alice_s, &alice_e);
+    s->bob = rlpx_alloc_keypair(&bob_s, &bob_e);
+    rlpx_test_nonce_set(s->bob, &bob_n);
+    rlpx_test_remote_nonce_set(s->bob, &alice_n);
+    // sanity check
+    if ((check_q(rlpx_public_ekey(s->alice), g_alice_epub))) return -1;
+    if ((check_q(rlpx_public_ekey(s->bob), g_bob_epub))) return -1;
+    return 0;
+}
+
+void
+test_session_deinit(test_session* s)
+{
+    rlpx_free(&s->alice);
+    rlpx_free(&s->bob);
 }
 
 int
