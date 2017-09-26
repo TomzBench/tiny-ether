@@ -12,19 +12,9 @@
 #include "urlp.h"
 #include "usha3.h"
 
-// rlp -> cipher text
+// rlp <--> cipher text
 int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
-
-// cipher text -> rlp
 int rlpx_decrypt(uecc_ctx* ctx, const uint8_t* cipher, size_t l, urlp** rlp);
-
-/*
- * rlpx_session_start(...
- * 	rlpx_auth_write(... // create auth pack
- * 	rlpx_io_send(...    // send auth packet
- * 	rlpx_ack_read(...   // read response
- * 	rlpx_secrets(...    // Calculate secrets
- */
 
 int
 rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
