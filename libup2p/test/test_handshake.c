@@ -1,4 +1,5 @@
 #include "test.h"
+#include "rlpx_test.h"
 
 extern test_vector g_test_vectors[];
 extern const char* g_alice_spri;
@@ -12,9 +13,8 @@ extern const char* g_mac_secret;
 extern const char* g_alice_nonce;
 extern const char* g_bob_nonce;
 
+// TODO move to internal test.c
 // Non-public prototypes methods for test
-void rlpx_test_nonce_set(rlpx*, h256*);
-void rlpx_test_remote_nonce_set(rlpx*, h256*);
 int rlpx_expect_secrets(rlpx* s,
                         int orig,
                         uint8_t* cipher,
