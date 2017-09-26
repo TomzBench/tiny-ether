@@ -234,41 +234,6 @@ rlpx_secrets(rlpx* s, int orig, uint8_t* cipher, uint32_t l)
     return err;
 }
 
-/**
- * @brief This routine only called from test, non-public no declarations.
- * Is a copy paste of rlpx_secrets() with memcmp()...
- * Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
- *           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
- * Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
- *           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recvd-init)
- */
-int
-rlpx_expect_secrets(rlpx* s,
-                    int orig,
-                    uint8_t* cipher,
-                    uint32_t l,
-                    uint8_t* aes,
-                    uint8_t* mac)
-{
-    int err;
-    uint8_t buf[64], *out = &buf[32];
-    if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
-    memcpy(buf, orig ? s->remote_nonce.b : s->nonce.b, 32);
-    memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
-    usha3(buf, 64, out, 32);             // h(nonces)
-    memcpy(buf, &s->ekey.z.b[1], 32);    // (ephemeral || h(nonces))
-    usha3(buf, 64, out, 32);             // S(ephemeral || H(nonces))
-    usha3(buf, 64, out, 32);             // S(ephemeral || H(shared))
-    if (memcmp(out, aes, 32)) return -1; // test
-    uaes_init_bin(&s->aes, out, 32);     // aes-secret save
-    usha3(buf, 64, out, 32);             // S(ephemeral || H(aes-secret))
-    if (memcmp(out, mac, 32)) return -1; // test
-    uaes_init_bin(&s->mac, out, 32);     // mac-secret save
-    memset(s->ekey.z.b, 0, 33);          // zero mem
-    memset(buf, 0, 64);                  // zero mem
-    return err;
-}
-
 //
 //
 //

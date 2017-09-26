@@ -10,17 +10,10 @@ extern const char* g_alice_epub;
 extern const char* g_bob_epub;
 extern const char* g_aes_secret;
 extern const char* g_mac_secret;
+extern const char* g_foo;
 extern const char* g_alice_nonce;
 extern const char* g_bob_nonce;
 
-// TODO move to internal test.c
-// Non-public prototypes methods for test
-int rlpx_expect_secrets(rlpx* s,
-                        int orig,
-                        uint8_t* cipher,
-                        uint32_t l,
-                        uint8_t* aes,
-                        uint8_t* mac);
 int test_read();
 int test_write();
 int test_secrets();
@@ -127,11 +120,12 @@ test_secrets()
     rlpx* bob;
     uecc_private_key bob_s, bob_e;
     h256 bob_n, alice_n;
-    uint8_t aes[32], mac[32];
     size_t authlen = strlen(g_test_vectors[0].auth) / 2;
-    uint8_t auth[authlen];
+    size_t acklen = strlen(g_test_vectors[0].ack) / 2;
+    uint8_t auth[authlen], ack[acklen], aes[32], mac[32], f[32];
     memcpy(aes, makebin(g_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_mac_secret, NULL), 32);
+    memcpy(f, makebin(g_foo, NULL), 32);
     memcpy(bob_e.b, makebin(g_bob_epri, NULL), 32);
     memcpy(bob_s.b, makebin(g_bob_spri, NULL), 32);
     memcpy(bob_n.b, makebin(g_bob_nonce, NULL), 32);
@@ -143,7 +137,7 @@ test_secrets()
     rlpx_test_nonce_set(bob, &bob_n);
     rlpx_test_remote_nonce_set(bob, &alice_n);
     rlpx_auth_read(bob, auth, authlen);
-    err = rlpx_expect_secrets(bob, 0, auth, authlen, aes, mac);
+    err = rlpx_expect_secrets(bob, 0, auth, authlen, ack, acklen, aes, mac, f);
     rlpx_free(&bob);
     return err;
 }

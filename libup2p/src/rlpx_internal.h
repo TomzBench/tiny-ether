@@ -14,6 +14,16 @@ extern "C" {
 #include "uaes.h"
 #include "uecc.h"
 
+#define XOR32(x, b)                                                            \
+    do {                                                                       \
+        for (int i = 0; i < 32; i++) x[i] ^= b[i];                             \
+    } while (0)
+
+#define XOR32_SET(y, x, b)                                                     \
+    do {                                                                       \
+        for (int i = 0; i < 32; i++) y[i] = x[i] ^ b[i];                       \
+    } while (0)
+
 typedef struct
 {
     // board_socket_fd conn;        /*!< os socket handle */
