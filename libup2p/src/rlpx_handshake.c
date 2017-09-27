@@ -7,10 +7,10 @@
 #include "rlpx_handshake.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
+#include "ukeccak256.h"
 #include "unonce.h"
 #include "urand.h"
 #include "urlp.h"
-#include "usha3.h"
 
 // rlp <--> cipher text
 int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
@@ -222,12 +222,12 @@ rlpx_secrets(rlpx* s, int orig, uint8_t* cipher, uint32_t l)
     if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
     memcpy(buf, orig ? s->remote_nonce.b : s->nonce.b, 32);
     memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
-    usha3(buf, 64, out, 32);          // h(nonces)
+    ukeccak256(buf, 64, out, 32);     // h(nonces)
     memcpy(buf, &s->ekey.z.b[1], 32); // (ephemeral || h(nonces))
-    usha3(buf, 64, out, 32);          // S(ephemeral || H(nonces))
-    usha3(buf, 64, out, 32);          // S(ephemeral || H(shared))
+    ukeccak256(buf, 64, out, 32);     // S(ephemeral || H(nonces))
+    ukeccak256(buf, 64, out, 32);     // S(ephemeral || H(shared))
     uaes_init_bin(&s->aes, out, 32);  // aes-secret save
-    usha3(buf, 64, out, 32);          // S(ephemeral || H(aes-secret))
+    ukeccak256(buf, 64, out, 32);     // S(ephemeral || H(aes-secret))
     uaes_init_bin(&s->mac, out, 32);  // mac-secret save
     memset(s->ekey.z.b, 0, 33);       // zero mem
     memset(buf, 0, 64);               // zero mem

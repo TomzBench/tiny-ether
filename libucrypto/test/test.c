@@ -2,7 +2,7 @@
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
 #include "uhash.h"
-#include "usha3.h"
+#include "ukeccak256.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -184,7 +184,7 @@ test_recover()
     uecc_key_init_new(&alice);
 
     // Create message (TODO add more recover api without casting)
-    usha3((uint8_t*)"hello bob", 9, msg, 32);
+    ukeccak256((uint8_t*)"hello bob", 9, msg, 32);
     uecc_sign(&alice, msg, 32, &sig);
     uecc_sig_to_bin(&sig, rawsig);
     uecc_recover_bin(rawsig, (uecc_shared_secret*)&msg, &pub);
