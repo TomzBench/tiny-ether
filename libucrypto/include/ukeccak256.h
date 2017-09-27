@@ -1,5 +1,5 @@
-#ifndef SHA3_H_
-#define SHA3_H_
+#ifndef UKECCAK256_H_
+#define UKECCAK256_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,7 +8,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-int usha3(uint8_t* in, size_t inlen, uint8_t* out, size_t outlen);
+int ukeccak256(uint8_t* in, size_t inlen, uint8_t* out, size_t outlen);
 
 #ifdef __cplusplus
 }
