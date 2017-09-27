@@ -78,6 +78,7 @@ int test_ecdh();
 int test_recover();
 int test_kdf();
 int test_hmac();
+int test_keccak();
 int test_ecies_encrypt();
 int test_ecies_decrypt();
 
@@ -92,6 +93,7 @@ main(int argc, char* argv[])
     err |= test_recover();
     err |= test_kdf();
     err |= test_hmac();
+		err |= test_keccak();
     err |= test_ecies_encrypt();
     err |= test_ecies_decrypt();
     return err;
@@ -242,6 +244,19 @@ test_hmac()
     err = memcmp(expect, result, lres) ? -1 : 0;
 
     return err;
+}
+
+int
+test_keccak()
+{
+    ukeccak256_ctx ctx;
+    uint8_t out[32], expect[32];
+    ukeccak256((uint8_t*)"hello world", 11, expect, 32);
+    ukeccak256_init(&ctx);
+    ukeccak256_update(&ctx, (uint8_t*)"hello world", 11);
+    ukeccak256_finish(&ctx, out);
+    ukeccak256_deinit(&ctx);
+		return 0;
 }
 
 int
