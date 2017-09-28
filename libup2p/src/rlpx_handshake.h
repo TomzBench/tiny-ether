@@ -16,12 +16,12 @@ extern "C" {
 #define RLPX_MIN_PAD 100
 #define RLPX_MAX_PAD 250
 
-int rlpx_auth_read(rlpx* s, uint8_t* auth, size_t l);
+int rlpx_auth_read(rlpx* s, const uint8_t* auth, size_t l);
 int rlpx_auth_write(rlpx* s,
                     const uecc_public_key* to_s_key,
                     uint8_t* auth_p,
                     size_t* l);
-int rlpx_ack_read(rlpx* s, uint8_t* auth, size_t l);
+int rlpx_ack_read(rlpx* s, const uint8_t* auth, size_t l);
 int rlpx_ack_write(rlpx* s,
                    const uecc_public_key* to_s_key,
                    uint8_t* auth_p,

@@ -214,7 +214,7 @@ void ukeccak256_digest(ukeccak256_ctx *ctx, uint8_t *out)
 
 void ukeccak256_finish(ukeccak256_ctx* ctx, uint8_t *out)
 {
-		ctx->st.b[ctx->offset]^=0x01;
+		ctx->st.b[ctx->offset]^=ctx->delim;
 		ctx->st.b[ctx->rate-1]^=0x80;
 		P(ctx->st.q);
 		size_t op=0;

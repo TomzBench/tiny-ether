@@ -77,7 +77,7 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
  * @param l
  */
 int
-rlpx_auth_read(rlpx* s, uint8_t* auth, size_t l)
+rlpx_auth_read(rlpx* s, const uint8_t* auth, size_t l)
 {
     uint8_t buffer[65];
     urlp *rlp, *seek;
@@ -108,7 +108,7 @@ rlpx_auth_read(rlpx* s, uint8_t* auth, size_t l)
             }
             err = uecc_recover_bin(urlp_ref(seek, NULL), &x, &s->remote_ekey);
             if (!err) {
-                err = rlpx_secrets(s, 0, auth, l);
+                // err = rlpx_secrets(s, 0, auth, l);
             }
         }
         urlp_free(&rlp);
@@ -149,7 +149,7 @@ rlpx_auth_write(rlpx* s,
 }
 
 int
-rlpx_ack_read(rlpx* s, uint8_t* ack, size_t l)
+rlpx_ack_read(rlpx* s, const uint8_t* ack, size_t l)
 {
     uint8_t buff[65];
     urlp *rlp, *seek;
@@ -165,7 +165,7 @@ rlpx_ack_read(rlpx* s, uint8_t* ack, size_t l)
             memcpy(s->remote_nonce.b, urlp_ref(seek, NULL), sizeof(h256));
         }
         if ((seek = urlp_at(rlp, 2))) s->remote_version = urlp_as_u64(seek);
-        err = rlpx_secrets(s, 1, ack, l);
+        // err = rlpx_secrets(s, 1, ack, l);
         urlp_free(&rlp); // De-alloc
     }
     return err;

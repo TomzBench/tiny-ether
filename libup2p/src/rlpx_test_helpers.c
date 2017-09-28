@@ -85,7 +85,7 @@ rlpx_expect_secrets(rlpx* s,
     // test foo
     ukeccak256_update(&s->imac, (uint8_t*)"foo", 3);
     ukeccak256_digest(&s->imac, out);
-    //if (memcmp(out, foo, 32)) return -1;
+    if (memcmp(out, foo, 32)) return -1;
 
     return err;
 }
