@@ -93,7 +93,7 @@ main(int argc, char* argv[])
     err |= test_recover();
     err |= test_kdf();
     err |= test_hmac();
-		err |= test_keccak();
+    err |= test_keccak();
     err |= test_ecies_encrypt();
     err |= test_ecies_decrypt();
     return err;
@@ -249,14 +249,29 @@ test_hmac()
 int
 test_keccak()
 {
+    int err = 0;
     ukeccak256_ctx ctx;
+    uint8_t big[3096];
     uint8_t out[32], expect[32];
+    memset(big, 'a', 3096);
+
+    // Test hello world
     ukeccak256((uint8_t*)"hello world", 11, expect, 32);
     ukeccak256_init(&ctx);
     ukeccak256_update(&ctx, (uint8_t*)"hello world", 11);
     ukeccak256_finish(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+
+    // Test bigger string
+    ukeccak256(big, 3096, expect, 32);
+    ukeccak256_init(&ctx);
+    ukeccak256_update(&ctx, big, 3096);
+    ukeccak256_finish(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+
+EXIT:
     ukeccak256_deinit(&ctx);
-		return 0;
+    return err;
 }
 
 int

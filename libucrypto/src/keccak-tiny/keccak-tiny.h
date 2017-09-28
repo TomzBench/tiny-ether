@@ -3,13 +3,17 @@
 #define __STDC_WANT_LIB_EXT1__ 1
 #include <stdint.h>
 #include <stdlib.h>
-
-typedef struct{
-	uint8_t a[25*8];
-	size_t offset;
-	size_t rate;
-	uint8_t delim;
-}ukeccak256_ctx;
+typedef struct
+{
+    union
+    {
+        uint8_t b[200];
+        uint64_t q[25];
+    } st;
+    size_t offset;
+    size_t rate;
+    uint8_t delim;
+} ukeccak256_ctx;
 
 #define decshake(bits) \
   int shake##bits(uint8_t*, size_t, const uint8_t*, size_t);

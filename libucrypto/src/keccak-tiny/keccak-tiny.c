@@ -193,31 +193,31 @@ void ukeccak256_update(ukeccak256_ctx* ctx, uint8_t *in, size_t len)
 		size_t rate = ctx->rate-ctx->offset;
 		size_t offset = ctx->offset;
 		while(l>=rate){
-			xorin(&ctx->a[offset],&in[ip],rate);
-			P(ctx->a);
+			xorin(&ctx->st.b[offset],&in[ip],rate);
+			P(ctx->st.q);
 			ip+=rate;
 			l-=rate;
 			rate=ctx->rate;
 			offset=0;
 		}
-		xorin(&ctx->a[offset],&in[ip],l);
-		ctx->offset = offset+1;
+		xorin(&ctx->st.b[offset],&in[ip],l);
+		ctx->offset = offset+l;
 }
 
 void ukeccak256_finish(ukeccak256_ctx* ctx, uint8_t *out)
 {
-		ctx->a[ctx->offset]^=0x01;
-		ctx->a[ctx->rate-1]^=0x80;
-		P(ctx->a);
+		ctx->st.b[ctx->offset]^=0x01;
+		ctx->st.b[ctx->rate-1]^=0x80;
+		P(ctx->st.q);
 		size_t op=0;
 		size_t l=32; // hardcoded output length
 		while(l>=ctx->rate){
-				memcpy(&out[op],ctx->a,ctx->rate);
-				P(ctx->a);
+				memcpy(&out[op],ctx->st.b,ctx->rate);
+				P(ctx->st.b);
 				op+=ctx->rate;
 				l-=ctx->rate;
 		}
-		memcpy(&out[op],ctx->a,l);
+		memcpy(&out[op],ctx->st.b,l);
 }
 
 int

@@ -11,7 +11,11 @@ extern "C" {
 // TODO this is copyied, need to share header
 typedef struct
 {
-    uint8_t a[25 * 8];
+    union
+    {
+        uint8_t b[200];
+        uint64_t q[25];
+    } st;
     size_t offset;
     size_t rate;
     uint8_t delim;
