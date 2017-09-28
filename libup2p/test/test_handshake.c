@@ -100,10 +100,10 @@ test_secrets()
 
     rlpx_auth_read(s.bob, s.auth, s.authlen);
     rlpx_ack_read(s.alice, s.ack, s.acklen);
-    IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.auth, s.authlen, s.ack,
-                                    s.acklen, aes, mac, foo));
-    IF_ERR_EXIT(rlpx_expect_secrets(s.alice, 1, s.ack, s.acklen, s.auth,
+    IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                     s.authlen, aes, mac, foo));
+    IF_ERR_EXIT(rlpx_expect_secrets(s.alice, 1, s.auth, s.authlen, s.ack,
+                                    s.acklen, aes, mac, foo));
 EXIT:
     test_session_deinit(&s);
     return err;

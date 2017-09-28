@@ -71,26 +71,22 @@ rlpx_expect_secrets(rlpx* s,
     if (memcmp(out, mac, 32)) return -1; // test
 
     // ingress / egress
+    ukeccak256_init(&s->emac);
+    ukeccak256_init(&s->imac);
     XOR32_SET(buf, out, s->nonce.b); // (mac-secret^recepient-nonce);
-    memcpy(&buf[32], sent, sentlen); // (m..^nonce)||auth-recvd-init)
-    ukeccak256(buf, 32 + sentlen, s->imac.b,
-               32); // S(mac-secret^nonce || cipher)
+    memcpy(&buf[32], recv, recvlen); // (m..^nonce)||auth-recv-init)
+    ukeccak256_update(&s->imac, buf, 32 + recvlen); // S(m..^nonce)||auth-recv)
+    // XOR32(buf, s->nonce.b);                         // UNDO xor
+    // XOR32(buf, s->remote_nonce.b);                  // (mac-secret^nonce);
+    // memcpy(&buf[32], sent, sentlen); // (m..^nonce)||auth-sentd-init)
+    // ukeccak256_update(&s->emac, buf, 32 + sentlen); //
+    // S(m..^nonce)||auth-sent)
 
-    // XOR32_SET(buf, out, s->remote_nonce.b);  // mac-secret^nonce
-    // memcpy(out, sent, sentlen);              // mac-secret^nonce || cipher
-    // ukeccak256(buf, 32 + sentlen, s->emac.b, 32); // S(mac-secret^nonce ||
-    // cipher)
-    // XOR32(buf, s->remote_nonce.b);           // UNDO xor
-    // XOR32(buf, s->nonce.b);                  // mac-secret^nonce
-    // memcpy(out, recv, recvlen);              // mac-secret^nonce || cipher
-    // ukeccak256(buf, 32 + recvlen, s->imac.b, 32); // S(mac-secret^nonce ||
-    // cipher)
+    // test foo
+    ukeccak256_update(&s->imac, (uint8_t*)"foo", 3);
+    ukeccak256_digest(&s->imac, out);
+    if (memcmp(out, foo, 32)) return -1;
 
-    // foo test
-    uint8_t test[32];
-    memcpy(buf, s->imac.b, 32);
-    memcpy(&buf[32], "foo", 3);
-    ukeccak256(buf, 32 + 3, test, 32);
     return err;
 }
 

@@ -277,6 +277,15 @@ test_keccak()
     ukeccak256_finish(&ctx, out);
     IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
 
+    // Test example vector
+    ukeccak256((uint8_t*)"hello world", 11, expect, 32);
+    ukeccak256_init(&ctx);
+    ukeccak256_update(&ctx, (uint8_t*)"hello", 5);
+    ukeccak256_update(&ctx, (uint8_t*)" ", 1);
+    ukeccak256_update(&ctx, (uint8_t*)"world", 5);
+    ukeccak256_finish(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0); // is this equiv?
+
 EXIT:
     ukeccak256_deinit(&ctx);
     return err;

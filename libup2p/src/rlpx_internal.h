@@ -13,6 +13,7 @@ extern "C" {
 #include "rlpx_config.h"
 #include "uaes.h"
 #include "uecc.h"
+#include "ukeccak256.h"
 
 #define XOR32(x, b)                                                            \
     do {                                                                       \
@@ -35,8 +36,8 @@ typedef struct
     h256 remote_nonce;           /*!< remote nonce */
     uecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
     uecc_public_key remote_skey; /*!< remote static pubkey */
-    h256 emac;                   /*!< egress mac */
-    h256 imac;                   /*!< ingress mac */
+    ukeccak256_ctx emac;         /*!< egress mac */
+    ukeccak256_ctx imac;         /*!< ingress mac */
     uaes_ctx aes;                /*!< aes enc/dec */
     uaes_ctx mac;                /*!< aes ecb of egress/ingress mac updates */
 } rlpx;
