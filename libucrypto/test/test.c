@@ -259,6 +259,10 @@ test_keccak()
     ukeccak256((uint8_t*)"hello world", 11, expect, 32);
     ukeccak256_init(&ctx);
     ukeccak256_update(&ctx, (uint8_t*)"hello world", 11);
+    ukeccak256_digest(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+    ukeccak256_digest(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
     ukeccak256_finish(&ctx, out);
     IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
 
@@ -266,6 +270,10 @@ test_keccak()
     ukeccak256(big, 3096, expect, 32);
     ukeccak256_init(&ctx);
     ukeccak256_update(&ctx, big, 3096);
+    ukeccak256_digest(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+    ukeccak256_digest(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
     ukeccak256_finish(&ctx, out);
     IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
 

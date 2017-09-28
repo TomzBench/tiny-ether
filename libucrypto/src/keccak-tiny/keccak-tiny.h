@@ -37,6 +37,7 @@ void ukeccak256_init(ukeccak256_ctx*);
 void ukeccak256_deinit(ukeccak256_ctx*);
 void ukeccak256_update(ukeccak256_ctx*, uint8_t *in, size_t l);
 void ukeccak256_finish(ukeccak256_ctx*, uint8_t *out);
+void ukeccak256_digest(ukeccak256_ctx*, uint8_t *out);
 
 int ukeccak256(uint8_t* in, size_t inlen, uint8_t* out, size_t outlen);
 

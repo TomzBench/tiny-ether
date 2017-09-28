@@ -204,6 +204,14 @@ void ukeccak256_update(ukeccak256_ctx* ctx, uint8_t *in, size_t len)
 		ctx->offset = offset+l;
 }
 
+void ukeccak256_digest(ukeccak256_ctx *ctx, uint8_t *out)
+{
+	ukeccak256_ctx tmp;
+	memcpy(&tmp,ctx,sizeof(ukeccak256_ctx));
+	ukeccak256_finish(&tmp,out);
+	ukeccak256_deinit(&tmp);
+}
+
 void ukeccak256_finish(ukeccak256_ctx* ctx, uint8_t *out)
 {
 		ctx->st.b[ctx->offset]^=0x01;
