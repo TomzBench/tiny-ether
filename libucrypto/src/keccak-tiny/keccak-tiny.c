@@ -231,7 +231,7 @@ void ukeccak256_finish(ukeccak256_ctx* ctx, uint8_t *out)
 int
 ukeccak256(uint8_t* in, size_t inlen, uint8_t* out, size_t outlen)
 {
-    if (!(outlen == 32)) return -1;
-    return keccak_256(out, 32, in, inlen);
+    	if (!(outlen == 32)) return -1;
+    	return keccak_256(out, 32, in, inlen);
 }
 
