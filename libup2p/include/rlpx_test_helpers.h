@@ -11,9 +11,10 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-/*!< fake nonce for test */
+/*!< setters/getters for internal state (for test purposes) */
 void rlpx_test_remote_nonce_set(rlpx* s, h256* nonce);
 void rlpx_test_nonce_set(rlpx* s, h256* nonce);
+void rlpx_test_remote_ekey_clr(rlpx* s);
 int rlpx_expect_secrets(rlpx* s,
                         int orig,
                         uint8_t* sent,

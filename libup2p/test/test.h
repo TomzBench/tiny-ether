@@ -39,6 +39,7 @@ typedef struct
 } test_session;
 
 const uint8_t* makebin(const char* str, size_t* len);
+int cmp_q(const uecc_public_key* a, const uecc_public_key* b);
 int check_q(const uecc_public_key* key, const char* str);
 int test_session_init(test_session*, int);
 void test_session_deinit(test_session*);

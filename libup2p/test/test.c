@@ -96,6 +96,16 @@ test_session_deinit(test_session* s)
 }
 
 int
+cmp_q(const uecc_public_key* a, const uecc_public_key* b)
+{
+    uint8_t puba[65];
+    uint8_t pubb[65];
+    uecc_qtob(a, puba, 65);
+    uecc_qtob(b, pubb, 65);
+    return memcmp(puba, pubb, 65) ? -1 : 0;
+}
+
+int
 check_q(const uecc_public_key* key, const char* str)
 {
     size_t l = strlen(str) / 2;

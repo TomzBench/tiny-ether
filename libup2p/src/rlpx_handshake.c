@@ -5,6 +5,7 @@
  */
 
 #include "rlpx_handshake.h"
+#include "rlpx_handshake_legacy.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
 #include "ukeccak256.h"
@@ -82,7 +83,9 @@ rlpx_auth_read(rlpx* s, const uint8_t* auth, size_t l)
     uint8_t buffer[65];
     urlp *rlp, *seek;
     int err = rlpx_decrypt(&s->skey, auth, l, &rlp);
-    if (!err) {
+    if (err) {
+        return rlpx_auth_read_legacy(s, auth, l);
+    } else {
         if ((seek = urlp_at(rlp, 3))) {
             // Get version
             s->remote_version = urlp_as_u64(seek);
@@ -103,9 +106,10 @@ rlpx_auth_read(rlpx* s, const uint8_t* auth, size_t l)
             // Get remote ephemeral public key from signature
             urlp_size(seek) == sizeof(uecc_signature)) {
             uecc_shared_secret x;
-            for (int i = 0; i < 32; i++) {
-                x.b[i] = s->skey.z.b[i + 1] ^ s->remote_nonce.b[i];
-            }
+            XOR32_SET(x.b, (&s->skey.z.b[1]), s->remote_nonce.b);
+            // for (int i = 0; i < 32; i++) {
+            //    x.b[i] = s->skey.z.b[i + 1] ^ s->remote_nonce.b[i];
+            //}
             err = uecc_recover_bin(urlp_ref(seek, NULL), &x, &s->remote_ekey);
         }
         urlp_free(&rlp);
@@ -151,7 +155,9 @@ rlpx_ack_read(rlpx* s, const uint8_t* ack, size_t l)
     uint8_t buff[65];
     urlp *rlp, *seek;
     int err = rlpx_decrypt(&s->skey, ack, l, &rlp);
-    if (!err) {
+    if (err) {
+        return rlpx_ack_read_legacy(s, ack, l);
+    } else {
         if ((seek = urlp_at(rlp, 0)) &&
             (urlp_size(seek) == sizeof(uecc_public_key))) {
             buff[0] = 0x04;

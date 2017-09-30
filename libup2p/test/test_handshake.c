@@ -33,12 +33,16 @@ test_read()
     int i = 0;
     while (tv->auth) {
         test_session_init(&s, i);
+        rlpx_test_remote_ekey_clr(s.alice);
+        rlpx_test_remote_ekey_clr(s.bob);
         if (rlpx_auth_read(s.bob, s.auth, s.authlen)) break;
         if (rlpx_ack_read(s.alice, s.ack, s.acklen)) break;
         if (!(rlpx_version_remote(s.bob) == tv->authver)) break;
         if (!(rlpx_version_remote(s.alice) == tv->ackver)) break;
-        if ((check_q(rlpx_remote_public_ekey(s.bob), g_alice_epub))) break;
-        if ((check_q(rlpx_remote_public_ekey(s.alice), g_bob_epub))) break;
+        if ((cmp_q(rlpx_remote_public_ekey(s.bob), rlpx_public_ekey(s.alice))))
+            break;
+        if ((cmp_q(rlpx_remote_public_ekey(s.alice), rlpx_public_ekey(s.bob))))
+            break;
         test_session_deinit(&s);
         i++;
         tv++;

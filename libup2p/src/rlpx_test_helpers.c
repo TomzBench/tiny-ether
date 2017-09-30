@@ -17,6 +17,12 @@ rlpx_test_remote_nonce_set(rlpx* s, h256* nonce)
     memcpy(s->remote_nonce.b, nonce->b, 32);
 }
 
+void
+rlpx_test_remote_ekey_clr(rlpx* s)
+{
+    memset(s->remote_ekey.data, 0, 64);
+}
+
 /**
  * @brief This routine only called from test, non-public no declarations.
  * Is a copy paste of rlpx_secrets() with memcmp()...
