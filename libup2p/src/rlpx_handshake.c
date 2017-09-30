@@ -107,9 +107,6 @@ rlpx_auth_read(rlpx* s, const uint8_t* auth, size_t l)
             urlp_size(seek) == sizeof(uecc_signature)) {
             uecc_shared_secret x;
             XOR32_SET(x.b, (&s->skey.z.b[1]), s->remote_nonce.b);
-            // for (int i = 0; i < 32; i++) {
-            //    x.b[i] = s->skey.z.b[i + 1] ^ s->remote_nonce.b[i];
-            //}
             err = uecc_recover_bin(urlp_ref(seek, NULL), &x, &s->remote_ekey);
         }
         urlp_free(&rlp);
