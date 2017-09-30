@@ -1,4 +1,5 @@
 #include "rlpx_frame.h"
+#include "rlpx_handshake.h"
 #include "rlpx_internal.h"
 #include "ukeccak256.h"
 /*
@@ -23,6 +24,16 @@ rlpx_test_remote_ekey_clr(rlpx* s)
     memset(s->remote_ekey.data, 0, 64);
 }
 
+int
+rlpx_test_secrets(rlpx* s,
+                  int orig,
+                  uint8_t* sent,
+                  uint32_t sentlen,
+                  uint8_t* recv,
+                  uint32_t recvlen)
+{
+    return rlpx_secrets(s, orig, sent, sentlen, recv, recvlen);
+}
 /**
  * @brief This routine only called from test, non-public no declarations.
  * Is a copy paste of rlpx_secrets() with memcmp()...
@@ -89,14 +100,16 @@ rlpx_expect_secrets(rlpx* s,
     ukeccak256_update(&s->emac, buf, 32 + sentlen); // S(m..^nonce)||auth-sent)
 
     // test foo
-    if (orig) {
-        ukeccak256_update(&s->emac, (uint8_t*)"foo", 3);
-        ukeccak256_digest(&s->emac, out);
-    } else {
-        ukeccak256_update(&s->imac, (uint8_t*)"foo", 3);
-        ukeccak256_digest(&s->imac, out);
+    if (foo) {
+        if (orig) {
+            ukeccak256_update(&s->emac, (uint8_t*)"foo", 3);
+            ukeccak256_digest(&s->emac, out);
+        } else {
+            ukeccak256_update(&s->imac, (uint8_t*)"foo", 3);
+            ukeccak256_digest(&s->imac, out);
+        }
+        if (memcmp(out, foo, 32)) return -1;
     }
-    if (memcmp(out, foo, 32)) return -1;
 
     return err;
 }

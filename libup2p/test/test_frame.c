@@ -5,20 +5,19 @@ extern test_vector g_test_vectors[];
 extern const char* g_alice_epub;
 extern const char* g_bob_epub;
 extern const char* g_hello_packet;
-extern const char* g_aes_secret;
-extern const char* g_mac_secret;
-extern const char* g_foo;
+extern const char* g_go_aes_secret;
+extern const char* g_go_mac_secret;
+extern const char* g_go_foo;
 
 int
 test_frame()
 {
     int err;
     test_session s;
-    test_session_init(&s, 0);
-    uint8_t aes[32], mac[32], foo[32];
-    memcpy(aes, makebin(g_aes_secret, NULL), 32);
-    memcpy(mac, makebin(g_mac_secret, NULL), 32);
-    memcpy(foo, makebin(g_foo, NULL), 32);
+    test_session_init(&s, TEST_VECTOR_LEGACY_GO);
+    uint8_t aes[32], mac[32];
+    memcpy(aes, makebin(g_go_aes_secret, NULL), 32);
+    memcpy(mac, makebin(g_go_mac_secret, NULL), 32);
 
     // Set some phoney nonces
     rlpx_test_nonce_set(s.bob, &s.bob_n);
@@ -29,7 +28,7 @@ test_frame()
     // Update our secrets
     IF_ERR_EXIT(rlpx_auth_read(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
-                                    s.authlen, aes, mac, foo));
+                                    s.authlen, aes, mac, NULL));
     IF_ERR_EXIT(rlpx_test_hello(s.bob, makebin(g_hello_packet, NULL),
                                 strlen(g_hello_packet) / 2));
 EXIT:

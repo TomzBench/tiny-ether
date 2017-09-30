@@ -15,6 +15,12 @@ extern "C" {
 void rlpx_test_remote_nonce_set(rlpx* s, h256* nonce);
 void rlpx_test_nonce_set(rlpx* s, h256* nonce);
 void rlpx_test_remote_ekey_clr(rlpx* s);
+int rlpx_test_secrets(rlpx* s,
+                      int orig,
+                      uint8_t* sent,
+                      uint32_t sentlen,
+                      uint8_t* recv,
+                      uint32_t recvlen);
 int rlpx_expect_secrets(rlpx* s,
                         int orig,
                         uint8_t* sent,

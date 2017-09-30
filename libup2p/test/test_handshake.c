@@ -79,7 +79,7 @@ test_secrets()
 {
     int err;
     test_session s;
-    test_session_init(&s, 0);
+    test_session_init(&s, 1);
     uint8_t aes[32], mac[32], foo[32];
     memcpy(aes, makebin(g_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_mac_secret, NULL), 32);

@@ -10,6 +10,10 @@
  * Note our test vectors skip AUTH_0/ACK_0 eip 8 only
  * @return 0 pass
  */
+#define TEST_VECTOR_LEGACY 0
+#define TEST_VECTOR_EIP8_0 1
+#define TEST_VECTOR_EIP8_1 2
+#define TEST_VECTOR_LEGACY_GO 3
 
 #define AUTHVER_1 4
 #define AUTHVER_2 4
@@ -142,13 +146,21 @@
 #define FOO_SECRET                                                             \
     "0c7ec6340062cc46f5e9f1e3cf86f8c8c403c5a0964f5df0ebd34a75ddc86db5"
 
-#define HELLO_PACKET                                                           \
-    "f87137916b6e6574682f76302e39312f706c616e39cdc5836574683dc6846d6f726b1682" \
-    "270fb840fda1cff674c90c9a197539fe3dfb53086ace64f83ed7c6eabec741f7f381cc80" \
-    "3e52ab2cd55d5569bce4347107a310dfd5f88a010cd2ffd1005ca406f1842877c883666f" \
-    "6f836261720304"
-
 // GO Ethereum Test Vectors (pre-eip8)
+#define GO_AES_SECRET                                                          \
+    "c0458fa97a5230830e05f4f20b7c755c1d4e54b1ce5cf43260bb191eef4e418d"
+
+#define GO_MAC_SECRET                                                          \
+    "48c938884d5067a1598272fcddaa4b833cd5e7d92e8228c0ecdfabbe68aef7f1"
+
+#define GO_FOO_SECRET NULL
+
+#define HELLO_PACKET                                                           \
+    "6ef23fcf1cec7312df623f9ae701e63b550cdb8517fefd8dd398fc2acd1d935e6e0434a2" \
+    "b96769078477637347b7b01924fff9ff1c06df2f804df3b0402bbb9f87365b3c6856b45e" \
+    "1e2b6470986813c3816a71bff9d69dd297a5dbd935ab578f6e5d7e93e4506a44f307c332" \
+    "d95e8a4b102585fd8ef9fc9e3e055537a5cec2e9"
+
 #define AUTH_GO                                                                \
     "04a0274c5951e32132e7f088c9bdfdc76c9d91f0dc6078e848f8e3361193dbdc43b94351" \
     "ea3d89e4ff33ddcefbc80070498824857f499656c4f79bbd97b6c51a514251d69fd1785e" \
