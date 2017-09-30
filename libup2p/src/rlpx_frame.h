@@ -34,14 +34,27 @@ extern "C" {
  **/
 
 #include "rlpx_internal.h"
+
 #include "uaes.h"
 #include "uecc.h"
 #include "ukeccak256.h"
+#include "urlp.h"
 
 int rlpx_frame_parse(ukeccak256_ctx* ingress,
                      uaes_ctx* mac,
                      const uint8_t* frame,
                      size_t l);
+
+urlp* rlpx_frame_parse_header(ukeccak256_ctx* ingress,
+                              uaes_ctx* mac,
+                              const uint8_t* frame,
+                              size_t l);
+
+urlp* rlpx_frame_parse_data(ukeccak256_ctx* ingress,
+                            uaes_ctx* mac,
+                            const uint8_t* frame,
+                            size_t l);
+
 #ifdef __cplusplus
 }
 #endif
