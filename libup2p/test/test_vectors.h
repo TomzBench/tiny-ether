@@ -99,7 +99,7 @@
     "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
 
 #define BOB_EPRI                                                               \
-    "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4";
+    "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4"
 
 #define BOB_EPUB                                                               \
     "b6d82fa3409da933dbf9cb0140c5dde89f4e64aec88d476af64"                      \
@@ -126,5 +126,24 @@
     "270fb840fda1cff674c90c9a197539fe3dfb53086ace64f83ed7c6eabec741f7f381cc80" \
     "3e52ab2cd55d5569bce4347107a310dfd5f88a010cd2ffd1005ca406f1842877c883666f" \
     "6f836261720304"
+
+// GO Ethereum Test Vectors
+#define ALICE_SPRI_GO                                                          \
+    "5e173f6ac3c669587538e7727cf19b782a4f2fda07c1eaa662c593e5e85e3051"
+
+#define ALICE_EPRI_GO                                                          \
+    "19c2185f4f40634926ebed3af09070ca9e029f2edd5fae6253074896205f5f6c"
+
+#define BOB_SPRI_GO                                                            \
+    "c45f950382d542169ea207959ee0220ec1491755abe405cd7498d6b16adb6df8"
+
+#define BOB_EPRI_GO                                                            \
+    "d25688cf0ab10afa1a0e2dba7853ed5f1e5bf1c631757ed4e103b593ff3f5620"
+
+#define ALICE_NONCE_GO                                                         \
+    "cd26fecb93657d1cd9e9eaf4f8be720b56dd1d39f190c4e1c6b7ec66f077bb11"
+
+#define BOB_NONCE_GO                                                           \
+    "f37ec61d84cea03dcc5e8385db93248584e8af4b4d1c832d8c7453c0089687a7"
 
 #endif

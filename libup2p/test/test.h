@@ -18,8 +18,14 @@
 
 typedef struct
 {
-    const char* auth;
-    const char* ack;
+    const char* auth;    /*!< auth cipher text */
+    const char* ack;     /*!< ack cipher text */
+    const char* alice_s; /*!< static key */
+    const char* alice_e; /*!< ephermeral key */
+    const char* alice_n; /*!< nonce */
+    const char* bob_s;   /*!< static key */
+    const char* bob_e;   /*!< ephermeral key */
+    const char* bob_n;   /*!< nonce */
     uint64_t authver;
     uint64_t ackver;
 } test_vector;
