@@ -4,8 +4,18 @@
 #include <string.h>
 
 test_vector g_test_vectors[] = { //
-    {.auth = AUTH_2,
-     .ack = ACK_2,
+    {.auth = AUTH_1,
+     .ack = ACK_1,
+     .alice_s = ALICE_SPRI,
+     .alice_e = ALICE_EPRI,
+     .alice_n = NONCE_A,
+     .bob_s = BOB_SPRI,
+     .bob_e = BOB_EPRI,
+     .bob_n = NONCE_B,
+     .authver = AUTHVER_1,
+     .ackver = ACKVER_1 },
+    {.auth = AUTH_1,
+     .ack = ACK_1,
      .alice_s = ALICE_SPRI,
      .alice_e = ALICE_EPRI,
      .alice_n = NONCE_A,
@@ -32,8 +42,8 @@ test_vector g_test_vectors[] = { //
      .bob_s = BOB_SPRI_GO,
      .bob_e = BOB_EPRI_GO,
      .bob_n = BOB_NONCE_GO,
-     .authver = AUTHVER_2,
-     .ackver = ACKVER_2 },
+     .authver = AUTHVER_1,
+     .ackver = ACKVER_1 },
     { 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;

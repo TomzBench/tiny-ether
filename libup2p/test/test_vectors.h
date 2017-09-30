@@ -11,10 +11,23 @@
  * @return 0 pass
  */
 
+#define AUTHVER_1 4
 #define AUTHVER_2 4
 #define AUTHVER_3 56
+#define ACKVER_1 4
 #define ACKVER_2 4
 #define ACKVER_3 57
+
+#define AUTH_1                                                                 \
+    "048ca79ad18e4b0659fab4853fe5bc58eb83992980f4c9cc147d2aa31532efd29a3d3dc6" \
+    "a3d89eaf913150cfc777ce0ce4af2758bf4810235f6e6ceccfee1acc6b22c005e9e3a49d" \
+    "6448610a58e98744ba3ac0399e82692d67c1f58849050b3024e21a52c9d3b01d871ff5f2" \
+    "10817912773e610443a9ef142e91cdba0bd77b5fdf0769b05671fc35f83d83e4d3b0b000" \
+    "c6b2a1b1bba89e0fc51bf4e460df3105c444f14be226458940d6061c296350937ffd5e3a" \
+    "caceeaaefd3c6f74be8e23e0f45163cc7ebd76220f0128410fd05250273156d548a41444" \
+    "4ae2f7dea4dfca2d43c057adb701a715bf59f6fb66b2d1d20f2c703f851cbf5ac47396d9" \
+    "ca65b6260bd141ac4d53e2de585a73d1750780db4c9ee4cd4d225173a4592ee77e2bd94d" \
+    "0be3691f3b406f9bba9b591fc63facc016bfa8"
 
 #define AUTH_2                                                                 \
     "01b304ab7578555167be8154d5cc456f567d5ba302662433674222360f08d5f1"         \
@@ -47,6 +60,14 @@
     "b4f4ea668fbf37407ac044b55be0908ecb94d4ed172ece66fd31bfdadf2b97a8"         \
     "bc690163ee11f5b575a4b44e36e2bfb2f0fce91676fd64c7773bac6a003f481f"         \
     "ddd0bae0a1f31aa27504e2a533af4cef3b623f4791b2cca6d490"
+
+#define ACK_1                                                                  \
+    "049f8abcfa9c0dc65b982e98af921bc0ba6e4243169348a236abe9df5f93aa69d99caddd" \
+    "aa387662b0ff2c08e9006d5a11a278b1b3331e5aaabf0a32f01281b6f4ede0e09a2d5f58" \
+    "5b26513cb794d9635a57563921c04a9090b4f14ee42be1a5461049af4ea7a7f49bf4c97a" \
+    "352d39c8d02ee4acc416388c1c66cec761d2bc1c72da6ba143477f049c9d2dde846c252c" \
+    "111b904f630ac98e51609b3b1f58168ddca6505b7196532e5f85b259a20c45e197949168" \
+    "3fee108e9660edbf38f3add489ae73e3dda2c71bd1497113d5c755e942d1"
 
 #define ACK_2                                                                  \
     "01ea0451958701280a56482929d3b0757da8f7fbe5286784beead59d95089c217"        \
