@@ -41,16 +41,19 @@ extern "C" {
 #include "urlp.h"
 
 int rlpx_frame_parse(ukeccak256_ctx* ingress,
+                     uaes_ctx* aes,
                      uaes_ctx* mac,
                      const uint8_t* frame,
                      size_t l);
 
 urlp* rlpx_frame_parse_header(ukeccak256_ctx* ingress,
+                              uaes_ctx* aes,
                               uaes_ctx* mac,
                               const uint8_t* frame,
                               size_t l);
 
 urlp* rlpx_frame_parse_data(ukeccak256_ctx* ingress,
+                            uaes_ctx* aes,
                             uaes_ctx* mac,
                             const uint8_t* frame,
                             size_t l);

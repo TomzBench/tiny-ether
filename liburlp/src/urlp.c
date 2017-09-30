@@ -169,7 +169,6 @@ urlp_read_big_endian(void* dat, int szof, const uint8_t* b)
     }
     while (szof--) {
         *x += inc = *b++;
-        x += inc;
     }
     return szof;
 }
