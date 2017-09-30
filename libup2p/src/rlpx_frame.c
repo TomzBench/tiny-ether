@@ -32,8 +32,8 @@ rlpx_frame_parse_header(ukeccak256_ctx* ingress,
     ukeccak256_update(ingress, tmp, 16);
     ukeccak256_digest(ingress, tmp);
     if (memcmp(tmp, &frame[16], 16)) return NULL;
-    // uaes_crypt_ctr(aes, tmp, tmp);
-    return urlp_parse(frame, 32);
+    uaes_crypt_ctr_update(aes, frame, 16, tmp);
+    return urlp_parse(&tmp[3], 32 - 3);
 }
 
 urlp*

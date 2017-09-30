@@ -226,13 +226,14 @@ rlpx_secrets(rlpx* s,
     memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
 
     // aes-secret / mac-secret
-    ukeccak256(buf, 64, out, 32);     // h(nonces)
-    memcpy(buf, &s->ekey.z.b[1], 32); // (ephemeral || h(nonces))
-    ukeccak256(buf, 64, out, 32);     // S(ephemeral || H(nonces))
-    ukeccak256(buf, 64, out, 32);     // S(ephemeral || H(shared))
-    uaes_init_bin(&s->aes, out, 32);  // aes-secret save
-    ukeccak256(buf, 64, out, 32);     // S(ephemeral || H(aes-secret))
-    uaes_init_bin(&s->mac, out, 32);  // mac-secret save
+    ukeccak256(buf, 64, out, 32);        // h(nonces)
+    memcpy(buf, &s->ekey.z.b[1], 32);    // (ephemeral || h(nonces))
+    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(nonces))
+    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(shared))
+    uaes_init_bin(&s->aes_enc, out, 32); // aes-secret save
+    uaes_init_bin(&s->aes_dec, out, 32); // aes-secret save
+    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(aes-secret))
+    uaes_init_bin(&s->aes_mac, out, 32); // mac-secret save
 
     // ingress / egress
     ukeccak256_init(&s->emac);

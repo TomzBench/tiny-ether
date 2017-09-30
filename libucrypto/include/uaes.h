@@ -12,7 +12,12 @@ typedef struct{uint8_t b[32];} uaes_ctr_256_key;
 typedef struct{uint8_t b[16];} uaes_iv;
 // clang-format on
 
-typedef mbedtls_aes_context uaes_ctx;
+// typedef mbedtls_aes_context uaes_ctx;
+typedef struct
+{
+    mbedtls_aes_context ctx;
+    uint8_t iv[16];
+} uaes_ctx;
 
 int uaes_init(uaes_ctx* ctx, int keysz, uint8_t* key);
 void uaes_deinit(uaes_ctx** ctx);
@@ -22,6 +27,10 @@ int uaes_crypt_ctr(int keysz,
                    const uint8_t* in,
                    size_t inlen,
                    uint8_t* out);
+int uaes_crypt_ctr_update(uaes_ctx* ctx,
+                          const uint8_t* in,
+                          size_t inlen,
+                          uint8_t* out);
 int uaes_crypt_ctr_op(uaes_ctx* ctx,
                       uint8_t* iv,
                       const uint8_t* in,

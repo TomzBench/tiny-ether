@@ -82,10 +82,11 @@ rlpx_expect_secrets(rlpx* s,
     memcpy(buf, &s->ekey.z.b[1], 32);    // (ephemeral || h(nonces))
     ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(nonces))
     ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(shared))
-    uaes_init_bin(&s->aes, out, 32);     // aes-secret save
+    uaes_init_bin(&s->aes_enc, out, 32); // aes-secret save
+    uaes_init_bin(&s->aes_dec, out, 32); // aes-secret save
     if (memcmp(out, aes, 32)) return -1; // test
     ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(aes-secret))
-    uaes_init_bin(&s->mac, out, 32);     // mac-secret save
+    uaes_init_bin(&s->aes_mac, out, 32); // mac-secret save
     if (memcmp(out, mac, 32)) return -1; // test
 
     // ingress / egress
@@ -117,7 +118,7 @@ rlpx_expect_secrets(rlpx* s,
 int
 rlpx_test_hello(rlpx* s, const uint8_t* data, size_t l)
 {
-    rlpx_frame_parse(&s->imac, &s->mac, data, l);
+    rlpx_frame_parse(&s->imac, &s->aes_dec, &s->aes_mac, data, l);
     return 0;
 }
 

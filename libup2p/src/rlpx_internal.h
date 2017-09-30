@@ -43,8 +43,9 @@ typedef struct
     uecc_public_key remote_skey; /*!< remote static pubkey */
     ukeccak256_ctx emac;         /*!< egress mac */
     ukeccak256_ctx imac;         /*!< ingress mac */
-    uaes_ctx aes;                /*!< aes enc/dec */
-    uaes_ctx mac;                /*!< aes ecb of egress/ingress mac updates */
+    uaes_ctx aes_dec;            /*!< aes dec */
+    uaes_ctx aes_enc;            /*!< aes dec */
+    uaes_ctx aes_mac;            /*!< aes ecb of egress/ingress mac updates */
 } rlpx;
 
 // constructors
