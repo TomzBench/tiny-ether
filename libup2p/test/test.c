@@ -4,7 +4,7 @@
 #include <string.h>
 
 test_vector g_test_vectors[] = { //
-    {.auth = AUTH_2,             //
+    {.auth = AUTH_2,
      .ack = ACK_2,
      .alice_s = ALICE_SPRI,
      .alice_e = ALICE_EPRI,
@@ -24,6 +24,16 @@ test_vector g_test_vectors[] = { //
      .bob_n = NONCE_B,
      .authver = AUTHVER_3,
      .ackver = ACKVER_3 },
+    {.auth = AUTH_GO,
+     .ack = ACK_GO,
+     .alice_s = ALICE_SPRI_GO,
+     .alice_e = ALICE_EPRI_GO,
+     .alice_n = ALICE_NONCE_GO,
+     .bob_s = BOB_SPRI_GO,
+     .bob_e = BOB_EPRI_GO,
+     .bob_n = BOB_NONCE_GO,
+     .authver = AUTHVER_2,
+     .ackver = ACKVER_2 },
     { 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;
