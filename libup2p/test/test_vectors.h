@@ -127,7 +127,26 @@
     "3e52ab2cd55d5569bce4347107a310dfd5f88a010cd2ffd1005ca406f1842877c883666f" \
     "6f836261720304"
 
-// GO Ethereum Test Vectors
+// GO Ethereum Test Vectors (pre-eip8)
+#define AUTH_GO                                                                \
+    "04a0274c5951e32132e7f088c9bdfdc76c9d91f0dc6078e848f8e3361193dbdc43b94351" \
+    "ea3d89e4ff33ddcefbc80070498824857f499656c4f79bbd97b6c51a514251d69fd1785e" \
+    "f8764bd1d262a883f780964cce6a14ff206daf1206aa073a2d35ce2697ebf3514225bef1" \
+    "86631b2fd2316a4b7bcdefec8d75a1025ba2c5404a34e7795e1dd4bc01c6113ece07b0df" \
+    "13b69d3ba654a36e35e69ff9d482d88d2f0228e7d96fe11dccbb465a1831c7d4ad3a0269" \
+    "24b182fc2bdfe016a6944312021da5cc459713b13b86a686cf34d6fe6615020e4acf26bf" \
+    "0d5b7579ba813e7723eb95b3cef9942f01a58bd61baee7c9bdd438956b426a4ffe238e61" \
+    "746a8c93d5e10680617c82e48d706ac4953f5e1c4c4f7d013c87d34a06626f498f34576d" \
+    "c017fdd3d581e83cfd26cf125b6d2bda1f1d56"
+
+#define ACK_GO                                                                 \
+    "049934a7b2d7f9af8fd9db941d9da281ac9381b5740e1f64f7092f3588d4f87f5ce55191" \
+    "a6653e5e80c1c5dd538169aa123e70dc6ffc5af1827e546c0e958e42dad355bcc1fcb9cd" \
+    "f2cf47ff524d2ad98cbf275e661bf4cf00960e74b5956b799771334f426df007350b4604" \
+    "9adb21a6e78ab1408d5e6ccde6fb5e69f0f4c92bb9c725c02f99fa72b9cdc8dd53cff089" \
+    "e0e73317f61cc5abf6152513cb7d833f09d2851603919bf0fbe44d79a09245c6e8338eb5" \
+    "02083dc84b846f2fee1cc310d2cc8b1b9334728f97220bb799376233e113"
+
 #define ALICE_SPRI_GO                                                          \
     "5e173f6ac3c669587538e7727cf19b782a4f2fda07c1eaa662c593e5e85e3051"
 
