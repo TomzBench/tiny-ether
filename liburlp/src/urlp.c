@@ -178,7 +178,7 @@ urlp_read_sz(const uint8_t* b, uint32_t* result)
 {
     uint32_t sz = 0, szsz = 0;
     *result = 0;
-    if (*b <= 0x80) {
+    if (*b < 0x80) {
         *result = 1;
         sz = 0;
     } else if (*b <= 0xb7) {
@@ -246,7 +246,7 @@ urlp_item_u8(const uint8_t* b, uint32_t sz)
         size = 1;
         rlp = urlp_alloc(size);
         if (rlp) rlp->b[--size] = 0x80;
-    } else if (sz == 1 && b[0] <= 0x80) {
+    } else if (sz == 1 && b[0] < 0x80) {
         size = 1;
         rlp = urlp_alloc(size);
         if (rlp) rlp->b[--size] = b[0];
