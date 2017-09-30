@@ -1,6 +1,7 @@
 #include "urlp.h"
 
 uint8_t rlp_null[] = { '\x80' };
+uint8_t rlp_null2[] = { '\xc2', '\x80', '\x80' };
 uint8_t rlp_15[] = { '\x0f' };
 uint8_t rlp_1024[] = { '\x82', '\x04', '\x00' };
 uint8_t rlp_empty[] = { '\xc0' };
@@ -91,6 +92,12 @@ test_u8()
     // ""
     rlp = urlp_item("", 0);
     err |= test_item(rlp_null, sizeof(rlp_null), &rlp);
+
+    // ["",""]
+    rlp = urlp_list();
+    urlp_push(rlp, urlp_item("", 0));
+    urlp_push(rlp, urlp_item("", 0));
+    err |= test_item(rlp_null2, sizeof(rlp_null2), &rlp);
 
     // 0x0f
     rlp = urlp_item("\x0f", 1);
