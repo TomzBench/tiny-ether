@@ -19,6 +19,7 @@ const char* g_mac_secret = MAC_SECRET;
 const char* g_foo = FOO_SECRET;
 const char* g_alice_nonce = NONCE_A;
 const char* g_bob_nonce = NONCE_B;
+const char* g_hello_packet = HELLO_PACKET;
 
 int
 main(int argc, char* argv[])
@@ -27,7 +28,9 @@ main(int argc, char* argv[])
     ((void)argv);
     int err = 0;
 
-    err = test_handshake();
+    IF_ERR_EXIT(test_handshake());
+    IF_ERR_EXIT(test_frame());
+EXIT:
     return err;
 }
 

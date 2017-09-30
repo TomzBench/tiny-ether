@@ -51,6 +51,18 @@ uaes_crypt_ctr_op(uaes_ctx* ctx,
     return err;
 }
 
+int
+uaes_crypt_ecb_enc(uaes_ctx* ctx, const uint8_t* in, uint8_t* out)
+{
+    return mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_ENCRYPT, in, out);
+}
+
+int
+uaes_crypt_ecb_dec(uaes_ctx* ctx, const uint8_t* in, uint8_t* out)
+{
+    return mbedtls_aes_crypt_ecb(ctx, MBEDTLS_AES_DECRYPT, in, out);
+}
+
 //
 //
 //

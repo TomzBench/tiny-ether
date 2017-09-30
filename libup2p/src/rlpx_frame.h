@@ -33,9 +33,15 @@ extern "C" {
  * mac-secret = sha3(ecdhe-shared-secret || aes-secret)
  **/
 
+#include "rlpx_internal.h"
 #include "uaes.h"
 #include "uecc.h"
+#include "ukeccak256.h"
 
+int rlpx_frame_parse(ukeccak256_ctx* ingress,
+                     uaes_ctx* mac,
+                     const uint8_t* frame,
+                     size_t l);
 #ifdef __cplusplus
 }
 #endif

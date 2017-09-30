@@ -5,6 +5,17 @@
 #include "test_vectors.h"
 #include <string.h>
 
+// clang-format off
+#define IF_ERR_EXIT(f)                    \
+    do {                                  \
+        if ((err = (f)) != 0) goto EXIT;  \
+    } while (0)
+#define IF_NEG_EXIT(val, f)               \
+    do {                                  \
+        if ((val = (f)) < 0) goto EXIT;   \
+    } while (0)
+// clang-format on
+
 typedef struct
 {
     const char* auth;

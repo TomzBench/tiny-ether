@@ -15,6 +15,11 @@ extern "C" {
 #include "uecc.h"
 #include "ukeccak256.h"
 
+#define XORN(x, b, l)                                                          \
+    do {                                                                       \
+        for (int i = 0; i < l; i++) x[i] ^= b[i];                              \
+    } while (0)
+
 #define XOR32(x, b)                                                            \
     do {                                                                       \
         for (int i = 0; i < 32; i++) x[i] ^= b[i];                             \

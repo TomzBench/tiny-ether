@@ -1,17 +1,6 @@
 #include "test.h"
 #include "rlpx_test_helpers.h"
 
-// clang-format off
-#define IF_ERR_EXIT(f)                    \
-    do {                                  \
-        if ((err = (f)) != 0) goto EXIT;  \
-    } while (0)
-#define IF_NEG_EXIT(val, f)               \
-    do {                                  \
-        if ((val = (f)) < 0) goto EXIT;   \
-    } while (0)
-// clang-format on
-
 extern test_vector g_test_vectors[];
 extern const char* g_alice_epub;
 extern const char* g_bob_epub;

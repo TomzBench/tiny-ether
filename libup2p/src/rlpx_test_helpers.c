@@ -1,3 +1,4 @@
+#include "rlpx_frame.h"
 #include "rlpx_internal.h"
 #include "ukeccak256.h"
 /*
@@ -92,6 +93,13 @@ rlpx_expect_secrets(rlpx* s,
     if (memcmp(out, foo, 32)) return -1;
 
     return err;
+}
+
+int
+rlpx_test_hello(rlpx* s, const uint8_t* data, size_t l)
+{
+    rlpx_frame_parse(&s->imac, &s->mac, data, l);
+    return 0;
 }
 
 //

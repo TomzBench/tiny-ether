@@ -70,6 +70,9 @@ uaes_crypt_ctr_256(uaes_ctr_128_key* key,
     return uaes_crypt_ctr(256, key->b, iv->b, in, inlen, out);
 }
 
+int uaes_crypt_ecb_enc(uaes_ctx* ctx, const uint8_t* in, uint8_t* out);
+int uaes_crypt_ecb_dec(uaes_ctx* ctx, const uint8_t* in, uint8_t* out);
+
 #ifdef __cplusplus
 }
 #endif

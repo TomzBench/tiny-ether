@@ -121,4 +121,10 @@
 #define FOO_SECRET                                                             \
     "0c7ec6340062cc46f5e9f1e3cf86f8c8c403c5a0964f5df0ebd34a75ddc86db5"
 
+#define HELLO_PACKET                                                           \
+    "f87137916b6e6574682f76302e39312f706c616e39cdc5836574683dc6846d6f726b1682" \
+    "270fb840fda1cff674c90c9a197539fe3dfb53086ace64f83ed7c6eabec741f7f381cc80" \
+    "3e52ab2cd55d5569bce4347107a310dfd5f88a010cd2ffd1005ca406f1842877c883666f" \
+    "6f836261720304"
+
 #endif
