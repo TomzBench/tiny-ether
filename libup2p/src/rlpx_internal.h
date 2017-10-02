@@ -15,6 +15,18 @@ extern "C" {
 #include "uecc.h"
 #include "ukeccak256.h"
 
+#define AES_LEN(l) ((l) % 16 ? ((l) + 16 - ((l) % 16)) : (l))
+
+#define READ_BE(l, dst, src)                                                   \
+    do {                                                                       \
+        uint32_t be = 1;                                                       \
+        if (*(char*)&be == 0) {                                                \
+            for (int i = 0; i < l; i++) ((uint8_t*)dst)[i] = src[i];           \
+        } else {                                                               \
+            for (int i = 0; i < l; i++) ((uint8_t*)dst)[(l)-1 - i] = src[i];   \
+        }                                                                      \
+    } while (0)
+
 #define XORN(x, b, l)                                                          \
     do {                                                                       \
         for (int i = 0; i < l; i++) x[i] ^= b[i];                              \
