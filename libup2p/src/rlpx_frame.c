@@ -83,7 +83,7 @@ rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
     if (err) return err;
 
     // Parse header rlp
-    *rlp = urlp_parse(body, l);
+    *rlp = urlp_parse(body + 1, l - 1);
     return *rlp ? 0 : -1;
 }
 
