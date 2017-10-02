@@ -31,18 +31,11 @@ extern "C" {
 #include "ukeccak256.h"
 #include "urlp.h"
 
-int rlpx_frame_parse(ukeccak256_ctx* ingress,
-                     uaes_ctx* aes,
-                     uaes_ctx* mac,
-                     const uint8_t* frame,
-                     size_t l);
-
-urlp* rlpx_frame_parse_body(ukeccak256_ctx* ingress,
-                            uaes_ctx* aes,
-                            uaes_ctx* mac,
-                            const uint8_t* frame,
-                            const uint8_t* frame_mac,
-                            size_t l);
+int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l);
+int rlpx_frame_parse_body(rlpx* s,
+                          const uint8_t* frame,
+                          const uint8_t* frame_mac,
+                          size_t l);
 
 #ifdef __cplusplus
 }

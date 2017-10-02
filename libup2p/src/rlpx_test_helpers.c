@@ -118,7 +118,7 @@ rlpx_expect_secrets(rlpx* s,
 int
 rlpx_test_hello(rlpx* s, const uint8_t* data, size_t l)
 {
-    rlpx_frame_parse(&s->imac, &s->aes_dec, &s->aes_mac, data, l);
+    rlpx_frame_parse(s, data, l);
     return 0;
 }
 
