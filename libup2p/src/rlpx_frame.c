@@ -28,9 +28,7 @@ rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp** rlp_p)
     }
 
     // Parse body
-    frame += 32;
-    l -= 32;
-    err = rlpx_frame_parse_body(s, frame, sz, &body);
+    err = rlpx_frame_parse_body(s, frame + 32, sz, &body);
     if (err) {
         urlp_free(&head);
         return err;

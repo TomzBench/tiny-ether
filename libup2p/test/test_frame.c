@@ -16,7 +16,7 @@ test_frame()
     test_session s;
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
     uint8_t aes[32], mac[32];
-    urlp* frame = NULL;
+    urlp *frame = NULL, *seek;
     memcpy(aes, makebin(g_go_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_go_mac_secret, NULL), 32);
 
