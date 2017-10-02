@@ -82,8 +82,18 @@ rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
     err = frame_ingress(s, temp, frame + l, frame, l, body);
     if (err) return err;
 
-    // Parse header rlp
-    *rlp = urlp_parse(body + 1, l - 1);
+    if (body[0] < 0xc0) {
+        // Parse header rlp (devp2p does not seem to nest their rlp.list() for
+        // hello, ping and pong)
+        *rlp = urlp_list();
+        if (rlp) {
+            urlp_push(*rlp, urlp_parse(body, 1)); // packet type (devp2p)
+            urlp_push(*rlp, urlp_parse(body + 1, l - 1)); // packet data
+        }
+    } else {
+        // This packet appears to be proper
+        *rlp = urlp_parse(body, l);
+    }
     return *rlp ? 0 : -1;
 }
 
