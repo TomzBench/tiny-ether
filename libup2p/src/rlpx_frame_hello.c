@@ -1,19 +1,38 @@
 #include "rlpx_frame_hello.h"
 
 int
-rlpx_frame_hello_parse(rlpx_frame_hello* hello, const urlp* rlp)
+rlpx_frame_hello_p2p_version(const urlp* rlp, const char** ptr_p, size_t* l)
 {
-    if (!(hello->p2p_version = urlp_at(rlp, 0))) return -1;
-    if (!(hello->client_id = urlp_at(rlp, 1))) return -1;
-    if (!(hello->capabilities = urlp_at(rlp, 2))) return -1;
-    if (!(hello->listen_port = urlp_at(rlp, 3))) return -1;
-    if (!(hello->node_id = urlp_at(rlp, 4))) return -1;
+    if (!(rlp = urlp_at(rlp, 0))) return -1;
+    *ptr_p = urlp_str(rlp);
+    *l = strlen(*ptr_p);
     return 0;
 }
 
-urlp*
-rlpx_frame_hello_alloc(rlpx_frame_hello* hello)
+int
+rlpx_frame_hello_client_id(const urlp* rlp, const char** ptr_p, size_t* l)
 {
-    ((void)hello);
-    return NULL;
+    if (!(rlp = urlp_at(rlp, 1))) return -1;
+    *ptr_p = urlp_str(rlp);
+    *l = strlen(*ptr_p);
+    return 0;
+}
+
+// int rlpx_frame_hello_capabilities(const urlp* rlp){}
+
+int
+rlpx_frame_hello_listen_port(const urlp* rlp, uint32_t* port)
+{
+    if (!(rlp = urlp_at(rlp, 3))) return -1;
+    *port = urlp_as_u32(rlp);
+    return 0;
+}
+
+int
+rlpx_frame_hello_node_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
+{
+    if (!(rlp = urlp_at(rlp, 4))) return -1;
+    *ptr_p = urlp_str(rlp);
+    *l = strlen(*ptr_p);
+    return 0;
 }

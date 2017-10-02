@@ -8,17 +8,11 @@ extern "C" {
 #include "rlpx_internal.h"
 #include "urlp.h"
 
-typedef struct
-{
-    const urlp* p2p_version;
-    const urlp* client_id;
-    const urlp* capabilities;
-    const urlp* listen_port;
-    const urlp* node_id;
-} rlpx_frame_hello;
-
-int rlpx_frame_hello_parse(rlpx_frame_hello* hello, const urlp* rlp);
-urlp* rlpx_frame_hello_alloc(rlpx_frame_hello* hello);
+int rlpx_frame_hello_p2p_version(const urlp* rlp, const char**, size_t* l);
+int rlpx_frame_hello_client_id(const urlp* rlp, const char**, size_t* l);
+// int rlpx_frame_hello_capabilities(const urlp* rlp);
+int rlpx_frame_hello_listen_port(const urlp* rlp, uint32_t*);
+int rlpx_frame_hello_node_id(const urlp* rlp, const char**, uint32_t*);
 
 #ifdef __cplusplus
 }

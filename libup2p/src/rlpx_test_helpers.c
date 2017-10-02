@@ -34,6 +34,7 @@ rlpx_test_secrets(rlpx* s,
 {
     return rlpx_secrets(s, orig, sent, sentlen, recv, recvlen);
 }
+
 /**
  * @brief This routine only called from test, non-public no declarations.
  * Is a copy paste of rlpx_secrets() with memcmp()...
