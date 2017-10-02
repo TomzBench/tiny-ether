@@ -8,6 +8,7 @@ extern "C" {
 #include "rlpx_types.h"
 #include "uaes.h"
 #include "ukeccak256.h"
+#include "urlp.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -32,11 +33,7 @@ int rlpx_expect_secrets(rlpx* s,
                         uint8_t* foo);
 
 /*!< private export for test */
-int rlpx_frame_parse(ukeccak256_ctx* ingress,
-                     uaes_ctx* mac,
-                     uint8_t* frame,
-                     size_t l);
-int rlpx_test_hello(rlpx* s, const uint8_t* data, size_t l);
+int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp**);
 
 #ifdef __cplusplus
 }

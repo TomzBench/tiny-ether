@@ -8,30 +8,83 @@ int frame_ingress(rlpx* s,
                   size_t cipher_len,
                   uint8_t* out);
 int
-rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l)
+rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp** rlp_p)
 {
-    int err = -1;
-    uint32_t sz = 0;
-    uint8_t temp[32];
+
+    int err = 0;
+    uint32_t sz;
+    urlp *head = NULL, *body = NULL;
+
     if (l < 32) return -1;
 
-    err = frame_ingress(s, frame, &frame[16], frame, 16, temp);
+    // Parse header
+    err = rlpx_frame_parse_header(s, frame, &head, &sz);
     if (err) return err;
 
-    // Read in big endian
-    READ_BE(3, &sz, temp);
-
     // Check length (accounts for aes padding)
-    if (l < (32 + (AES_LEN(sz)) + 16)) return -1;
+    if (l < (32 + (AES_LEN(sz)) + 16)) {
+        urlp_free(&head);
+        return err;
+    }
 
     // Parse body
     frame += 32;
     l -= 32;
-    uint8_t body[AES_LEN(sz)];
-    ukeccak256_update(&s->imac, (uint8_t*)frame, AES_LEN(sz));
-    ukeccak256_digest(&s->imac, temp);
-    err = frame_ingress(s, temp, frame + AES_LEN(sz), frame, AES_LEN(sz), body);
+    err = rlpx_frame_parse_body(s, frame, sz, &body);
+    if (err) {
+        urlp_free(&head);
+        return err;
+    }
+
+    // Return rlp frame to caller
+    if (!*rlp_p) {
+        *rlp_p = urlp_list();
+        if (!*rlp_p) {
+            urlp_free(&head);
+            urlp_free(&body);
+            return -1;
+        }
+    }
+    urlp_push(*rlp_p, head);
+    urlp_push(*rlp_p, body);
     return err;
+}
+
+int
+rlpx_frame_parse_header(rlpx* s,
+                        const uint8_t* header,
+                        urlp** header_urlp,
+                        uint32_t* body_len)
+{
+    int err = -1;
+    uint8_t temp[32];
+
+    err = frame_ingress(s, header, &header[16], header, 16, temp);
+    if (err) return err;
+
+    // Read in big endian length prefix, give to caller
+    *body_len = 0;
+    READ_BE(3, body_len, temp);
+
+    // Parse header rlp, give to caller
+    *header_urlp = urlp_parse(temp + 3, 13);
+    return *header_urlp ? 0 : -1;
+}
+
+int
+rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
+{
+    int err;
+    uint8_t temp[32];
+    uint8_t body[(l = l % 16 ? AES_LEN(l) : l)];
+    ukeccak256_update(&s->imac, (uint8_t*)frame, l);
+    ukeccak256_digest(&s->imac, temp);
+    err = frame_ingress(s, temp, frame + l, frame, l, body);
+    if (err) return err;
+
+    // Parse header rlp
+    *rlp = urlp_parse(body, l);
+    return *rlp ? 0 : -1;
 }
 
 int

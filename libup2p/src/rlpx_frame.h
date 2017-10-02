@@ -31,12 +31,15 @@ extern "C" {
 #include "ukeccak256.h"
 #include "urlp.h"
 
-int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l);
+int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp**);
+int rlpx_frame_parse_header(rlpx* s,
+                            const uint8_t* header,
+                            urlp** header_urlp,
+                            uint32_t* body_len);
 int rlpx_frame_parse_body(rlpx* s,
-                          const uint8_t* frame,
-                          const uint8_t* frame_mac,
-                          size_t l);
-
+                          const uint8_t* body,
+                          uint32_t body_len,
+                          urlp** rlp);
 #ifdef __cplusplus
 }
 #endif

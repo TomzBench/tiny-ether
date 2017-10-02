@@ -16,6 +16,7 @@ test_frame()
     test_session s;
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
     uint8_t aes[32], mac[32];
+    urlp* frame = NULL;
     memcpy(aes, makebin(g_go_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_go_mac_secret, NULL), 32);
 
@@ -29,8 +30,9 @@ test_frame()
     IF_ERR_EXIT(rlpx_auth_read(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                     s.authlen, aes, mac, NULL));
-    IF_ERR_EXIT(rlpx_test_hello(s.bob, makebin(g_hello_packet, NULL),
-                                strlen(g_hello_packet) / 2));
+    IF_ERR_EXIT(rlpx_frame_parse(s.bob, makebin(g_hello_packet, NULL),
+                                 strlen(g_hello_packet) / 2, &frame));
+    urlp_free(&frame);
 EXIT:
     test_session_deinit(&s);
     return err;
