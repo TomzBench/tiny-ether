@@ -275,47 +275,47 @@ urlp_item_str(const char* b, uint32_t sz)
 }
 
 uint64_t
-urlp_as_u64(urlp* rlp)
+urlp_as_u64(const urlp* rlp)
 {
     uint64_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint64_t)) == 1 ? ret : 0;
 }
 
 uint32_t
-urlp_as_u32(urlp* rlp)
+urlp_as_u32(const urlp* rlp)
 {
     uint32_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint32_t)) == 1 ? ret : 0;
 }
 
 uint16_t
-urlp_as_u16(urlp* rlp)
+urlp_as_u16(const urlp* rlp)
 {
     uint16_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint16_t)) == 1 ? ret : 0;
 }
 
 uint8_t
-urlp_as_u8(urlp* rlp)
+urlp_as_u8(const urlp* rlp)
 {
     uint8_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint8_t)) == 1 ? ret : 0;
 }
 
 const char*
-urlp_str(urlp* rlp)
+urlp_str(const urlp* rlp)
 {
     return (const char*)urlp_ref(rlp, NULL);
 }
 
 const uint8_t*
-urlp_mem(urlp* rlp, uint32_t* sz)
+urlp_mem(const urlp* rlp, uint32_t* sz)
 {
     return urlp_ref(rlp, sz);
 }
 
 const uint8_t*
-urlp_ref(urlp* rlp, uint32_t* sz)
+urlp_ref(const urlp* rlp, uint32_t* sz)
 {
     uint32_t l = 0;
     if (!sz) sz = &l; // caller doesn't care about length so passed NULL
@@ -325,7 +325,7 @@ urlp_ref(urlp* rlp, uint32_t* sz)
 }
 
 int
-urlp_read_int(urlp* rlp, void* mem, uint32_t szof)
+urlp_read_int(const urlp* rlp, void* mem, uint32_t szof)
 {
     uint32_t n;
     const uint8_t* b = urlp_ref(rlp, &n);
@@ -335,8 +335,8 @@ urlp_read_int(urlp* rlp, void* mem, uint32_t szof)
     return 0;
 }
 
-urlp*
-urlp_at(urlp* rlp, uint32_t where)
+const urlp*
+urlp_at(const urlp* rlp, uint32_t where)
 {
     uint32_t n = rlp->n - (where + 1);
     rlp = rlp->child;
@@ -371,13 +371,13 @@ urlp_push(urlp* parent, urlp* child)
 }
 
 uint32_t
-urlp_size_rlp(urlp* rlp)
+urlp_size_rlp(const urlp* rlp)
 {
     return rlp->sz; //
 }
 
 uint32_t
-urlp_size(urlp* rlp)
+urlp_size(const urlp* rlp)
 {
     uint32_t sz;
     return (urlp_ref(rlp, &sz)) ? sz : 0;

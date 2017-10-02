@@ -81,7 +81,8 @@ int
 rlpx_auth_read(rlpx* s, const uint8_t* auth, size_t l)
 {
     uint8_t buffer[65];
-    urlp *rlp, *seek;
+    urlp* rlp;
+    const urlp* seek;
     int err = rlpx_decrypt(&s->skey, auth, l, &rlp);
     if (err) {
         return rlpx_auth_read_legacy(s, auth, l);
@@ -150,7 +151,8 @@ int
 rlpx_ack_read(rlpx* s, const uint8_t* ack, size_t l)
 {
     uint8_t buff[65];
-    urlp *rlp, *seek;
+    urlp* rlp;
+    const urlp* seek;
     int err = rlpx_decrypt(&s->skey, ack, l, &rlp);
     if (err) {
         return rlpx_ack_read_legacy(s, ack, l);
