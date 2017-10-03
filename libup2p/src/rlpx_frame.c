@@ -2,9 +2,8 @@
 
 int frame_ingress(rlpx* s,
                   const uint8_t* x,
+                  size_t xlen,
                   const uint8_t* expect,
-                  const uint8_t* cipher,
-                  size_t cipher_len,
                   uint8_t* out);
 int
 rlpx_frame_write(rlpx* s,
@@ -89,7 +88,7 @@ rlpx_frame_parse_header(rlpx* s,
     int err = -1;
     uint8_t temp[32];
 
-    err = frame_ingress(s, header, &header[16], header, 16, temp);
+    err = frame_ingress(s, header, 16, &header[16], temp);
     if (err) return err;
 
     // Read in big endian length prefix, give to caller
@@ -105,11 +104,11 @@ int
 rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
 {
     int err;
-    uint8_t temp[32];
+    // uint8_t temp[32];
     uint8_t body[(l = l % 16 ? AES_LEN(l) : l)];
-    ukeccak256_update(&s->imac, (uint8_t*)frame, l);
-    ukeccak256_digest(&s->imac, temp);
-    err = frame_ingress(s, temp, frame + l, frame, l, body);
+    // ukeccak256_update(&s->imac, (uint8_t*)frame, l);
+    // ukeccak256_digest(&s->imac, temp);
+    err = frame_ingress(s, frame, l, frame + l, body);
     if (err) return err;
 
     if (body[0] < 0xc0) {
@@ -149,9 +148,8 @@ rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
 int
 frame_ingress(rlpx* s,
               const uint8_t* x,
+              size_t xlen,
               const uint8_t* expect,
-              const uint8_t* cipher,
-              size_t cipher_len,
               uint8_t* out)
 {
     // Check mac and decrypt
@@ -161,15 +159,22 @@ frame_ingress(rlpx* s,
     // FRAME: (ingress frame ciphertext before calling))
     // ingres-mac.update(aes(mac-secret,ingres-mac) ^
     // left128(ingres-mac.update(frame-ciphertext).digest))
-    uint8_t tmp[32];
+    uint8_t tmp[32], xin[32];
+    memset(xin, 0, 32);
+    if (xlen > 16) {
+        ukeccak256_update(&s->imac, (uint8_t*)x, xlen);
+        ukeccak256_digest(&s->imac, xin);
+    } else {
+        memcpy(xin, x, xlen);
+    }
     ukeccak256_update(&s->imac, NULL, 0);
     ukeccak256_digest(&s->imac, tmp);          // mac-secret
     uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes_mac(secret)
-    XORN(tmp, x, 16);                          // aes_mac(secret)^header-cipher
+    XORN(tmp, xin, 16);                        // aes_mac(secret)^header-cipher
     ukeccak256_update(&s->imac, tmp, 16);      // ingress(...)
     ukeccak256_digest(&s->imac, tmp);          // ingress(...).digest
     if (memcmp(tmp, expect, 16)) return -1;    // compare expect with actual
-    if (uaes_crypt_ctr_update(&s->aes_dec, cipher, cipher_len, out)) return -1;
+    if (uaes_crypt_ctr_update(&s->aes_dec, x, xlen, out)) return -1;
     return 0;
 }
 
