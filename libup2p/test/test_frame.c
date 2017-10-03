@@ -68,9 +68,9 @@ test_frame_write()
     uint8_t from_alice[1000];
     uint8_t from_bob[1000];
 
-    IF_ERR_EXIT(rlpx_frame_hello_write(s.alice, from_alice, &lena));
-    IF_ERR_EXIT(rlpx_frame_hello_write(s.bob, from_bob, &lenb));
-EXIT:
+    // IF_ERR_EXIT(rlpx_frame_hello_write(s.alice, from_alice, &lena));
+    // IF_ERR_EXIT(rlpx_frame_hello_write(s.bob, from_bob, &lenb));
+    // EXIT:
     test_session_deinit(&s);
     return err;
 }

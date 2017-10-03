@@ -1,6 +1,5 @@
 #include "rlpx_frame.h"
 
-// TODO frame-egress
 int frame_ingress(rlpx* s,
                   const uint8_t* x,
                   const uint8_t* expect,
@@ -35,6 +34,8 @@ rlpx_frame_write_rlp(rlpx* s,
     memset(head, 0, 32);
     WRITE_BE(3, head, (uint8_t*)&totlen);
     head[3] = '\xc2', head[4] = '\x80' + type, head[5] = '\x80' + id;
+    uaes_crypt_ctr_update(&s->aes_enc, head, 16, head);
+    // frame_egress(s, head, 16, out);
     return 0;
 }
 
@@ -125,6 +126,25 @@ rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
     }
     return *rlp ? 0 : -1;
 }
+
+// int
+// frame_egress_header(rlpx* s, uint8_t* x, uint8_t* out)
+//{
+//    // encrypt
+//    // HEADER:
+//    // egress.update(aes(mac-secret,egress-mac) ^ header-ciphertext).digest
+//    //
+//    // FRAME:
+//    // egress-mac.update(aes(mac-secret,egress-mac) ^
+//    // left128(egress-mac.update(frame-ciphertext).digest))
+//    uint8_t tmp[32];
+//    ukeccak256_update(&s->emac, NULL, 0);
+//    ukeccak256_digest(&s->emac, tmp);          // mac-secret
+//    uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes_mac(secret)
+//    XORN(tmp, x, 16);                          // aes_mac(secret)^cipher
+//    ukeccak256_update(&s->emac, tmp, 16);      // egress.update(...)
+//    ukeccak256_digest(&s->emac, out);          // egress.update(...).digest
+//}
 
 int
 frame_ingress(rlpx* s,
