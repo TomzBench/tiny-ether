@@ -16,6 +16,10 @@ extern "C" {
 #include "uecc.h"
 #include "ukeccak256.h"
 
+#define RLPX_CLIENT_ID_STR "tiny-ether"
+#define RLPX_CLIENT_ID_LEN (sizeof(RLPX_CLIENT_ID_STR) - 1)
+#define RLPX_VERSION_P2P 4
+
 #define AES_LEN(l) ((l) % 16 ? ((l) + 16 - ((l) % 16)) : (l))
 
 #define READ_BE(l, dst, src)                                                   \
@@ -25,6 +29,22 @@ extern "C" {
             for (int i = 0; i < l; i++) ((uint8_t*)dst)[i] = src[i];           \
         } else {                                                               \
             for (int i = 0; i < l; i++) ((uint8_t*)dst)[(l)-1 - i] = src[i];   \
+        }                                                                      \
+    } while (0)
+
+#define WRITE_BE(l, dst, src)                                                  \
+    do {                                                                       \
+        uint32_t be = 1, hit = 0;                                              \
+        if (*(char*)&be == 0) {                                                \
+            for (int i = 0; i < l; i++) {                                      \
+                if ((src)[i]) hit = 1;                                         \
+                if (hit || (src)[i] || !i) (dst)[i] = (src)[i];                \
+            }                                                                  \
+        } else {                                                               \
+            for (int i = 0; i < l; i++) {                                      \
+                if ((src)[i]) hit = 1;                                         \
+                if (hit || (src)[i] || !i) (dst)[(l)-1 - i] = (src)[i];        \
+            }                                                                  \
         }                                                                      \
     } while (0)
 
@@ -49,6 +69,8 @@ typedef struct
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
     h256 nonce;                  /*!< local nonce */
+    char node_id[65];            /*!< node id */
+    uint32_t listen_port;        /*!< our listen port */
     uint64_t remote_version;     /*!< remote version from auth */
     h512 remote_node_id;         /*!< remote public address */
     h256 remote_nonce;           /*!< remote nonce */

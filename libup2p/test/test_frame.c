@@ -8,8 +8,21 @@ extern const char* g_hello_packet;
 extern const char* g_go_aes_secret;
 extern const char* g_go_mac_secret;
 extern const char* g_go_foo;
+
+int test_frame_read();
+int test_frame_write();
+
 int
 test_frame()
+{
+    int err = 0;
+    err |= test_frame_read();
+    err |= test_frame_write();
+    return err;
+}
+
+int
+test_frame_read()
 {
     int err;
     test_session s;
@@ -39,6 +52,24 @@ test_frame()
     IF_ERR_EXIT(rlpx_frame_hello_capabilities(seek, "a", 0));
     IF_ERR_EXIT(rlpx_frame_hello_capabilities(seek, "b", 2));
     urlp_free(&frame);
+EXIT:
+    test_session_deinit(&s);
+    return err;
+}
+
+int
+test_frame_write()
+{
+
+    int err = 0;
+    test_session s;
+    test_session_init(&s, 1);
+    size_t lena = 1000, lenb = 1000;
+    uint8_t from_alice[1000];
+    uint8_t from_bob[1000];
+
+    IF_ERR_EXIT(rlpx_frame_hello_write(s.alice, from_alice, &lena));
+    IF_ERR_EXIT(rlpx_frame_hello_write(s.bob, from_bob, &lenb));
 EXIT:
     test_session_deinit(&s);
     return err;

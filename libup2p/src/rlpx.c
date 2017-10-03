@@ -17,7 +17,14 @@ rlpx_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
 {
     rlpx* session = rlpx_malloc_fn(sizeof(rlpx));
     if (session) {
+        // clean mem
         memset(session, 0, sizeof(rlpx));
+
+        // update info
+        session->listen_port = 44;         // TODO
+        memset(session->node_id, 'A', 65); // TODO
+
+        // Create keys
         if (s) {
             uecc_key_init_binary(&session->skey, s);
         } else {

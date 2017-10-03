@@ -8,6 +8,37 @@ int frame_ingress(rlpx* s,
                   size_t cipher_len,
                   uint8_t* out);
 int
+rlpx_frame_write(rlpx* s,
+                 uint32_t type,
+                 uint32_t id,
+                 urlp** body_p,
+                 uint8_t* out,
+                 size_t* l)
+{
+    uint32_t sz = urlp_print_size(*body_p);
+    uint8_t body[sz];
+    urlp_print(*body_p, body, sz);
+    return rlpx_frame_write_rlp(s, type, id, body, sz, out, l);
+}
+
+int
+rlpx_frame_write_rlp(rlpx* s,
+                     uint32_t type,
+                     uint32_t id,
+                     uint8_t* rlp,
+                     size_t rlplen,
+                     uint8_t* out,
+                     size_t* l)
+{
+    size_t totlen = AES_LEN(rlplen) + 16;
+    uint8_t head[32];
+    memset(head, 0, 32);
+    WRITE_BE(3, head, (uint8_t*)&totlen);
+    head[3] = '\xc2', head[4] = '\x80' + type, head[5] = '\x80' + id;
+    return 0;
+}
+
+int
 rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp** rlp_p)
 {
 

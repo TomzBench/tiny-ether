@@ -34,6 +34,7 @@ int rlpx_expect_secrets(rlpx* s,
 
 /*!< private export for test */
 int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp**);
+int rlpx_frame_hello_write(rlpx* s, uint8_t* out, size_t* l);
 int rlpx_frame_hello_p2p_version(const urlp* rlp, uint32_t* out);
 int rlpx_frame_hello_client_id(const urlp* rlp, const char**, size_t* l);
 int rlpx_frame_hello_capabilities(const urlp* rlp, const char* cap, uint32_t v);
