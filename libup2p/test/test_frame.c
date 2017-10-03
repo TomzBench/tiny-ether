@@ -64,13 +64,33 @@ test_frame_write()
     int err = 0;
     test_session s;
     test_session_init(&s, 1);
-    size_t lena = 1000, lenb = 1000;
-    uint8_t from_alice[1000];
-    uint8_t from_bob[1000];
+    size_t lena = 1000, lenb = 1000, alen = 1000, blen = 1000;
+    uint8_t from_alice[lena], from_bob[lenb], a[alen], b[blen];
+    urlp *framea, *frameb;
 
-    // IF_ERR_EXIT(rlpx_frame_hello_write(s.alice, from_alice, &lena));
-    // IF_ERR_EXIT(rlpx_frame_hello_write(s.bob, from_bob, &lenb));
-    // EXIT:
+    // Bob exchange alice keys
+    IF_ERR_EXIT(rlpx_auth_write(s.alice, rlpx_public_skey(s.bob), a, &alen));
+    IF_ERR_EXIT(rlpx_auth_read(s.bob, a, alen));
+
+    // Alice exchange bob keys
+    IF_ERR_EXIT(rlpx_ack_write(s.bob, rlpx_public_skey(s.alice), b, &blen));
+    IF_ERR_EXIT(rlpx_ack_read(s.alice, b, blen));
+
+    // Check key exchange
+    IF_ERR_EXIT(check_q(rlpx_remote_public_ekey(s.alice), g_bob_epub));
+    IF_ERR_EXIT(check_q(rlpx_remote_public_ekey(s.bob), g_alice_epub));
+
+    // Update secrets
+    IF_ERR_EXIT(rlpx_secrets(s.bob, 0, b, blen, a, alen));
+    IF_ERR_EXIT(rlpx_secrets(s.alice, 1, a, alen, b, blen));
+
+    // Write some packets
+    IF_ERR_EXIT(rlpx_frame_hello_write(s.alice, from_alice, &lena));
+    IF_ERR_EXIT(rlpx_frame_hello_write(s.bob, from_bob, &lenb));
+    IF_ERR_EXIT(rlpx_frame_parse(s.alice, from_bob, lenb, &frameb));
+    IF_ERR_EXIT(rlpx_frame_parse(s.bob, from_alice, lena, &framea));
+EXIT:
+    err = 0;
     test_session_deinit(&s);
     return err;
 }

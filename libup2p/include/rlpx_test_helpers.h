@@ -31,6 +31,12 @@ int rlpx_expect_secrets(rlpx* s,
                         uint8_t* aes,
                         uint8_t* mac,
                         uint8_t* foo);
+int rlpx_secrets(rlpx* s,
+                 int orig,
+                 uint8_t* sent,
+                 uint32_t sentlen,
+                 uint8_t* recv,
+                 uint32_t recvlen);
 
 /*!< private export for test */
 int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp**);
