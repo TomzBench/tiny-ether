@@ -159,7 +159,7 @@ frame_egress(rlpx* s, const uint8_t* x, size_t xlen, uint8_t* out, uint8_t* mac)
     } else {
         memcpy(xin, x, xlen);
     }
-    ukeccak256_update(&s->emac, NULL, 0);
+    ukeccak256_update(&s->emac, NULL, 0);      // TODO FIX
     ukeccak256_digest(&s->emac, mac);          // mac-secret
     uaes_crypt_ecb_enc(&s->aes_mac, mac, mac); // aes(mac-secret)
     XORN(mac, xin, 16);                        // aes(mac-secret)^header-cipher
@@ -190,7 +190,7 @@ frame_ingress(rlpx* s,
     } else {
         memcpy(xin, x, xlen);
     }
-    ukeccak256_update(&s->imac, NULL, 0);
+    ukeccak256_update(&s->imac, NULL, 0);      // TODO fix
     ukeccak256_digest(&s->imac, tmp);          // mac-secret
     uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes_mac(secret)
     XORN(tmp, xin, 16);                        // aes_mac(secret)^header-cipher
