@@ -148,6 +148,7 @@ test_u8()
     urlp_push(rlp, urlp_push(urlp_push(urlp_list(), urlp_list()), //
                              urlp_push(urlp_list(), urlp_list())) //
               );
+    err |= (urlp_siblings(urlp_child(rlp)) == 3 ? 0 : -1);
     err |= test_item(rlp_wat, sizeof(rlp_wat), &rlp);
 
     // ["cat","dog"]

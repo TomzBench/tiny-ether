@@ -389,6 +389,12 @@ urlp_data(urlp* rlp)
     return rlp->b; //
 }
 
+const urlp*
+urlp_child(const urlp* rlp)
+{
+    return rlp->child;
+}
+
 uint32_t
 urlp_children(urlp* rlp)
 {
@@ -409,6 +415,17 @@ urlp_children_walk(urlp* rlp)
         if (urlp_is_list(rlp)) {
             n = rlp->n + urlp_children_walk(rlp->child);
         }
+        rlp = rlp->next;
+    }
+    return n;
+}
+
+uint32_t
+urlp_siblings(const urlp* rlp)
+{
+    uint32_t n = 0;
+    while (rlp) {
+        n++;
         rlp = rlp->next;
     }
     return n;
