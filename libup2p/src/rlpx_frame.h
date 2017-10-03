@@ -90,6 +90,26 @@ rlpx_frame_to_u64(const urlp* rlp, int idx, uint64_t* out)
     return 0;
 }
 
+static inline const urlp*
+rlpx_frame_header(const urlp* rlp)
+{
+    return urlp_at(rlp, 0);
+}
+
+static inline uint32_t
+rlpx_frame_type(const urlp* rlp)
+{
+    rlp = urlp_at(rlp, 0);
+    return rlp ? urlp_as_u32(rlp) : 0;
+}
+
+static inline const urlp*
+rlpx_frame_body(const urlp* rlp)
+{
+    rlp = urlp_at(rlp, 1);
+    return rlp ? urlp_at(rlp, 1) : rlp;
+}
+
 #ifdef __cplusplus
 }
 #endif
