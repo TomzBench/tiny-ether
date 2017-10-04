@@ -65,7 +65,7 @@ test_frame_write()
     test_session_init(&s, 1);
     size_t lena = 1000, lenb = 1000, alen = 1000, blen = 1000;
     uint8_t from_alice[lena], from_bob[lenb], a[alen], b[blen];
-    urlp *framea, *frameb;
+    urlp *framea = NULL, *frameb = NULL;
 
     // Bob exchange alice keys
     IF_ERR_EXIT(rlpx_auth_write(s.alice, rlpx_public_skey(s.bob), a, &alen));
@@ -88,8 +88,9 @@ test_frame_write()
     IF_ERR_EXIT(rlpx_frame_hello_write(s.bob, from_bob, &lenb));
     IF_ERR_EXIT(rlpx_frame_parse(s.alice, from_bob, lenb, &frameb));
     IF_ERR_EXIT(rlpx_frame_parse(s.bob, from_alice, lena, &framea));
+    urlp_free(&framea);
+    urlp_free(&frameb);
 EXIT:
-    err = 0;
     test_session_deinit(&s);
     return err;
 }
