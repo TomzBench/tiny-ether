@@ -43,6 +43,17 @@ rlpx_hello_write(ukeccak256_ctx* h,
 }
 
 int
+rlpx_hello_read(ukeccak256_ctx* h,
+                uaes_ctx* aes_mac,
+                uaes_ctx* aes_dec,
+                uint8_t* in,
+                size_t l,
+                urlp** rlp_p)
+{
+    return rlpx_frame_parse(h, aes_mac, aes_dec, in, l, rlp_p);
+}
+
+int
 rlpx_hello_p2p_version(const urlp* rlp, uint32_t* out)
 {
     return rlpx_frame_to_u32(rlp, 0, out);

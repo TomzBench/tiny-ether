@@ -69,13 +69,6 @@ rlpx_test_aes_dec(rlpx_channel* ch)
 }
 
 int
-rlpx_test_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l)
-{
-    return rlpx_hello_write(&ch->emac, &ch->aes_mac, &ch->aes_enc,
-                            ch->listen_port, ch->node_id, out, l);
-}
-
-int
 rlpx_expect_secrets(rlpx_channel* s,
                     int orig,
                     uint8_t* sent,

@@ -1,5 +1,6 @@
 #include "rlpx_channel.h"
 #include "rlpx_handshake.h"
+#include "rlpx_hello.h"
 #include "rlpx_helper_macros.h"
 #include "unonce.h"
 
@@ -193,6 +194,18 @@ rlpx_ch_secrets(rlpx_channel* s,
     ukeccak256_update(&s->emac, buf, 32 + sentlen); // S(m..^nonce)||auth-sent)
 
     return err;
+}
+
+int
+rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l)
+{
+    return rlpx_hello_write(&ch->emac, &ch->aes_mac, &ch->aes_enc,
+                            ch->listen_port, ch->node_id, out, l);
+}
+int
+rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** rlp_p)
+{
+    return rlpx_hello_read(&ch->imac, &ch->aes_mac, &ch->aes_dec, in, l, rlp_p);
 }
 
 //

@@ -23,7 +23,6 @@ ukeccak256_ctx* rlpx_test_egress(rlpx_channel* ch);
 uaes_ctx* rlpx_test_aes_mac(rlpx_channel* ch);
 uaes_ctx* rlpx_test_aes_enc(rlpx_channel* ch);
 uaes_ctx* rlpx_test_aes_dec(rlpx_channel* ch);
-int rlpx_test_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l);
 int rlpx_expect_secrets(rlpx_channel* s,
                         int orig,
                         uint8_t* sent,
@@ -52,6 +51,11 @@ extern int rlpx_hello_listen_port(const urlp* rlp, uint32_t*);
 extern int rlpx_hello_node_id(const urlp* rlp, const char**, uint32_t*);
 
 // private channel exports for test
+extern int rlpx_ch_hello_read(rlpx_channel* ch,
+                              uint8_t* in,
+                              size_t l,
+                              urlp** rlp_p);
+extern int rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l);
 extern uint32_t rlpx_ch_listen_port(rlpx_channel* s);
 extern const char* rlpx_ch_node_id(rlpx_channel* s);
 #ifdef __cplusplus
