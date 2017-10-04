@@ -1,24 +1,24 @@
-#include "rlpx_internal.h"
+#include "rlpx_channel.h"
 
-rlpx*
+rlpx_channel*
 rlpx_alloc()
 {
     return rlpx_alloc_keypair(NULL, NULL);
 }
 
-rlpx*
+rlpx_channel*
 rlpx_alloc_key(uecc_private_key* s)
 {
     return rlpx_alloc_keypair(s, NULL);
 }
 
-rlpx*
+rlpx_channel*
 rlpx_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
 {
-    rlpx* session = rlpx_malloc_fn(sizeof(rlpx));
+    rlpx_channel* session = rlpx_malloc_fn(sizeof(rlpx_channel));
     if (session) {
         // clean mem
-        memset(session, 0, sizeof(rlpx));
+        memset(session, 0, sizeof(rlpx_channel));
 
         // update info
         session->listen_port = 44;         // TODO
@@ -40,9 +40,9 @@ rlpx_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
 }
 
 void
-rlpx_free(rlpx** session_p)
+rlpx_free(rlpx_channel** session_p)
 {
-    rlpx* s = *session_p;
+    rlpx_channel* s = *session_p;
     *session_p = NULL;
     uecc_key_deinit(&s->skey);
     uecc_key_deinit(&s->ekey);
@@ -50,43 +50,43 @@ rlpx_free(rlpx** session_p)
 }
 
 uint64_t
-rlpx_version_remote(rlpx* s)
+rlpx_version_remote(rlpx_channel* s)
 {
     return s->remote_version;
 }
 
 const uecc_public_key*
-rlpx_public_skey(rlpx* s)
+rlpx_public_skey(rlpx_channel* s)
 {
     return &s->skey.Q;
 }
 
 const uecc_public_key*
-rlpx_public_ekey(rlpx* s)
+rlpx_public_ekey(rlpx_channel* s)
 {
     return &s->ekey.Q;
 }
 
 const uecc_public_key*
-rlpx_remote_public_ekey(rlpx* s)
+rlpx_remote_public_ekey(rlpx_channel* s)
 {
     return &s->remote_ekey;
 }
 
 const uecc_public_key*
-rlpx_remote_public_skey(rlpx* s)
+rlpx_remote_public_skey(rlpx_channel* s)
 {
     return &s->remote_skey;
 }
 
 uint32_t
-rlpx_listen_port(rlpx* s)
+rlpx_listen_port(rlpx_channel* s)
 {
     return s->listen_port;
 }
 
 const char*
-rlpx_node_id(rlpx* s)
+rlpx_node_id(rlpx_channel* s)
 {
     return s->node_id;
 }

@@ -6,7 +6,8 @@ extern "C" {
 #endif
 
 #include "rlpx_config.h"
-#include "rlpx_internal.h"
+
+#include "rlpx_channel.h"
 
 #ifdef __cplusplus
 }

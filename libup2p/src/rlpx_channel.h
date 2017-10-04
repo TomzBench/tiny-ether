@@ -3,8 +3,8 @@
  *
  * @brief
  */
-#ifndef RLPX_INTERNAL_H_
-#define RLPX_INTERNAL_H_
+#ifndef RLPX_CHANNEL_H_
+#define RLPX_CHANNEL_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,22 +76,22 @@ typedef struct
     uaes_ctx aes_dec;            /*!< aes dec */
     uaes_ctx aes_enc;            /*!< aes dec */
     uaes_ctx aes_mac;            /*!< aes ecb of egress/ingress mac updates */
-} rlpx;
+} rlpx_channel;
 
 // constructors
-rlpx* rlpx_alloc();
-rlpx* rlpx_alloc_key(uecc_private_key*);
-rlpx* rlpx_alloc_keypair(uecc_private_key*, uecc_private_key*);
-void rlpx_free(rlpx** session_p);
+rlpx_channel* rlpx_alloc();
+rlpx_channel* rlpx_alloc_key(uecc_private_key*);
+rlpx_channel* rlpx_alloc_keypair(uecc_private_key*, uecc_private_key*);
+void rlpx_free(rlpx_channel** session_p);
 
 // setters / getters
-uint64_t rlpx_version_remote(rlpx*);
-const uecc_public_key* rlpx_public_skey(rlpx*);
-const uecc_public_key* rlpx_public_ekey(rlpx*);
-const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
-const uecc_public_key* rlpx_remote_public_skey(rlpx*);
-uint32_t rlpx_listen_port(rlpx* s);
-const char* rlpx_node_id(rlpx* s);
+uint64_t rlpx_version_remote(rlpx_channel*);
+const uecc_public_key* rlpx_public_skey(rlpx_channel*);
+const uecc_public_key* rlpx_public_ekey(rlpx_channel*);
+const uecc_public_key* rlpx_remote_public_ekey(rlpx_channel*);
+const uecc_public_key* rlpx_remote_public_skey(rlpx_channel*);
+uint32_t rlpx_listen_port(rlpx_channel* s);
+const char* rlpx_node_id(rlpx_channel* s);
 
 #ifdef __cplusplus
 }

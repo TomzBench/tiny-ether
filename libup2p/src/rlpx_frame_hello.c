@@ -12,7 +12,7 @@
  * @return 0 ok -1 err
  */
 int
-rlpx_frame_hello_write(rlpx* s, uint8_t* out, size_t* l)
+rlpx_frame_hello_write(rlpx_channel* s, uint8_t* out, size_t* l)
 {
     int err;
     uint32_t p2pver = RLPX_VERSION_P2P, les = 2, rlplen;

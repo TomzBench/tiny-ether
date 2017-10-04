@@ -1,19 +1,19 @@
 #include "rlpx_frame.h"
 
-int frame_egress(rlpx* s,
+int frame_egress(rlpx_channel* s,
                  const uint8_t* x,
                  size_t xlen,
                  uint8_t* out,
                  uint8_t* mac);
 
-int frame_ingress(rlpx* s,
+int frame_ingress(rlpx_channel* s,
                   const uint8_t* x,
                   size_t xlen,
                   const uint8_t* expect,
                   uint8_t* out);
 
 int
-rlpx_frame_write(rlpx* s,
+rlpx_frame_write(rlpx_channel* s,
                  uint32_t type,
                  uint32_t id,
                  uint8_t* data,
@@ -40,7 +40,7 @@ rlpx_frame_write(rlpx* s,
 }
 
 int
-rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp** rlp_p)
+rlpx_frame_parse(rlpx_channel* s, const uint8_t* frame, size_t l, urlp** rlp_p)
 {
 
     int err = 0;
@@ -81,7 +81,7 @@ rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp** rlp_p)
 }
 
 int
-rlpx_frame_parse_header(rlpx* s,
+rlpx_frame_parse_header(rlpx_channel* s,
                         const uint8_t* header,
                         urlp** header_urlp,
                         uint32_t* body_len)
@@ -102,7 +102,10 @@ rlpx_frame_parse_header(rlpx* s,
 }
 
 int
-rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
+rlpx_frame_parse_body(rlpx_channel* s,
+                      const uint8_t* frame,
+                      uint32_t l,
+                      urlp** rlp)
 {
     int err;
     uint8_t body[(l = l % 16 ? AES_LEN(l) : l)];
@@ -125,7 +128,11 @@ rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
 }
 
 int
-frame_egress(rlpx* s, const uint8_t* x, size_t xlen, uint8_t* out, uint8_t* mac)
+frame_egress(rlpx_channel* s,
+             const uint8_t* x,
+             size_t xlen,
+             uint8_t* out,
+             uint8_t* mac)
 {
     // encrypt
     // HEADER:
@@ -156,7 +163,7 @@ frame_egress(rlpx* s, const uint8_t* x, size_t xlen, uint8_t* out, uint8_t* mac)
 }
 
 int
-frame_ingress(rlpx* s,
+frame_ingress(rlpx_channel* s,
               const uint8_t* x,
               size_t xlen,
               const uint8_t* expect,

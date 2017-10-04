@@ -17,7 +17,7 @@
 // E(remote-pub, remote-ephemeral || nonce || 0x0)
 
 int
-rlpx_auth_read_legacy(rlpx* s, const uint8_t* auth, size_t l)
+rlpx_auth_read_legacy(rlpx_channel* s, const uint8_t* auth, size_t l)
 {
     int err = -1;
     uecc_shared_secret x;
@@ -42,7 +42,7 @@ rlpx_auth_read_legacy(rlpx* s, const uint8_t* auth, size_t l)
 }
 
 int
-rlpx_auth_write_legacy(rlpx* s,
+rlpx_auth_write_legacy(rlpx_channel* s,
                        const uecc_public_key* to_s_key,
                        uint8_t* auth,
                        size_t* l)
@@ -59,7 +59,7 @@ rlpx_auth_write_legacy(rlpx* s,
 }
 
 int
-rlpx_ack_read_legacy(rlpx* s, const uint8_t* auth, size_t l)
+rlpx_ack_read_legacy(rlpx_channel* s, const uint8_t* auth, size_t l)
 {
     int err = -1;
     uint8_t b[194], rawpub[65] = { 0x04 };
@@ -72,7 +72,7 @@ rlpx_ack_read_legacy(rlpx* s, const uint8_t* auth, size_t l)
 }
 
 int
-rlpx_ack_write_legacy(rlpx* s,
+rlpx_ack_write_legacy(rlpx_channel* s,
                       const uecc_public_key* to_s_key,
                       uint8_t* auth_p,
                       size_t* l)
