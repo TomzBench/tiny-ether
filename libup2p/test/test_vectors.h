@@ -7,15 +7,33 @@
  * RLPX Handshake test vectors
  * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-8.md
  *
+ * Note our test vectors skip AUTH_0/ACK_0 eip 8 only
  * @return 0 pass
  */
+#define TEST_VECTOR_LEGACY 0
+#define TEST_VECTOR_EIP8_0 1
+#define TEST_VECTOR_EIP8_1 2
+#define TEST_VECTOR_LEGACY_GO 3
 
 #define AUTHVER_1 4
-#define AUTHVER_2 56
+#define AUTHVER_2 4
+#define AUTHVER_3 56
 #define ACKVER_1 4
-#define ACKVER_2 57
+#define ACKVER_2 4
+#define ACKVER_3 57
 
 #define AUTH_1                                                                 \
+    "048ca79ad18e4b0659fab4853fe5bc58eb83992980f4c9cc147d2aa31532efd29a3d3dc6" \
+    "a3d89eaf913150cfc777ce0ce4af2758bf4810235f6e6ceccfee1acc6b22c005e9e3a49d" \
+    "6448610a58e98744ba3ac0399e82692d67c1f58849050b3024e21a52c9d3b01d871ff5f2" \
+    "10817912773e610443a9ef142e91cdba0bd77b5fdf0769b05671fc35f83d83e4d3b0b000" \
+    "c6b2a1b1bba89e0fc51bf4e460df3105c444f14be226458940d6061c296350937ffd5e3a" \
+    "caceeaaefd3c6f74be8e23e0f45163cc7ebd76220f0128410fd05250273156d548a41444" \
+    "4ae2f7dea4dfca2d43c057adb701a715bf59f6fb66b2d1d20f2c703f851cbf5ac47396d9" \
+    "ca65b6260bd141ac4d53e2de585a73d1750780db4c9ee4cd4d225173a4592ee77e2bd94d" \
+    "0be3691f3b406f9bba9b591fc63facc016bfa8"
+
+#define AUTH_2                                                                 \
     "01b304ab7578555167be8154d5cc456f567d5ba302662433674222360f08d5f1"         \
     "534499d3678b513b0fca474f3a514b18e75683032eb63fccb16c156dc6eb2c0b"         \
     "1593f0d84ac74f6e475f1b8d56116b849634a8c458705bf83a626ea0384d4d73"         \
@@ -31,7 +49,7 @@
     "837129e547678c5190341e4f1693956c3bf7678318e2d5b5340c9e488eefea19"         \
     "8576344afbdf66db5f51204a6961a63ce072c8926c"
 
-#define AUTH_2                                                                 \
+#define AUTH_3                                                                 \
     "01b8044c6c312173685d1edd268aa95e1d495474c6959bcdd10067ba4c9013df"         \
     "9e40ff45f5bfd6f72471f93a91b493f8e00abc4b80f682973de715d77ba3a005"         \
     "a242eb859f9a211d93a347fa64b597bf280a6b88e26299cf263b01b8dfdb7122"         \
@@ -48,6 +66,14 @@
     "ddd0bae0a1f31aa27504e2a533af4cef3b623f4791b2cca6d490"
 
 #define ACK_1                                                                  \
+    "049f8abcfa9c0dc65b982e98af921bc0ba6e4243169348a236abe9df5f93aa69d99caddd" \
+    "aa387662b0ff2c08e9006d5a11a278b1b3331e5aaabf0a32f01281b6f4ede0e09a2d5f58" \
+    "5b26513cb794d9635a57563921c04a9090b4f14ee42be1a5461049af4ea7a7f49bf4c97a" \
+    "352d39c8d02ee4acc416388c1c66cec761d2bc1c72da6ba143477f049c9d2dde846c252c" \
+    "111b904f630ac98e51609b3b1f58168ddca6505b7196532e5f85b259a20c45e197949168" \
+    "3fee108e9660edbf38f3add489ae73e3dda2c71bd1497113d5c755e942d1"
+
+#define ACK_2                                                                  \
     "01ea0451958701280a56482929d3b0757da8f7fbe5286784beead59d95089c217"        \
     "c9b917788989470b0e330cc6e4fb383c0340ed85fab836ec9fb8a49672712aeab"        \
     "bdfd1e837c1ff4cace34311cd7f4de05d59279e3524ab26ef753a0095637ac88f"        \
@@ -65,7 +91,7 @@
     "8223f45ac37f6487452ce626f549b3b5fdee26afd2072e4bc75833c2464c80524"        \
     "6155289f4"
 
-#define ACK_2                                                                  \
+#define ACK_3                                                                  \
     "01f004076e58aae772bb101ab1a8e64e01ee96e64857ce82b1113817c6cdd52c09"       \
     "d26f7b90981cd7ae835aeac72e1573b8a0225dd56d157a010846d888dac7464baf"       \
     "53f2ad4e3d584531fa203658fab03a06c9fd5e35737e417bc28c1cbf5e5dfc666d"       \
@@ -85,19 +111,91 @@
 
 #define ALICE_SPRI                                                             \
     "49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee"
+
 #define ALICE_EPRI                                                             \
     "869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d"
+
 #define ALICE_EPUB                                                             \
     "654d1044b69c577a44e5f01a1209523adb4026e70c62d1c13"                        \
     "a067acabc09d2667a49821a0ad4b634554d330a15a58fe61f"                        \
     "8a8e0544b310c6de7b0c8da7528a8d"
+
 #define BOB_SPRI                                                               \
     "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+
 #define BOB_EPRI                                                               \
-    "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4";
+    "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4"
+
 #define BOB_EPUB                                                               \
     "b6d82fa3409da933dbf9cb0140c5dde89f4e64aec88d476af64"                      \
     "8880f4a10e1e49fe35ef3e69e93dd300b4797765a747c6384a6"                      \
     "ecf5db9c2690398607a86181e4"
+
+#define NONCE_A                                                                \
+    "7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6"
+
+#define NONCE_B                                                                \
+    "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"
+
+#define AES_SECRET                                                             \
+    "80e8632c05fed6fc2a13b0f8d31a3cf645366239170ea067065aba8e28bac487"
+
+#define MAC_SECRET                                                             \
+    "2ea74ec5dae199227dff1af715362700e989d889d7a493cb0639691efb8e5f98"
+
+#define FOO_SECRET                                                             \
+    "0c7ec6340062cc46f5e9f1e3cf86f8c8c403c5a0964f5df0ebd34a75ddc86db5"
+
+// GO Ethereum Test Vectors (pre-eip8)
+#define GO_AES_SECRET                                                          \
+    "c0458fa97a5230830e05f4f20b7c755c1d4e54b1ce5cf43260bb191eef4e418d"
+
+#define GO_MAC_SECRET                                                          \
+    "48c938884d5067a1598272fcddaa4b833cd5e7d92e8228c0ecdfabbe68aef7f1"
+
+#define GO_FOO_SECRET NULL
+
+#define HELLO_PACKET                                                           \
+    "6ef23fcf1cec7312df623f9ae701e63b550cdb8517fefd8dd398fc2acd1d935e6e0434a2" \
+    "b96769078477637347b7b01924fff9ff1c06df2f804df3b0402bbb9f87365b3c6856b45e" \
+    "1e2b6470986813c3816a71bff9d69dd297a5dbd935ab578f6e5d7e93e4506a44f307c332" \
+    "d95e8a4b102585fd8ef9fc9e3e055537a5cec2e9"
+
+#define AUTH_GO                                                                \
+    "04a0274c5951e32132e7f088c9bdfdc76c9d91f0dc6078e848f8e3361193dbdc43b94351" \
+    "ea3d89e4ff33ddcefbc80070498824857f499656c4f79bbd97b6c51a514251d69fd1785e" \
+    "f8764bd1d262a883f780964cce6a14ff206daf1206aa073a2d35ce2697ebf3514225bef1" \
+    "86631b2fd2316a4b7bcdefec8d75a1025ba2c5404a34e7795e1dd4bc01c6113ece07b0df" \
+    "13b69d3ba654a36e35e69ff9d482d88d2f0228e7d96fe11dccbb465a1831c7d4ad3a0269" \
+    "24b182fc2bdfe016a6944312021da5cc459713b13b86a686cf34d6fe6615020e4acf26bf" \
+    "0d5b7579ba813e7723eb95b3cef9942f01a58bd61baee7c9bdd438956b426a4ffe238e61" \
+    "746a8c93d5e10680617c82e48d706ac4953f5e1c4c4f7d013c87d34a06626f498f34576d" \
+    "c017fdd3d581e83cfd26cf125b6d2bda1f1d56"
+
+#define ACK_GO                                                                 \
+    "049934a7b2d7f9af8fd9db941d9da281ac9381b5740e1f64f7092f3588d4f87f5ce55191" \
+    "a6653e5e80c1c5dd538169aa123e70dc6ffc5af1827e546c0e958e42dad355bcc1fcb9cd" \
+    "f2cf47ff524d2ad98cbf275e661bf4cf00960e74b5956b799771334f426df007350b4604" \
+    "9adb21a6e78ab1408d5e6ccde6fb5e69f0f4c92bb9c725c02f99fa72b9cdc8dd53cff089" \
+    "e0e73317f61cc5abf6152513cb7d833f09d2851603919bf0fbe44d79a09245c6e8338eb5" \
+    "02083dc84b846f2fee1cc310d2cc8b1b9334728f97220bb799376233e113"
+
+#define ALICE_SPRI_GO                                                          \
+    "5e173f6ac3c669587538e7727cf19b782a4f2fda07c1eaa662c593e5e85e3051"
+
+#define ALICE_EPRI_GO                                                          \
+    "19c2185f4f40634926ebed3af09070ca9e029f2edd5fae6253074896205f5f6c"
+
+#define BOB_SPRI_GO                                                            \
+    "c45f950382d542169ea207959ee0220ec1491755abe405cd7498d6b16adb6df8"
+
+#define BOB_EPRI_GO                                                            \
+    "d25688cf0ab10afa1a0e2dba7853ed5f1e5bf1c631757ed4e103b593ff3f5620"
+
+#define ALICE_NONCE_GO                                                         \
+    "cd26fecb93657d1cd9e9eaf4f8be720b56dd1d39f190c4e1c6b7ec66f077bb11"
+
+#define BOB_NONCE_GO                                                           \
+    "f37ec61d84cea03dcc5e8385db93248584e8af4b4d1c832d8c7453c0089687a7"
 
 #endif

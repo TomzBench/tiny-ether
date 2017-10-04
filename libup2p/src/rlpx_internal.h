@@ -11,23 +11,71 @@ extern "C" {
 #endif
 
 #include "rlpx_config.h"
+#include "uaes.h"
 #include "uecc.h"
+#include "ukeccak256.h"
+
+#define AES_LEN(l) ((l) % 16 ? ((l) + 16 - ((l) % 16)) : (l))
+
+#define READ_BE(l, dst, src)                                                   \
+    do {                                                                       \
+        uint32_t be = 1;                                                       \
+        if (*(char*)&be == 0) {                                                \
+            for (int i = 0; i < l; i++) ((uint8_t*)dst)[i] = src[i];           \
+        } else {                                                               \
+            for (int i = 0; i < l; i++) ((uint8_t*)dst)[(l)-1 - i] = src[i];   \
+        }                                                                      \
+    } while (0)
+
+#define WRITE_BE(l, dst, src)                                                  \
+    do {                                                                       \
+        uint32_t be = 1, hit = 0;                                              \
+        if (*(char*)&be == 0) {                                                \
+            for (int i = 0; i < l; i++) {                                      \
+                if ((src)[i]) hit = 1;                                         \
+                if (hit || (src)[i] || !i) (dst)[i] = (src)[i];                \
+            }                                                                  \
+        } else {                                                               \
+            for (int i = 0; i < l; i++) {                                      \
+                if ((src)[i]) hit = 1;                                         \
+                if (hit || (src)[i] || !i) (dst)[(l)-1 - i] = (src)[i];        \
+            }                                                                  \
+        }                                                                      \
+    } while (0)
+
+#define XORN(x, b, l)                                                          \
+    do {                                                                       \
+        for (int i = 0; i < l; i++) x[i] ^= b[i];                              \
+    } while (0)
+
+#define XOR32(x, b)                                                            \
+    do {                                                                       \
+        for (int i = 0; i < 32; i++) x[i] ^= b[i];                             \
+    } while (0)
+
+#define XOR32_SET(y, x, b)                                                     \
+    do {                                                                       \
+        for (int i = 0; i < 32; i++) y[i] = x[i] ^ b[i];                       \
+    } while (0)
 
 typedef struct
 {
     // board_socket_fd conn;        /*!< os socket handle */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
+    h256 nonce;                  /*!< local nonce */
+    char node_id[65];            /*!< node id */
+    uint32_t listen_port;        /*!< our listen port */
     uint64_t remote_version;     /*!< remote version from auth */
     h512 remote_node_id;         /*!< remote public address */
     h256 remote_nonce;           /*!< remote nonce */
     uecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
     uecc_public_key remote_skey; /*!< remote static pubkey */
-    h256 emac;                   /*!< egress mac */
-    h256 imac;                   /*!< ingress mac */
-    h256 aes_enc;                /*!< aes ctr encryption key */
-    h256 aes_dec;                /*!< aes ctr decryption key */
-    h256 aes_mac;                /*!< aes ecb of egress/ingress mac updates */
+    ukeccak256_ctx emac;         /*!< egress mac */
+    ukeccak256_ctx imac;         /*!< ingress mac */
+    uaes_ctx aes_dec;            /*!< aes dec */
+    uaes_ctx aes_enc;            /*!< aes dec */
+    uaes_ctx aes_mac;            /*!< aes ecb of egress/ingress mac updates */
 } rlpx;
 
 // constructors
@@ -42,6 +90,8 @@ const uecc_public_key* rlpx_public_skey(rlpx*);
 const uecc_public_key* rlpx_public_ekey(rlpx*);
 const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
 const uecc_public_key* rlpx_remote_public_skey(rlpx*);
+uint32_t rlpx_listen_port(rlpx* s);
+const char* rlpx_node_id(rlpx* s);
 
 #ifdef __cplusplus
 }

@@ -1,10 +1,49 @@
 #include "test.h"
 #include "rlpx.h"
+#include "rlpx_test_helpers.h"
 #include <string.h>
 
-test_vector g_test_vectors[] = {
-    {.auth = AUTH_1, .ack = ACK_1, .authver = AUTHVER_1, .ackver = ACKVER_1 },
-    {.auth = AUTH_2, .ack = ACK_2, .authver = AUTHVER_2, .ackver = ACKVER_2 },
+test_vector g_test_vectors[] = { //
+    {.auth = AUTH_1,
+     .ack = ACK_1,
+     .alice_s = ALICE_SPRI,
+     .alice_e = ALICE_EPRI,
+     .alice_n = NONCE_A,
+     .bob_s = BOB_SPRI,
+     .bob_e = BOB_EPRI,
+     .bob_n = NONCE_B,
+     .authver = AUTHVER_1,
+     .ackver = ACKVER_1 },
+    {.auth = AUTH_2,
+     .ack = ACK_2,
+     .alice_s = ALICE_SPRI,
+     .alice_e = ALICE_EPRI,
+     .alice_n = NONCE_A,
+     .bob_s = BOB_SPRI,
+     .bob_e = BOB_EPRI,
+     .bob_n = NONCE_B,
+     .authver = AUTHVER_2,
+     .ackver = ACKVER_2 },
+    {.auth = AUTH_3, //
+     .ack = ACK_3,
+     .alice_s = ALICE_SPRI,
+     .alice_e = ALICE_EPRI,
+     .alice_n = NONCE_A,
+     .bob_s = BOB_SPRI,
+     .bob_e = BOB_EPRI,
+     .bob_n = NONCE_B,
+     .authver = AUTHVER_3,
+     .ackver = ACKVER_3 },
+    {.auth = AUTH_GO,
+     .ack = ACK_GO,
+     .alice_s = ALICE_SPRI_GO,
+     .alice_e = ALICE_EPRI_GO,
+     .alice_n = ALICE_NONCE_GO,
+     .bob_s = BOB_SPRI_GO,
+     .bob_e = BOB_EPRI_GO,
+     .bob_n = BOB_NONCE_GO,
+     .authver = AUTHVER_1,
+     .ackver = ACKVER_1 },
     { 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;
@@ -13,6 +52,15 @@ const char* g_alice_epub = ALICE_EPUB;
 const char* g_bob_spri = BOB_SPRI;
 const char* g_bob_epri = BOB_EPRI;
 const char* g_bob_epub = BOB_EPUB;
+const char* g_aes_secret = AES_SECRET;
+const char* g_mac_secret = MAC_SECRET;
+const char* g_foo = FOO_SECRET;
+const char* g_go_aes_secret = GO_AES_SECRET;
+const char* g_go_mac_secret = GO_MAC_SECRET;
+const char* g_go_foo = GO_FOO_SECRET;
+const char* g_alice_nonce = NONCE_A;
+const char* g_bob_nonce = NONCE_B;
+const char* g_hello_packet = HELLO_PACKET;
 
 int
 main(int argc, char* argv[])
@@ -21,8 +69,53 @@ main(int argc, char* argv[])
     ((void)argv);
     int err = 0;
 
-    err = test_handshake();
+    IF_ERR_EXIT(test_handshake());
+    IF_ERR_EXIT(test_frame());
+EXIT:
     return err;
+}
+
+int
+test_session_init(test_session* s, int vec)
+{
+    // buffers for keys, nonces, cipher text, etc
+    uecc_private_key alice_e, alice_s, bob_s, bob_e;
+    memset(s, 0, sizeof(test_session));
+    // read in test vectors
+    s->authlen = strlen(g_test_vectors[vec].auth) / 2;
+    s->acklen = strlen(g_test_vectors[vec].ack) / 2;
+    memcpy(alice_e.b, makebin(g_test_vectors[vec].alice_e, NULL), 32);
+    memcpy(alice_s.b, makebin(g_test_vectors[vec].alice_s, NULL), 32);
+    memcpy(bob_e.b, makebin(g_test_vectors[vec].bob_e, NULL), 32);
+    memcpy(bob_s.b, makebin(g_test_vectors[vec].bob_s, NULL), 32);
+    memcpy(s->auth, makebin(g_test_vectors[vec].auth, NULL), s->authlen);
+    memcpy(s->ack, makebin(g_test_vectors[vec].ack, NULL), s->acklen);
+    memcpy(s->alice_n.b, makebin(g_test_vectors[vec].alice_n, NULL), 32);
+    memcpy(s->bob_n.b, makebin(g_test_vectors[vec].bob_n, NULL), 32);
+    // init test_session with alice,bob,etc
+    s->alice = rlpx_alloc_keypair(&alice_s, &alice_e);
+    s->bob = rlpx_alloc_keypair(&bob_s, &bob_e);
+    // sanity check
+    if ((check_q(rlpx_public_ekey(s->alice), g_alice_epub))) return -1;
+    if ((check_q(rlpx_public_ekey(s->bob), g_bob_epub))) return -1;
+    return 0;
+}
+
+void
+test_session_deinit(test_session* s)
+{
+    rlpx_free(&s->alice);
+    rlpx_free(&s->bob);
+}
+
+int
+cmp_q(const uecc_public_key* a, const uecc_public_key* b)
+{
+    uint8_t puba[65];
+    uint8_t pubb[65];
+    uecc_qtob(a, puba, 65);
+    uecc_qtob(b, pubb, 65);
+    return memcmp(puba, pubb, 65) ? -1 : 0;
 }
 
 int

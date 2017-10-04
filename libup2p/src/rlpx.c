@@ -17,6 +17,14 @@ rlpx_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
 {
     rlpx* session = rlpx_malloc_fn(sizeof(rlpx));
     if (session) {
+        // clean mem
+        memset(session, 0, sizeof(rlpx));
+
+        // update info
+        session->listen_port = 44;         // TODO
+        memset(session->node_id, 'A', 65); // TODO
+
+        // Create keys
         if (s) {
             uecc_key_init_binary(&session->skey, s);
         } else {
@@ -69,6 +77,18 @@ const uecc_public_key*
 rlpx_remote_public_skey(rlpx* s)
 {
     return &s->remote_skey;
+}
+
+uint32_t
+rlpx_listen_port(rlpx* s)
+{
+    return s->listen_port;
+}
+
+const char*
+rlpx_node_id(rlpx* s)
+{
+    return s->node_id;
 }
 
 //

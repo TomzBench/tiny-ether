@@ -152,6 +152,15 @@ static inline int hash(uint8_t* out, size_t outlen,
     return hash(out, outlen, in, inlen, 200 - (bits / 4), 0x06);  \
   }
 
+#define defkeccak(bits)                                           \
+  int keccak_##bits(uint8_t* out, size_t outlen,                  \
+                  const uint8_t* in, size_t inlen) {              \
+    if (outlen > (bits/8)) {                                      \
+      return -1;                                                  \
+    }                                                             \
+    return hash(out, outlen, in, inlen, 200 - (bits / 4), 0x01);  \
+  }
+
 /*** FIPS202 SHAKE VOFs ***/
 defshake(128)
 defshake(256)
@@ -161,3 +170,68 @@ defsha3(224)
 defsha3(256)
 defsha3(384)
 defsha3(512)
+
+/*** pre-FIPS202 keccak standard ***/
+defkeccak(256)
+
+void ukeccak256_init(ukeccak256_ctx* ctx)
+{
+	memset(ctx,0,sizeof(ukeccak256_ctx));
+	ctx->rate=(200-256/4);
+	ctx->delim=0x01;
+}
+
+void ukeccak256_deinit(ukeccak256_ctx* ctx)
+{
+	((void)ctx);
+}
+
+void ukeccak256_update(ukeccak256_ctx* ctx, uint8_t *in, size_t len)
+{
+		size_t ip= 0;
+		size_t l = len;
+		size_t rate = ctx->rate-ctx->offset;
+		size_t offset = ctx->offset;
+		while(l>=rate){
+			xorin(&ctx->st.b[offset],&in[ip],rate);
+			P(ctx->st.q);
+			ip+=rate;
+			l-=rate;
+			rate=ctx->rate;
+			offset=0;
+		}
+		xorin(&ctx->st.b[offset],&in[ip],l);
+		ctx->offset = offset+l;
+}
+
+void ukeccak256_digest(ukeccak256_ctx *ctx, uint8_t *out)
+{
+	ukeccak256_ctx tmp;
+	memcpy(&tmp,ctx,sizeof(ukeccak256_ctx));
+	ukeccak256_finish(&tmp,out);
+	ukeccak256_deinit(&tmp);
+}
+
+void ukeccak256_finish(ukeccak256_ctx* ctx, uint8_t *out)
+{
+		ctx->st.b[ctx->offset]^=ctx->delim;
+		ctx->st.b[ctx->rate-1]^=0x80;
+		P(ctx->st.q);
+		size_t op=0;
+		size_t l=32; // hardcoded output length
+		while(l>=ctx->rate){
+				memcpy(&out[op],ctx->st.b,ctx->rate);
+				P(ctx->st.b);
+				op+=ctx->rate;
+				l-=ctx->rate;
+		}
+		memcpy(&out[op],ctx->st.b,l);
+}
+
+int
+ukeccak256(uint8_t* in, size_t inlen, uint8_t* out, size_t outlen)
+{
+    	if (!(outlen == 32)) return -1;
+    	return keccak_256(out, 32, in, inlen);
+}
+

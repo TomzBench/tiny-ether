@@ -38,9 +38,9 @@ uint32_t urlp_szsz(uint32_t); // size of size
 uint32_t urlp_write_sz(uint8_t* b, uint32_t* s, uint32_t sz, int islist);
 uint32_t urlp_write_n_big_endian(uint8_t*, const void*, uint32_t, int);
 uint32_t urlp_write_big_endian(uint8_t*, const void*, int);
-uint32_t urlp_read_sz(uint8_t* b, uint32_t* result);
+uint32_t urlp_read_sz(const uint8_t* b, uint32_t* result);
 uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
-urlp* urlp_parse_walk(uint8_t* b, uint32_t l);
+urlp* urlp_parse_walk(const uint8_t* b, uint32_t l);
 
 urlp*
 urlp_alloc(uint32_t sz)
@@ -72,30 +72,6 @@ urlp_szsz(uint32_t size)
 {
     return 4 - (urlp_clz_fn(size) / 8);
 }
-
-// uint32_t
-// urlp_write_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
-//{
-//    if (s <= 55) {
-//        if (b) b[--*(c)] = p + s; // ie: b[x] = 0xc0 + sz
-//        return 1;
-//    } else {
-//        return urlp_write_szsz(b, c, s, p);
-//    }
-//}
-//
-// uint32_t
-// urlp_write_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
-//{
-//    uint32_t szsz = urlp_szsz(s);
-//    if (b) {
-//        *c -= szsz;
-//        urlp_write_big_endian(&b[*c], &s, 4);
-//        b[--*c] = p + szsz;
-//    }
-//    return szsz + 1;
-//}
-//
 
 uint32_t
 urlp_write_sz(uint8_t* b, uint32_t* c, uint32_t s, int islist)
@@ -169,17 +145,16 @@ urlp_read_big_endian(void* dat, int szof, const uint8_t* b)
     }
     while (szof--) {
         *x += inc = *b++;
-        x += inc;
     }
     return szof;
 }
 
 uint32_t
-urlp_read_sz(uint8_t* b, uint32_t* result)
+urlp_read_sz(const uint8_t* b, uint32_t* result)
 {
     uint32_t sz = 0, szsz = 0;
     *result = 0;
-    if (*b <= 0x80) {
+    if (*b < 0x80) {
         *result = 1;
         sz = 0;
     } else if (*b <= 0xb7) {
@@ -247,7 +222,7 @@ urlp_item_u8(const uint8_t* b, uint32_t sz)
         size = 1;
         rlp = urlp_alloc(size);
         if (rlp) rlp->b[--size] = 0x80;
-    } else if (sz == 1 && b[0] <= 0x80) {
+    } else if (sz == 1 && b[0] < 0x80) {
         size = 1;
         rlp = urlp_alloc(size);
         if (rlp) rlp->b[--size] = b[0];
@@ -276,47 +251,47 @@ urlp_item_str(const char* b, uint32_t sz)
 }
 
 uint64_t
-urlp_as_u64(urlp* rlp)
+urlp_as_u64(const urlp* rlp)
 {
     uint64_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint64_t)) == 1 ? ret : 0;
 }
 
 uint32_t
-urlp_as_u32(urlp* rlp)
+urlp_as_u32(const urlp* rlp)
 {
     uint32_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint32_t)) == 1 ? ret : 0;
 }
 
 uint16_t
-urlp_as_u16(urlp* rlp)
+urlp_as_u16(const urlp* rlp)
 {
     uint16_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint16_t)) == 1 ? ret : 0;
 }
 
 uint8_t
-urlp_as_u8(urlp* rlp)
+urlp_as_u8(const urlp* rlp)
 {
     uint8_t ret = 0;
     return urlp_read_int(rlp, &ret, sizeof(uint8_t)) == 1 ? ret : 0;
 }
 
 const char*
-urlp_str(urlp* rlp)
+urlp_str(const urlp* rlp)
 {
     return (const char*)urlp_ref(rlp, NULL);
 }
 
 const uint8_t*
-urlp_mem(urlp* rlp, uint32_t* sz)
+urlp_mem(const urlp* rlp, uint32_t* sz)
 {
     return urlp_ref(rlp, sz);
 }
 
 const uint8_t*
-urlp_ref(urlp* rlp, uint32_t* sz)
+urlp_ref(const urlp* rlp, uint32_t* sz)
 {
     uint32_t l = 0;
     if (!sz) sz = &l; // caller doesn't care about length so passed NULL
@@ -326,7 +301,7 @@ urlp_ref(urlp* rlp, uint32_t* sz)
 }
 
 int
-urlp_read_int(urlp* rlp, void* mem, uint32_t szof)
+urlp_read_int(const urlp* rlp, void* mem, uint32_t szof)
 {
     uint32_t n;
     const uint8_t* b = urlp_ref(rlp, &n);
@@ -336,8 +311,8 @@ urlp_read_int(urlp* rlp, void* mem, uint32_t szof)
     return 0;
 }
 
-urlp*
-urlp_at(urlp* rlp, uint32_t where)
+const urlp*
+urlp_at(const urlp* rlp, uint32_t where)
 {
     uint32_t n = rlp->n - (where + 1);
     rlp = rlp->child;
@@ -372,13 +347,13 @@ urlp_push(urlp* parent, urlp* child)
 }
 
 uint32_t
-urlp_size_rlp(urlp* rlp)
+urlp_size_rlp(const urlp* rlp)
 {
     return rlp->sz; //
 }
 
 uint32_t
-urlp_size(urlp* rlp)
+urlp_size(const urlp* rlp)
 {
     uint32_t sz;
     return (urlp_ref(rlp, &sz)) ? sz : 0;
@@ -388,6 +363,12 @@ const uint8_t*
 urlp_data(urlp* rlp)
 {
     return rlp->b; //
+}
+
+const urlp*
+urlp_child(const urlp* rlp)
+{
+    return rlp->child;
 }
 
 uint32_t
@@ -410,6 +391,17 @@ urlp_children_walk(urlp* rlp)
         if (urlp_is_list(rlp)) {
             n = rlp->n + urlp_children_walk(rlp->child);
         }
+        rlp = rlp->next;
+    }
+    return n;
+}
+
+uint32_t
+urlp_siblings(const urlp* rlp)
+{
+    uint32_t n = 0;
+    while (rlp) {
+        n++;
         rlp = rlp->next;
     }
     return n;
@@ -472,7 +464,7 @@ urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot)
 }
 
 urlp*
-urlp_parse(uint8_t* b, uint32_t l)
+urlp_parse(const uint8_t* b, uint32_t l)
 {
     urlp* rlp = NULL;
     uint32_t sz = 0;
@@ -496,10 +488,10 @@ urlp_parse(uint8_t* b, uint32_t l)
 }
 
 urlp*
-urlp_parse_walk(uint8_t* b, uint32_t l)
+urlp_parse_walk(const uint8_t* b, uint32_t l)
 {
     urlp* rlp = NULL;
-    uint8_t* end = &b[l];
+    const uint8_t* end = &b[l];
     uint32_t sz;
     while (b < end) {
         if (*b >= 0xc0) {
