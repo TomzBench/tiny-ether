@@ -93,6 +93,42 @@ rlpx_ch_node_id(rlpx_channel* s)
     return s->node_id;
 }
 
+int
+rlpx_ch_auth_load(rlpx_channel* ch, const uint8_t* auth, size_t l)
+{
+    int err = 0;
+    urlp* rlp = NULL;
+
+    // Decrypt authentication packet
+    if ((err = rlpx_auth_read(ch, auth, l, &rlp))) return err;
+
+    // Process the Decrypted RLP data
+    err = rlpx_auth_load(&ch->skey, &ch->remote_version, &ch->remote_nonce,
+                         &ch->remote_skey, &ch->remote_ekey, &rlp);
+
+    // Free rlp and return
+    urlp_free(&rlp);
+    return err;
+}
+
+int
+rlpx_ch_ack_load(rlpx_channel* ch, const uint8_t* ack, size_t l)
+{
+    int err = 0;
+    urlp* rlp = NULL;
+
+    // Decrypt acknowledge packet
+    if ((err = rlpx_ack_read(ch, ack, l, &rlp))) return err;
+
+    // Process the Decrypted RLP data
+    err = rlpx_ack_load(&ch->remote_version, &ch->remote_nonce,
+                        &ch->remote_ekey, &rlp);
+
+    // Free rlp and return
+    urlp_free(&rlp);
+    return err;
+}
+
 //
 //
 //

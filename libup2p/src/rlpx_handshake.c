@@ -79,29 +79,11 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
     return ((err > 0) && (*rlp_p = urlp_parse(buffer, err))) ? 0 : -1;
 }
 
-/**
- * @brief Read RLPXHandshake
- *
- * if((seek=urlp_at(3))) { ...  //read ver
- * if((seek=urlp_at(2))) { ...  //read nonce
- * if((seek=urlp_at(1))) { ...  //read pubkey
- * if((seek=urlp_at(0))) { ...  //read signature
- *
- * @param s
- * @param auth
- * @param l
- */
 int
 rlpx_auth_read(rlpx_channel* s, const uint8_t* auth, size_t l, urlp** rlp_p)
 {
     int err = rlpx_decrypt(&s->skey, auth, l, rlp_p);
     if (err) err = rlpx_auth_read_legacy(s, auth, l, rlp_p);
-    if (rlp_p && *rlp_p) {
-        rlpx_auth_load(&s->skey, &s->remote_version, &s->remote_nonce,
-                       &s->remote_skey, &s->remote_ekey, rlp_p);
-        urlp_free(rlp_p);
-        err = 0;
-    }
     return err;
 }
 
@@ -201,11 +183,6 @@ rlpx_ack_read(rlpx_channel* s, const uint8_t* ack, size_t l, urlp** rlp_p)
 {
     int err = rlpx_decrypt(&s->skey, ack, l, rlp_p);
     if (err) err = rlpx_ack_read_legacy(s, ack, l, rlp_p);
-    if (rlp_p && *rlp_p) {
-        rlpx_ack_load(&s->remote_version, &s->remote_nonce, &s->remote_ekey,
-                      rlp_p);
-        urlp_free(rlp_p);
-    }
     return err;
 }
 
@@ -247,21 +224,9 @@ rlpx_ack_load(uint64_t* remote_version,
         err = 0;
     }
     if ((seek = urlp_at(rlp, 2))) *remote_version = urlp_as_u64(seek);
-    // urlp_free(&rlp); // De-alloc
     return err;
 }
 
-/**
- * @brief
- *
- * @param s
- * @param from_e_key
- * @param to_s_key
- * @param auth
- * @param l
- *
- * @return
- */
 int
 rlpx_ack_write(uecc_ctx* skey,
                uecc_ctx* ekey,

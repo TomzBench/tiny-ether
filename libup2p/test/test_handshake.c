@@ -27,7 +27,6 @@ int
 test_read()
 {
     int err;
-    urlp* rlp;
     test_session s;
     test_vector* tv = g_test_vectors;
 
@@ -36,8 +35,8 @@ test_read()
         test_session_init(&s, i);
         rlpx_test_remote_ekey_clr(s.alice);
         rlpx_test_remote_ekey_clr(s.bob);
-        if (rlpx_auth_read(s.bob, s.auth, s.authlen, &rlp)) break;
-        if (rlpx_ack_read(s.alice, s.ack, s.acklen, &rlp)) break;
+        if (rlpx_ch_auth_load(s.bob, s.auth, s.authlen)) break;
+        if (rlpx_ch_ack_load(s.alice, s.ack, s.acklen)) break;
         if (!(rlpx_ch_version_remote(s.bob) == tv->authver)) break;
         if (!(rlpx_ch_version_remote(s.alice) == tv->ackver)) break;
         if ((cmp_q(rlpx_ch_remote_pub_ekey(s.bob), rlpx_ch_pub_ekey(s.alice))))
@@ -61,7 +60,6 @@ test_write()
     test_session s;
     test_session_init(&s, 0);
     h256 nonce_a, nonce_b;
-    urlp* rlp;
 
     unonce(nonce_a.b);
     unonce(nonce_b.b);
@@ -71,12 +69,12 @@ test_write()
     IF_ERR_EXIT(rlpx_auth_write(rlpx_test_skey(s.alice),
                                 rlpx_test_ekey(s.alice), &nonce_a,
                                 rlpx_ch_pub_skey(s.bob), buf, &l));
-    IF_ERR_EXIT(rlpx_auth_read(s.bob, buf, l, &rlp));
+    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, buf, l));
 
     l = 800;
     IF_ERR_EXIT(rlpx_ack_write(rlpx_test_skey(s.bob), rlpx_test_ekey(s.bob),
                                &nonce_b, rlpx_ch_pub_skey(s.alice), buf, &l));
-    IF_ERR_EXIT(rlpx_ack_read(s.alice, buf, l, &rlp));
+    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, buf, l));
 
     IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.alice), g_bob_epub));
     IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.bob), g_alice_epub));
@@ -89,7 +87,6 @@ int
 test_secrets()
 {
     int err;
-    urlp* rlp;
     test_session s;
     test_session_init(&s, 1);
     uint8_t aes[32], mac[32], foo[32];
@@ -103,8 +100,8 @@ test_secrets()
     rlpx_test_remote_nonce_set(s.bob, &s.alice_n);
     rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
-    rlpx_auth_read(s.bob, s.auth, s.authlen, &rlp);
-    rlpx_ack_read(s.alice, s.ack, s.acklen, &rlp);
+    rlpx_ch_auth_load(s.bob, s.auth, s.authlen);
+    rlpx_ch_ack_load(s.alice, s.ack, s.acklen);
     IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                     s.authlen, aes, mac, foo));
     IF_ERR_EXIT(rlpx_expect_secrets(s.alice, 1, s.auth, s.authlen, s.ack,

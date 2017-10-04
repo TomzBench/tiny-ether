@@ -50,8 +50,9 @@ const uecc_public_key* rlpx_ch_remote_pub_skey(rlpx_channel*);
 uint32_t rlpx_ch_listen_port(rlpx_channel* s);
 const char* rlpx_ch_node_id(rlpx_channel* s);
 
-int rlpx_ch_auth_load(rlpx_channel* s, const uint8_t* auth, size_t l);
-int rlpx_ch_ack_load(rlpx_channel* s, const uint8_t* ack, size_t l);
+int rlpx_ch_auth_load(rlpx_channel* ch, const uint8_t* auth, size_t l);
+int rlpx_ch_ack_load(rlpx_channel* ch, const uint8_t* ack, size_t l);
+
 #ifdef __cplusplus
 }
 #endif

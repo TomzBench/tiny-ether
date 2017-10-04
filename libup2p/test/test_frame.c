@@ -30,7 +30,6 @@ test_frame_read()
     uint8_t aes[32], mac[32];
     urlp* frame = NULL;
     const urlp* seek;
-    urlp* rlp;
     uint32_t p2pver;
     memcpy(aes, makebin(g_go_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_go_mac_secret, NULL), 32);
@@ -42,7 +41,7 @@ test_frame_read()
     rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
     // Update our secrets
-    IF_ERR_EXIT(rlpx_auth_read(s.bob, s.auth, s.authlen, &rlp));
+    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                     s.authlen, aes, mac, NULL));
     IF_ERR_EXIT(rlpx_frame_parse(
@@ -68,7 +67,7 @@ test_frame_write()
     test_session_init(&s, 1);
     size_t lena = 1000, lenb = 1000, alen = 1000, blen = 1000;
     uint8_t from_alice[lena], from_bob[lenb], a[alen], b[blen];
-    urlp *framea = NULL, *frameb = NULL, *rlp;
+    urlp *framea = NULL, *frameb = NULL;
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
     uint32_t numa, numb;
@@ -83,12 +82,12 @@ test_frame_write()
     IF_ERR_EXIT(rlpx_auth_write(rlpx_test_skey(s.alice),
                                 rlpx_test_ekey(s.alice), &nonce_a,
                                 rlpx_ch_pub_skey(s.bob), a, &alen));
-    IF_ERR_EXIT(rlpx_auth_read(s.bob, a, alen, &rlp));
+    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
 
     // Alice exchange bob keys
     IF_ERR_EXIT(rlpx_ack_write(rlpx_test_skey(s.bob), rlpx_test_ekey(s.bob),
                                &nonce_b, rlpx_ch_pub_skey(s.alice), b, &blen));
-    IF_ERR_EXIT(rlpx_ack_read(s.alice, b, blen, &rlp));
+    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
 
     // Check key exchange
     IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.alice), g_bob_epub));
