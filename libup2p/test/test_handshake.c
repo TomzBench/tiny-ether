@@ -59,8 +59,15 @@ test_write()
     uint8_t buffer[l];
     test_session s;
     test_session_init(&s, 0);
+    h256 nonce_a, nonce_b;
 
-    IF_ERR_EXIT(rlpx_auth_write(s.alice, rlpx_ch_pub_skey(s.bob), buffer, &l));
+    unonce(nonce_a.b);
+    unonce(nonce_b.b);
+    rlpx_test_nonce_set(s.alice, &nonce_a);
+
+    IF_ERR_EXIT(rlpx_auth_write(rlpx_test_skey(s.alice),
+                                rlpx_test_ekey(s.alice), &nonce_a,
+                                rlpx_ch_pub_skey(s.bob), buffer, &l));
     IF_ERR_EXIT(rlpx_auth_read(s.bob, buffer, l));
 
     l = 800;

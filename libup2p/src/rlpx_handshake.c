@@ -117,7 +117,9 @@ rlpx_auth_read(rlpx_channel* s, const uint8_t* auth, size_t l)
 }
 
 int
-rlpx_auth_write(rlpx_channel* s,
+rlpx_auth_write(uecc_ctx* skey,
+                uecc_ctx* ekey,
+                h256* nonce,
                 const uecc_public_key* to_s_key,
                 uint8_t* auth,
                 size_t* l)
@@ -129,18 +131,18 @@ rlpx_auth_write(rlpx_channel* s,
     uecc_shared_secret x;
     uecc_signature sig;
     urlp* rlp;
-    if (uecc_agree(&s->skey, to_s_key)) return -1;
-    if (unonce(s->nonce.b)) return -1;
+    if (uecc_agree(skey, to_s_key)) return -1;
+    // if (unonce(nonce->b)) return -1; hidden input
     for (int i = 0; i < 32; i++) {
-        x.b[i] = s->skey.z.b[i + 1] ^ s->nonce.b[i];
+        x.b[i] = skey->z.b[i + 1] ^ nonce->b[i];
     }
-    if (uecc_sign(&s->ekey, x.b, 32, &sig)) return -1;
+    if (uecc_sign(ekey, x.b, 32, &sig)) return -1;
     uecc_sig_to_bin(&sig, rawsig);
-    uecc_qtob(&s->skey.Q, rawpub, 65);
+    uecc_qtob(&skey->Q, rawpub, 65);
     if ((rlp = urlp_list())) {
         urlp_push(rlp, urlp_item_u8(rawsig, 65));
         urlp_push(rlp, urlp_item_u8(&rawpub[1], 64));
-        urlp_push(rlp, urlp_item_u8(s->nonce.b, 32));
+        urlp_push(rlp, urlp_item_u8(nonce->b, 32));
         urlp_push(rlp, urlp_item_u64(&v, 1));
     }
     err = rlpx_encrypt(rlp, to_s_key, auth, l);

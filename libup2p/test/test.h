@@ -3,6 +3,7 @@
 
 #include "rlpx.h"
 #include "test_vectors.h"
+#include "unonce.h"
 #include <string.h>
 
 // clang-format off

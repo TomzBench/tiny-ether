@@ -71,9 +71,16 @@ test_frame_write()
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
     uint32_t numa, numb;
+    h256 nonce_a, nonce_b;
+
+    unonce(nonce_a.b);
+    unonce(nonce_b.b);
+    rlpx_test_nonce_set(s.alice, &nonce_a);
 
     // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_auth_write(s.alice, rlpx_ch_pub_skey(s.bob), a, &alen));
+    IF_ERR_EXIT(rlpx_auth_write(rlpx_test_skey(s.alice),
+                                rlpx_test_ekey(s.alice), &nonce_a,
+                                rlpx_ch_pub_skey(s.bob), a, &alen));
     IF_ERR_EXIT(rlpx_auth_read(s.bob, a, alen));
 
     // Alice exchange bob keys
