@@ -41,16 +41,18 @@ test_frame_read()
     rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
     // Update our secrets
-    IF_ERR_EXIT(rlpx_auth_read(s.bob, s.auth, s.authlen));
+    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                     s.authlen, aes, mac, NULL));
-    IF_ERR_EXIT(rlpx_frame_parse(s.bob, makebin(g_hello_packet, NULL),
-                                 strlen(g_hello_packet) / 2, &frame));
+    IF_ERR_EXIT(rlpx_frame_parse(
+        rlpx_test_ingress(s.bob), rlpx_test_aes_mac(s.bob),
+        rlpx_test_aes_dec(s.bob), makebin(g_hello_packet, NULL),
+        strlen(g_hello_packet) / 2, &frame));
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
-    IF_ERR_EXIT(rlpx_frame_hello_p2p_version(seek, &p2pver));
+    IF_ERR_EXIT(rlpx_hello_p2p_version(seek, &p2pver));
     IF_ERR_EXIT(p2pver == 3 ? 0 : -1);
-    IF_ERR_EXIT(rlpx_frame_hello_capabilities(seek, "a", 0));
-    IF_ERR_EXIT(rlpx_frame_hello_capabilities(seek, "b", 2));
+    IF_ERR_EXIT(rlpx_hello_capabilities(seek, "a", 0));
+    IF_ERR_EXIT(rlpx_hello_capabilities(seek, "b", 2));
     urlp_free(&frame);
 EXIT:
     test_session_deinit(&s);
@@ -71,60 +73,65 @@ test_frame_write()
     uint32_t numa, numb;
 
     // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_auth_write(s.alice, rlpx_public_skey(s.bob), a, &alen));
-    IF_ERR_EXIT(rlpx_auth_read(s.bob, a, alen));
+    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, rlpx_ch_pub_skey(s.bob), a, &alen));
+    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
 
     // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ack_write(s.bob, rlpx_public_skey(s.alice), b, &blen));
-    IF_ERR_EXIT(rlpx_ack_read(s.alice, b, blen));
+    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, rlpx_ch_pub_skey(s.alice), b, &blen));
+    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
 
     // Check key exchange
-    IF_ERR_EXIT(check_q(rlpx_remote_public_ekey(s.alice), g_bob_epub));
-    IF_ERR_EXIT(check_q(rlpx_remote_public_ekey(s.bob), g_alice_epub));
+    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.alice), g_bob_epub));
+    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.bob), g_alice_epub));
 
     // Update secrets
-    IF_ERR_EXIT(rlpx_secrets(s.bob, 0, b, blen, a, alen));
-    IF_ERR_EXIT(rlpx_secrets(s.alice, 1, a, alen, b, blen));
+    IF_ERR_EXIT(rlpx_ch_secrets(s.bob, 0, b, blen, a, alen));
+    IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
 
     // Write some packets
-    IF_ERR_EXIT(rlpx_frame_hello_write(s.alice, from_alice, &lena));
-    IF_ERR_EXIT(rlpx_frame_hello_write(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_frame_parse(s.alice, from_bob, lenb, &frameb));
-    IF_ERR_EXIT(rlpx_frame_parse(s.bob, from_alice, lena, &framea));
+    IF_ERR_EXIT(rlpx_test_write_hello(s.alice, from_alice, &lena));
+    IF_ERR_EXIT(rlpx_test_write_hello(s.bob, from_bob, &lenb));
+    IF_ERR_EXIT(
+        rlpx_frame_parse(rlpx_test_ingress(s.alice), rlpx_test_aes_mac(s.alice),
+                         rlpx_test_aes_dec(s.alice), from_bob, lenb, &frameb));
+    IF_ERR_EXIT(
+        rlpx_frame_parse(rlpx_test_ingress(s.bob), rlpx_test_aes_mac(s.bob),
+                         rlpx_test_aes_dec(s.bob), from_alice, lena, &framea));
+
     bodya = urlp_at(urlp_at(framea, 1), 1); // get body frame
     bodyb = urlp_at(urlp_at(frameb, 1), 1); // get body frame
 
     // Verify p2pver
-    rlpx_frame_hello_p2p_version(bodya, &numa);
-    rlpx_frame_hello_p2p_version(bodyb, &numb);
+    rlpx_hello_p2p_version(bodya, &numa);
+    rlpx_hello_p2p_version(bodyb, &numb);
     IF_ERR_EXIT((numa == RLPX_VERSION_P2P) ? 0 : -1);
     IF_ERR_EXIT((numb == RLPX_VERSION_P2P) ? 0 : -1);
 
     // Verify client id read ok
-    rlpx_frame_hello_client_id(bodya, &mema, &numa);
-    rlpx_frame_hello_client_id(bodyb, &memb, &numb);
+    rlpx_hello_client_id(bodya, &mema, &numa);
+    rlpx_hello_client_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == RLPX_CLIENT_ID_LEN) ? 0 : -1);
     IF_ERR_EXIT((numb == RLPX_CLIENT_ID_LEN) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mema, RLPX_CLIENT_ID_STR, numa) ? -1 : 0);
     IF_ERR_EXIT(memcmp(memb, RLPX_CLIENT_ID_STR, numb) ? -1 : 0);
 
     // Verify capabilities read ok
-    IF_ERR_EXIT(rlpx_frame_hello_capabilities(bodya, "les", 2));
-    IF_ERR_EXIT(rlpx_frame_hello_capabilities(bodyb, "les", 2));
+    IF_ERR_EXIT(rlpx_hello_capabilities(bodya, "les", 2));
+    IF_ERR_EXIT(rlpx_hello_capabilities(bodyb, "les", 2));
 
     // verify listen port
-    rlpx_frame_hello_listen_port(bodya, &numa);
-    rlpx_frame_hello_listen_port(bodyb, &numb);
-    IF_ERR_EXIT((numa == rlpx_listen_port(s.alice)) ? 0 : -1);
-    IF_ERR_EXIT((numb == rlpx_listen_port(s.bob)) ? 0 : -1);
+    rlpx_hello_listen_port(bodya, &numa);
+    rlpx_hello_listen_port(bodyb, &numb);
+    IF_ERR_EXIT((numa == rlpx_ch_listen_port(s.alice)) ? 0 : -1);
+    IF_ERR_EXIT((numb == rlpx_ch_listen_port(s.bob)) ? 0 : -1);
 
     // verify node_id
-    rlpx_frame_hello_node_id(bodya, &mema, &numa);
-    rlpx_frame_hello_node_id(bodyb, &memb, &numb);
+    rlpx_hello_node_id(bodya, &mema, &numa);
+    rlpx_hello_node_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == 65) ? 0 : -1);
     IF_ERR_EXIT((numb == 65) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mema, rlpx_node_id(s.alice), numa) ? -1 : 0);
-    IF_ERR_EXIT(memcmp(memb, rlpx_node_id(s.bob), numb) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(mema, rlpx_ch_node_id(s.alice), numa) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(memb, rlpx_ch_node_id(s.bob), numb) ? -1 : 0);
 
 EXIT:
     // clean

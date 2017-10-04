@@ -1,19 +1,5 @@
-/*
- * @file rlpx_internal.h
- *
- * @brief
- */
-#ifndef RLPX_INTERNAL_H_
-#define RLPX_INTERNAL_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "rlpx_config.h"
-#include "uaes.h"
-#include "uecc.h"
-#include "ukeccak256.h"
+#ifndef RLPX_HELPER_MACROS_H_
+#define RLPX_HELPER_MACROS_H_
 
 #define AES_LEN(l) ((l) % 16 ? ((l) + 16 - ((l) % 16)) : (l))
 
@@ -58,42 +44,4 @@ extern "C" {
         for (int i = 0; i < 32; i++) y[i] = x[i] ^ b[i];                       \
     } while (0)
 
-typedef struct
-{
-    // board_socket_fd conn;        /*!< os socket handle */
-    uecc_ctx ekey;               /*!< our epheremal key */
-    uecc_ctx skey;               /*!< our static key */
-    h256 nonce;                  /*!< local nonce */
-    char node_id[65];            /*!< node id */
-    uint32_t listen_port;        /*!< our listen port */
-    uint64_t remote_version;     /*!< remote version from auth */
-    h512 remote_node_id;         /*!< remote public address */
-    h256 remote_nonce;           /*!< remote nonce */
-    uecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
-    uecc_public_key remote_skey; /*!< remote static pubkey */
-    ukeccak256_ctx emac;         /*!< egress mac */
-    ukeccak256_ctx imac;         /*!< ingress mac */
-    uaes_ctx aes_dec;            /*!< aes dec */
-    uaes_ctx aes_enc;            /*!< aes dec */
-    uaes_ctx aes_mac;            /*!< aes ecb of egress/ingress mac updates */
-} rlpx;
-
-// constructors
-rlpx* rlpx_alloc();
-rlpx* rlpx_alloc_key(uecc_private_key*);
-rlpx* rlpx_alloc_keypair(uecc_private_key*, uecc_private_key*);
-void rlpx_free(rlpx** session_p);
-
-// setters / getters
-uint64_t rlpx_version_remote(rlpx*);
-const uecc_public_key* rlpx_public_skey(rlpx*);
-const uecc_public_key* rlpx_public_ekey(rlpx*);
-const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
-const uecc_public_key* rlpx_remote_public_skey(rlpx*);
-uint32_t rlpx_listen_port(rlpx* s);
-const char* rlpx_node_id(rlpx* s);
-
-#ifdef __cplusplus
-}
-#endif
 #endif

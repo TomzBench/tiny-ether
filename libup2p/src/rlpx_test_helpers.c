@@ -1,67 +1,82 @@
+#include "rlpx_channel.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
-#include "rlpx_internal.h"
+#include "rlpx_hello.h"
+#include "rlpx_helper_macros.h"
 #include "ukeccak256.h"
 /*
  * This "test" feature is only to export data from normally opaque structures.
  */
 
+uecc_ctx*
+rlpx_test_skey(rlpx_channel* ch)
+{
+    return &ch->skey;
+}
+
+uecc_ctx*
+rlpx_test_ekey(rlpx_channel* ch)
+{
+    return &ch->ekey;
+}
+
 void
-rlpx_test_nonce_set(rlpx* s, h256* nonce)
+rlpx_test_nonce_set(rlpx_channel* s, h256* nonce)
 {
     memcpy(s->nonce.b, nonce->b, 32);
 }
 
 void
-rlpx_test_remote_nonce_set(rlpx* s, h256* nonce)
+rlpx_test_remote_nonce_set(rlpx_channel* s, h256* nonce)
 {
     memcpy(s->remote_nonce.b, nonce->b, 32);
 }
 
 void
-rlpx_test_remote_ekey_clr(rlpx* s)
+rlpx_test_remote_ekey_clr(rlpx_channel* s)
 {
     memset(s->remote_ekey.data, 0, 64);
 }
 
-int
-rlpx_test_secrets(rlpx* s,
-                  int orig,
-                  uint8_t* sent,
-                  uint32_t sentlen,
-                  uint8_t* recv,
-                  uint32_t recvlen)
+ukeccak256_ctx*
+rlpx_test_ingress(rlpx_channel* ch)
 {
-    return rlpx_secrets(s, orig, sent, sentlen, recv, recvlen);
+    return &ch->imac;
 }
 
-/**
- * @brief This routine only called from test, non-public no declarations.
- * Is a copy paste of rlpx_secrets() with memcmp()...
- * Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
- *           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
- * Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
- *           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recvd-init)
- * egress  = sha3(mac-secret^their nonce || cipher sent )
- * ingress = sha3(mac-secret^our nonce   || cipher received)
- *
- * // Encrypt Header
- * egress-mac.update(aes(mac-secret,egress-mac) ^ header-ciphertext).digest
- *
- * // Encrypt Frame
- * egress-mac.update(aes(mac-secret,egress-mac) ^
- *   left128(egress-mac.update(frame-ciphertext).digest))
- *
- * // Decrypt Header
- * ingress-mac.update(aes(mac-secret,ingress-mac) ^ header-ciphertext).digest
- *
- * // Decrypt Frame
- * ingres-mac.update(aes(mac-secret,ingres-mac) ^
- *   left128(ingres-mac.update(frame-ciphertext).digest))
- */
+ukeccak256_ctx*
+rlpx_test_egress(rlpx_channel* ch)
+{
+    return &ch->emac;
+}
+
+uaes_ctx*
+rlpx_test_aes_mac(rlpx_channel* ch)
+{
+    return &ch->aes_mac;
+}
+
+uaes_ctx*
+rlpx_test_aes_enc(rlpx_channel* ch)
+{
+    return &ch->aes_enc;
+}
+
+uaes_ctx*
+rlpx_test_aes_dec(rlpx_channel* ch)
+{
+    return &ch->aes_dec;
+}
 
 int
-rlpx_expect_secrets(rlpx* s,
+rlpx_test_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l)
+{
+    return rlpx_hello_write(&ch->emac, &ch->aes_mac, &ch->aes_enc,
+                            ch->listen_port, ch->node_id, out, l);
+}
+
+int
+rlpx_expect_secrets(rlpx_channel* s,
                     int orig,
                     uint8_t* sent,
                     uint32_t sentlen,
