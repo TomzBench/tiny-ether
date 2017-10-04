@@ -73,30 +73,6 @@ urlp_szsz(uint32_t size)
     return 4 - (urlp_clz_fn(size) / 8);
 }
 
-// uint32_t
-// urlp_write_sz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
-//{
-//    if (s <= 55) {
-//        if (b) b[--*(c)] = p + s; // ie: b[x] = 0xc0 + sz
-//        return 1;
-//    } else {
-//        return urlp_write_szsz(b, c, s, p);
-//    }
-//}
-//
-// uint32_t
-// urlp_write_szsz(uint8_t* b, uint32_t* c, uint32_t s, const uint8_t p)
-//{
-//    uint32_t szsz = urlp_szsz(s);
-//    if (b) {
-//        *c -= szsz;
-//        urlp_write_big_endian(&b[*c], &s, 4);
-//        b[--*c] = p + szsz;
-//    }
-//    return szsz + 1;
-//}
-//
-
 uint32_t
 urlp_write_sz(uint8_t* b, uint32_t* c, uint32_t s, int islist)
 {
