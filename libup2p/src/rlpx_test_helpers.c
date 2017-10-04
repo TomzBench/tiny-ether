@@ -45,7 +45,7 @@ rlpx_test_secrets(rlpx_channel* s,
                   uint8_t* recv,
                   uint32_t recvlen)
 {
-    return rlpx_secrets(s, orig, sent, sentlen, recv, recvlen);
+    return rlpx_ch_secrets(s, orig, sent, sentlen, recv, recvlen);
 }
 
 ukeccak256_ctx*

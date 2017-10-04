@@ -85,8 +85,8 @@ test_frame_write()
     IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.bob), g_alice_epub));
 
     // Update secrets
-    IF_ERR_EXIT(rlpx_secrets(s.bob, 0, b, blen, a, alen));
-    IF_ERR_EXIT(rlpx_secrets(s.alice, 1, a, alen, b, blen));
+    IF_ERR_EXIT(rlpx_ch_secrets(s.bob, 0, b, blen, a, alen));
+    IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
 
     // Write some packets
     IF_ERR_EXIT(rlpx_frame_hello_write(s.alice, from_alice, &lena));

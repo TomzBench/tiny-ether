@@ -53,6 +53,12 @@ extern int rlpx_ch_ack_write(rlpx_channel* ch,
                              const uecc_public_key*,
                              uint8_t* ack,
                              size_t* l);
+extern int rlpx_ch_secrets(rlpx_channel* s,
+                           int orig,
+                           uint8_t* sent,
+                           uint32_t sentlen,
+                           uint8_t* recv,
+                           uint32_t recvlen);
 
 #ifdef __cplusplus
 }
