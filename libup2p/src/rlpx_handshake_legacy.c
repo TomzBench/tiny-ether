@@ -11,12 +11,6 @@
 #include "unonce.h"
 #include "urand.h"
 
-// AUTH
-// E(remote-pub,S(eph,s-shared^nonce) || H(eph-pub) || pub || nonce || 0x0)
-
-// ACK
-// E(remote-pub, remote-ephemeral || nonce || 0x0)
-
 int
 rlpx_auth_read_legacy(rlpx_channel* s, const uint8_t* auth, size_t l)
 {

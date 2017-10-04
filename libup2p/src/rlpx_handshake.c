@@ -2,10 +2,15 @@
  * @file rlpx_handshake.c
  *
  * @brief
+ *
+ * AUTH - legacy
+ * E(remote-pub,S(eph,s-shared^nonce) || H(eph-pub) || pub || nonce || 0x0)
+ *
+ * ACK - legacy
+ * E(remote-pub, remote-ephemeral || nonce || 0x0)
  */
 
 #include "rlpx_handshake.h"
-//#include "rlpx_handshake_legacy.h"
 #include "rlpx_helper_macros.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
@@ -23,6 +28,10 @@ int rlpx_auth_read_legacy(rlpx_channel* s,
                           const uint8_t* auth,
                           size_t l,
                           urlp** rlp_p);
+int rlpx_ack_read_legacy(rlpx_channel* s,
+                         const uint8_t* auth,
+                         size_t l,
+                         urlp** rlp_p);
 int
 rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 {
@@ -87,12 +96,10 @@ int
 rlpx_auth_read(rlpx_channel* s, const uint8_t* auth, size_t l)
 {
     uint8_t buffer[65];
-    urlp* rlp;
+    urlp* rlp = NULL;
     const urlp* seek;
     int err = rlpx_decrypt(&s->skey, auth, l, &rlp);
-    if (err) {
-        err = rlpx_auth_read_legacy(s, auth, l, &rlp);
-    }
+    if (err) err = rlpx_auth_read_legacy(s, auth, l, &rlp);
     if (rlp) {
         if ((seek = urlp_at(rlp, 3))) {
             // Get version
@@ -178,12 +185,11 @@ int
 rlpx_ack_read(rlpx_channel* s, const uint8_t* ack, size_t l)
 {
     uint8_t buff[65];
-    urlp* rlp;
+    urlp* rlp = NULL;
     const urlp* seek;
     int err = rlpx_decrypt(&s->skey, ack, l, &rlp);
-    if (err) {
-        // return rlpx_ack_read_legacy(s, ack, l);
-    } else {
+    if (err) err = rlpx_ack_read_legacy(s, ack, l, &rlp);
+    if (rlp) {
         if ((seek = urlp_at(rlp, 0)) &&
             (urlp_size(seek) == sizeof(uecc_public_key))) {
             buff[0] = 0x04;
@@ -199,6 +205,22 @@ rlpx_ack_read(rlpx_channel* s, const uint8_t* ack, size_t l)
     return err;
 }
 
+int
+rlpx_ack_read_legacy(rlpx_channel* s,
+                     const uint8_t* auth,
+                     size_t l,
+                     urlp** rlp_p)
+{
+    int err = -1;
+    uint8_t b[194];
+    uint64_t v = 4;
+    if (!(uecies_decrypt(&s->skey, NULL, 0, auth, l, b) > 0)) return err;
+    if (!(*rlp_p = urlp_list())) return err;
+    urlp_push(*rlp_p, urlp_item_u8(b, 64));      // pubkey
+    urlp_push(*rlp_p, urlp_item_u8(&b[64], 32)); // nonce
+    urlp_push(*rlp_p, urlp_item_u64(&v, 1));     // ver
+    return 0;
+}
 /**
  * @brief
  *
@@ -222,9 +244,7 @@ rlpx_ack_write(uecc_ctx* skey,
     urlp* rlp;
     uint64_t ver = 4;
     int err = 0;
-    // if (!to_s_key) to_s_key = &s->remote_skey;
     if (uecc_qtob(&ekey->Q, rawekey.b, sizeof(rawekey.b))) return -1;
-    // if (unonce(s->nonce.b)) return -1;
     if (!(rlp = urlp_list())) return -1;
     if (rlp) {
         urlp_push(rlp, urlp_item_u8(&rawekey.b[1], 64));
