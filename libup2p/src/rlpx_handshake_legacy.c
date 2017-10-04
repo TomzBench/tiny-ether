@@ -49,8 +49,12 @@ rlpx_auth_write_legacy(rlpx* s,
 {
     ((void)s);
     ((void)to_s_key);
-    memcpy(auth, "thhpt", 5);
+    if (*l < 5) {
+        *l = 5;
+        return -1;
+    }
     *l = 5;
+    memcpy(auth, "thhpt", 5);
     return -1;
 }
 
