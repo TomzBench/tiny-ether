@@ -16,8 +16,8 @@ extern "C" {
 void rlpx_test_remote_nonce_set(rlpx* s, h256* nonce);
 void rlpx_test_nonce_set(rlpx* s, h256* nonce);
 void rlpx_test_remote_ekey_clr(rlpx* s);
-uint32_t rlpx_listen_port(rlpx* s);
-const char* rlpx_node_id(rlpx* s);
+uint32_t rlpx_ch_listen_port(rlpx* s);
+const char* rlpx_ch_node_id(rlpx* s);
 int rlpx_test_secrets(rlpx* s,
                       int orig,
                       uint8_t* sent,

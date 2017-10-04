@@ -1,19 +1,19 @@
 #include "rlpx_channel.h"
 
 rlpx_channel*
-rlpx_alloc()
+rlpx_ch_alloc()
 {
-    return rlpx_alloc_keypair(NULL, NULL);
+    return rlpx_ch_alloc_keypair(NULL, NULL);
 }
 
 rlpx_channel*
-rlpx_alloc_key(uecc_private_key* s)
+rlpx_ch_alloc_key(uecc_private_key* s)
 {
-    return rlpx_alloc_keypair(s, NULL);
+    return rlpx_ch_alloc_keypair(s, NULL);
 }
 
 rlpx_channel*
-rlpx_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
+rlpx_ch_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
 {
     rlpx_channel* session = rlpx_malloc_fn(sizeof(rlpx_channel));
     if (session) {
@@ -40,7 +40,7 @@ rlpx_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
 }
 
 void
-rlpx_free(rlpx_channel** session_p)
+rlpx_ch_free(rlpx_channel** session_p)
 {
     rlpx_channel* s = *session_p;
     *session_p = NULL;
@@ -50,43 +50,43 @@ rlpx_free(rlpx_channel** session_p)
 }
 
 uint64_t
-rlpx_version_remote(rlpx_channel* s)
+rlpx_ch_version_remote(rlpx_channel* s)
 {
     return s->remote_version;
 }
 
 const uecc_public_key*
-rlpx_public_skey(rlpx_channel* s)
+rlpx_ch_pub_skey(rlpx_channel* s)
 {
     return &s->skey.Q;
 }
 
 const uecc_public_key*
-rlpx_public_ekey(rlpx_channel* s)
+rlpx_ch_pub_ekey(rlpx_channel* s)
 {
     return &s->ekey.Q;
 }
 
 const uecc_public_key*
-rlpx_remote_public_ekey(rlpx_channel* s)
+rlpx_ch_remote_pub_ekey(rlpx_channel* s)
 {
     return &s->remote_ekey;
 }
 
 const uecc_public_key*
-rlpx_remote_public_skey(rlpx_channel* s)
+rlpx_ch_remote_pub_skey(rlpx_channel* s)
 {
     return &s->remote_skey;
 }
 
 uint32_t
-rlpx_listen_port(rlpx_channel* s)
+rlpx_ch_listen_port(rlpx_channel* s)
 {
     return s->listen_port;
 }
 
 const char*
-rlpx_node_id(rlpx_channel* s)
+rlpx_ch_node_id(rlpx_channel* s)
 {
     return s->node_id;
 }
