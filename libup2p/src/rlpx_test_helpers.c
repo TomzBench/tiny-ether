@@ -75,31 +75,6 @@ rlpx_test_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l)
                             ch->listen_port, ch->node_id, out, l);
 }
 
-/**
- * @brief This routine only called from test, non-public no declarations.
- * Is a copy paste of rlpx_secrets() with memcmp()...
- * Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
- *           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
- * Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
- *           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recvd-init)
- * egress  = sha3(mac-secret^their nonce || cipher sent )
- * ingress = sha3(mac-secret^our nonce   || cipher received)
- *
- * // Encrypt Header
- * egress-mac.update(aes(mac-secret,egress-mac) ^ header-ciphertext).digest
- *
- * // Encrypt Frame
- * egress-mac.update(aes(mac-secret,egress-mac) ^
- *   left128(egress-mac.update(frame-ciphertext).digest))
- *
- * // Decrypt Header
- * ingress-mac.update(aes(mac-secret,ingress-mac) ^ header-ciphertext).digest
- *
- * // Decrypt Frame
- * ingres-mac.update(aes(mac-secret,ingres-mac) ^
- *   left128(ingres-mac.update(frame-ciphertext).digest))
- */
-
 int
 rlpx_expect_secrets(rlpx_channel* s,
                     int orig,

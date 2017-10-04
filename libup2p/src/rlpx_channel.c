@@ -176,6 +176,12 @@ rlpx_ch_secrets(rlpx_channel* s,
     uaes_init_bin(&s->aes_mac, out, 32); // mac-secret save
 
     // ingress / egress
+    // Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
+    //           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
+    // Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
+    //           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recv-init)
+    // egress  = sha3(mac-secret^their nonce || cipher sent )
+    // ingress = sha3(mac-secret^our nonce   || cipher received)
     ukeccak256_init(&s->emac);
     ukeccak256_init(&s->imac);
     XOR32_SET(buf, out, s->nonce.b); // (mac-secret^recepient-nonce);
