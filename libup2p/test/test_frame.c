@@ -76,6 +76,7 @@ test_frame_write()
     unonce(nonce_a.b);
     unonce(nonce_b.b);
     rlpx_test_nonce_set(s.alice, &nonce_a);
+    rlpx_test_nonce_set(s.bob, &nonce_b);
 
     // Bob exchange alice keys
     IF_ERR_EXIT(rlpx_auth_write(rlpx_test_skey(s.alice),
@@ -84,7 +85,8 @@ test_frame_write()
     IF_ERR_EXIT(rlpx_auth_read(s.bob, a, alen));
 
     // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ack_write(s.bob, rlpx_ch_pub_skey(s.alice), b, &blen));
+    IF_ERR_EXIT(rlpx_ack_write(rlpx_test_skey(s.bob), rlpx_test_ekey(s.bob),
+                               &nonce_b, rlpx_ch_pub_skey(s.alice), b, &blen));
     IF_ERR_EXIT(rlpx_ack_read(s.alice, b, blen));
 
     // Check key exchange

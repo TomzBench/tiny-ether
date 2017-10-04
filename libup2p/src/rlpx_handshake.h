@@ -24,7 +24,9 @@ int rlpx_auth_write(uecc_ctx* skey,
                     uint8_t* auth_p,
                     size_t* l);
 int rlpx_ack_read(rlpx_channel* s, const uint8_t* auth, size_t l);
-int rlpx_ack_write(rlpx_channel* s,
+int rlpx_ack_write(uecc_ctx* skey,
+                   uecc_ctx* ekey,
+                   h256* nonce,
                    const uecc_public_key* to_s_key,
                    uint8_t* auth_p,
                    size_t* l);

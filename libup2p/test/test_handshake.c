@@ -56,7 +56,7 @@ test_write()
 {
     int err;
     size_t l = 800; // ecies+pad
-    uint8_t buffer[l];
+    uint8_t buf[l];
     test_session s;
     test_session_init(&s, 0);
     h256 nonce_a, nonce_b;
@@ -64,15 +64,17 @@ test_write()
     unonce(nonce_a.b);
     unonce(nonce_b.b);
     rlpx_test_nonce_set(s.alice, &nonce_a);
+    rlpx_test_nonce_set(s.bob, &nonce_b);
 
     IF_ERR_EXIT(rlpx_auth_write(rlpx_test_skey(s.alice),
                                 rlpx_test_ekey(s.alice), &nonce_a,
-                                rlpx_ch_pub_skey(s.bob), buffer, &l));
-    IF_ERR_EXIT(rlpx_auth_read(s.bob, buffer, l));
+                                rlpx_ch_pub_skey(s.bob), buf, &l));
+    IF_ERR_EXIT(rlpx_auth_read(s.bob, buf, l));
 
     l = 800;
-    IF_ERR_EXIT(rlpx_ack_write(s.bob, rlpx_ch_pub_skey(s.alice), buffer, &l));
-    IF_ERR_EXIT(rlpx_ack_read(s.alice, buffer, l));
+    IF_ERR_EXIT(rlpx_ack_write(rlpx_test_skey(s.bob), rlpx_test_ekey(s.bob),
+                               &nonce_b, rlpx_ch_pub_skey(s.alice), buf, &l));
+    IF_ERR_EXIT(rlpx_ack_read(s.alice, buf, l));
 
     IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.alice), g_bob_epub));
     IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.bob), g_alice_epub));
