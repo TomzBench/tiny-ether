@@ -60,6 +60,8 @@ int rlpx_frame_parse_body(ukeccak256_ctx* h,
                           uint32_t body_len,
                           urlp** rlp);
 
+// TODO - this methods should move to different file as they don't deal with
+// transcoding
 static inline int
 rlpx_frame_to_str(const urlp* rlp, int idx, const char** str_p)
 {

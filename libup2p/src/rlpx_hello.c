@@ -2,16 +2,11 @@
 #include "rlpx_config.h"
 #include "rlpx_frame.h"
 
-/**
- * @brief  Encrypt a hello packet to remote receipient
- * TODO rlp can be hard coded
- *
- * @param s
- * @param out
- * @param l
- *
- * @return 0 ok -1 err
- */
+// TODO - rlpx_frame.h rename to transcoder and removed from this file.
+// convert inputs to a packet.  Caller should then encrypt/decrypt packet
+//
+// TODO - hardcode the rlp hello packet
+
 int
 rlpx_hello_write(ukeccak256_ctx* h,
                  uaes_ctx* aes_mac,
