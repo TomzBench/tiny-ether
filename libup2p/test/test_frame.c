@@ -89,14 +89,10 @@ test_frame_write()
     IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
 
     // Write some packets
-    IF_ERR_EXIT(rlpx_test_write_hello(s.alice, from_alice, &lena));
-    IF_ERR_EXIT(rlpx_test_write_hello(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(
-        rlpx_frame_parse(rlpx_test_ingress(s.alice), rlpx_test_aes_mac(s.alice),
-                         rlpx_test_aes_dec(s.alice), from_bob, lenb, &frameb));
-    IF_ERR_EXIT(
-        rlpx_frame_parse(rlpx_test_ingress(s.bob), rlpx_test_aes_mac(s.bob),
-                         rlpx_test_aes_dec(s.bob), from_alice, lena, &framea));
+    IF_ERR_EXIT(rlpx_ch_hello_write(s.alice, from_alice, &lena));
+    IF_ERR_EXIT(rlpx_ch_hello_write(s.bob, from_bob, &lenb));
+    IF_ERR_EXIT(rlpx_ch_hello_read(s.alice, from_bob, lenb, &frameb));
+    IF_ERR_EXIT(rlpx_ch_hello_read(s.bob, from_alice, lena, &framea));
 
     bodya = urlp_at(urlp_at(framea, 1), 1); // get body frame
     bodyb = urlp_at(urlp_at(frameb, 1), 1); // get body frame

@@ -14,6 +14,7 @@ extern "C" {
 #include "uaes.h"
 #include "uecc.h"
 #include "ukeccak256.h"
+#include "urlp.h"
 
 typedef struct
 {
@@ -66,6 +67,9 @@ int rlpx_ch_secrets(rlpx_channel* s,
                     uint32_t sentlen,
                     uint8_t* recv,
                     uint32_t recvlen);
+
+int rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l);
+int rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** rlp_p);
 
 #ifdef __cplusplus
 }
