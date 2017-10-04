@@ -165,7 +165,7 @@ frame_egress(rlpx* s, const uint8_t* x, size_t xlen, uint8_t* out, uint8_t* mac)
     }
     ukeccak256_digest(&s->emac, tmp);          // egress-mac
     uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes(mac-secret,egress-mac)
-    XORN(tmp, xin, 16);                        // aes(...)^header-cipher
+    XORN(tmp, xin, 16);                        // aes(...)^cipher
     ukeccak256_update(&s->emac, tmp, 16);      // ingress(...)
     ukeccak256_digest(&s->emac, tmp);          // ingress(...).digest
     memcpy(mac, tmp, 16);
@@ -196,7 +196,7 @@ frame_ingress(rlpx* s,
     }
     ukeccak256_digest(&s->imac, tmp);          // ingress-mac
     uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes(mac-secret,ingress-mac)
-    XORN(tmp, xin, 16);                        // aes(...)^header-cipher
+    XORN(tmp, xin, 16);                        // aes(...)^cipher
     ukeccak256_update(&s->imac, tmp, 16);      // ingress(...)
     ukeccak256_digest(&s->imac, tmp);          // ingress(...).digest
     if (memcmp(tmp, expect, 16)) return -1;    // compare expect with actual
