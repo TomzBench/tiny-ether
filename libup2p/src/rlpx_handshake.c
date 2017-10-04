@@ -1,32 +1,44 @@
 /*
- * @file rlpx.c
+ * @file rlpx_handshake.c
  *
  * @brief
+ *
+ * AUTH - legacy
+ * E(remote-pub,S(eph,s-shared^nonce) || H(eph-pub) || pub || nonce || 0x0)
+ *
+ * ACK - legacy
+ * E(remote-pub, remote-ephemeral || nonce || 0x0)
  */
 
 #include "rlpx_handshake.h"
+#include "rlpx_helper_macros.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
+#include "ukeccak256.h"
 #include "unonce.h"
 #include "urand.h"
-#include "urlp.h"
 
-// rlp -> cipher text
-int rlpx_encrypt(urlp* rlp,
-                 const uecc_public_key* q,
-                 uint8_t* cipher,
-                 size_t* l);
-
-// cipher text -> rlp
+// rlp <--> cipher text
+int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
 int rlpx_decrypt(uecc_ctx* ctx, const uint8_t* cipher, size_t l, urlp** rlp);
 
+// legacy methods
+int rlpx_auth_read_legacy(uecc_ctx* skey,
+                          const uint8_t* auth,
+                          size_t l,
+                          urlp** rlp_p);
+int rlpx_ack_read_legacy(uecc_ctx* skey,
+                         const uint8_t* auth,
+                         size_t l,
+                         urlp** rlp_p);
 int
 rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 {
     int err;
 
     // plain text size
-    size_t rlpsz = urlp_print_size(rlp), padsz = urand_min_max_u8(100, 250);
+    size_t rlpsz = urlp_print_size(rlp);
+    size_t padsz = urand_min_max_u8(RLPX_MIN_PAD, RLPX_MAX_PAD);
 
     // cipher prefix big endian
     uint16_t sz = uecies_encrypt_size(padsz + rlpsz) + sizeof(uint16_t);
@@ -68,12 +80,79 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
 }
 
 int
-rlpx_write_auth(rlpx* s,
+rlpx_auth_read(uecc_ctx* skey, const uint8_t* auth, size_t l, urlp** rlp_p)
+{
+    int err = rlpx_decrypt(skey, auth, l, rlp_p);
+    if (err) err = rlpx_auth_read_legacy(skey, auth, l, rlp_p);
+    return err;
+}
+
+int
+rlpx_auth_read_legacy(uecc_ctx* skey,
+                      const uint8_t* auth,
+                      size_t l,
+                      urlp** rlp_p)
+{
+    int err = -1;
+    uint8_t b[194];
+    uint64_t v = 4;
+    if (!(l == 307)) return err;
+    if (!(uecies_decrypt(skey, NULL, 0, auth, l, b) == 194)) return err;
+    if (!(*rlp_p = urlp_list())) return err;
+    urlp_push(*rlp_p, urlp_item_u8(b, 65));                // signature
+    urlp_push(*rlp_p, urlp_item_u8(&b[65 + 32], 64));      // pubkey
+    urlp_push(*rlp_p, urlp_item_u8(&b[65 + 32 + 64], 32)); // nonce
+    urlp_push(*rlp_p, urlp_item_u64(&v, 1));               // version
+    return 0;
+}
+
+int
+rlpx_auth_load(uecc_ctx* skey,
+               uint64_t* remote_version,
+               h256* remote_nonce,
+               uecc_public_key* remote_spub,
+               uecc_public_key* remote_epub,
+               urlp** rlp_p)
+{
+    int err = -1;
+    uint8_t buffer[65];
+    urlp* rlp = *rlp_p;
+    const urlp* seek;
+    if ((seek = urlp_at(rlp, 3))) {
+        // Get version
+        *remote_version = urlp_as_u64(seek);
+    }
+    if ((seek = urlp_at(rlp, 2)) && urlp_size(seek) == sizeof(h256)) {
+        // Read remote nonce
+        memcpy(remote_nonce->b, urlp_ref(seek, NULL), sizeof(h256));
+    }
+    if ((seek = urlp_at(rlp, 1)) &&
+        urlp_size(seek) == sizeof(uecc_public_key)) {
+        // Get secret from remote public key
+        buffer[0] = 0x04;
+        memcpy(&buffer[1], urlp_ref(seek, NULL), urlp_size(seek));
+        uecc_btoq(buffer, 65, remote_spub);
+        uecc_agree(skey, remote_spub);
+    }
+    if ((seek = urlp_at(rlp, 0)) &&
+        // Get remote ephemeral public key from signature
+        urlp_size(seek) == sizeof(uecc_signature)) {
+        uecc_shared_secret x;
+        XOR32_SET(x.b, (&skey->z.b[1]), remote_nonce->b);
+        err = uecc_recover_bin(urlp_ref(seek, NULL), &x, remote_epub);
+    }
+    // urlp_free(&rlp);
+    return err;
+}
+
+int
+rlpx_auth_write(uecc_ctx* skey,
+                uecc_ctx* ekey,
+                h256* nonce,
                 const uecc_public_key* to_s_key,
                 uint8_t* auth,
                 size_t* l)
 {
-    h256 nonce;
     int err = 0;
     uint64_t v = 4;
     uint8_t rawsig[65];
@@ -81,18 +160,17 @@ rlpx_write_auth(rlpx* s,
     uecc_shared_secret x;
     uecc_signature sig;
     urlp* rlp;
-    if (uecc_agree(&s->skey, to_s_key)) return -1;
-    if (unonce(nonce.b)) return -1;
+    if (uecc_agree(skey, to_s_key)) return -1;
     for (int i = 0; i < 32; i++) {
-        x.b[i] = s->skey.z.b[i + 1] ^ nonce.b[i];
+        x.b[i] = skey->z.b[i + 1] ^ nonce->b[i];
     }
-    if (uecc_sign(&s->ekey, x.b, 32, &sig)) return -1;
+    if (uecc_sign(ekey, x.b, 32, &sig)) return -1;
     uecc_sig_to_bin(&sig, rawsig);
-    uecc_qtob(&s->skey.Q, rawpub, 65);
+    uecc_qtob(&skey->Q, rawpub, 65);
     if ((rlp = urlp_list())) {
         urlp_push(rlp, urlp_item_u8(rawsig, 65));
         urlp_push(rlp, urlp_item_u8(&rawpub[1], 64));
-        urlp_push(rlp, urlp_item_u8(nonce.b, 32));
+        urlp_push(rlp, urlp_item_u8(nonce->b, 32));
         urlp_push(rlp, urlp_item_u64(&v, 1));
     }
     err = rlpx_encrypt(rlp, to_s_key, auth, l);
@@ -100,35 +178,72 @@ rlpx_write_auth(rlpx* s,
     return err;
 }
 
-/**
- * @brief
- *
- * @param s
- * @param from_e_key
- * @param to_s_key
- * @param auth
- * @param l
- *
- * @return
- */
 int
-rlpx_write_ack(rlpx* s,
+rlpx_ack_read(uecc_ctx* skey, const uint8_t* ack, size_t l, urlp** rlp_p)
+{
+    int err = rlpx_decrypt(skey, ack, l, rlp_p);
+    if (err) err = rlpx_ack_read_legacy(skey, ack, l, rlp_p);
+    return err;
+}
+
+int
+rlpx_ack_read_legacy(uecc_ctx* skey,
+                     const uint8_t* auth,
+                     size_t l,
+                     urlp** rlp_p)
+{
+    int err = -1;
+    uint8_t b[194];
+    uint64_t v = 4;
+    if (!(uecies_decrypt(skey, NULL, 0, auth, l, b) > 0)) return err;
+    if (!(*rlp_p = urlp_list())) return err;
+    urlp_push(*rlp_p, urlp_item_u8(b, 64));      // pubkey
+    urlp_push(*rlp_p, urlp_item_u8(&b[64], 32)); // nonce
+    urlp_push(*rlp_p, urlp_item_u64(&v, 1));     // ver
+    return 0;
+}
+
+int
+rlpx_ack_load(uint64_t* remote_version,
+              h256* remote_nonce,
+              uecc_public_key* remote_ekey,
+              urlp** rlp_p)
+{
+    int err = -1;
+    uint8_t buff[65];
+    const urlp* seek;
+    urlp* rlp = *rlp_p;
+    if ((seek = urlp_at(rlp, 0)) &&
+        (urlp_size(seek) == sizeof(uecc_public_key))) {
+        buff[0] = 0x04;
+        memcpy(&buff[1], urlp_ref(seek, NULL), urlp_size(seek));
+        uecc_btoq(buff, 65, remote_ekey);
+    }
+    if ((seek = urlp_at(rlp, 1)) && (urlp_size(seek) == sizeof(h256))) {
+        memcpy(remote_nonce->b, urlp_ref(seek, NULL), sizeof(h256));
+        err = 0;
+    }
+    if ((seek = urlp_at(rlp, 2))) *remote_version = urlp_as_u64(seek);
+    return err;
+}
+
+int
+rlpx_ack_write(uecc_ctx* skey,
+               uecc_ctx* ekey,
+               h256* nonce,
                const uecc_public_key* to_s_key,
                uint8_t* auth,
                size_t* l)
 {
-    h520 ekey;
-    h256 nonce;
+    h520 rawekey;
     urlp* rlp;
     uint64_t ver = 4;
     int err = 0;
-    if (!to_s_key) to_s_key = &s->remote_skey;
-    if (uecc_qtob(&s->ekey.Q, ekey.b, sizeof(ekey.b))) return -1;
-    if (unonce(nonce.b)) return -1;
+    if (uecc_qtob(&ekey->Q, rawekey.b, sizeof(rawekey.b))) return -1;
     if (!(rlp = urlp_list())) return -1;
     if (rlp) {
-        urlp_push(rlp, urlp_item_u8(&ekey.b[1], 64));
-        urlp_push(rlp, urlp_item_u8(nonce.b, 32));
+        urlp_push(rlp, urlp_item_u8(&rawekey.b[1], 64));
+        urlp_push(rlp, urlp_item_u8(nonce->b, 32));
         urlp_push(rlp, urlp_item_u64(&ver, 1));
     }
     if (!(urlp_children(rlp) == 3)) {
@@ -138,78 +253,6 @@ rlpx_write_ack(rlpx* s,
 
     err = rlpx_encrypt(rlp, to_s_key, auth, l);
     urlp_free(&rlp);
-    return err;
-}
-
-/**
- * @brief Read RLPXHandshake
- *
- * if((seek=urlp_at(3))) { ...  //read ver
- * if((seek=urlp_at(2))) { ...  //read nonce
- * if((seek=urlp_at(1))) { ...  //read pubkey
- * if((seek=urlp_at(0))) { ...  //read signature
- *
- * @param s
- * @param auth
- * @param l
- */
-int
-rlpx_read_auth(rlpx* s, uint8_t* auth, size_t l)
-{
-    uint8_t buffer[65];
-    urlp *rlp, *seek;
-    int err = rlpx_decrypt(&s->skey, auth, l, &rlp);
-    if (!err) {
-        if ((seek = urlp_at(rlp, 3))) {
-            // Get version
-            s->remote_version = urlp_as_u64(seek);
-        }
-        if ((seek = urlp_at(rlp, 2)) && urlp_size(seek) == sizeof(h256)) {
-            // Read remote nonce
-            memcpy(s->remote_nonce.b, urlp_ref(seek, NULL), sizeof(h256));
-        }
-        if ((seek = urlp_at(rlp, 1)) &&
-            urlp_size(seek) == sizeof(uecc_public_key)) {
-            // Get secret from remote public key
-            buffer[0] = 0x04;
-            memcpy(&buffer[1], urlp_ref(seek, NULL), urlp_size(seek));
-            uecc_btoq(buffer, 65, &s->remote_skey);
-            uecc_agree(&s->skey, &s->remote_skey);
-        }
-        if ((seek = urlp_at(rlp, 0)) &&
-            // Get remote ephemeral public key from signature
-            urlp_size(seek) == sizeof(uecc_signature)) {
-            uecc_shared_secret x;
-            for (int i = 0; i < 32; i++) {
-                x.b[i] = s->skey.z.b[i + 1] ^ s->remote_nonce.b[i];
-            }
-            err = uecc_recover_bin(urlp_ref(seek, NULL), &x, &s->remote_ekey);
-        }
-        urlp_free(&rlp);
-    }
-    return err;
-}
-
-int
-rlpx_read_ack(rlpx* s, uint8_t* ack, size_t l)
-{
-    uint8_t buffer[65];
-    urlp *rlp, *seek;
-    int err = rlpx_decrypt(&s->skey, ack, l, &rlp);
-    if (!err) {
-        if ((seek = urlp_at(rlp, 0)) &&
-            (urlp_size(seek) == sizeof(uecc_public_key))) {
-            buffer[0] = 0x04;
-            memcpy(&buffer[1], urlp_ref(seek, NULL), urlp_size(seek));
-            uecc_btoq(buffer, 65, &s->remote_ekey);
-        }
-        if ((seek = urlp_at(rlp, 1)) && (urlp_size(seek) == sizeof(h256))) {
-            memcpy(s->remote_nonce.b, urlp_ref(seek, NULL), sizeof(h256));
-        }
-        if ((seek = urlp_at(rlp, 2))) s->remote_version = urlp_as_u64(seek);
-        urlp_free(&rlp);
-        err = 0;
-    }
     return err;
 }
 

@@ -16,7 +16,7 @@ uecies_encrypt(const uecc_public_key* p,
     size_t tmp = sizeof(uecc_public_key_w_header);
     uhmac_sha256_ctx hmac;
     uecc_ctx ecc;
-    uaes_128_ctr_key* ekey = (uaes_128_ctr_key*)&key[0];
+    uaes_ctr_128_key* ekey = (uaes_ctr_128_key*)&key[0];
     uaes_iv* iv_dst = (uaes_iv*)&out[65];
 
     uecc_key_init_new(&ecc);
@@ -29,7 +29,7 @@ uecies_encrypt(const uecc_public_key* p,
     usha256(&key[16], 16, mkey);
     urand(iv_dst->b, 16);
     memcpy(iv.b, iv_dst->b, 16);
-    err = uaes_crypt(ekey, &iv, in, inlen, &out[81]);
+    err = uaes_crypt_ctr_128(ekey, &iv, in, inlen, &out[81]);
     if (err) goto EXIT;
     uhmac_sha256_init(&hmac, mkey, 32);
     uhmac_sha256_update(&hmac, &out[65], 16 + inlen);

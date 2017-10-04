@@ -2,6 +2,7 @@
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
 #include "uhash.h"
+#include "ukeccak256.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -62,12 +63,22 @@ const char* auth =
     "3e7723eb95b3cef9942f01a58bd61baee7c9bdd438956b426a4ffe238e61746a8c93d5e106"
     "80617c82e48d706ac4953f5e1c4c4f7d013c87d34a06626f498f34576dc017fdd3d581e83c"
     "fd26cf125b6d2bda1f1d56";
+const char* g_ecdh_pri =
+    "332143e9629eedff7d142d741f896258f5a1bfab54dab2121d3ec5000093d74b";
+const char* g_ecdh_pub =
+    "f0d2b97981bd0d415a843b5dfe8ab77a30300daab3658c578f2340308a2da1a07f082136"
+    "7332598b6aa4e180a41e92f4ebbae3518da847f0b1c0bbfe20bcf4e1";
+const char* g_ecdh_secret =
+    "ee1418607c2fcfb57fda40380e885a707f49000a5dda056d828b7d9bd1f29a08";
 /**
  * @brief Prototypes
  */
 int test_ecc();
+int test_ecdh();
+int test_recover();
 int test_kdf();
 int test_hmac();
+int test_keccak();
 int test_ecies_encrypt();
 int test_ecies_decrypt();
 
@@ -78,8 +89,11 @@ main(int argc, char* argv[])
     ((void)argv);
     int err = 0;
     err |= test_ecc();
+    err |= test_ecdh();
+    err |= test_recover();
     err |= test_kdf();
     err |= test_hmac();
+    err |= test_keccak();
     err |= test_ecies_encrypt();
     err |= test_ecies_decrypt();
     return err;
@@ -137,6 +151,53 @@ EXIT:
 }
 
 int
+test_ecdh()
+{
+    uecc_ctx ecc;
+    uecc_private_key pri;
+    uecc_public_key pub;
+    int err;
+    uint8_t pub_bin[65] = { 0x04 }, secret[32];
+    memcpy(pri.b, makebin(g_ecdh_pri, NULL), 32);
+    memcpy(&pub_bin[1], makebin(g_ecdh_pub, NULL), 64);
+    memcpy(secret, makebin(g_ecdh_secret, NULL), 32);
+    uecc_btoq(pub_bin, 65, &pub);
+
+    uecc_key_init_binary(&ecc, &pri);
+    uecc_agree(&ecc, &pub);
+    IF_ERR_EXIT(memcmp(&ecc.z.b[1], secret, 32) ? -1 : 0);
+    memset(ecc.z.b, 0, 33);
+    uecc_agree_bin(&ecc, pub_bin, 65);
+    IF_ERR_EXIT(memcmp(&ecc.z.b[1], secret, 32) ? -1 : 0);
+
+EXIT:
+    uecc_key_deinit(&ecc);
+    return err;
+}
+
+int
+test_recover()
+{
+    int err;
+    uecc_ctx alice;
+    uint8_t rawsig[65], rawpub[65], alicepub[65], msg[32];
+    uecc_signature sig;
+    uecc_public_key pub;
+    uecc_key_init_new(&alice);
+
+    // Create message (TODO add more recover api without casting)
+    ukeccak256((uint8_t*)"hello bob", 9, msg, 32);
+    uecc_sign(&alice, msg, 32, &sig);
+    uecc_sig_to_bin(&sig, rawsig);
+    uecc_recover_bin(rawsig, (uecc_shared_secret*)&msg, &pub);
+    uecc_qtob(&pub, rawpub, 65);
+    uecc_qtob(&alice.Q, alicepub, 65);
+    err = memcmp(rawpub, alicepub, 65) ? -1 : 0;
+    uecc_key_deinit(&alice);
+    return err;
+}
+
+int
 test_kdf()
 {
     int err = -1;
@@ -182,6 +243,51 @@ test_hmac()
     uhmac_sha256_finish(&h256, result);
     err = memcmp(expect, result, lres) ? -1 : 0;
 
+    return err;
+}
+
+int
+test_keccak()
+{
+    int err = 0;
+    ukeccak256_ctx ctx;
+    uint8_t big[3096];
+    uint8_t out[32], expect[32];
+    memset(big, 'a', 3096);
+
+    // Test hello world
+    ukeccak256((uint8_t*)"hello world", 11, expect, 32);
+    ukeccak256_init(&ctx);
+    ukeccak256_update(&ctx, (uint8_t*)"hello world", 11);
+    ukeccak256_digest(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+    ukeccak256_digest(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+    ukeccak256_finish(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+
+    // Test bigger string
+    ukeccak256(big, 3096, expect, 32);
+    ukeccak256_init(&ctx);
+    ukeccak256_update(&ctx, big, 3096);
+    ukeccak256_digest(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+    ukeccak256_digest(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+    ukeccak256_finish(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0);
+
+    // Test example vector
+    ukeccak256((uint8_t*)"hello world", 11, expect, 32);
+    ukeccak256_init(&ctx);
+    ukeccak256_update(&ctx, (uint8_t*)"hello", 5);
+    ukeccak256_update(&ctx, (uint8_t*)" ", 1);
+    ukeccak256_update(&ctx, (uint8_t*)"world", 5);
+    ukeccak256_finish(&ctx, out);
+    IF_ERR_EXIT(memcmp(expect, out, 11) ? -1 : 0); // is this equiv?
+
+EXIT:
+    ukeccak256_deinit(&ctx);
     return err;
 }
 

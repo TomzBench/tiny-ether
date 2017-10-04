@@ -12,7 +12,8 @@ extern "C" {
 
 #include "uecc.h"
 
-typedef struct rlpx rlpx;
+typedef struct rlpx_channel rlpx_channel;
+typedef struct rlpx_handshake rlpx_handshake;
 
 #ifdef __cplusplus
 }
