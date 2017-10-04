@@ -1,6 +1,7 @@
 #include "rlpx_channel.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
+#include "rlpx_hello.h"
 #include "rlpx_helper_macros.h"
 #include "ukeccak256.h"
 /*
@@ -37,17 +38,6 @@ rlpx_test_remote_ekey_clr(rlpx_channel* s)
     memset(s->remote_ekey.data, 0, 64);
 }
 
-int
-rlpx_test_secrets(rlpx_channel* s,
-                  int orig,
-                  uint8_t* sent,
-                  uint32_t sentlen,
-                  uint8_t* recv,
-                  uint32_t recvlen)
-{
-    return rlpx_ch_secrets(s, orig, sent, sentlen, recv, recvlen);
-}
-
 ukeccak256_ctx*
 rlpx_test_ingress(rlpx_channel* ch)
 {
@@ -76,6 +66,13 @@ uaes_ctx*
 rlpx_test_aes_dec(rlpx_channel* ch)
 {
     return &ch->aes_dec;
+}
+
+int
+rlpx_test_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l)
+{
+    return rlpx_hello_write(&ch->emac, &ch->aes_mac, &ch->aes_enc,
+                            ch->listen_port, ch->node_id, out, l);
 }
 
 /**
