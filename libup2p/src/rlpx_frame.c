@@ -1,5 +1,10 @@
 #include "rlpx_frame.h"
 
+// FIXME - frame-egress and frame-ingress currently assume all frames are > 16
+// bytes.  note here is reminder fix that. Otherwise a small body frame will
+// trick into encoding like a header when it is a frame.  Multi frames can
+// easily have < 16 bytes...
+
 int frame_egress(rlpx* s,
                  const uint8_t* x,
                  size_t xlen,
@@ -21,8 +26,9 @@ rlpx_frame_write(rlpx* s,
 {
     int err = 0;
     uint32_t sz = urlp_print_size(*body_p);
-    uint8_t body[sz];
+    uint8_t body[AES_LEN(sz)];
     urlp_print(*body_p, body, sz);
+    memset(&body[sz], 0, AES_LEN(sz) - sz);
     err = rlpx_frame_write_rlp(s, type, id, body, sz, out, l);
     urlp_free(body_p);
     return err;
@@ -45,10 +51,10 @@ rlpx_frame_write_rlp(rlpx* s,
     }
     *l = 32 + totlen + 16;
     memset(head, 0, 32);
-    WRITE_BE(3, head, (uint8_t*)&totlen);
+    WRITE_BE(3, head, (uint8_t*)&rlplen);
     head[3] = '\xc2', head[4] = '\x80' + type, head[5] = '\x80' + id;
     frame_egress(s, head, 16, out, &out[16]);
-    // frame_egress(s, rlp, rlplen, &out[32], &out[32 + totlen]);
+    frame_egress(s, rlp, totlen, &out[32], &out[32 + totlen]);
     return 0;
 }
 
@@ -118,10 +124,7 @@ int
 rlpx_frame_parse_body(rlpx* s, const uint8_t* frame, uint32_t l, urlp** rlp)
 {
     int err;
-    // uint8_t temp[32];
     uint8_t body[(l = l % 16 ? AES_LEN(l) : l)];
-    // ukeccak256_update(&s->imac, (uint8_t*)frame, l);
-    // ukeccak256_digest(&s->imac, temp);
     err = frame_ingress(s, frame, l, frame + l, body);
     if (err) return err;
 
@@ -153,16 +156,15 @@ frame_egress(rlpx* s, const uint8_t* x, size_t xlen, uint8_t* out, uint8_t* mac)
     uint8_t xin[32];
     memset(xin, 0, 32);
     if (uaes_crypt_ctr_update(&s->aes_enc, x, xlen, out)) return -1;
-    if (xlen > 16) {
+    if (xlen > 16) { // TODO test with header flag instead of packet let
         ukeccak256_update(&s->emac, (uint8_t*)out, xlen);
         ukeccak256_digest(&s->emac, xin);
     } else {
-        memcpy(xin, x, xlen);
+        memcpy(xin, out, xlen);
     }
-    ukeccak256_update(&s->emac, NULL, 0);      // TODO FIX
-    ukeccak256_digest(&s->emac, mac);          // mac-secret
-    uaes_crypt_ecb_enc(&s->aes_mac, mac, mac); // aes(mac-secret)
-    XORN(mac, xin, 16);                        // aes(mac-secret)^header-cipher
+    ukeccak256_digest(&s->emac, mac);          // egress-mac
+    uaes_crypt_ecb_enc(&s->aes_mac, mac, mac); // aes(mac-secret,egress-mac)
+    XORN(mac, xin, 16);                        // aes(...)^header-cipher
     ukeccak256_update(&s->emac, mac, 16);      // ingress(...)
     ukeccak256_digest(&s->emac, mac);          // ingress(...).digest
     return 0;
@@ -184,16 +186,15 @@ frame_ingress(rlpx* s,
     // left128(ingres-mac.update(frame-ciphertext).digest))
     uint8_t tmp[32], xin[32];
     memset(xin, 0, 32);
-    if (xlen > 16) {
+    if (xlen > 16) { // TODO test with header flag instead of packet let
         ukeccak256_update(&s->imac, (uint8_t*)x, xlen);
         ukeccak256_digest(&s->imac, xin);
     } else {
         memcpy(xin, x, xlen);
     }
-    ukeccak256_update(&s->imac, NULL, 0);      // TODO fix
-    ukeccak256_digest(&s->imac, tmp);          // mac-secret
-    uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes_mac(secret)
-    XORN(tmp, xin, 16);                        // aes_mac(secret)^header-cipher
+    ukeccak256_digest(&s->imac, tmp);          // ingress-mac
+    uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes(mac-secret,ingress-mac)
+    XORN(tmp, xin, 16);                        // aes(...)^header-cipher
     ukeccak256_update(&s->imac, tmp, 16);      // ingress(...)
     ukeccak256_digest(&s->imac, tmp);          // ingress(...).digest
     if (memcmp(tmp, expect, 16)) return -1;    // compare expect with actual

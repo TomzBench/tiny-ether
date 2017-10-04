@@ -21,6 +21,7 @@ typedef struct
 
 int uaes_init(uaes_ctx* ctx, int keysz, uint8_t* key);
 void uaes_deinit(uaes_ctx** ctx);
+void uaes_crypt_reset(uaes_ctx* ctx);
 int uaes_crypt_ctr(int keysz,
                    uint8_t* key,
                    uint8_t* iv,

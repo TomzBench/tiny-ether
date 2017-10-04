@@ -20,6 +20,12 @@ uaes_deinit(uaes_ctx** ctx_p)
     mbedtls_aes_free(&ctx->ctx);
 }
 
+void
+uaes_crypt_reset(uaes_ctx* ctx)
+{
+    memset(ctx->iv, 0, 16);
+}
+
 int
 uaes_crypt_ctr(int keysz,
                uint8_t* key,
