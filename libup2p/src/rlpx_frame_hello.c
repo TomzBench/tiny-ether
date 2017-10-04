@@ -30,7 +30,8 @@ rlpx_frame_hello_write(rlpx_channel* s, uint8_t* out, size_t* l)
     urlp_push(body, urlp_item_str(s->node_id, 65));
 
     if (!(rlplen = urlp_print(body, &data[1], 400 - 1))) return -1;
-    err = rlpx_frame_write(s, 0, 0, data, rlplen + 1, out, l);
+    err = rlpx_frame_write(&s->emac, &s->aes_mac, &s->aes_enc, 0, 0, data,
+                           rlplen + 1, out, l);
     urlp_free(&body);
     return err;
 }

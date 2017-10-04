@@ -1,6 +1,7 @@
 #include "rlpx_channel.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
+#include "rlpx_helper_macros.h"
 #include "ukeccak256.h"
 /*
  * This "test" feature is only to export data from normally opaque structures.
@@ -33,6 +34,36 @@ rlpx_test_secrets(rlpx_channel* s,
                   uint32_t recvlen)
 {
     return rlpx_secrets(s, orig, sent, sentlen, recv, recvlen);
+}
+
+ukeccak256_ctx*
+rlpx_test_ingress(rlpx_channel* ch)
+{
+    return &ch->imac;
+}
+
+ukeccak256_ctx*
+rlpx_test_egress(rlpx_channel* ch)
+{
+    return &ch->emac;
+}
+
+uaes_ctx*
+rlpx_test_aes_mac(rlpx_channel* ch)
+{
+    return &ch->aes_mac;
+}
+
+uaes_ctx*
+rlpx_test_aes_enc(rlpx_channel* ch)
+{
+    return &ch->aes_enc;
+}
+
+uaes_ctx*
+rlpx_test_aes_dec(rlpx_channel* ch)
+{
+    return &ch->aes_dec;
 }
 
 /**

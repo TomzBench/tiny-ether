@@ -6,6 +6,7 @@
 
 #include "rlpx_handshake.h"
 #include "rlpx_handshake_legacy.h"
+#include "rlpx_helper_macros.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
 #include "ukeccak256.h"

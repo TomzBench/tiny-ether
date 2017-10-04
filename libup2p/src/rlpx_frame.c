@@ -1,4 +1,5 @@
 #include "rlpx_frame.h"
+#include "rlpx_helper_macros.h"
 
 int frame_egress(ukeccak256_ctx* h, /*!< hash */
                  uaes_ctx* aes_mac, /*!< mac generator */
@@ -18,7 +19,9 @@ int frame_ingress(ukeccak256_ctx* h,
                   uint8_t* out);
 
 int
-rlpx_frame_write(rlpx_channel* ch,
+rlpx_frame_write(ukeccak256_ctx* h,
+                 uaes_ctx* aes_mac,
+                 uaes_ctx* aes_enc,
                  uint32_t type,
                  uint32_t id,
                  uint8_t* data,
@@ -41,14 +44,18 @@ rlpx_frame_write(rlpx_channel* ch,
     // TODO - fix rlpx.list(protocol-type[,context-id])
     head[3] = '\xc2', head[4] = '\x80' + type, head[5] = '\x80' + id;
 
-    frame_egress(&ch->emac, &ch->aes_mac, &ch->aes_enc, head, 0, out, &out[16]);
-    frame_egress(&ch->emac, &ch->aes_mac, &ch->aes_enc, body, len, &out[32],
-                 &out[32 + len]);
+    frame_egress(h, aes_mac, aes_enc, head, 0, out, &out[16]);
+    frame_egress(h, aes_mac, aes_enc, body, len, &out[32], &out[32 + len]);
     return 0;
 }
 
 int
-rlpx_frame_parse(rlpx_channel* ch, const uint8_t* frame, size_t l, urlp** rlp_p)
+rlpx_frame_parse(ukeccak256_ctx* h,
+                 uaes_ctx* aes_mac,
+                 uaes_ctx* aes_dec,
+                 const uint8_t* frame,
+                 size_t l,
+                 urlp** rlp_p)
 {
 
     int err = 0;
@@ -58,7 +65,7 @@ rlpx_frame_parse(rlpx_channel* ch, const uint8_t* frame, size_t l, urlp** rlp_p)
     if (l < 32) return -1;
 
     // Parse header
-    err = rlpx_frame_parse_header(ch, frame, &head, &sz);
+    err = rlpx_frame_parse_header(h, aes_mac, aes_dec, frame, &head, &sz);
     if (err) return err;
 
     // Check length (accounts for aes padding)
@@ -68,7 +75,7 @@ rlpx_frame_parse(rlpx_channel* ch, const uint8_t* frame, size_t l, urlp** rlp_p)
     }
 
     // Parse body
-    err = rlpx_frame_parse_body(ch, frame + 32, sz, &body);
+    err = rlpx_frame_parse_body(h, aes_mac, aes_dec, frame + 32, sz, &body);
     if (err) {
         urlp_free(&head);
         return err;
@@ -89,7 +96,9 @@ rlpx_frame_parse(rlpx_channel* ch, const uint8_t* frame, size_t l, urlp** rlp_p)
 }
 
 int
-rlpx_frame_parse_header(rlpx_channel* ch,
+rlpx_frame_parse_header(ukeccak256_ctx* h,
+                        uaes_ctx* aes_mac,
+                        uaes_ctx* aes_dec,
                         const uint8_t* hdr,
                         urlp** header_urlp,
                         uint32_t* body_len)
@@ -97,8 +106,7 @@ rlpx_frame_parse_header(rlpx_channel* ch,
     int err = -1;
     uint8_t tmp[32];
 
-    err = frame_ingress(&ch->imac, &ch->aes_mac, &ch->aes_dec, hdr, 0, &hdr[16],
-                        tmp);
+    err = frame_ingress(h, aes_mac, aes_dec, hdr, 0, &hdr[16], tmp);
     if (err) return err;
 
     // Read in big endian length prefix, give to caller
@@ -111,15 +119,16 @@ rlpx_frame_parse_header(rlpx_channel* ch,
 }
 
 int
-rlpx_frame_parse_body(rlpx_channel* ch,
+rlpx_frame_parse_body(ukeccak256_ctx* h,
+                      uaes_ctx* aes_mac,
+                      uaes_ctx* aes_dec,
                       const uint8_t* frame,
                       uint32_t l,
                       urlp** rlp)
 {
     int err;
     uint8_t body[(l = l % 16 ? AES_LEN(l) : l)];
-    err = frame_ingress(&ch->imac, &ch->aes_mac, &ch->aes_dec, frame, l,
-                        frame + l, body);
+    err = frame_ingress(h, aes_mac, aes_dec, frame, l, frame + l, body);
     if (err) return err;
 
     if (body[0] < 0xc0) {
