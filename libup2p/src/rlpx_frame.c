@@ -11,43 +11,28 @@ int frame_ingress(rlpx* s,
                   size_t xlen,
                   const uint8_t* expect,
                   uint8_t* out);
+
 int
 rlpx_frame_write(rlpx* s,
                  uint32_t type,
                  uint32_t id,
-                 urlp** body_p,
+                 uint8_t* data,
+                 size_t datalen,
                  uint8_t* out,
                  size_t* l)
 {
-    int err = 0;
-    uint32_t sz = urlp_print_size(*body_p);
-    uint8_t body[sz];
-    urlp_print(*body_p, body, sz);
-    err = rlpx_frame_write_rlp(s, type, id, body, sz, out, l);
-    urlp_free(body_p);
-    return err;
-}
-
-int
-rlpx_frame_write_rlp(rlpx* s,
-                     uint32_t type,
-                     uint32_t id,
-                     uint8_t* rlp,
-                     size_t rlplen,
-                     uint8_t* out,
-                     size_t* l)
-{
-    size_t totlen = AES_LEN(rlplen);
+    size_t totlen = AES_LEN(datalen);
     uint8_t head[32], body[totlen];
     if (*l < (32 + totlen + 16)) {
         *l = 32 + totlen + 16;
         return -1;
     }
     *l = 32 + totlen + 16;
-    memcpy(body, rlp, rlplen);
-    memset(&body[rlplen], 0, totlen - rlplen);
+    memcpy(body, data, datalen);
+    memset(&body[datalen], 0, totlen - datalen);
     memset(head, 0, 32);
-    WRITE_BE(3, head, (uint8_t*)&rlplen);
+    WRITE_BE(3, head, (uint8_t*)&datalen);
+    // TODO - fix rlpx.list(protocol-type[,context-id])
     head[3] = '\xc2', head[4] = '\x80' + type, head[5] = '\x80' + id;
     frame_egress(s, head, 0, out, &out[16]);
     frame_egress(s, body, totlen, &out[32], &out[32 + totlen]);

@@ -14,23 +14,25 @@
 int
 rlpx_frame_hello_write(rlpx* s, uint8_t* out, size_t* l)
 {
-    uint32_t p2pver = RLPX_VERSION_P2P, les = 2;
-    urlp *rlp = urlp_list(), *body = urlp_list(), *caps = urlp_list();
+    int err;
+    uint32_t p2pver = RLPX_VERSION_P2P, les = 2, rlplen;
+    urlp *body = urlp_list(), *caps = urlp_list();
+    uint8_t data[400] = { 0x00 }; // init with message-id 'hello'
 
-    // Create cababilities (les/2)
+    // Create cababilities list (les/2)
     urlp_push(caps, urlp_push(urlp_item_str("les", 3), urlp_item_u32(&les, 1)));
 
-    // Create body packet
+    // Create body list
     urlp_push(body, urlp_item_u32(&p2pver, 1));
     urlp_push(body, urlp_item_str(RLPX_CLIENT_ID_STR, RLPX_CLIENT_ID_LEN));
     urlp_push(body, caps);
     urlp_push(body, urlp_item_u32(&s->listen_port, 1));
     urlp_push(body, urlp_item_str(s->node_id, 65));
 
-    // [packet-type,packet-body]
-    urlp_push(rlp, urlp_item("", 0)); // packet type
-    urlp_push(rlp, body);             // packet body
-    return rlpx_frame_write(s, 0, 0, &rlp, out, l);
+    if (!(rlplen = urlp_print(body, &data[1], 400 - 1))) return -1;
+    err = rlpx_frame_write(s, 0, 0, data, rlplen + 1, out, l);
+    urlp_free(&body);
+    return err;
 }
 
 int

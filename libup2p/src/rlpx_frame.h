@@ -35,16 +35,10 @@ extern "C" {
 int rlpx_frame_write(rlpx* s,
                      uint32_t type,
                      uint32_t context_id,
-                     urlp** body_p,
+                     uint8_t* data,
+                     size_t datalen,
                      uint8_t* out,
                      size_t* l);
-int rlpx_frame_write_rlp(rlpx* s,
-                         uint32_t type,
-                         uint32_t context_id,
-                         uint8_t* rlp,
-                         size_t rlplen,
-                         uint8_t* out,
-                         size_t* l);
 int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp**);
 int rlpx_frame_parse_header(rlpx* s,
                             const uint8_t* header,
