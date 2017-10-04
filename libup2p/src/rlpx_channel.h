@@ -51,6 +51,7 @@ const uecc_public_key* rlpx_ch_remote_pub_skey(rlpx_channel*);
 uint32_t rlpx_ch_listen_port(rlpx_channel* s);
 const char* rlpx_ch_node_id(rlpx_channel* s);
 
+// methods
 int rlpx_ch_auth_write(rlpx_channel* ch,
                        const uecc_public_key*,
                        uint8_t* auth,
@@ -67,7 +68,6 @@ int rlpx_ch_secrets(rlpx_channel* s,
                     uint32_t sentlen,
                     uint8_t* recv,
                     uint32_t recvlen);
-
 int rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l);
 int rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** rlp_p);
 
