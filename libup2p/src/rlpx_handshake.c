@@ -23,11 +23,11 @@ int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
 int rlpx_decrypt(uecc_ctx* ctx, const uint8_t* cipher, size_t l, urlp** rlp);
 
 // legacy methods
-int rlpx_auth_read_legacy(rlpx_channel* s,
+int rlpx_auth_read_legacy(uecc_ctx* skey,
                           const uint8_t* auth,
                           size_t l,
                           urlp** rlp_p);
-int rlpx_ack_read_legacy(rlpx_channel* s,
+int rlpx_ack_read_legacy(uecc_ctx* skey,
                          const uint8_t* auth,
                          size_t l,
                          urlp** rlp_p);
@@ -80,15 +80,15 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
 }
 
 int
-rlpx_auth_read(rlpx_channel* s, const uint8_t* auth, size_t l, urlp** rlp_p)
+rlpx_auth_read(uecc_ctx* skey, const uint8_t* auth, size_t l, urlp** rlp_p)
 {
-    int err = rlpx_decrypt(&s->skey, auth, l, rlp_p);
-    if (err) err = rlpx_auth_read_legacy(s, auth, l, rlp_p);
+    int err = rlpx_decrypt(skey, auth, l, rlp_p);
+    if (err) err = rlpx_auth_read_legacy(skey, auth, l, rlp_p);
     return err;
 }
 
 int
-rlpx_auth_read_legacy(rlpx_channel* s,
+rlpx_auth_read_legacy(uecc_ctx* skey,
                       const uint8_t* auth,
                       size_t l,
                       urlp** rlp_p)
@@ -97,7 +97,7 @@ rlpx_auth_read_legacy(rlpx_channel* s,
     uint8_t b[194];
     uint64_t v = 4;
     if (!(l == 307)) return err;
-    if (!(uecies_decrypt(&s->skey, NULL, 0, auth, l, b) == 194)) return err;
+    if (!(uecies_decrypt(skey, NULL, 0, auth, l, b) == 194)) return err;
     if (!(*rlp_p = urlp_list())) return err;
     urlp_push(*rlp_p, urlp_item_u8(b, 65));                // signature
     urlp_push(*rlp_p, urlp_item_u8(&b[65 + 32], 64));      // pubkey
@@ -179,15 +179,15 @@ rlpx_auth_write(uecc_ctx* skey,
 }
 
 int
-rlpx_ack_read(rlpx_channel* s, const uint8_t* ack, size_t l, urlp** rlp_p)
+rlpx_ack_read(uecc_ctx* skey, const uint8_t* ack, size_t l, urlp** rlp_p)
 {
-    int err = rlpx_decrypt(&s->skey, ack, l, rlp_p);
-    if (err) err = rlpx_ack_read_legacy(s, ack, l, rlp_p);
+    int err = rlpx_decrypt(skey, ack, l, rlp_p);
+    if (err) err = rlpx_ack_read_legacy(skey, ack, l, rlp_p);
     return err;
 }
 
 int
-rlpx_ack_read_legacy(rlpx_channel* s,
+rlpx_ack_read_legacy(uecc_ctx* skey,
                      const uint8_t* auth,
                      size_t l,
                      urlp** rlp_p)
@@ -195,7 +195,7 @@ rlpx_ack_read_legacy(rlpx_channel* s,
     int err = -1;
     uint8_t b[194];
     uint64_t v = 4;
-    if (!(uecies_decrypt(&s->skey, NULL, 0, auth, l, b) > 0)) return err;
+    if (!(uecies_decrypt(skey, NULL, 0, auth, l, b) > 0)) return err;
     if (!(*rlp_p = urlp_list())) return err;
     urlp_push(*rlp_p, urlp_item_u8(b, 64));      // pubkey
     urlp_push(*rlp_p, urlp_item_u8(&b[64], 32)); // nonce
