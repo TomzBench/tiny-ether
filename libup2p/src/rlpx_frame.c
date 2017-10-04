@@ -1,19 +1,24 @@
 #include "rlpx_frame.h"
 
-int frame_egress(rlpx_channel* s,
-                 const uint8_t* x,
-                 size_t xlen,
-                 uint8_t* out,
-                 uint8_t* mac);
+int frame_egress(ukeccak256_ctx* h, /*!< hash */
+                 uaes_ctx* aes_mac, /*!< mac generator */
+                 uaes_ctx* aes_enc, /*!< cipher text generator */
+                 const uint8_t* x,  /*!< plain text */
+                 size_t xlen,       /*!< plain text len */
+                 uint8_t* out,      /*!< [out] cipher text */
+                 uint8_t* mac       /*!< [out] mac */
+                 );
 
-int frame_ingress(rlpx_channel* s,
+int frame_ingress(ukeccak256_ctx* h,
+                  uaes_ctx* aes_mac,
+                  uaes_ctx* aes_dec,
                   const uint8_t* x,
                   size_t xlen,
                   const uint8_t* expect,
                   uint8_t* out);
 
 int
-rlpx_frame_write(rlpx_channel* s,
+rlpx_frame_write(rlpx_channel* ch,
                  uint32_t type,
                  uint32_t id,
                  uint8_t* data,
@@ -21,26 +26,29 @@ rlpx_frame_write(rlpx_channel* s,
                  uint8_t* out,
                  size_t* l)
 {
-    size_t totlen = AES_LEN(datalen);
-    uint8_t head[32], body[totlen];
-    if (*l < (32 + totlen + 16)) {
-        *l = 32 + totlen + 16;
+    size_t len = AES_LEN(datalen);
+    uint8_t head[32], body[len];
+    if (*l < (32 + len + 16)) {
+        *l = 32 + len + 16;
         return -1;
     }
-    *l = 32 + totlen + 16;
+    *l = 32 + len + 16;
     memcpy(body, data, datalen);
-    memset(&body[datalen], 0, totlen - datalen);
+    memset(&body[datalen], 0, len - datalen);
     memset(head, 0, 32);
     WRITE_BE(3, head, (uint8_t*)&datalen);
+
     // TODO - fix rlpx.list(protocol-type[,context-id])
     head[3] = '\xc2', head[4] = '\x80' + type, head[5] = '\x80' + id;
-    frame_egress(s, head, 0, out, &out[16]);
-    frame_egress(s, body, totlen, &out[32], &out[32 + totlen]);
+
+    frame_egress(&ch->emac, &ch->aes_mac, &ch->aes_enc, head, 0, out, &out[16]);
+    frame_egress(&ch->emac, &ch->aes_mac, &ch->aes_enc, body, len, &out[32],
+                 &out[32 + len]);
     return 0;
 }
 
 int
-rlpx_frame_parse(rlpx_channel* s, const uint8_t* frame, size_t l, urlp** rlp_p)
+rlpx_frame_parse(rlpx_channel* ch, const uint8_t* frame, size_t l, urlp** rlp_p)
 {
 
     int err = 0;
@@ -50,7 +58,7 @@ rlpx_frame_parse(rlpx_channel* s, const uint8_t* frame, size_t l, urlp** rlp_p)
     if (l < 32) return -1;
 
     // Parse header
-    err = rlpx_frame_parse_header(s, frame, &head, &sz);
+    err = rlpx_frame_parse_header(ch, frame, &head, &sz);
     if (err) return err;
 
     // Check length (accounts for aes padding)
@@ -60,7 +68,7 @@ rlpx_frame_parse(rlpx_channel* s, const uint8_t* frame, size_t l, urlp** rlp_p)
     }
 
     // Parse body
-    err = rlpx_frame_parse_body(s, frame + 32, sz, &body);
+    err = rlpx_frame_parse_body(ch, frame + 32, sz, &body);
     if (err) {
         urlp_free(&head);
         return err;
@@ -81,35 +89,37 @@ rlpx_frame_parse(rlpx_channel* s, const uint8_t* frame, size_t l, urlp** rlp_p)
 }
 
 int
-rlpx_frame_parse_header(rlpx_channel* s,
-                        const uint8_t* header,
+rlpx_frame_parse_header(rlpx_channel* ch,
+                        const uint8_t* hdr,
                         urlp** header_urlp,
                         uint32_t* body_len)
 {
     int err = -1;
-    uint8_t temp[32];
+    uint8_t tmp[32];
 
-    err = frame_ingress(s, header, 0, &header[16], temp);
+    err = frame_ingress(&ch->imac, &ch->aes_mac, &ch->aes_dec, hdr, 0, &hdr[16],
+                        tmp);
     if (err) return err;
 
     // Read in big endian length prefix, give to caller
     *body_len = 0;
-    READ_BE(3, body_len, temp);
+    READ_BE(3, body_len, tmp);
 
     // Parse header rlp, give to caller
-    *header_urlp = urlp_parse(temp + 3, 13);
+    *header_urlp = urlp_parse(tmp + 3, 13);
     return *header_urlp ? 0 : -1;
 }
 
 int
-rlpx_frame_parse_body(rlpx_channel* s,
+rlpx_frame_parse_body(rlpx_channel* ch,
                       const uint8_t* frame,
                       uint32_t l,
                       urlp** rlp)
 {
     int err;
     uint8_t body[(l = l % 16 ? AES_LEN(l) : l)];
-    err = frame_ingress(s, frame, l, frame + l, body);
+    err = frame_ingress(&ch->imac, &ch->aes_mac, &ch->aes_dec, frame, l,
+                        frame + l, body);
     if (err) return err;
 
     if (body[0] < 0xc0) {
@@ -128,7 +138,9 @@ rlpx_frame_parse_body(rlpx_channel* s,
 }
 
 int
-frame_egress(rlpx_channel* s,
+frame_egress(ukeccak256_ctx* h,
+             uaes_ctx* aes_mac,
+             uaes_ctx* aes_enc,
              const uint8_t* x,
              size_t xlen,
              uint8_t* out,
@@ -146,24 +158,26 @@ frame_egress(rlpx_channel* s,
     uint8_t xin[32], tmp[32];
     memset(xin, 0, 32);
     if (xlen) {
-        if (uaes_crypt_ctr_update(&s->aes_enc, x, xlen, out)) return -1;
-        ukeccak256_update(&s->emac, (uint8_t*)out, xlen);
-        ukeccak256_digest(&s->emac, xin);
+        if (uaes_crypt_ctr_update(aes_enc, x, xlen, out)) return -1;
+        ukeccak256_update(h, (uint8_t*)out, xlen);
+        ukeccak256_digest(h, xin);
     } else {
-        if (uaes_crypt_ctr_update(&s->aes_enc, x, 16, out)) return -1;
+        if (uaes_crypt_ctr_update(aes_enc, x, 16, out)) return -1;
         memcpy(xin, out, 16);
     }
-    ukeccak256_digest(&s->emac, tmp);          // egress-mac
-    uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes(mac-secret,egress-mac)
-    XORN(tmp, xin, 16);                        // aes(...)^cipher
-    ukeccak256_update(&s->emac, tmp, 16);      // ingress(...)
-    ukeccak256_digest(&s->emac, tmp);          // ingress(...).digest
+    ukeccak256_digest(h, tmp);             // egress-mac
+    uaes_crypt_ecb_enc(aes_mac, tmp, tmp); // aes(mac-secret,egress-mac)
+    XORN(tmp, xin, 16);                    // aes(...)^cipher
+    ukeccak256_update(h, tmp, 16);         // ingress(...)
+    ukeccak256_digest(h, tmp);             // ingress(...).digest
     memcpy(mac, tmp, 16);
     return 0;
 }
 
 int
-frame_ingress(rlpx_channel* s,
+frame_ingress(ukeccak256_ctx* h,
+              uaes_ctx* aes_mac,
+              uaes_ctx* aes_dec,
               const uint8_t* x,
               size_t xlen,
               const uint8_t* expect,
@@ -181,18 +195,18 @@ frame_ingress(rlpx_channel* s,
     uint8_t tmp[32], xin[32];
     memset(xin, 0, 32);
     if (xlen) {
-        ukeccak256_update(&s->imac, (uint8_t*)x, xlen);
-        ukeccak256_digest(&s->imac, xin);
+        ukeccak256_update(h, (uint8_t*)x, xlen);
+        ukeccak256_digest(h, xin);
     } else {
         memcpy(xin, x, 16);
     }
-    ukeccak256_digest(&s->imac, tmp);          // ingress-mac
-    uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes(mac-secret,ingress-mac)
-    XORN(tmp, xin, 16);                        // aes(...)^cipher
-    ukeccak256_update(&s->imac, tmp, 16);      // ingress(...)
-    ukeccak256_digest(&s->imac, tmp);          // ingress(...).digest
-    if (memcmp(tmp, expect, 16)) return -1;    // compare expect with actual
-    if (uaes_crypt_ctr_update(&s->aes_dec, x, xlen ? xlen : 16, out)) return -1;
+    ukeccak256_digest(h, tmp);              // ingress-mac
+    uaes_crypt_ecb_enc(aes_mac, tmp, tmp);  // aes(mac-secret,ingress-mac)
+    XORN(tmp, xin, 16);                     // aes(...)^cipher
+    ukeccak256_update(h, tmp, 16);          // ingress(...)
+    ukeccak256_digest(h, tmp);              // ingress(...).digest
+    if (memcmp(tmp, expect, 16)) return -1; // compare expect with actual
+    if (uaes_crypt_ctr_update(aes_dec, x, xlen ? xlen : 16, out)) return -1;
     return 0;
 }
 
