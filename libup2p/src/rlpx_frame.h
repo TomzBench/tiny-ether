@@ -24,27 +24,38 @@ extern "C" {
  * mac-secret = sha3(ecdhe-shared-secret || aes-secret)
  **/
 
-#include "rlpx_internal.h"
-
 #include "uaes.h"
 #include "uecc.h"
 #include "ukeccak256.h"
 #include "urlp.h"
 #include "urlp.h"
-
-int rlpx_frame_write(rlpx* s,
+int rlpx_frame_write(ukeccak256_ctx* h,
+                     uaes_ctx* aes_mac,
+                     uaes_ctx* aes_enc,
                      uint32_t type,
                      uint32_t context_id,
                      uint8_t* data,
                      size_t datalen,
                      uint8_t* out,
                      size_t* l);
-int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp**);
-int rlpx_frame_parse_header(rlpx* s,
+
+int rlpx_frame_parse(ukeccak256_ctx* h,
+                     uaes_ctx* aes_mac,
+                     uaes_ctx* aes_dec,
+                     const uint8_t* frame,
+                     size_t l,
+                     urlp**);
+
+int rlpx_frame_parse_header(ukeccak256_ctx* h,
+                            uaes_ctx* aes_mac,
+                            uaes_ctx* aes_dec,
                             const uint8_t* header,
                             urlp** header_urlp,
                             uint32_t* body_len);
-int rlpx_frame_parse_body(rlpx* s,
+
+int rlpx_frame_parse_body(ukeccak256_ctx* h,
+                          uaes_ctx* aes_mac,
+                          uaes_ctx* aes_dec,
                           const uint8_t* body,
                           uint32_t body_len,
                           urlp** rlp);

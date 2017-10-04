@@ -6,6 +6,7 @@
 
 #include "rlpx_handshake.h"
 #include "rlpx_handshake_legacy.h"
+#include "rlpx_helper_macros.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
 #include "ukeccak256.h"
@@ -78,7 +79,7 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
  * @param l
  */
 int
-rlpx_auth_read(rlpx* s, const uint8_t* auth, size_t l)
+rlpx_auth_read(rlpx_channel* s, const uint8_t* auth, size_t l)
 {
     uint8_t buffer[65];
     urlp* rlp;
@@ -116,7 +117,7 @@ rlpx_auth_read(rlpx* s, const uint8_t* auth, size_t l)
 }
 
 int
-rlpx_auth_write(rlpx* s,
+rlpx_auth_write(rlpx_channel* s,
                 const uecc_public_key* to_s_key,
                 uint8_t* auth,
                 size_t* l)
@@ -148,7 +149,7 @@ rlpx_auth_write(rlpx* s,
 }
 
 int
-rlpx_ack_read(rlpx* s, const uint8_t* ack, size_t l)
+rlpx_ack_read(rlpx_channel* s, const uint8_t* ack, size_t l)
 {
     uint8_t buff[65];
     urlp* rlp;
@@ -184,7 +185,7 @@ rlpx_ack_read(rlpx* s, const uint8_t* ack, size_t l)
  * @return
  */
 int
-rlpx_ack_write(rlpx* s,
+rlpx_ack_write(rlpx_channel* s,
                const uecc_public_key* to_s_key,
                uint8_t* auth,
                size_t* l)
@@ -213,7 +214,7 @@ rlpx_ack_write(rlpx* s,
 }
 
 int
-rlpx_secrets(rlpx* s,
+rlpx_secrets(rlpx_channel* s,
              int orig,
              uint8_t* sent,
              uint32_t sentlen,

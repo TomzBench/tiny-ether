@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "rlpx_internal.h"
+#include "rlpx_channel.h"
 #include "urlp.h"
 
 int rlpx_frame_hello_p2p_version(const urlp* rlp, uint32_t* out);

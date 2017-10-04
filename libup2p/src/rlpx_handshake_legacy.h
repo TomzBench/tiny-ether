@@ -11,15 +11,15 @@
 extern "C" {
 #endif
 
-#include "rlpx_internal.h"
+#include "rlpx_channel.h"
 
-int rlpx_auth_read_legacy(rlpx* s, const uint8_t* auth, size_t l);
-int rlpx_auth_write_legacy(rlpx* s,
+int rlpx_auth_read_legacy(rlpx_channel* s, const uint8_t* auth, size_t l);
+int rlpx_auth_write_legacy(rlpx_channel* s,
                            const uecc_public_key* to_s_key,
                            uint8_t* auth_p,
                            size_t* l);
-int rlpx_ack_read_legacy(rlpx* s, const uint8_t* auth, size_t l);
-int rlpx_ack_write_legacy(rlpx* s,
+int rlpx_ack_read_legacy(rlpx_channel* s, const uint8_t* auth, size_t l);
+int rlpx_ack_write_legacy(rlpx_channel* s,
                           const uecc_public_key* to_s_key,
                           uint8_t* auth_p,
                           size_t* l);

@@ -1,31 +1,32 @@
+#include "rlpx_channel.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
-#include "rlpx_internal.h"
+#include "rlpx_helper_macros.h"
 #include "ukeccak256.h"
 /*
  * This "test" feature is only to export data from normally opaque structures.
  */
 
 void
-rlpx_test_nonce_set(rlpx* s, h256* nonce)
+rlpx_test_nonce_set(rlpx_channel* s, h256* nonce)
 {
     memcpy(s->nonce.b, nonce->b, 32);
 }
 
 void
-rlpx_test_remote_nonce_set(rlpx* s, h256* nonce)
+rlpx_test_remote_nonce_set(rlpx_channel* s, h256* nonce)
 {
     memcpy(s->remote_nonce.b, nonce->b, 32);
 }
 
 void
-rlpx_test_remote_ekey_clr(rlpx* s)
+rlpx_test_remote_ekey_clr(rlpx_channel* s)
 {
     memset(s->remote_ekey.data, 0, 64);
 }
 
 int
-rlpx_test_secrets(rlpx* s,
+rlpx_test_secrets(rlpx_channel* s,
                   int orig,
                   uint8_t* sent,
                   uint32_t sentlen,
@@ -33,6 +34,36 @@ rlpx_test_secrets(rlpx* s,
                   uint32_t recvlen)
 {
     return rlpx_secrets(s, orig, sent, sentlen, recv, recvlen);
+}
+
+ukeccak256_ctx*
+rlpx_test_ingress(rlpx_channel* ch)
+{
+    return &ch->imac;
+}
+
+ukeccak256_ctx*
+rlpx_test_egress(rlpx_channel* ch)
+{
+    return &ch->emac;
+}
+
+uaes_ctx*
+rlpx_test_aes_mac(rlpx_channel* ch)
+{
+    return &ch->aes_mac;
+}
+
+uaes_ctx*
+rlpx_test_aes_enc(rlpx_channel* ch)
+{
+    return &ch->aes_enc;
+}
+
+uaes_ctx*
+rlpx_test_aes_dec(rlpx_channel* ch)
+{
+    return &ch->aes_dec;
 }
 
 /**
@@ -61,7 +92,7 @@ rlpx_test_secrets(rlpx* s,
  */
 
 int
-rlpx_expect_secrets(rlpx* s,
+rlpx_expect_secrets(rlpx_channel* s,
                     int orig,
                     uint8_t* sent,
                     uint32_t sentlen,
