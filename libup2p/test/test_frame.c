@@ -60,7 +60,6 @@ EXIT:
 int
 test_frame_write()
 {
-
     int err = 0;
     test_session s;
     test_session_init(&s, 1);

@@ -26,9 +26,8 @@ rlpx_frame_write(rlpx* s,
 {
     int err = 0;
     uint32_t sz = urlp_print_size(*body_p);
-    uint8_t body[AES_LEN(sz)];
+    uint8_t body[sz];
     urlp_print(*body_p, body, sz);
-    memset(&body[sz], 0, AES_LEN(sz) - sz);
     err = rlpx_frame_write_rlp(s, type, id, body, sz, out, l);
     urlp_free(body_p);
     return err;
@@ -44,17 +43,19 @@ rlpx_frame_write_rlp(rlpx* s,
                      size_t* l)
 {
     size_t totlen = AES_LEN(rlplen);
-    uint8_t head[32];
+    uint8_t head[32], body[totlen];
     if (*l < (32 + totlen + 16)) {
         *l = 32 + totlen + 16;
         return -1;
     }
     *l = 32 + totlen + 16;
+    memcpy(body, rlp, rlplen);
+    memset(&body[rlplen], 0, totlen - rlplen);
     memset(head, 0, 32);
     WRITE_BE(3, head, (uint8_t*)&rlplen);
     head[3] = '\xc2', head[4] = '\x80' + type, head[5] = '\x80' + id;
     frame_egress(s, head, 16, out, &out[16]);
-    frame_egress(s, rlp, totlen, &out[32], &out[32 + totlen]);
+    frame_egress(s, body, totlen, &out[32], &out[32 + totlen]);
     return 0;
 }
 
@@ -153,7 +154,7 @@ frame_egress(rlpx* s, const uint8_t* x, size_t xlen, uint8_t* out, uint8_t* mac)
     // FRAME:
     // egress-mac.update(aes(mac-secret,egress-mac) ^
     // left128(egress-mac.update(frame-ciphertext).digest))
-    uint8_t xin[32];
+    uint8_t xin[32], tmp[32];
     memset(xin, 0, 32);
     if (uaes_crypt_ctr_update(&s->aes_enc, x, xlen, out)) return -1;
     if (xlen > 16) { // TODO test with header flag instead of packet let
@@ -162,11 +163,12 @@ frame_egress(rlpx* s, const uint8_t* x, size_t xlen, uint8_t* out, uint8_t* mac)
     } else {
         memcpy(xin, out, xlen);
     }
-    ukeccak256_digest(&s->emac, mac);          // egress-mac
-    uaes_crypt_ecb_enc(&s->aes_mac, mac, mac); // aes(mac-secret,egress-mac)
-    XORN(mac, xin, 16);                        // aes(...)^header-cipher
-    ukeccak256_update(&s->emac, mac, 16);      // ingress(...)
-    ukeccak256_digest(&s->emac, mac);          // ingress(...).digest
+    ukeccak256_digest(&s->emac, tmp);          // egress-mac
+    uaes_crypt_ecb_enc(&s->aes_mac, tmp, tmp); // aes(mac-secret,egress-mac)
+    XORN(tmp, xin, 16);                        // aes(...)^header-cipher
+    ukeccak256_update(&s->emac, tmp, 16);      // ingress(...)
+    ukeccak256_digest(&s->emac, tmp);          // ingress(...).digest
+    memcpy(mac, tmp, 16);
     return 0;
 }
 
