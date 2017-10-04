@@ -13,6 +13,7 @@ extern "C" {
 #include "uecc.h"
 #include "urlp.h"
 
+#include "rlpx_config.h"
 #include "rlpx_types.h"
 
 /**

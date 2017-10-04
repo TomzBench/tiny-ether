@@ -40,7 +40,7 @@ rlpx_frame_hello_p2p_version(const urlp* rlp, uint32_t* out)
 }
 
 int
-rlpx_frame_hello_client_id(const urlp* rlp, const char** ptr_p, size_t* l)
+rlpx_frame_hello_client_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 {
     return rlpx_frame_to_mem(rlp, 1, ptr_p, l);
 }
@@ -53,7 +53,7 @@ rlpx_frame_hello_capabilities(const urlp* rlp, const char* cap, uint32_t v)
     const char* mem;
     for (uint32_t i = 0; i < n; i++) {
         if (!(seek = urlp_at(caps, i))) continue;
-        rlpx_frame_to_mem(seek, 0, &mem, (size_t*)&sz);
+        rlpx_frame_to_mem(seek, 0, &mem, &sz);
         if ((sz == len) && (!(memcmp(mem, cap, len)))) {
             rlpx_frame_to_u32(seek, 1, &ver);
             return (ver >= v) ? 0 : -1;
@@ -72,5 +72,5 @@ rlpx_frame_hello_listen_port(const urlp* rlp, uint32_t* port)
 int
 rlpx_frame_hello_node_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 {
-    return rlpx_frame_to_mem(rlp, 4, ptr_p, (size_t*)l);
+    return rlpx_frame_to_mem(rlp, 4, ptr_p, l);
 }

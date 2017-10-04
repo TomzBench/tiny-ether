@@ -79,6 +79,18 @@ rlpx_remote_public_skey(rlpx* s)
     return &s->remote_skey;
 }
 
+uint32_t
+rlpx_listen_port(rlpx* s)
+{
+    return s->listen_port;
+}
+
+const char*
+rlpx_node_id(rlpx* s)
+{
+    return s->node_id;
+}
+
 //
 //
 //

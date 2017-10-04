@@ -64,7 +64,7 @@ rlpx_frame_to_str(const urlp* rlp, int idx, const char** str_p)
 }
 
 static inline int
-rlpx_frame_to_mem(const urlp* rlp, int idx, const char** mem_p, size_t* l)
+rlpx_frame_to_mem(const urlp* rlp, int idx, const char** mem_p, uint32_t* l)
 {
     if (!(rlp = urlp_at(rlp, idx))) return -1;
     *mem_p = (const char*)urlp_ref(rlp, (uint32_t*)l);

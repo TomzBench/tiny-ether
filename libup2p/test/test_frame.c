@@ -66,6 +66,9 @@ test_frame_write()
     size_t lena = 1000, lenb = 1000, alen = 1000, blen = 1000;
     uint8_t from_alice[lena], from_bob[lenb], a[alen], b[blen];
     urlp *framea = NULL, *frameb = NULL;
+    const urlp *bodya, *bodyb;
+    const char *mema, *memb;
+    uint32_t numa, numb;
 
     // Bob exchange alice keys
     IF_ERR_EXIT(rlpx_auth_write(s.alice, rlpx_public_skey(s.bob), a, &alen));
@@ -88,9 +91,45 @@ test_frame_write()
     IF_ERR_EXIT(rlpx_frame_hello_write(s.bob, from_bob, &lenb));
     IF_ERR_EXIT(rlpx_frame_parse(s.alice, from_bob, lenb, &frameb));
     IF_ERR_EXIT(rlpx_frame_parse(s.bob, from_alice, lena, &framea));
-    urlp_free(&framea);
-    urlp_free(&frameb);
+    bodya = urlp_at(urlp_at(framea, 1), 1); // get body frame
+    bodyb = urlp_at(urlp_at(frameb, 1), 1); // get body frame
+
+    // Verify p2pver
+    rlpx_frame_hello_p2p_version(bodya, &numa);
+    rlpx_frame_hello_p2p_version(bodyb, &numb);
+    IF_ERR_EXIT((numa == RLPX_VERSION_P2P) ? 0 : -1);
+    IF_ERR_EXIT((numb == RLPX_VERSION_P2P) ? 0 : -1);
+
+    // Verify client id read ok
+    rlpx_frame_hello_client_id(bodya, &mema, &numa);
+    rlpx_frame_hello_client_id(bodyb, &memb, &numb);
+    IF_ERR_EXIT((numa == RLPX_CLIENT_ID_LEN) ? 0 : -1);
+    IF_ERR_EXIT((numb == RLPX_CLIENT_ID_LEN) ? 0 : -1);
+    IF_ERR_EXIT(memcmp(mema, RLPX_CLIENT_ID_STR, numa) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(memb, RLPX_CLIENT_ID_STR, numb) ? -1 : 0);
+
+    // Verify capabilities read ok
+    IF_ERR_EXIT(rlpx_frame_hello_capabilities(bodya, "les", 2));
+    IF_ERR_EXIT(rlpx_frame_hello_capabilities(bodyb, "les", 2));
+
+    // verify listen port
+    rlpx_frame_hello_listen_port(bodya, &numa);
+    rlpx_frame_hello_listen_port(bodyb, &numb);
+    IF_ERR_EXIT((numa == rlpx_listen_port(s.alice)) ? 0 : -1);
+    IF_ERR_EXIT((numb == rlpx_listen_port(s.bob)) ? 0 : -1);
+
+    // verify node_id
+    rlpx_frame_hello_node_id(bodya, &mema, &numa);
+    rlpx_frame_hello_node_id(bodyb, &memb, &numb);
+    IF_ERR_EXIT((numa == 65) ? 0 : -1);
+    IF_ERR_EXIT((numb == 65) ? 0 : -1);
+    IF_ERR_EXIT(memcmp(mema, rlpx_node_id(s.alice), numa) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(memb, rlpx_node_id(s.bob), numb) ? -1 : 0);
+
 EXIT:
+    // clean
+    if (framea) urlp_free(&framea);
+    if (frameb) urlp_free(&frameb);
     test_session_deinit(&s);
     return err;
 }

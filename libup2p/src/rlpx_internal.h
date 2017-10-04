@@ -16,10 +16,6 @@ extern "C" {
 #include "uecc.h"
 #include "ukeccak256.h"
 
-#define RLPX_CLIENT_ID_STR "tiny-ether"
-#define RLPX_CLIENT_ID_LEN (sizeof(RLPX_CLIENT_ID_STR) - 1)
-#define RLPX_VERSION_P2P 4
-
 #define AES_LEN(l) ((l) % 16 ? ((l) + 16 - ((l) % 16)) : (l))
 
 #define READ_BE(l, dst, src)                                                   \
@@ -95,6 +91,8 @@ const uecc_public_key* rlpx_public_skey(rlpx*);
 const uecc_public_key* rlpx_public_ekey(rlpx*);
 const uecc_public_key* rlpx_remote_public_ekey(rlpx*);
 const uecc_public_key* rlpx_remote_public_skey(rlpx*);
+uint32_t rlpx_listen_port(rlpx* s);
+const char* rlpx_node_id(rlpx* s);
 
 #ifdef __cplusplus
 }

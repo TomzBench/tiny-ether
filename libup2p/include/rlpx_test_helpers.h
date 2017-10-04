@@ -16,6 +16,8 @@ extern "C" {
 void rlpx_test_remote_nonce_set(rlpx* s, h256* nonce);
 void rlpx_test_nonce_set(rlpx* s, h256* nonce);
 void rlpx_test_remote_ekey_clr(rlpx* s);
+uint32_t rlpx_listen_port(rlpx* s);
+const char* rlpx_node_id(rlpx* s);
 int rlpx_test_secrets(rlpx* s,
                       int orig,
                       uint8_t* sent,
@@ -42,7 +44,7 @@ int rlpx_secrets(rlpx* s,
 int rlpx_frame_parse(rlpx* s, const uint8_t* frame, size_t l, urlp**);
 int rlpx_frame_hello_write(rlpx* s, uint8_t* out, size_t* l);
 int rlpx_frame_hello_p2p_version(const urlp* rlp, uint32_t* out);
-int rlpx_frame_hello_client_id(const urlp* rlp, const char**, size_t* l);
+int rlpx_frame_hello_client_id(const urlp* rlp, const char**, uint32_t* l);
 int rlpx_frame_hello_capabilities(const urlp* rlp, const char* cap, uint32_t v);
 int rlpx_frame_hello_listen_port(const urlp* rlp, uint32_t*);
 int rlpx_frame_hello_node_id(const urlp* rlp, const char**, uint32_t*);
