@@ -43,16 +43,22 @@ extern const uecc_public_key* rlpx_ch_remote_pub_ekey(rlpx_channel*);
 extern const uecc_public_key* rlpx_ch_remote_pub_skey(rlpx_channel*);
 
 // methods rlpx_handshake exports
-extern int rlpx_auth_read(rlpx_channel* s, const uint8_t* auth, size_t l);
-extern int rlpx_auth_write(rlpx_channel* s,
-                           const uecc_public_key*,
-                           uint8_t* auth,
-                           size_t* l);
-extern int rlpx_ack_read(rlpx_channel* s, const uint8_t* auth, size_t l);
-extern int rlpx_ack_write(rlpx_channel* s,
-                          const uecc_public_key*,
-                          uint8_t* auth,
-                          size_t* l);
+extern int rlpx_ch_auth_load(rlpx_channel* ch, const uint8_t* auth, size_t l);
+extern int rlpx_ch_auth_write(rlpx_channel* ch,
+                              const uecc_public_key*,
+                              uint8_t* auth,
+                              size_t* l);
+extern int rlpx_ch_ack_load(rlpx_channel* ch, const uint8_t* ack, size_t l);
+extern int rlpx_ch_ack_write(rlpx_channel* ch,
+                             const uecc_public_key*,
+                             uint8_t* ack,
+                             size_t* l);
+extern int rlpx_ch_secrets(rlpx_channel* s,
+                           int orig,
+                           uint8_t* sent,
+                           uint32_t sentlen,
+                           uint8_t* recv,
+                           uint32_t recvlen);
 
 #ifdef __cplusplus
 }

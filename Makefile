@@ -72,7 +72,7 @@ $(TARGET)/include/%.h:
 	@echo "COPY $(notdir $@)"
 	@cp $(shell find $(MODULE_INCS) -name $(notdir $@)) $@
 
-.PHONY: clean test print
+.PHONY: clean test print cscope
 
 # clean our mess
 clean:
@@ -90,6 +90,11 @@ test:
 		--quiet             \
 		./$(bin);           \
 		)
+
+cscope:
+	find . \
+		\( -name '*.c' -o -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) -print > cscope.files
+		cscope -b
 
 # Makefile debug print
 print:

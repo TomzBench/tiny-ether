@@ -7,6 +7,18 @@
  * This "test" feature is only to export data from normally opaque structures.
  */
 
+uecc_ctx*
+rlpx_test_skey(rlpx_channel* ch)
+{
+    return &ch->skey;
+}
+
+uecc_ctx*
+rlpx_test_ekey(rlpx_channel* ch)
+{
+    return &ch->ekey;
+}
+
 void
 rlpx_test_nonce_set(rlpx_channel* s, h256* nonce)
 {
@@ -33,7 +45,7 @@ rlpx_test_secrets(rlpx_channel* s,
                   uint8_t* recv,
                   uint32_t recvlen)
 {
-    return rlpx_secrets(s, orig, sent, sentlen, recv, recvlen);
+    return rlpx_ch_secrets(s, orig, sent, sentlen, recv, recvlen);
 }
 
 ukeccak256_ctx*

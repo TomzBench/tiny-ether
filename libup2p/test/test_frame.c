@@ -41,7 +41,7 @@ test_frame_read()
     rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
     // Update our secrets
-    IF_ERR_EXIT(rlpx_auth_read(s.bob, s.auth, s.authlen));
+    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                     s.authlen, aes, mac, NULL));
     IF_ERR_EXIT(rlpx_frame_parse(
@@ -73,20 +73,20 @@ test_frame_write()
     uint32_t numa, numb;
 
     // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_auth_write(s.alice, rlpx_ch_pub_skey(s.bob), a, &alen));
-    IF_ERR_EXIT(rlpx_auth_read(s.bob, a, alen));
+    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, rlpx_ch_pub_skey(s.bob), a, &alen));
+    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
 
     // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ack_write(s.bob, rlpx_ch_pub_skey(s.alice), b, &blen));
-    IF_ERR_EXIT(rlpx_ack_read(s.alice, b, blen));
+    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, rlpx_ch_pub_skey(s.alice), b, &blen));
+    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
 
     // Check key exchange
     IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.alice), g_bob_epub));
     IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.bob), g_alice_epub));
 
     // Update secrets
-    IF_ERR_EXIT(rlpx_secrets(s.bob, 0, b, blen, a, alen));
-    IF_ERR_EXIT(rlpx_secrets(s.alice, 1, a, alen, b, blen));
+    IF_ERR_EXIT(rlpx_ch_secrets(s.bob, 0, b, blen, a, alen));
+    IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
 
     // Write some packets
     IF_ERR_EXIT(rlpx_frame_hello_write(s.alice, from_alice, &lena));
