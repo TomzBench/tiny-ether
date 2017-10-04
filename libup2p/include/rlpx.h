@@ -43,14 +43,20 @@ extern const uecc_public_key* rlpx_ch_remote_pub_ekey(rlpx_channel*);
 extern const uecc_public_key* rlpx_ch_remote_pub_skey(rlpx_channel*);
 
 // methods rlpx_handshake exports
-extern int rlpx_auth_read(rlpx_channel* s, const uint8_t* auth, size_t l);
+extern int rlpx_auth_read(rlpx_channel* s,
+                          const uint8_t* auth,
+                          size_t l,
+                          urlp** rlp);
 extern int rlpx_auth_write(uecc_ctx* skey,
                            uecc_ctx* ekey,
                            h256* nonce,
                            const uecc_public_key*,
                            uint8_t* auth,
                            size_t* l);
-extern int rlpx_ack_read(rlpx_channel* s, const uint8_t* auth, size_t l);
+extern int rlpx_ack_read(rlpx_channel* s,
+                         const uint8_t* auth,
+                         size_t l,
+                         urlp** rlp);
 extern int rlpx_ack_write(uecc_ctx* skey,
                           uecc_ctx* ekey,
                           h256* nonce,

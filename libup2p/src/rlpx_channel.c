@@ -1,4 +1,6 @@
 #include "rlpx_channel.h"
+#include "rlpx_handshake.h"
+#include "rlpx_helper_macros.h"
 
 rlpx_channel*
 rlpx_ch_alloc()
