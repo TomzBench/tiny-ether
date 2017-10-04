@@ -1,6 +1,7 @@
 #include "rlpx_channel.h"
 #include "rlpx_handshake.h"
 #include "rlpx_helper_macros.h"
+#include "unonce.h"
 
 rlpx_channel*
 rlpx_ch_alloc()
@@ -94,6 +95,16 @@ rlpx_ch_node_id(rlpx_channel* s)
 }
 
 int
+rlpx_ch_auth_write(rlpx_channel* ch,
+                   const uecc_public_key* to,
+                   uint8_t* auth,
+                   size_t* l)
+{
+    unonce(ch->nonce.b);
+    return rlpx_auth_write(&ch->skey, &ch->ekey, &ch->nonce, to, auth, l);
+}
+
+int
 rlpx_ch_auth_load(rlpx_channel* ch, const uint8_t* auth, size_t l)
 {
     int err = 0;
@@ -109,6 +120,16 @@ rlpx_ch_auth_load(rlpx_channel* ch, const uint8_t* auth, size_t l)
     // Free rlp and return
     urlp_free(&rlp);
     return err;
+}
+
+int
+rlpx_ch_ack_write(rlpx_channel* ch,
+                  const uecc_public_key* to,
+                  uint8_t* ack,
+                  size_t* l)
+{
+    unonce(ch->nonce.b);
+    return rlpx_ack_write(&ch->skey, &ch->ekey, &ch->nonce, to, ack, l);
 }
 
 int
