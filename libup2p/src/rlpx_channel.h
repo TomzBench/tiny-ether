@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 #include "rlpx_config.h"
+#include "rlpx_frame.h"
 #include "uaes.h"
 #include "uecc.h"
 #include "ukeccak256.h"
@@ -29,11 +30,7 @@ typedef struct
     h256 remote_nonce;           /*!< remote nonce */
     uecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
     uecc_public_key remote_skey; /*!< remote static pubkey */
-    ukeccak256_ctx emac;         /*!< egress mac */
-    ukeccak256_ctx imac;         /*!< ingress mac */
-    uaes_ctx aes_dec;            /*!< aes dec */
-    uaes_ctx aes_enc;            /*!< aes dec */
-    uaes_ctx aes_mac;            /*!< aes ecb of egress/ingress mac updates */
+    rlpx_coder x;                /*!< igress/ingress */
 } rlpx_channel;
 
 // constructors
