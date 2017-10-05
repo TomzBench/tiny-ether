@@ -277,14 +277,15 @@ test_item(uint8_t* rlp, uint32_t rlplen, urlp** item_p)
     *item_p = NULL;
 
     // Check encoded
-    len = urlp_print(item, result, rlplen);
+    len = rlplen;
+    urlp_print(item, result, &len);
     if (!(len == rlplen)) goto EXIT;
     if (memcmp(rlp, result, rlplen)) goto EXIT;
     urlp_free(&item);
 
     // Check our readback
     item = urlp_parse(result, rlplen);
-    len = urlp_print(item, resulta, rlplen);
+    urlp_print(item, resulta, &len);
     if (!(len == rlplen)) goto EXIT;
     if (memcmp(rlp, result, rlplen)) goto EXIT;
     urlp_free(&item);
@@ -293,7 +294,7 @@ test_item(uint8_t* rlp, uint32_t rlplen, urlp** item_p)
 
     // Check decoded
     item = urlp_parse(rlp, rlplen);
-    len = urlp_print(item, result, rlplen);
+    urlp_print(item, result, &len);
     if (!(len == rlplen)) goto EXIT;
     if (memcmp(rlp, result, rlplen)) goto EXIT;
 
