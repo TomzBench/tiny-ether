@@ -1,20 +1,66 @@
 #include "rlpx_frame.h"
 #include "rlpx_helper_macros.h"
 
-// private
+// @brief Private methods
+
+/**
+ * @brief Authenticate and decrypt header frame
+ *
+ * @param x cipher secrets context data
+ * @param header [in] input data to decrypt
+ * @param header_urlp [out]
+ * @param body_len [out] advertised frame length from header
+ *
+ * @return 0 OK -1 error
+ */
 int frame_parse_header(rlpx_coder* x,
                        const uint8_t* header,
                        urlp** header_urlp,
                        uint32_t* body_len);
+
+/**
+ * @brief Authenticate and decrypt a body frame
+ *
+ * @param x cipher secrets context data
+ * @param body [in] input data to decrypt
+ * @param body_len [in] length of body data
+ * @param rlp [out] allocated rlp list of body
+ *
+ * @return
+ */
 int frame_parse_body(rlpx_coder* x,
                      const uint8_t* body,
                      uint32_t body_len,
                      urlp** rlp);
+
+/**
+ * @brief Update MAC state, convert plaintext to cipher text with MAC
+ *
+ * @param rlpx_coder [in] cipher secrets context data
+ * @param x [in] egress data
+ * @param xlen [in] egress data length
+ * @param out [out] encrypted output
+ * @param mac [out] mac
+ *
+ * @return 0 OK -1 error
+ */
 int frame_egress(rlpx_coder*,
                  const uint8_t* x,
                  size_t xlen,
                  uint8_t* out,
                  uint8_t* mac);
+
+/**
+ * @brief
+ *
+ * @param rlpx_coder [in] cipher secrets context data
+ * @param x [in] ingress data
+ * @param xlen [in] ingress data length
+ * @param expect [in] MAC used to validate ingress data
+ * @param out [out] decrypted data
+ *
+ * @return
+ */
 int frame_ingress(rlpx_coder*,
                   const uint8_t* x,
                   size_t xlen,
