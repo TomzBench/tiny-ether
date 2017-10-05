@@ -52,7 +52,7 @@ extern int rlpx_hello_node_id(const urlp* rlp, const char**, uint32_t*);
 
 // private channel exports for test
 extern int rlpx_ch_hello_read(rlpx_channel* ch,
-                              uint8_t* in,
+                              const uint8_t* in,
                               size_t l,
                               urlp** rlp_p);
 extern int rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l);

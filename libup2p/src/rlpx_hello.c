@@ -41,7 +41,7 @@ int
 rlpx_hello_read(ukeccak256_ctx* h,
                 uaes_ctx* aes_mac,
                 uaes_ctx* aes_dec,
-                uint8_t* in,
+                const uint8_t* in,
                 size_t l,
                 urlp** rlp_p)
 {

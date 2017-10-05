@@ -44,10 +44,8 @@ test_frame_read()
     IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                     s.authlen, aes, mac, NULL));
-    IF_ERR_EXIT(rlpx_frame_parse(
-        rlpx_test_ingress(s.bob), rlpx_test_aes_mac(s.bob),
-        rlpx_test_aes_dec(s.bob), makebin(g_hello_packet, NULL),
-        strlen(g_hello_packet) / 2, &frame));
+    IF_ERR_EXIT(rlpx_ch_hello_read(s.bob, makebin(g_hello_packet, NULL),
+                                   strlen(g_hello_packet) / 2, &frame));
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
     IF_ERR_EXIT(rlpx_hello_p2p_version(seek, &p2pver));
     IF_ERR_EXIT(p2pver == 3 ? 0 : -1);
