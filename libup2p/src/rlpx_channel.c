@@ -156,26 +156,25 @@ int
 rlpx_ch_secrets(rlpx_channel* s,
                 int orig,
                 uint8_t* sent,
-                uint32_t sentlen,
+                uint32_t slen,
                 uint8_t* recv,
-                uint32_t recvlen)
+                uint32_t rlen)
 {
     int err;
-    uint8_t buf[32 + ((sentlen > recvlen) ? sentlen : recvlen)],
-        *out = &buf[32];
+    uint8_t buf[32 + ((slen > rlen) ? slen : rlen)], *out = &buf[32];
     if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
     memcpy(buf, orig ? s->remote_nonce.b : s->nonce.b, 32);
     memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
 
     // aes-secret / mac-secret
-    ukeccak256(buf, 64, out, 32);        // h(nonces)
-    memcpy(buf, &s->ekey.z.b[1], 32);    // (ephemeral || h(nonces))
-    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(nonces))
-    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(shared))
-    uaes_init_bin(&s->aes_enc, out, 32); // aes-secret save
-    uaes_init_bin(&s->aes_dec, out, 32); // aes-secret save
-    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(aes-secret))
-    uaes_init_bin(&s->aes_mac, out, 32); // mac-secret save
+    ukeccak256(buf, 64, out, 32);          // h(nonces)
+    memcpy(buf, &s->ekey.z.b[1], 32);      // (ephemeral || h(nonces))
+    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(nonces))
+    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(shared))
+    uaes_init_bin(&s->x.aes_enc, out, 32); // aes-secret save
+    uaes_init_bin(&s->x.aes_dec, out, 32); // aes-secret save
+    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(aes-secret))
+    uaes_init_bin(&s->x.aes_mac, out, 32); // mac-secret save
 
     // ingress / egress
     // Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
@@ -184,15 +183,15 @@ rlpx_ch_secrets(rlpx_channel* s,
     //           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recv-init)
     // egress  = sha3(mac-secret^their nonce || cipher sent )
     // ingress = sha3(mac-secret^our nonce   || cipher received)
-    ukeccak256_init(&s->emac);
-    ukeccak256_init(&s->imac);
+    ukeccak256_init(&s->x.emac);
+    ukeccak256_init(&s->x.imac);
     XOR32_SET(buf, out, s->nonce.b); // (mac-secret^recepient-nonce);
-    memcpy(&buf[32], recv, recvlen); // (m..^nonce)||auth-recv-init)
-    ukeccak256_update(&s->imac, buf, 32 + recvlen); // S(m..^nonce)||auth-recv)
-    XOR32(buf, s->nonce.b);                         // UNDO xor
-    XOR32(buf, s->remote_nonce.b);                  // (mac-secret^nonce);
-    memcpy(&buf[32], sent, sentlen); // (m..^nonce)||auth-sentd-init)
-    ukeccak256_update(&s->emac, buf, 32 + sentlen); // S(m..^nonce)||auth-sent)
+    memcpy(&buf[32], recv, rlen);    // (m..^nonce)||auth-recv-init)
+    ukeccak256_update(&s->x.imac, buf, 32 + rlen); // S(m..^nonce)||auth-recv)
+    XOR32(buf, s->nonce.b);                        // UNDO xor
+    XOR32(buf, s->remote_nonce.b);                 // (mac-secret^nonce);
+    memcpy(&buf[32], sent, slen); // (m..^nonce)||auth-sentd-init)
+    ukeccak256_update(&s->x.emac, buf, 32 + slen); // S(m..^nonce)||auth-sent)
 
     return err;
 }
@@ -203,8 +202,7 @@ rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l)
     size_t tmp = *l;
     int err = rlpx_hello_write(ch->listen_port, ch->node_id, out, &tmp);
     if (!err) {
-        err = rlpx_frame_write(&ch->emac, &ch->aes_mac, &ch->aes_enc, 0, 0, out,
-                               tmp, out, l);
+        err = rlpx_frame_write(&ch->x, 0, 0, out, tmp, out, l);
     }
     return err;
 }
@@ -212,7 +210,7 @@ rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l)
 int
 rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** p)
 {
-    return rlpx_frame_parse(&ch->imac, &ch->aes_mac, &ch->aes_dec, in, l, p);
+    return rlpx_frame_parse(&ch->x, in, l, p);
 }
 
 //
