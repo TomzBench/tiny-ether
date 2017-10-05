@@ -33,16 +33,6 @@ int rlpx_expect_secrets(rlpx_channel* s,
                         uint8_t* mac,
                         uint8_t* foo);
 
-/*!< private export for test */
-
-// private frame methods exported for test
-extern int rlpx_frame_parse(ukeccak256_ctx* h,
-                            uaes_ctx* aes_mac,
-                            uaes_ctx* aes_dec,
-                            const uint8_t* frame,
-                            size_t l,
-                            urlp**);
-
 // Private hello protocol exported for test
 extern int rlpx_hello_p2p_version(const urlp* rlp, uint32_t* out);
 extern int rlpx_hello_client_id(const urlp* rlp, const char**, uint32_t* l);
