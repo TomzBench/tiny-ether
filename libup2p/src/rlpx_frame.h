@@ -28,7 +28,7 @@ extern "C" {
 #include "uecc.h"
 #include "ukeccak256.h"
 #include "urlp.h"
-#include "urlp.h"
+
 int rlpx_frame_write(ukeccak256_ctx* h,
                      uaes_ctx* aes_mac,
                      uaes_ctx* aes_enc,
@@ -45,20 +45,6 @@ int rlpx_frame_parse(ukeccak256_ctx* h,
                      const uint8_t* frame,
                      size_t l,
                      urlp**);
-
-int rlpx_frame_parse_header(ukeccak256_ctx* h,
-                            uaes_ctx* aes_mac,
-                            uaes_ctx* aes_dec,
-                            const uint8_t* header,
-                            urlp** header_urlp,
-                            uint32_t* body_len);
-
-int rlpx_frame_parse_body(ukeccak256_ctx* h,
-                          uaes_ctx* aes_mac,
-                          uaes_ctx* aes_dec,
-                          const uint8_t* body,
-                          uint32_t body_len,
-                          urlp** rlp);
 
 // TODO - this methods should move to different file as they don't deal with
 // transcoding

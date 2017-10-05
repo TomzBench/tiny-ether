@@ -1,15 +1,26 @@
 #include "rlpx_frame.h"
 #include "rlpx_helper_macros.h"
 
-int frame_egress(ukeccak256_ctx* h, /*!< hash */
-                 uaes_ctx* aes_mac, /*!< mac generator */
-                 uaes_ctx* aes_enc, /*!< cipher text generator */
-                 const uint8_t* x,  /*!< plain text */
-                 size_t xlen,       /*!< plain text len */
-                 uint8_t* out,      /*!< [out] cipher text */
-                 uint8_t* mac       /*!< [out] mac */
-                 );
-
+// private
+int frame_parse_header(ukeccak256_ctx* h,
+                       uaes_ctx* aes_mac,
+                       uaes_ctx* aes_dec,
+                       const uint8_t* header,
+                       urlp** header_urlp,
+                       uint32_t* body_len);
+int frame_parse_body(ukeccak256_ctx* h,
+                     uaes_ctx* aes_mac,
+                     uaes_ctx* aes_dec,
+                     const uint8_t* body,
+                     uint32_t body_len,
+                     urlp** rlp);
+int frame_egress(ukeccak256_ctx* h,
+                 uaes_ctx* aes_mac,
+                 uaes_ctx* aes_enc,
+                 const uint8_t* x,
+                 size_t xlen,
+                 uint8_t* out,
+                 uint8_t* mac);
 int frame_ingress(ukeccak256_ctx* h,
                   uaes_ctx* aes_mac,
                   uaes_ctx* aes_dec,
@@ -18,6 +29,7 @@ int frame_ingress(ukeccak256_ctx* h,
                   const uint8_t* expect,
                   uint8_t* out);
 
+// public
 int
 rlpx_frame_write(ukeccak256_ctx* h,
                  uaes_ctx* aes_mac,
@@ -65,7 +77,7 @@ rlpx_frame_parse(ukeccak256_ctx* h,
     if (l < 32) return -1;
 
     // Parse header
-    err = rlpx_frame_parse_header(h, aes_mac, aes_dec, frame, &head, &sz);
+    err = frame_parse_header(h, aes_mac, aes_dec, frame, &head, &sz);
     if (err) return err;
 
     // Check length (accounts for aes padding)
@@ -75,7 +87,7 @@ rlpx_frame_parse(ukeccak256_ctx* h,
     }
 
     // Parse body
-    err = rlpx_frame_parse_body(h, aes_mac, aes_dec, frame + 32, sz, &body);
+    err = frame_parse_body(h, aes_mac, aes_dec, frame + 32, sz, &body);
     if (err) {
         urlp_free(&head);
         return err;
@@ -96,12 +108,12 @@ rlpx_frame_parse(ukeccak256_ctx* h,
 }
 
 int
-rlpx_frame_parse_header(ukeccak256_ctx* h,
-                        uaes_ctx* aes_mac,
-                        uaes_ctx* aes_dec,
-                        const uint8_t* hdr,
-                        urlp** header_urlp,
-                        uint32_t* body_len)
+frame_parse_header(ukeccak256_ctx* h,
+                   uaes_ctx* aes_mac,
+                   uaes_ctx* aes_dec,
+                   const uint8_t* hdr,
+                   urlp** header_urlp,
+                   uint32_t* body_len)
 {
     int err = -1;
     uint8_t tmp[32];
@@ -119,12 +131,12 @@ rlpx_frame_parse_header(ukeccak256_ctx* h,
 }
 
 int
-rlpx_frame_parse_body(ukeccak256_ctx* h,
-                      uaes_ctx* aes_mac,
-                      uaes_ctx* aes_dec,
-                      const uint8_t* frame,
-                      uint32_t l,
-                      urlp** rlp)
+frame_parse_body(ukeccak256_ctx* h,
+                 uaes_ctx* aes_mac,
+                 uaes_ctx* aes_dec,
+                 const uint8_t* frame,
+                 uint32_t l,
+                 urlp** rlp)
 {
     int err;
     uint8_t body[(l = l % 16 ? AES_LEN(l) : l)];
