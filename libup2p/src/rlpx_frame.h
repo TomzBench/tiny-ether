@@ -49,7 +49,7 @@ int rlpx_frame_parse(ukeccak256_ctx* h,
 // TODO - this methods should move to different file as they don't deal with
 // transcoding
 static inline int
-rlpx_frame_to_str(const urlp* rlp, int idx, const char** str_p)
+rlpx_rlp_to_str(const urlp* rlp, int idx, const char** str_p)
 {
     if (!(rlp = urlp_at(rlp, idx))) return -1;
     *str_p = urlp_str(rlp);
@@ -57,7 +57,7 @@ rlpx_frame_to_str(const urlp* rlp, int idx, const char** str_p)
 }
 
 static inline int
-rlpx_frame_to_mem(const urlp* rlp, int idx, const char** mem_p, uint32_t* l)
+rlpx_rlp_to_mem(const urlp* rlp, int idx, const char** mem_p, uint32_t* l)
 {
     if (!(rlp = urlp_at(rlp, idx))) return -1;
     *mem_p = (const char*)urlp_ref(rlp, (uint32_t*)l);
@@ -65,7 +65,7 @@ rlpx_frame_to_mem(const urlp* rlp, int idx, const char** mem_p, uint32_t* l)
 }
 
 static inline int
-rlpx_frame_to_u8(const urlp* rlp, int idx, uint8_t* out)
+rlpx_rlp_to_u8(const urlp* rlp, int idx, uint8_t* out)
 {
     if (!(rlp = urlp_at(rlp, idx))) return -1;
     *out = urlp_as_u8(rlp);
@@ -73,7 +73,7 @@ rlpx_frame_to_u8(const urlp* rlp, int idx, uint8_t* out)
 }
 
 static inline int
-rlpx_frame_to_u16(const urlp* rlp, int idx, uint16_t* out)
+rlpx_rlp_to_u16(const urlp* rlp, int idx, uint16_t* out)
 {
     if (!(rlp = urlp_at(rlp, idx))) return -1;
     *out = urlp_as_u16(rlp);
@@ -81,7 +81,7 @@ rlpx_frame_to_u16(const urlp* rlp, int idx, uint16_t* out)
 }
 
 static inline int
-rlpx_frame_to_u32(const urlp* rlp, int idx, uint32_t* out)
+rlpx_rlp_to_u32(const urlp* rlp, int idx, uint32_t* out)
 {
     if (!(rlp = urlp_at(rlp, idx))) return -1;
     *out = urlp_as_u32(rlp);
@@ -89,7 +89,7 @@ rlpx_frame_to_u32(const urlp* rlp, int idx, uint32_t* out)
 }
 
 static inline int
-rlpx_frame_to_u64(const urlp* rlp, int idx, uint64_t* out)
+rlpx_rlp_to_u64(const urlp* rlp, int idx, uint64_t* out)
 {
     if (!(rlp = urlp_at(rlp, idx))) return -1;
     *out = urlp_as_u64(rlp);
