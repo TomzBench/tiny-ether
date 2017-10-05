@@ -16,8 +16,8 @@ rlpx_hello_write(ukeccak256_ctx* h,
                  uint8_t* out,
                  size_t* l)
 {
-    int err;
-    uint32_t p2pver = RLPX_VERSION_P2P, les = 2, rlplen;
+    int err = -1;
+    uint32_t p2pver = RLPX_VERSION_P2P, les = 2, tmp = *l - 1;
     urlp *body = urlp_list(), *caps = urlp_list();
     // uint8_t data[400] = { 0x00 }; // init with message-id 'hello'
 
@@ -31,9 +31,10 @@ rlpx_hello_write(ukeccak256_ctx* h,
     urlp_push(body, urlp_item_u32(&port, 1));
     urlp_push(body, urlp_item_str(id, 65));
 
-    if (!(rlplen = urlp_print(body, &out[1], *l - 1))) return -1;
-    out[0] = 0; // message-id
-    err = rlpx_frame_write(h, aes_mac, aes_enc, 0, 0, out, rlplen + 1, out, l);
+    if (!urlp_print(body, &out[1], &tmp)) {
+        out[0] = 0; // message-id
+        err = rlpx_frame_write(h, aes_mac, aes_enc, 0, 0, out, tmp + 1, out, l);
+    }
     urlp_free(&body);
     return err;
 }

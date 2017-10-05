@@ -37,7 +37,7 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
     int err;
 
     // plain text size
-    size_t rlpsz = urlp_print_size(rlp);
+    uint32_t rlpsz = urlp_print_size(rlp);
     size_t padsz = urand_min_max_u8(RLPX_MIN_PAD, RLPX_MAX_PAD);
 
     // cipher prefix big endian
@@ -58,7 +58,7 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 
     // Inform caller size, print and encrypt rlp
     *l = sz;
-    if (!(urlp_print(rlp, plain, rlpsz) == rlpsz)) return -1;
+    if (urlp_print(rlp, plain, &rlpsz)) return -1;
     urand(&plain[rlpsz], padsz);
     err = uecies_encrypt(q, p, 2, plain, padsz + rlpsz, &p[2]);
     return err;
