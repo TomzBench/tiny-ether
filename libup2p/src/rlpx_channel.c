@@ -1,4 +1,5 @@
 #include "rlpx_channel.h"
+#include "rlpx_frame.h"
 #include "rlpx_handshake.h"
 #include "rlpx_hello.h"
 #include "rlpx_helper_macros.h"
@@ -199,13 +200,19 @@ rlpx_ch_secrets(rlpx_channel* s,
 int
 rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
-    return rlpx_hello_write(&ch->emac, &ch->aes_mac, &ch->aes_enc,
-                            ch->listen_port, ch->node_id, out, l);
+    size_t tmp = *l;
+    int err = rlpx_hello_write(ch->listen_port, ch->node_id, out, &tmp);
+    if (!err) {
+        err = rlpx_frame_write(&ch->emac, &ch->aes_mac, &ch->aes_enc, 0, 0, out,
+                               tmp, out, l);
+    }
+    return err;
 }
+
 int
-rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** rlp_p)
+rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** p)
 {
-    return rlpx_hello_read(&ch->imac, &ch->aes_mac, &ch->aes_dec, in, l, rlp_p);
+    return rlpx_frame_parse(&ch->imac, &ch->aes_mac, &ch->aes_dec, in, l, p);
 }
 
 //

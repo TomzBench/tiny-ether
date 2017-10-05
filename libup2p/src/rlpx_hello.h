@@ -11,19 +11,7 @@ extern "C" {
 
 #include "ukeccak256.h"
 
-int rlpx_hello_write(ukeccak256_ctx* h,
-                     uaes_ctx* aes_mac,
-                     uaes_ctx* aes_enc,
-                     uint32_t port,
-                     const char* id,
-                     uint8_t* out,
-                     size_t* l);
-int rlpx_hello_read(ukeccak256_ctx* h,
-                    uaes_ctx* aes_mac,
-                    uaes_ctx* aes_dec,
-                    const uint8_t* in,
-                    size_t l,
-                    urlp** rlp_p);
+int rlpx_hello_write(uint32_t port, const char* id, uint8_t* out, size_t* l);
 int rlpx_hello_p2p_version(const urlp* rlp, uint32_t* out);
 int rlpx_hello_client_id(const urlp* rlp, const char**, uint32_t* l);
 int rlpx_hello_capabilities(const urlp* rlp, const char* cap, uint32_t v);
