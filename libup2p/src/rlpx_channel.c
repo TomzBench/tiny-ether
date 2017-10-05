@@ -1,5 +1,4 @@
 #include "rlpx_channel.h"
-#include "rlpx_frame.h"
 #include "rlpx_handshake.h"
 #include "rlpx_hello.h"
 #include "rlpx_helper_macros.h"
