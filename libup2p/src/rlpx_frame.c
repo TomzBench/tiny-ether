@@ -2,12 +2,12 @@
 #include "rlpx_helper_macros.h"
 
 // private
-int frame_parse_header(ukeccak256_ctx* h,
-                       uaes_ctx* aes_mac,
-                       uaes_ctx* aes_dec,
-                       const uint8_t* header,
-                       urlp** header_urlp,
-                       uint32_t* body_len);
+int frame_parse_head(ukeccak256_ctx* h,
+                     uaes_ctx* aes_mac,
+                     uaes_ctx* aes_dec,
+                     const uint8_t* header,
+                     urlp** header_urlp,
+                     uint32_t* body_len);
 int frame_parse_body(ukeccak256_ctx* h,
                      uaes_ctx* aes_mac,
                      uaes_ctx* aes_dec,
@@ -77,7 +77,7 @@ rlpx_frame_parse(ukeccak256_ctx* h,
     if (l < 32) return -1;
 
     // Parse header
-    err = frame_parse_header(h, aes_mac, aes_dec, frame, &head, &sz);
+    err = frame_parse_head(h, aes_mac, aes_dec, frame, &head, &sz);
     if (err) return err;
 
     // Check length (accounts for aes padding)
@@ -108,12 +108,12 @@ rlpx_frame_parse(ukeccak256_ctx* h,
 }
 
 int
-frame_parse_header(ukeccak256_ctx* h,
-                   uaes_ctx* aes_mac,
-                   uaes_ctx* aes_dec,
-                   const uint8_t* hdr,
-                   urlp** header_urlp,
-                   uint32_t* body_len)
+frame_parse_head(ukeccak256_ctx* h,
+                 uaes_ctx* aes_mac,
+                 uaes_ctx* aes_dec,
+                 const uint8_t* hdr,
+                 urlp** header_urlp,
+                 uint32_t* body_len)
 {
     int err = -1;
     uint8_t tmp[32];
