@@ -1,11 +1,9 @@
 #include "rlpx_hello.h"
 #include "rlpx_config.h"
-#include "rlpx_frame.h"
+#include "rlpx_protocol.h"
 
 // TODO - rlpx_frame.h rename to transcoder and removed from this file.
 // convert inputs to a packet.  Caller should then encrypt/decrypt packet
-//
-// TODO - hardcode the rlp hello packet
 
 int
 rlpx_hello_write(uint32_t port, const char* id, uint8_t* out, size_t* l)
