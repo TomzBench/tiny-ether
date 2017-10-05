@@ -4,53 +4,48 @@
 #include "rlpx_helper_macros.h"
 #include "unonce.h"
 
-rlpx_channel*
-rlpx_ch_alloc()
+int
+rlpx_ch_init(rlpx_channel* ch)
 {
-    return rlpx_ch_alloc_keypair(NULL, NULL);
+    return rlpx_ch_init_keypair(ch, NULL, NULL);
 }
 
-rlpx_channel*
-rlpx_ch_alloc_key(uecc_private_key* s)
+int
+rlpx_ch_init_key(rlpx_channel* ch, uecc_private_key* s)
 {
-    return rlpx_ch_alloc_keypair(s, NULL);
+    return rlpx_ch_init_keypair(ch, s, NULL);
 }
 
-rlpx_channel*
-rlpx_ch_alloc_keypair(uecc_private_key* s, uecc_private_key* e)
+int
+rlpx_ch_init_keypair(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
 {
-    rlpx_channel* session = rlpx_malloc_fn(sizeof(rlpx_channel));
-    if (session) {
-        // clean mem
-        memset(session, 0, sizeof(rlpx_channel));
+    ct_assert(sizeof(rlpx_channel) == SIZEOF_RLPX_CHANNEL);
+    // clean mem
+    memset(ch, 0, sizeof(rlpx_channel));
 
-        // update info
-        session->listen_port = 44;         // TODO
-        memset(session->node_id, 'A', 65); // TODO
+    // update info
+    ch->listen_port = 44;         // TODO
+    memset(ch->node_id, 'A', 65); // TODO
 
-        // Create keys
-        if (s) {
-            uecc_key_init_binary(&session->skey, s);
-        } else {
-            uecc_key_init_new(&session->skey);
-        }
-        if (e) {
-            uecc_key_init_binary(&session->ekey, e);
-        } else {
-            uecc_key_init_new(&session->ekey);
-        }
+    // Create keys
+    if (s) {
+        uecc_key_init_binary(&ch->skey, s);
+    } else {
+        uecc_key_init_new(&ch->skey);
     }
-    return session;
+    if (e) {
+        uecc_key_init_binary(&ch->ekey, e);
+    } else {
+        uecc_key_init_new(&ch->ekey);
+    }
+    return 0;
 }
 
 void
-rlpx_ch_free(rlpx_channel** session_p)
+rlpx_ch_deinit(rlpx_channel* ch)
 {
-    rlpx_channel* s = *session_p;
-    *session_p = NULL;
-    uecc_key_deinit(&s->skey);
-    uecc_key_deinit(&s->ekey);
-    rlpx_free_fn(s);
+    uecc_key_deinit(&ch->skey);
+    uecc_key_deinit(&ch->ekey);
 }
 
 uint64_t

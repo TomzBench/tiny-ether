@@ -35,16 +35,16 @@ test_frame_read()
     memcpy(mac, makebin(g_go_mac_secret, NULL), 32);
 
     // Set some phoney nonces
-    rlpx_test_nonce_set(s.bob, &s.bob_n);
-    rlpx_test_nonce_set(s.alice, &s.alice_n);
-    rlpx_test_remote_nonce_set(s.bob, &s.alice_n);
-    rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
+    rlpx_test_nonce_set(&s.bob, &s.bob_n);
+    rlpx_test_nonce_set(&s.alice, &s.alice_n);
+    rlpx_test_remote_nonce_set(&s.bob, &s.alice_n);
+    rlpx_test_remote_nonce_set(&s.alice, &s.bob_n);
 
     // Update our secrets
-    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
-    IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
+    IF_ERR_EXIT(rlpx_ch_auth_load(&s.bob, s.auth, s.authlen));
+    IF_ERR_EXIT(rlpx_expect_secrets(&s.bob, 0, s.ack, s.acklen, s.auth,
                                     s.authlen, aes, mac, NULL));
-    IF_ERR_EXIT(rlpx_ch_hello_read(s.bob, makebin(g_hello_packet, NULL),
+    IF_ERR_EXIT(rlpx_ch_hello_read(&s.bob, makebin(g_hello_packet, NULL),
                                    strlen(g_hello_packet) / 2, &frame));
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
     IF_ERR_EXIT(rlpx_hello_p2p_version(seek, &p2pver));
@@ -71,26 +71,28 @@ test_frame_write()
     uint32_t numa, numb;
 
     // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, rlpx_ch_pub_skey(s.bob), a, &alen));
-    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
+    IF_ERR_EXIT(
+        rlpx_ch_auth_write(&s.alice, rlpx_ch_pub_skey(&s.bob), a, &alen));
+    IF_ERR_EXIT(rlpx_ch_auth_load(&s.bob, a, alen));
 
     // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, rlpx_ch_pub_skey(s.alice), b, &blen));
-    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
+    IF_ERR_EXIT(
+        rlpx_ch_ack_write(&s.bob, rlpx_ch_pub_skey(&s.alice), b, &blen));
+    IF_ERR_EXIT(rlpx_ch_ack_load(&s.alice, b, blen));
 
     // Check key exchange
-    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.alice), g_bob_epub));
-    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.bob), g_alice_epub));
+    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(&s.alice), g_bob_epub));
+    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(&s.bob), g_alice_epub));
 
     // Update secrets
-    IF_ERR_EXIT(rlpx_ch_secrets(s.bob, 0, b, blen, a, alen));
-    IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
+    IF_ERR_EXIT(rlpx_ch_secrets(&s.bob, 0, b, blen, a, alen));
+    IF_ERR_EXIT(rlpx_ch_secrets(&s.alice, 1, a, alen, b, blen));
 
     // Write some packets
-    IF_ERR_EXIT(rlpx_ch_hello_write(s.alice, from_alice, &lena));
-    IF_ERR_EXIT(rlpx_ch_hello_write(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_hello_read(s.alice, from_bob, lenb, &frameb));
-    IF_ERR_EXIT(rlpx_ch_hello_read(s.bob, from_alice, lena, &framea));
+    IF_ERR_EXIT(rlpx_ch_hello_write(&s.alice, from_alice, &lena));
+    IF_ERR_EXIT(rlpx_ch_hello_write(&s.bob, from_bob, &lenb));
+    IF_ERR_EXIT(rlpx_ch_hello_read(&s.alice, from_bob, lenb, &frameb));
+    IF_ERR_EXIT(rlpx_ch_hello_read(&s.bob, from_alice, lena, &framea));
 
     bodya = urlp_at(urlp_at(framea, 1), 1); // get body frame
     bodyb = urlp_at(urlp_at(frameb, 1), 1); // get body frame
@@ -116,16 +118,16 @@ test_frame_write()
     // verify listen port
     rlpx_hello_listen_port(bodya, &numa);
     rlpx_hello_listen_port(bodyb, &numb);
-    IF_ERR_EXIT((numa == rlpx_ch_listen_port(s.alice)) ? 0 : -1);
-    IF_ERR_EXIT((numb == rlpx_ch_listen_port(s.bob)) ? 0 : -1);
+    IF_ERR_EXIT((numa == rlpx_ch_listen_port(&s.alice)) ? 0 : -1);
+    IF_ERR_EXIT((numb == rlpx_ch_listen_port(&s.bob)) ? 0 : -1);
 
     // verify node_id
     rlpx_hello_node_id(bodya, &mema, &numa);
     rlpx_hello_node_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == 65) ? 0 : -1);
     IF_ERR_EXIT((numb == 65) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mema, rlpx_ch_node_id(s.alice), numa) ? -1 : 0);
-    IF_ERR_EXIT(memcmp(memb, rlpx_ch_node_id(s.bob), numb) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(mema, rlpx_ch_node_id(&s.alice), numa) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(memb, rlpx_ch_node_id(&s.bob), numb) ? -1 : 0);
 
 EXIT:
     // clean

@@ -12,10 +12,10 @@ extern "C" {
 
 #include "rlpx_config.h"
 #include "rlpx_frame.h"
+#include "rlpx_helper_macros.h"
 
 typedef struct
 {
-    // board_socket_fd conn;        /*!< os socket handle */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
     h256 nonce;                  /*!< local nonce */
@@ -30,10 +30,10 @@ typedef struct
 } rlpx_channel;
 
 // constructors
-rlpx_channel* rlpx_ch_alloc();
-rlpx_channel* rlpx_ch_alloc_key(uecc_private_key*);
-rlpx_channel* rlpx_ch_alloc_keypair(uecc_private_key*, uecc_private_key*);
-void rlpx_ch_free(rlpx_channel** session_p);
+int rlpx_ch_init(rlpx_channel*);
+int rlpx_ch_init_key(rlpx_channel*, uecc_private_key*);
+int rlpx_ch_init_keypair(rlpx_channel*, uecc_private_key*, uecc_private_key*);
+void rlpx_ch_deinit(rlpx_channel* session);
 
 // setters / getters
 uint64_t rlpx_ch_version_remote(rlpx_channel*);
