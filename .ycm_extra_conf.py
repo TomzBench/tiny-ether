@@ -47,6 +47,7 @@ flags = [
 '-DNDEBUG',
 '-DURLP_CONFIG_LINUX_EMU',
 '-DURLPX_CONFIG_LINUX_EMU',
+'-DUSYS_CONFIG_LINUX_EMU',
 # You 100% do NOT need -DUSE_CLANG_COMPLETER in your flags; only the YCM
 # source code needs it.
 #'-DUSE_CLANG_COMPLETER',
@@ -112,7 +113,17 @@ flags = [
 '-I',
 './libup2p/include',
 '-I',
-'./libup2p/test'
+'./libup2p/test',
+'-I',
+'./libusys/unix/src',
+'-I',
+'./libusys/unix/include',
+'-I',
+'./libusys/test',
+'-I',
+'./libusys/async/src',
+'-I',
+'./libusys/async/include',
 ]
 
 

@@ -1,6 +1,11 @@
 #ifndef RLPX_HELPER_MACROS_H_
 #define RLPX_HELPER_MACROS_H_
 
+// Static assertion helper.
+#define ASSERT_CONCAT_(a, b) a##b
+#define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
+#define ct_assert(e) enum { ASSERT_CONCAT(assert_line, __LINE__) = 1 / (!!(e)) }
+
 #define AES_LEN(l) ((l) % 16 ? ((l) + 16 - ((l) % 16)) : (l))
 
 #define READ_BE(l, dst, src)                                                   \
