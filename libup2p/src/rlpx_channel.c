@@ -4,22 +4,28 @@
 #include "rlpx_helper_macros.h"
 #include "unonce.h"
 
-int
-rlpx_ch_init(rlpx_channel* ch)
+rlpx_channel*
+rlpx_ch_alloc_keypair(uecc_private_key* skey, uecc_private_key* ekey)
 {
-    return rlpx_ch_init_keypair(ch, NULL, NULL);
+    rlpx_channel* ch = rlpx_malloc(sizeof(rlpx_channel));
+    if (ch) {
+        rlpx_ch_init_keypair(ch, skey, ekey);
+    }
+    return ch;
 }
 
-int
-rlpx_ch_init_key(rlpx_channel* ch, uecc_private_key* s)
+void
+rlpx_ch_free(rlpx_channel** ch_p)
 {
-    return rlpx_ch_init_keypair(ch, s, NULL);
+    rlpx_channel* ch = *ch_p;
+    *ch_p = NULL;
+    rlpx_ch_deinit(ch);
+    rlpx_free(ch);
 }
 
 int
 rlpx_ch_init_keypair(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
 {
-    ct_assert(sizeof(rlpx_channel) == SIZEOF_RLPX_CHANNEL);
     // clean mem
     memset(ch, 0, sizeof(rlpx_channel));
 

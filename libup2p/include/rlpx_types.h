@@ -12,11 +12,7 @@ extern "C" {
 
 #include "rlpx_config.h"
 
-/* TODO - OPAQUE CLASS */
-typedef struct
-{
-    uint8_t opaque[SIZEOF_RLPX_CHANNEL];
-} rlpx_channel;
+typedef struct rlpx_channel rlpx_channel;
 
 #ifdef __cplusplus
 }

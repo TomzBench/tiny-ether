@@ -33,7 +33,7 @@ typedef struct
 
 typedef struct
 {
-    rlpx_channel alice, bob;     /*!< rlpx context */
+    rlpx_channel *alice, *bob;   /*!< rlpx context */
     size_t authlen, acklen;      /*!< size of cipher */
     uint8_t auth[800], ack[800]; /*!< cipher test buffers */
     h256 alice_n, bob_n;         /*!< nonces used sometimes */

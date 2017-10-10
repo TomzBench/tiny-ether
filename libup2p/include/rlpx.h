@@ -29,12 +29,9 @@ extern "C" {
  */
 
 // constructors
-extern int rlpx_ch_init(rlpx_channel*);
-extern int rlpx_ch_init_key(rlpx_channel*, uecc_private_key*);
-extern int rlpx_ch_init_keypair(rlpx_channel*,
-                                uecc_private_key*,
-                                uecc_private_key*);
-extern void rlpx_ch_deinit(rlpx_channel* session_p);
+extern rlpx_channel* rlpx_ch_alloc_keypair(uecc_private_key* skey,
+                                           uecc_private_key* ekey);
+extern void rlpx_ch_free(rlpx_channel** ch_p);
 
 // setters / getters
 extern uint64_t rlpx_ch_version_remote(rlpx_channel*);

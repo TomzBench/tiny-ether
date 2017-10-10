@@ -8,11 +8,6 @@
 #include "rlpx_config_linux_emu.h"
 #endif
 
-// Size of opaque module handles
-#ifndef SIZEOF_RLPX_CHANNEL
-#define SIZEOF_RLPX_CHANNEL 2112
-#endif
-
 // P2P client name
 #define RLPX_CLIENT_ID_STR "tiny-ether"
 #define RLPX_CLIENT_ID_LEN (sizeof(RLPX_CLIENT_ID_STR) - 1)
