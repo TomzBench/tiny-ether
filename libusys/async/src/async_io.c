@@ -1,8 +1,21 @@
 #include "async_io.h"
 
-int async_io_start(async_io* self);
+// Override system IO with MOCK implementation OR other IO implementation.
+// Useful for test or portability.
+usys_io_send_fn g_usys_async_io_send = usys_send;
+usys_io_recv_fn g_usys_async_io_recv = usys_recv;
 
+// Private prototypes.
+int async_io_start(async_io* self);
 void async_error(async_io* self, int);
+
+// Public
+void
+async_io_install(usys_io_send_fn s, usys_io_recv_fn r)
+{
+    g_usys_async_io_send = s;
+    g_usys_async_io_recv = r;
+}
 
 void
 async_io_init(async_io* self,
@@ -14,8 +27,8 @@ async_io_init(async_io* self,
     memset(self, 0, sizeof(async_io));
     self->sock = -1;
     self->ctx = ctx;
-    self->tx = usys_send;
-    self->rx = usys_recv;
+    self->tx = g_usys_async_io_send;
+    self->rx = g_usys_async_io_recv;
     self->on_send = on_send;
     self->on_recv = on_recv;
     self->on_erro = on_erro;

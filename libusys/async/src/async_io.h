@@ -66,6 +66,7 @@ typedef struct
     uint8_t b[1200];
 } async_io;
 
+void async_io_install(usys_io_send_fn s, usys_io_recv_fn r);
 void async_io_init(async_io*, void*, async_io_cb, async_io_cb, async_io_cb);
 void async_io_deinit(async_io* self);
 int async_io_connect(async_io* async, const char* ip, uint32_t p);
