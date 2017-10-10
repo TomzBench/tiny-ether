@@ -47,10 +47,10 @@ test_frame_read()
     IF_ERR_EXIT(rlpx_ch_hello_read(s.bob, makebin(g_hello_packet, NULL),
                                    strlen(g_hello_packet) / 2, &frame));
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
-    IF_ERR_EXIT(rlpx_hello_p2p_version(seek, &p2pver));
+    IF_ERR_EXIT(rlpx_devp2p_hello_p2p_version(seek, &p2pver));
     IF_ERR_EXIT(p2pver == 3 ? 0 : -1);
-    IF_ERR_EXIT(rlpx_hello_capabilities(seek, "a", 0));
-    IF_ERR_EXIT(rlpx_hello_capabilities(seek, "b", 2));
+    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(seek, "a", 0));
+    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(seek, "b", 2));
     urlp_free(&frame);
 EXIT:
     test_session_deinit(&s);
@@ -96,32 +96,32 @@ test_frame_write()
     bodyb = urlp_at(urlp_at(frameb, 1), 1); // get body frame
 
     // Verify p2pver
-    rlpx_hello_p2p_version(bodya, &numa);
-    rlpx_hello_p2p_version(bodyb, &numb);
+    rlpx_devp2p_hello_p2p_version(bodya, &numa);
+    rlpx_devp2p_hello_p2p_version(bodyb, &numb);
     IF_ERR_EXIT((numa == RLPX_VERSION_P2P) ? 0 : -1);
     IF_ERR_EXIT((numb == RLPX_VERSION_P2P) ? 0 : -1);
 
     // Verify client id read ok
-    rlpx_hello_client_id(bodya, &mema, &numa);
-    rlpx_hello_client_id(bodyb, &memb, &numb);
+    rlpx_devp2p_hello_client_id(bodya, &mema, &numa);
+    rlpx_devp2p_hello_client_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == RLPX_CLIENT_ID_LEN) ? 0 : -1);
     IF_ERR_EXIT((numb == RLPX_CLIENT_ID_LEN) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mema, RLPX_CLIENT_ID_STR, numa) ? -1 : 0);
     IF_ERR_EXIT(memcmp(memb, RLPX_CLIENT_ID_STR, numb) ? -1 : 0);
 
     // Verify capabilities read ok
-    IF_ERR_EXIT(rlpx_hello_capabilities(bodya, "les", 2));
-    IF_ERR_EXIT(rlpx_hello_capabilities(bodyb, "les", 2));
+    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(bodya, "les", 2));
+    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(bodyb, "les", 2));
 
     // verify listen port
-    rlpx_hello_listen_port(bodya, &numa);
-    rlpx_hello_listen_port(bodyb, &numb);
+    rlpx_devp2p_hello_listen_port(bodya, &numa);
+    rlpx_devp2p_hello_listen_port(bodyb, &numb);
     IF_ERR_EXIT((numa == rlpx_ch_listen_port(s.alice)) ? 0 : -1);
     IF_ERR_EXIT((numb == rlpx_ch_listen_port(s.bob)) ? 0 : -1);
 
     // verify node_id
-    rlpx_hello_node_id(bodya, &mema, &numa);
-    rlpx_hello_node_id(bodyb, &memb, &numb);
+    rlpx_devp2p_hello_node_id(bodya, &mema, &numa);
+    rlpx_devp2p_hello_node_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == 65) ? 0 : -1);
     IF_ERR_EXIT((numb == 65) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mema, rlpx_ch_node_id(s.alice), numa) ? -1 : 0);

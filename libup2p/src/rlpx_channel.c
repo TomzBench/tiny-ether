@@ -1,8 +1,9 @@
 #include "rlpx_channel.h"
 #include "rlpx_handshake.h"
-#include "rlpx_hello.h"
 #include "rlpx_helper_macros.h"
 #include "unonce.h"
+
+#include "protocols/devp2p/rlpx_devp2p.h"
 
 rlpx_channel*
 rlpx_ch_alloc_keypair(uecc_private_key* skey, uecc_private_key* ekey)
@@ -200,7 +201,7 @@ int
 rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
     size_t tmp = *l;
-    int err = rlpx_hello_write(ch->listen_port, ch->node_id, out, &tmp);
+    int err = rlpx_devp2p_hello_write(ch->listen_port, ch->node_id, out, &tmp);
     if (!err) {
         err = rlpx_frame_write(&ch->x, 0, 0, out, tmp, out, l);
     }

@@ -34,11 +34,11 @@ int rlpx_expect_secrets(rlpx_channel* s,
                         uint8_t* foo);
 
 // Private hello protocol exported for test
-extern int rlpx_hello_p2p_version(const urlp* rlp, uint32_t* out);
-extern int rlpx_hello_client_id(const urlp* rlp, const char**, uint32_t* l);
-extern int rlpx_hello_capabilities(const urlp*, const char*, uint32_t);
-extern int rlpx_hello_listen_port(const urlp* rlp, uint32_t*);
-extern int rlpx_hello_node_id(const urlp* rlp, const char**, uint32_t*);
+extern int rlpx_devp2p_hello_p2p_version(const urlp* rlp, uint32_t* out);
+extern int rlpx_devp2p_hello_client_id(const urlp*, const char**, uint32_t*);
+extern int rlpx_devp2p_hello_capabilities(const urlp*, const char*, uint32_t);
+extern int rlpx_devp2p_hello_listen_port(const urlp* rlp, uint32_t*);
+extern int rlpx_devp2p_hello_node_id(const urlp* rlp, const char**, uint32_t*);
 
 // private channel exports for test
 extern int rlpx_ch_hello_read(rlpx_channel* ch,

@@ -1,9 +1,9 @@
-#include "rlpx_hello.h"
+#include "rlpx_devp2p_hello.h"
 #include "rlpx_config.h"
 #include "rlpx_protocol.h"
 
 int
-rlpx_hello_write(uint32_t port, const char* id, uint8_t* out, size_t* l)
+rlpx_devp2p_hello_write(uint32_t port, const char* id, uint8_t* out, size_t* l)
 {
     int err = -1;
     uint32_t p2pver = RLPX_VERSION_P2P, les = 2, tmp = *l - 1;
@@ -27,19 +27,19 @@ rlpx_hello_write(uint32_t port, const char* id, uint8_t* out, size_t* l)
 }
 
 int
-rlpx_hello_p2p_version(const urlp* rlp, uint32_t* out)
+rlpx_devp2p_hello_p2p_version(const urlp* rlp, uint32_t* out)
 {
     return rlpx_rlp_to_u32(rlp, 0, out);
 }
 
 int
-rlpx_hello_client_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
+rlpx_devp2p_hello_client_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 {
     return rlpx_rlp_to_mem(rlp, 1, ptr_p, l);
 }
 
 int
-rlpx_hello_capabilities(const urlp* rlp, const char* cap, uint32_t v)
+rlpx_devp2p_hello_capabilities(const urlp* rlp, const char* cap, uint32_t v)
 {
     const urlp *seek, *caps = urlp_at(rlp, 2);
     uint32_t ver, sz, len = strlen(cap), n = caps ? urlp_siblings(caps) : 0;
@@ -57,13 +57,13 @@ rlpx_hello_capabilities(const urlp* rlp, const char* cap, uint32_t v)
 }
 
 int
-rlpx_hello_listen_port(const urlp* rlp, uint32_t* port)
+rlpx_devp2p_hello_listen_port(const urlp* rlp, uint32_t* port)
 {
     return rlpx_rlp_to_u32(rlp, 3, port);
 }
 
 int
-rlpx_hello_node_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
+rlpx_devp2p_hello_node_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 {
     return rlpx_rlp_to_mem(rlp, 4, ptr_p, l);
 }

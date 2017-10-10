@@ -14,10 +14,12 @@ extern "C" {
 #include "rlpx_config.h"
 #include "rlpx_frame.h"
 #include "rlpx_helper_macros.h"
+#include "rlpx_protocol.h"
 
 typedef struct
 {
     async_io io;                 /*!< io context for network sys calls */
+    rlpx_protocol protocols[2];  /*!< protocol handlers */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
     h256 nonce;                  /*!< local nonce */
