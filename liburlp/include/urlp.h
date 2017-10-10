@@ -43,7 +43,7 @@ uint32_t urlp_children(urlp* rlp);
 uint32_t urlp_children_walk(urlp* rlp);
 uint32_t urlp_siblings(const urlp* rlp);
 uint32_t urlp_print_size(urlp* rlp);
-uint32_t urlp_print(urlp* rlp, uint8_t* b, uint32_t sz);
+int urlp_print(urlp* rlp, uint8_t* b, uint32_t* sz);
 urlp* urlp_parse(const uint8_t* b, uint32_t);
 
 #ifdef __cplusplus

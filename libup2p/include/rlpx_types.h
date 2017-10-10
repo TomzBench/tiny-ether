@@ -10,10 +10,9 @@
 extern "C" {
 #endif
 
-#include "uecc.h"
+#include "rlpx_config.h"
 
 typedef struct rlpx_channel rlpx_channel;
-typedef struct rlpx_handshake rlpx_handshake;
 
 #ifdef __cplusplus
 }

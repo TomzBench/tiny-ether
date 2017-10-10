@@ -413,30 +413,39 @@ urlp_print_size(urlp* rlp)
     return urlp_print_walk(rlp->child, NULL, 0);
 }
 
-uint32_t
-urlp_print(urlp* rlp, uint8_t* b, uint32_t l)
+int
+urlp_print(urlp* rlp, uint8_t* b, uint32_t* l)
 {
-    uint32_t sz;
+    int err = -1;
+    uint32_t sz, spot;
     if (!urlp_is_list(rlp)) {
         // handle case where this is single item and not a list
-        if (!(rlp->sz <= l)) return rlp->sz;
-        if (b) {
-            for (int i = rlp->sz - 1; i >= 0; i--) b[i] = rlp->b[i];
+        if (rlp->sz <= *l) {
+            if (b) {
+                for (int i = rlp->sz - 1; i >= 0; i--) b[i] = rlp->b[i];
+            }
+            err = 0;
         }
-        return rlp->sz;
+        *l = rlp->sz;
     } else {
         if (rlp->child) {
             // Regular list
-            sz = urlp_print_walk(rlp->child, NULL, 0); // get size
-            if (!(sz <= l)) return sz;
-            return urlp_print_walk(rlp->child, b, &sz); // print if ok
+            spot = sz = urlp_print_walk(rlp->child, NULL, 0); // get size
+            if (sz <= *l) {
+                urlp_print_walk(rlp->child, b, &spot); // print if ok
+                err = 0;
+            }
+            *l = sz;
         } else {
             // We have empty list... []
-            if (!(1 <= l)) return 1; // size of 0xc0
-            if (b) *b = 0xc0;
-            return 1;
+            if (*l) {
+                if (b) *b = 0xc0;
+                err = 0;
+            }
+            *l = 1;
         }
     }
+    return err;
 }
 
 uint32_t
