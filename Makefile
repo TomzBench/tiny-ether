@@ -13,6 +13,7 @@ CONFIGS_D 	+= 	"memset_s(W,WL,V,OL)=memset(W,V,OL)"
 
 # Collect lib objects *.o
 MODULES 	+= 	libusys/unix
+MODULES 	+= 	libusys/async
 MODULES 	+= 	libup2p
 MODULES 	+= 	libucrypto
 MODULES 	+=	liburlp

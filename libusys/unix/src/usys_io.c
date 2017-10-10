@@ -128,24 +128,24 @@ usys_select(uint32_t* rmask,
 }
 
 int
-linq_sock_error(int sock)
+usys_sock_error(usys_socket_fd* sock)
 {
     int optval = -1;
     socklen_t optlen = sizeof(optval);
-    int err = getsockopt(sock, SOL_SOCKET, SO_ERROR, &optval, &optlen);
+    int err = getsockopt(*sock, SOL_SOCKET, SO_ERROR, &optval, &optlen);
     return err ? err : (optval == EINPROGRESS) ? 0 : -1;
 }
 
 int
-linq_sock_ready(int sock)
+usys_sock_ready(usys_socket_fd* sock)
 {
     // If error return < 0
     // If waiting return 0
     // If ready return > 0 (sock)
     int optval = -1, err;
     socklen_t optlen = sizeof(optval);
-    err = getsockopt(sock, SOL_SOCKET, SO_ERROR, &optval, &optlen);
-    return err ? err : (optval == EINPROGRESS) ? 0 : optval ? -1 : sock;
+    err = getsockopt(*sock, SOL_SOCKET, SO_ERROR, &optval, &optlen);
+    return err ? err : (optval == EINPROGRESS) ? 0 : optval ? -1 : *sock;
 }
 
 //

@@ -1,3 +1,9 @@
+/**
+ * @file usys_io.h
+ *
+ * @brief Simple wrapper around OS primitives to better support non standard
+ * enviorments.
+ */
 #ifndef USYS_IO_H_
 #define USYS_IO_H_
 
@@ -18,6 +24,8 @@ int usys_file_read(usys_file_fd* fd, int offset, char* data, uint32_t l);
 int usys_file_close(usys_file_fd* fd);
 
 // Networking sys call abstraction layer
+typedef int (*usys_io_send_fn)(usys_socket_fd*, const byte*, uint32_t);
+typedef int (*usys_io_recv_fn)(usys_socket_fd*, byte*, uint32_t);
 int usys_connect(usys_socket_fd* fd, const char* host, int port);
 int usys_send_fd(usys_socket_fd fd, const byte* b, uint32_t len);
 int usys_recv_fd(int sockfd, byte* b, size_t len);
