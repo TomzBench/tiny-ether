@@ -113,6 +113,12 @@ flags = [
 './libup2p/include',
 '-I',
 './libup2p/test'
+'-I',
+'./libusys/unix/src',
+'-I',
+'./libusys/unix/include',
+'-I',
+'./libusys/test'
 ]
 
 
