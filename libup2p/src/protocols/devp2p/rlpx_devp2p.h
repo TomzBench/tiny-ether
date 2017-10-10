@@ -4,7 +4,10 @@
 extern "C" {
 #endif
 
+#include "rlpx_devp2p_disconnect.h"
 #include "rlpx_devp2p_hello.h"
+#include "rlpx_devp2p_ping.h"
+#include "rlpx_devp2p_pong.h"
 
 #ifdef __cplusplus
 }
