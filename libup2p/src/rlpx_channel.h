@@ -10,12 +10,14 @@
 extern "C" {
 #endif
 
+#include "async_io.h"
 #include "rlpx_config.h"
 #include "rlpx_frame.h"
 #include "rlpx_helper_macros.h"
 
 typedef struct
 {
+    async_io io;                 /*!< io context for network sys calls */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
     h256 nonce;                  /*!< local nonce */
@@ -30,8 +32,9 @@ typedef struct
 } rlpx_channel;
 
 // constructors
-int rlpx_ch_init(rlpx_channel*);
-int rlpx_ch_init_key(rlpx_channel*, uecc_private_key*);
+rlpx_channel* rlpx_ch_alloc_keypair(uecc_private_key* skey,
+                                    uecc_private_key* ekey);
+void rlpx_ch_free(rlpx_channel** ch_p);
 int rlpx_ch_init_keypair(rlpx_channel*, uecc_private_key*, uecc_private_key*);
 void rlpx_ch_deinit(rlpx_channel* session);
 
