@@ -3,6 +3,7 @@
 #include "rlpx_handshake.h"
 #include "rlpx_helper_macros.h"
 #include "ukeccak256.h"
+extern rlpx_devp2p_protocol_settings g_devp2p_settings;
 /*
  * This "test" feature is only to export data from normally opaque structures.
  */
@@ -122,6 +123,11 @@ rlpx_test_expect_secrets(rlpx_channel* s,
     return err;
 }
 
+void
+rlpx_test_mock_devp2p(rlpx_devp2p_protocol_settings* settings)
+{
+    g_devp2p_settings = *settings;
+}
 //
 //
 //

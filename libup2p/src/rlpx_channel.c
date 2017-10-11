@@ -3,20 +3,18 @@
 #include "rlpx_helper_macros.h"
 #include "unonce.h"
 
-#include "protocols/devp2p/rlpx_devp2p.h"
-
 // Private callbacks
-int rlpx_ch_on_devp2p_hello(void* ctx, const urlp* rlp);
-int rlpx_ch_on_devp2p_ping(void* ctx, const urlp* rlp);
-int rlpx_ch_on_devp2p_pong(void* ctx, const urlp* rlp);
-int rlpx_ch_on_devp2p_disconnect(void* ctx, const urlp* rlp);
+int rlpx_ch_read_hello(void* ctx, const urlp* rlp);
+int rlpx_ch_read_ping(void* ctx, const urlp* rlp);
+int rlpx_ch_read_pong(void* ctx, const urlp* rlp);
+int rlpx_ch_read_disconnect(void* ctx, const urlp* rlp);
 
 // Protocol callback handlers
 rlpx_devp2p_protocol_settings g_devp2p_settings = {
-    .on_hello = rlpx_ch_on_devp2p_hello,
-    .on_ping = rlpx_ch_on_devp2p_ping,
-    .on_pong = rlpx_ch_on_devp2p_pong,
-    .on_disconnect = rlpx_ch_on_devp2p_disconnect
+    .on_hello = rlpx_ch_read_hello,
+    .on_ping = rlpx_ch_read_ping,
+    .on_pong = rlpx_ch_read_pong,
+    .on_disconnect = rlpx_ch_read_disconnect
 };
 
 rlpx_channel*
@@ -215,14 +213,31 @@ rlpx_ch_secrets(rlpx_channel* s,
 }
 
 int
-rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l)
+rlpx_ch_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
-    size_t tmp = *l;
-    int err = rlpx_devp2p_hello_write(ch->listen_port, ch->node_id, out, &tmp);
-    if (!err) {
-        err = rlpx_frame_write(&ch->x, 0, 0, out, tmp, out, l);
-    }
+    int err =
+        rlpx_devp2p_write_hello(&ch->x, ch->listen_port, ch->node_id, out, l);
     return err;
+}
+
+int
+rlpx_ch_write_disconnect(rlpx_channel* ch,
+                         RLPX_DEVP2P_DISCONNECT_REASON reason,
+                         uint8_t* out,
+                         size_t* l)
+{
+    int err = rlpx_devp2p_write_disconnect(&ch->x, reason, out, l);
+    return err;
+}
+
+int
+rlpx_ch_write_ping(rlpx_channel* ch, uint8_t* out, size_t* l)
+{
+}
+
+int
+rlpx_channel_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
+{
 }
 
 int
@@ -234,7 +249,8 @@ rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
     if (!err) {
         type = rlpx_frame_type(rlp);
         if (type >= 0 && type < 2) {
-            err = ch->protocols[type]->parse(rlpx_frame_body(rlp));
+            err = ch->protocols[type]->parse(
+                ch->protocols[type], type == 0 ? rlp : rlpx_frame_body(rlp));
         }
         urlp_free(&rlp);
     }
@@ -242,29 +258,23 @@ rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
 }
 
 int
-rlpx_ch_on_devp2p_hello(void* ctx, const urlp* rlp)
+rlpx_ch_read_hello(void* ctx, const urlp* rlp)
 {
 }
 
 int
-rlpx_ch_on_devp2p_ping(void* ctx, const urlp* rlp)
+rlpx_ch_read_ping(void* ctx, const urlp* rlp)
 {
 }
 
 int
-rlpx_ch_on_devp2p_pong(void* ctx, const urlp* rlp)
+rlpx_ch_read_pong(void* ctx, const urlp* rlp)
 {
 }
 
 int
-rlpx_ch_on_devp2p_disconnect(void* ctx, const urlp* rlp)
+rlpx_ch_read_disconnect(void* ctx, const urlp* rlp)
 {
-}
-
-int
-rlpx_ch_hello_read(rlpx_channel* ch, const uint8_t* in, size_t l, urlp** p)
-{
-    return rlpx_frame_parse(&ch->x, in, l, p);
 }
 
 //

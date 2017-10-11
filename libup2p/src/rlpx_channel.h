@@ -66,11 +66,13 @@ int rlpx_ch_secrets(rlpx_channel* s,
                     uint8_t* recv,
                     uint32_t recvlen);
 int rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l);
-int rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l);
-int rlpx_ch_hello_read(rlpx_channel* ch,
-                       const uint8_t* in,
-                       size_t l,
-                       urlp** rlp_p);
+int rlpx_ch_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l);
+int rlpx_ch_write_disconnect(rlpx_channel* ch,
+                             RLPX_DEVP2P_DISCONNECT_REASON,
+                             uint8_t* out,
+                             size_t* l);
+int rlpx_ch_write_ping(rlpx_channel* ch, uint8_t* out, size_t* l);
+int rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l);
 
 #ifdef __cplusplus
 }

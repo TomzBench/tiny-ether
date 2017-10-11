@@ -1,6 +1,6 @@
 #include "rlpx_devp2p.h"
 
-int rlpx_devp2p_protocol_parse(const urlp* rlp);
+int rlpx_devp2p_protocol_parse(rlpx_protocol*, const urlp* rlp);
 
 rlpx_devp2p_protocol*
 rlpx_devp2p_protocol_alloc(const rlpx_devp2p_protocol_settings* settings)
@@ -43,8 +43,21 @@ rlpx_devp2p_protocol_deinit(rlpx_devp2p_protocol* self)
 }
 
 int
-rlpx_devp2p_protocol_parse(const urlp* rlp)
+rlpx_devp2p_protocol_parse(rlpx_protocol* base, const urlp* rlp)
 {
-    ((void)rlp);
-    return -1;
+    int err = -1;
+    rlpx_devp2p_protocol* self = (rlpx_devp2p_protocol*)base;
+    RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type = rlpx_frame_type(rlp);
+    rlp = rlpx_frame_body(rlp);
+    if (DEVP2P_HELLO == type) {
+        err = self->settings->on_hello(self->base.ctx, rlp);
+    } else if (DEVP2P_DISCONNECT == type) {
+        err = self->settings->on_disconnect(self->base.ctx, rlp);
+    } else if (DEVP2P_PING == type) {
+        err = self->settings->on_ping(self->base.ctx, rlp);
+    } else if (DEVP2P_PONG == type) {
+        err = self->settings->on_pong(self->base.ctx, rlp);
+    }
+
+    return err;
 }
