@@ -1,5 +1,4 @@
 #include "test.h"
-#include "rlpx_test_helpers.h"
 
 extern test_vector g_test_vectors[];
 extern const char* g_alice_epub;
@@ -93,10 +92,10 @@ test_secrets()
 
     rlpx_ch_auth_load(s.bob, s.auth, s.authlen);
     rlpx_ch_ack_load(s.alice, s.ack, s.acklen);
-    IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
-                                    s.authlen, aes, mac, foo));
-    IF_ERR_EXIT(rlpx_expect_secrets(s.alice, 1, s.auth, s.authlen, s.ack,
-                                    s.acklen, aes, mac, foo));
+    IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
+                                         s.authlen, aes, mac, foo));
+    IF_ERR_EXIT(rlpx_test_expect_secrets(s.alice, 1, s.auth, s.authlen, s.ack,
+                                         s.acklen, aes, mac, foo));
 EXIT:
     test_session_deinit(&s);
     return err;

@@ -12,14 +12,13 @@ extern "C" {
 
 #include "async_io.h"
 #include "rlpx_config.h"
-#include "rlpx_frame.h"
-#include "rlpx_helper_macros.h"
-#include "rlpx_protocol.h"
+#include "rlpx_devp2p.h"
 
 typedef struct
 {
     async_io io;                 /*!< io context for network sys calls */
-    rlpx_protocol protocols[2];  /*!< protocol handlers */
+    rlpx_devp2p_protocol devp2p; /*!< hello/disconnect/ping/pong */
+    rlpx_protocol* protocols[2]; /*!< protocol handlers */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
     h256 nonce;                  /*!< local nonce */
@@ -66,8 +65,14 @@ int rlpx_ch_secrets(rlpx_channel* s,
                     uint32_t sentlen,
                     uint8_t* recv,
                     uint32_t recvlen);
-int rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l);
-int rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** rlp_p);
+int rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l);
+int rlpx_ch_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l);
+int rlpx_ch_write_disconnect(rlpx_channel* ch,
+                             RLPX_DEVP2P_DISCONNECT_REASON,
+                             uint8_t* out,
+                             size_t* l);
+int rlpx_ch_write_ping(rlpx_channel* ch, uint8_t* out, size_t* l);
+int rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l);
 
 #ifdef __cplusplus
 }

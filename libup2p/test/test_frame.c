@@ -1,5 +1,4 @@
 #include "test.h"
-#include "rlpx_test_helpers.h"
 
 extern test_vector g_test_vectors[];
 extern const char* g_alice_epub;
@@ -42,15 +41,15 @@ test_frame_read()
 
     // Update our secrets
     IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
-    IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
-                                    s.authlen, aes, mac, NULL));
-    IF_ERR_EXIT(rlpx_ch_hello_read(s.bob, makebin(g_hello_packet, NULL),
-                                   strlen(g_hello_packet) / 2, &frame));
+    IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
+                                         s.authlen, aes, mac, NULL));
+    IF_ERR_EXIT(rlpx_frame_parse(&s.bob->x, makebin(g_hello_packet, NULL),
+                                 strlen(g_hello_packet) / 2, &frame));
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
-    IF_ERR_EXIT(rlpx_devp2p_hello_p2p_version(seek, &p2pver));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_p2p_version(seek, &p2pver));
     IF_ERR_EXIT(p2pver == 3 ? 0 : -1);
-    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(seek, "a", 0));
-    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(seek, "b", 2));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(seek, "a", 0));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(seek, "b", 2));
     urlp_free(&frame);
 EXIT:
     test_session_deinit(&s);
@@ -87,41 +86,41 @@ test_frame_write()
     IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
 
     // Write some packets
-    IF_ERR_EXIT(rlpx_ch_hello_write(s.alice, from_alice, &lena));
-    IF_ERR_EXIT(rlpx_ch_hello_write(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_hello_read(s.alice, from_bob, lenb, &frameb));
-    IF_ERR_EXIT(rlpx_ch_hello_read(s.bob, from_alice, lena, &framea));
+    IF_ERR_EXIT(rlpx_ch_write_hello(s.alice, from_alice, &lena));
+    IF_ERR_EXIT(rlpx_ch_write_hello(s.bob, from_bob, &lenb));
+    IF_ERR_EXIT(rlpx_frame_parse(&s.alice->x, from_bob, lenb, &frameb));
+    IF_ERR_EXIT(rlpx_frame_parse(&s.bob->x, from_alice, lena, &framea));
 
     bodya = urlp_at(urlp_at(framea, 1), 1); // get body frame
     bodyb = urlp_at(urlp_at(frameb, 1), 1); // get body frame
 
     // Verify p2pver
-    rlpx_devp2p_hello_p2p_version(bodya, &numa);
-    rlpx_devp2p_hello_p2p_version(bodyb, &numb);
+    rlpx_devp2p_protocol_p2p_version(bodya, &numa);
+    rlpx_devp2p_protocol_p2p_version(bodyb, &numb);
     IF_ERR_EXIT((numa == RLPX_VERSION_P2P) ? 0 : -1);
     IF_ERR_EXIT((numb == RLPX_VERSION_P2P) ? 0 : -1);
 
     // Verify client id read ok
-    rlpx_devp2p_hello_client_id(bodya, &mema, &numa);
-    rlpx_devp2p_hello_client_id(bodyb, &memb, &numb);
+    rlpx_devp2p_protocol_client_id(bodya, &mema, &numa);
+    rlpx_devp2p_protocol_client_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == RLPX_CLIENT_ID_LEN) ? 0 : -1);
     IF_ERR_EXIT((numb == RLPX_CLIENT_ID_LEN) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mema, RLPX_CLIENT_ID_STR, numa) ? -1 : 0);
     IF_ERR_EXIT(memcmp(memb, RLPX_CLIENT_ID_STR, numb) ? -1 : 0);
 
     // Verify capabilities read ok
-    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(bodya, "les", 2));
-    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(bodyb, "les", 2));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(bodya, "les", 2));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(bodyb, "les", 2));
 
     // verify listen port
-    rlpx_devp2p_hello_listen_port(bodya, &numa);
-    rlpx_devp2p_hello_listen_port(bodyb, &numb);
+    rlpx_devp2p_protocol_listen_port(bodya, &numa);
+    rlpx_devp2p_protocol_listen_port(bodyb, &numb);
     IF_ERR_EXIT((numa == rlpx_ch_listen_port(s.alice)) ? 0 : -1);
     IF_ERR_EXIT((numb == rlpx_ch_listen_port(s.bob)) ? 0 : -1);
 
     // verify node_id
-    rlpx_devp2p_hello_node_id(bodya, &mema, &numa);
-    rlpx_devp2p_hello_node_id(bodyb, &memb, &numb);
+    rlpx_devp2p_protocol_node_id(bodya, &mema, &numa);
+    rlpx_devp2p_protocol_node_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == 65) ? 0 : -1);
     IF_ERR_EXIT((numb == 65) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mema, rlpx_ch_node_id(s.alice), numa) ? -1 : 0);
