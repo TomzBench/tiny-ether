@@ -59,6 +59,27 @@ int rlpx_ch_ack_write(rlpx_channel* ch,
                       uint8_t* ack,
                       size_t* l);
 int rlpx_ch_ack_load(rlpx_channel* ch, const uint8_t* ack, size_t l);
+
+/**
+ * @brief - extract secrets from the handshake cipher texts and nonces
+ *
+ * ingress / egress
+ * Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
+ *           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
+ * Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
+ *           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recv-init)
+ * egress  = sha3(mac-secret^their nonce || cipher sent )
+ * ingress = sha3(mac-secret^our nonce   || cipher received)
+ *
+ * @param s
+ * @param orig
+ * @param sent
+ * @param sentlen
+ * @param recv
+ * @param recvlen
+ *
+ * @return
+ */
 int rlpx_ch_secrets(rlpx_channel* s,
                     int orig,
                     uint8_t* sent,
