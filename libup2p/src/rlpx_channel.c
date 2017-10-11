@@ -1,5 +1,4 @@
 #include "rlpx_channel.h"
-#include "rlpx_channel_io.h"
 #include "rlpx_handshake.h"
 #include "rlpx_helper_macros.h"
 #include "unonce.h"

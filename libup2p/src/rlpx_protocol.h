@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "rlpx_config.h"
+#include "rlpx_frame.h"
 #include "urlp.h"
 
 typedef int (*rlpx_protocol_on_recv_fn)(int err, urlp* rlp);

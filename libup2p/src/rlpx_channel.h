@@ -12,8 +12,6 @@ extern "C" {
 
 #include "async_io.h"
 #include "rlpx_config.h"
-#include "rlpx_frame.h"
-#include "rlpx_helper_macros.h"
 #include "rlpx_protocol.h"
 
 typedef struct
