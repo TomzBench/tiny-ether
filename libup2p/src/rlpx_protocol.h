@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include "rlpx_config.h"
 #include "urlp.h"
 
 typedef int (*rlpx_protocol_on_recv_fn)(int err, urlp* rlp);
@@ -16,10 +17,10 @@ typedef struct
     char cap[6];                      /*!< capability typically 3 letters */
 } rlpx_protocol;
 
-int rlpx_protocol_init(rlpx_protocol* proto,
-                       uint32_t type,
-                       const char* cap,
-                       rlpx_protocol_on_recv_fn fn);
+void rlpx_protocol_init(rlpx_protocol* proto,
+                        uint32_t type,
+                        const char* cap,
+                        rlpx_protocol_on_recv_fn fn);
 
 static inline int
 rlpx_rlp_to_str(const urlp* rlp, int idx, const char** str_p)
