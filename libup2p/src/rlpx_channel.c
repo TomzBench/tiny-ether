@@ -5,6 +5,20 @@
 
 #include "protocols/devp2p/rlpx_devp2p.h"
 
+// Private callbacks
+int rlpx_ch_on_devp2p_hello(void* ctx, const urlp* rlp);
+int rlpx_ch_on_devp2p_ping(void* ctx, const urlp* rlp);
+int rlpx_ch_on_devp2p_pong(void* ctx, const urlp* rlp);
+int rlpx_ch_on_devp2p_disconnect(void* ctx, const urlp* rlp);
+
+// Protocol callback handlers
+rlpx_devp2p_protocol_settings g_devp2p_settings = {
+    .on_hello = rlpx_ch_on_devp2p_hello,
+    .on_ping = rlpx_ch_on_devp2p_ping,
+    .on_pong = rlpx_ch_on_devp2p_pong,
+    .on_disconnect = rlpx_ch_on_devp2p_disconnect
+};
+
 rlpx_channel*
 rlpx_ch_alloc_keypair(uecc_private_key* skey, uecc_private_key* ekey)
 {
@@ -33,6 +47,9 @@ rlpx_ch_init_keypair(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
     // update info
     ch->listen_port = 44;         // TODO
     memset(ch->node_id, 'A', 65); // TODO
+
+    rlpx_devp2p_protocol_init(&ch->devp2p, &g_devp2p_settings);
+    ch->protocols[0] = (rlpx_protocol*)&ch->devp2p;
 
     // Create keys
     if (s) {
@@ -206,6 +223,42 @@ rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l)
         err = rlpx_frame_write(&ch->x, 0, 0, out, tmp, out, l);
     }
     return err;
+}
+
+int
+rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
+{
+    int err, type;
+    urlp* rlp = NULL;
+    err = rlpx_frame_parse(&ch->x, d, l, &rlp);
+    if (!err) {
+        type = rlpx_frame_type(rlp);
+        if (type >= 0 && type < 2) {
+            err = ch->protocols[type]->parse(rlpx_frame_body(rlp));
+        }
+        urlp_free(&rlp);
+    }
+    return err;
+}
+
+int
+rlpx_ch_on_devp2p_hello(void* ctx, const urlp* rlp)
+{
+}
+
+int
+rlpx_ch_on_devp2p_ping(void* ctx, const urlp* rlp)
+{
+}
+
+int
+rlpx_ch_on_devp2p_pong(void* ctx, const urlp* rlp)
+{
+}
+
+int
+rlpx_ch_on_devp2p_disconnect(void* ctx, const urlp* rlp)
+{
 }
 
 int

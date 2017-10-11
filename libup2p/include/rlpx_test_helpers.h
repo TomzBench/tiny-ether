@@ -41,6 +41,7 @@ extern int rlpx_devp2p_hello_listen_port(const urlp* rlp, uint32_t*);
 extern int rlpx_devp2p_hello_node_id(const urlp* rlp, const char**, uint32_t*);
 
 // private channel exports for test
+extern int rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l);
 extern int rlpx_ch_hello_read(rlpx_channel* ch,
                               const uint8_t* in,
                               size_t l,
