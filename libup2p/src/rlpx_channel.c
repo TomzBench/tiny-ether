@@ -4,17 +4,17 @@
 #include "unonce.h"
 
 // Private callbacks
-int rlpx_ch_read_hello(void* ctx, const urlp* rlp);
-int rlpx_ch_read_ping(void* ctx, const urlp* rlp);
-int rlpx_ch_read_pong(void* ctx, const urlp* rlp);
-int rlpx_ch_read_disconnect(void* ctx, const urlp* rlp);
+int rlpx_ch_on_hello(void* ctx, const urlp* rlp);
+int rlpx_ch_on_ping(void* ctx, const urlp* rlp);
+int rlpx_ch_on_pong(void* ctx, const urlp* rlp);
+int rlpx_ch_on_disconnect(void* ctx, const urlp* rlp);
 
 // Protocol callback handlers
-rlpx_devp2p_protocol_settings g_devp2p_settings = {
-    .on_hello = rlpx_ch_read_hello,
-    .on_ping = rlpx_ch_read_ping,
-    .on_pong = rlpx_ch_read_pong,
-    .on_disconnect = rlpx_ch_read_disconnect
+rlpx_devp2p_protocol_settings g_devp2p_settings = { //
+    .on_hello = rlpx_ch_on_hello,
+    .on_ping = rlpx_ch_on_ping,
+    .on_pong = rlpx_ch_on_pong,
+    .on_disconnect = rlpx_ch_on_disconnect
 };
 
 rlpx_channel*
@@ -263,22 +263,22 @@ rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
 }
 
 int
-rlpx_ch_read_hello(void* ctx, const urlp* rlp)
+rlpx_ch_on_hello(void* ctx, const urlp* rlp)
 {
 }
 
 int
-rlpx_ch_read_ping(void* ctx, const urlp* rlp)
+rlpx_ch_on_ping(void* ctx, const urlp* rlp)
 {
 }
 
 int
-rlpx_ch_read_pong(void* ctx, const urlp* rlp)
+rlpx_ch_on_pong(void* ctx, const urlp* rlp)
 {
 }
 
 int
-rlpx_ch_read_disconnect(void* ctx, const urlp* rlp)
+rlpx_ch_on_disconnect(void* ctx, const urlp* rlp)
 {
 }
 
