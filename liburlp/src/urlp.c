@@ -372,7 +372,7 @@ urlp_child(const urlp* rlp)
 }
 
 uint32_t
-urlp_children(urlp* rlp)
+urlp_children(const urlp* rlp)
 {
     uint32_t n;
     if (urlp_is_list(rlp)) {
@@ -384,7 +384,7 @@ urlp_children(urlp* rlp)
 }
 
 uint32_t
-urlp_children_walk(urlp* rlp)
+urlp_children_walk(const urlp* rlp)
 {
     uint32_t n = 0;
     while (rlp) {

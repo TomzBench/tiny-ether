@@ -235,7 +235,7 @@ rlpx_ch_write_ping(rlpx_channel* ch, uint8_t* out, size_t* l)
 }
 
 int
-rlpx_channel_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
+rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
     return rlpx_devp2p_protocol_write_pong(&ch->x, out, l);
 }
@@ -247,10 +247,15 @@ rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
     urlp* rlp = NULL;
     err = rlpx_frame_parse(&ch->x, d, l, &rlp);
     if (!err) {
-        type = rlpx_frame_type(rlp);
+        type = rlpx_frame_header_type(rlp);
         if (type >= 0 && type < 2) {
-            err = ch->protocols[type]->parse(
-                ch->protocols[type], type == 0 ? rlp : rlpx_frame_body(rlp));
+            // If this is a devp2p frame - included the header to parser
+            // I think future upgrades would nest the type into the list
+            // So this makes migrating in future easier.
+            // err = ch->protocols[type]->parse(
+            //    ch->protocols[type], type == 0 ? rlp : rlpx_frame_body(rlp));
+            err = ch->protocols[type]->parse(ch->protocols[type],
+                                             rlpx_frame_body(rlp));
         }
         urlp_free(&rlp);
     }

@@ -46,17 +46,22 @@ int
 rlpx_devp2p_protocol_parse(rlpx_protocol* base, const urlp* rlp)
 {
     int err = -1;
+    const urlp *type = NULL, *body = NULL;
     rlpx_devp2p_protocol* self = (rlpx_devp2p_protocol*)base;
-    RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type = rlpx_frame_type(rlp);
-    rlp = rlpx_frame_body(rlp);
-    if (DEVP2P_HELLO == type) {
-        err = self->settings->on_hello(self->base.ctx, rlp);
-    } else if (DEVP2P_DISCONNECT == type) {
-        err = self->settings->on_disconnect(self->base.ctx, rlp);
-    } else if (DEVP2P_PING == type) {
-        err = self->settings->on_ping(self->base.ctx, rlp);
-    } else if (DEVP2P_PONG == type) {
-        err = self->settings->on_pong(self->base.ctx, rlp);
+    RLPX_DEVP2P_PROTOCOL_PACKET_TYPE package_type = DEVP2P_ERRO;
+    if ((type = urlp_at(rlp, 0)) && (body = urlp_at(rlp, 1))) {
+
+        package_type = urlp_as_u32(type);
+
+        if (DEVP2P_HELLO == package_type) {
+            err = self->settings->on_hello(self->base.ctx, body);
+        } else if (DEVP2P_DISCONNECT == package_type) {
+            err = self->settings->on_disconnect(self->base.ctx, body);
+        } else if (DEVP2P_PING == package_type) {
+            err = self->settings->on_ping(self->base.ctx, body);
+        } else if (DEVP2P_PONG == package_type) {
+            err = self->settings->on_pong(self->base.ctx, body);
+        }
     }
 
     return err;
@@ -134,7 +139,7 @@ rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, size_t* l)
 int
 rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, size_t* l)
 {
-    return rlpx_devp2p_protocol_write(x, DEVP2P_PING, NULL, out, l);
+    return rlpx_devp2p_protocol_write(x, DEVP2P_PONG, NULL, out, l);
 }
 
 //

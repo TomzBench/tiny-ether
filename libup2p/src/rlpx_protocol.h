@@ -11,7 +11,6 @@ extern "C" {
 
 // Base protocol type
 typedef int (*rlpx_protocol_cb)(void* ctx, const urlp* rlp);
-// typedef int (*rlpx_protocol_parse_fn)(const urlp* rlp);
 typedef struct rlpx_protocol
 {
     int (*parse)(struct rlpx_protocol*, const urlp*); /*!< process rlp packet */
@@ -86,14 +85,14 @@ rlpx_frame_header(const urlp* rlp)
 }
 
 static inline int
-rlpx_frame_type(const urlp* rlp)
+rlpx_frame_header_type(const urlp* rlp)
 {
     rlp = urlp_at(rlp, 0); // get header
     return rlp ? urlp_as_u16(rlp) : -1;
 }
 
 static inline int
-rlpx_frame_context(const urlp* rlp)
+rlpx_frame_header_context(const urlp* rlp)
 {
     rlp = urlp_at(rlp, 0); // get header
     return (rlp && (rlp = urlp_at(rlp, 1))) ? urlp_as_u16(rlp) : -1;
@@ -102,8 +101,7 @@ rlpx_frame_context(const urlp* rlp)
 static inline const urlp*
 rlpx_frame_body(const urlp* rlp)
 {
-    rlp = urlp_at(rlp, 1);
-    return rlp ? urlp_at(rlp, 1) : rlp;
+    return urlp_at(rlp, 1);
 }
 
 #ifdef __cplusplus

@@ -7,6 +7,7 @@ extern "C" {
 #include "rlpx_protocol.h"
 
 typedef enum {
+    DEVP2P_ERRO = -0x01,
     DEVP2P_HELLO = 0x00,
     DEVP2P_DISCONNECT = 0x01,
     DEVP2P_PING = 0x02,
