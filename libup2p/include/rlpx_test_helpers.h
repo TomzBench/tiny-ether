@@ -5,12 +5,11 @@
 extern "C" {
 #endif
 
-#include "rlpx_types.h"
+#include "rlpx_channel.h"
 #include "uaes.h"
+#include "uecc.h"
 #include "ukeccak256.h"
 #include "urlp.h"
-#include <stddef.h>
-#include <stdint.h>
 
 /*!< setters/getters for internal state (for test purposes) */
 uecc_ctx* rlpx_test_skey(rlpx_channel* ch);
@@ -23,32 +22,15 @@ ukeccak256_ctx* rlpx_test_egress(rlpx_channel* ch);
 uaes_ctx* rlpx_test_aes_mac(rlpx_channel* ch);
 uaes_ctx* rlpx_test_aes_enc(rlpx_channel* ch);
 uaes_ctx* rlpx_test_aes_dec(rlpx_channel* ch);
-int rlpx_expect_secrets(rlpx_channel* s,
-                        int orig,
-                        uint8_t* sent,
-                        uint32_t sentlen,
-                        uint8_t* recv,
-                        uint32_t recvlen,
-                        uint8_t* aes,
-                        uint8_t* mac,
-                        uint8_t* foo);
-
-// Private hello protocol exported for test
-extern int rlpx_devp2p_hello_p2p_version(const urlp* rlp, uint32_t* out);
-extern int rlpx_devp2p_hello_client_id(const urlp*, const char**, uint32_t*);
-extern int rlpx_devp2p_hello_capabilities(const urlp*, const char*, uint32_t);
-extern int rlpx_devp2p_hello_listen_port(const urlp* rlp, uint32_t*);
-extern int rlpx_devp2p_hello_node_id(const urlp* rlp, const char**, uint32_t*);
-
-// private channel exports for test
-extern int rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l);
-extern int rlpx_ch_hello_read(rlpx_channel* ch,
-                              const uint8_t* in,
-                              size_t l,
-                              urlp** rlp_p);
-extern int rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l);
-extern uint32_t rlpx_ch_listen_port(rlpx_channel* s);
-extern const char* rlpx_ch_node_id(rlpx_channel* s);
+int rlpx_test_expect_secrets(rlpx_channel* s,
+                             int orig,
+                             uint8_t* sent,
+                             uint32_t sentlen,
+                             uint8_t* recv,
+                             uint32_t recvlen,
+                             uint8_t* aes,
+                             uint8_t* mac,
+                             uint8_t* foo);
 #ifdef __cplusplus
 }
 #endif

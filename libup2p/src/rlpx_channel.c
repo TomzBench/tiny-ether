@@ -262,7 +262,7 @@ rlpx_ch_on_devp2p_disconnect(void* ctx, const urlp* rlp)
 }
 
 int
-rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** p)
+rlpx_ch_hello_read(rlpx_channel* ch, const uint8_t* in, size_t l, urlp** p)
 {
     return rlpx_frame_parse(&ch->x, in, l, p);
 }

@@ -1,5 +1,4 @@
 #include "test.h"
-#include "rlpx_test_helpers.h"
 
 extern test_vector g_test_vectors[];
 extern const char* g_alice_epub;
@@ -42,8 +41,8 @@ test_frame_read()
 
     // Update our secrets
     IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
-    IF_ERR_EXIT(rlpx_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
-                                    s.authlen, aes, mac, NULL));
+    IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
+                                         s.authlen, aes, mac, NULL));
     IF_ERR_EXIT(rlpx_ch_hello_read(s.bob, makebin(g_hello_packet, NULL),
                                    strlen(g_hello_packet) / 2, &frame));
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame

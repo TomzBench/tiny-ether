@@ -1,6 +1,4 @@
 #include "test.h"
-#include "rlpx.h"
-#include "rlpx_test_helpers.h"
 #include <string.h>
 
 test_vector g_test_vectors[] = { //

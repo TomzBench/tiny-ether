@@ -67,7 +67,10 @@ int rlpx_ch_secrets(rlpx_channel* s,
                     uint32_t recvlen);
 int rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l);
 int rlpx_ch_hello_write(rlpx_channel* ch, uint8_t* out, size_t* l);
-int rlpx_ch_hello_read(rlpx_channel* ch, uint8_t* in, size_t l, urlp** rlp_p);
+int rlpx_ch_hello_read(rlpx_channel* ch,
+                       const uint8_t* in,
+                       size_t l,
+                       urlp** rlp_p);
 
 #ifdef __cplusplus
 }
