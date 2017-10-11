@@ -1,7 +1,9 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-#include "rlpx.h"
+//#include "rlpx.h"
+#include "rlpx_channel.h"
+#include "rlpx_test_helpers.h"
 #include "test_vectors.h"
 #include "unonce.h"
 #include <string.h>
@@ -47,5 +49,6 @@ void test_session_deinit(test_session*);
 
 int test_handshake();
 int test_frame();
+int test_protocol();
 
 #endif

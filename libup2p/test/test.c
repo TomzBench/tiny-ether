@@ -1,6 +1,4 @@
 #include "test.h"
-#include "rlpx.h"
-#include "rlpx_test_helpers.h"
 #include <string.h>
 
 test_vector g_test_vectors[] = { //
@@ -71,6 +69,7 @@ main(int argc, char* argv[])
 
     IF_ERR_EXIT(test_handshake());
     IF_ERR_EXIT(test_frame());
+    IF_ERR_EXIT(test_protocol());
 EXIT:
     return err;
 }
