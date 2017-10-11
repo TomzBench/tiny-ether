@@ -1,5 +1,7 @@
 #include "test.h"
 
+uint32_t g_test_mask = 0;
+
 int test_protocol_hello();
 
 int test_devp2p_on_hello(void* ctx, const urlp* rlp);
@@ -53,6 +55,16 @@ test_protocol_hello()
     IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
     IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
 
+    // Write more packets.
+    lena = 1000;
+    lenb = 1000;
+    IF_ERR_EXIT(rlpx_ch_write_disconnect(s.alice, DEVP2P_DISCONNECT_BAD_VERSION,
+                                         from_alice, &lena));
+    IF_ERR_EXIT(rlpx_ch_write_disconnect(s.bob, DEVP2P_DISCONNECT_BAD_VERSION,
+                                         from_bob, &lenb));
+    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+
 EXIT:
     test_session_deinit(&s);
     return err;
@@ -66,42 +78,58 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
     uint32_t num;
 
     // Verify p2p ver
-    rlpx_devp2p_hello_p2p_version(rlp, &num);
+    rlpx_devp2p_protocol_p2p_version(rlp, &num);
     IF_ERR_EXIT((num == RLPX_VERSION_P2P) ? 0 : -1);
 
     // Verify client id
-    rlpx_devp2p_hello_client_id(rlp, &mem, &num);
+    rlpx_devp2p_protocol_client_id(rlp, &mem, &num);
     IF_ERR_EXIT((num == RLPX_CLIENT_ID_LEN) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mem, RLPX_CLIENT_ID_STR, num) ? -1 : 0);
 
     // Verify caps
-    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(rlp, "les", 2));
-    IF_ERR_EXIT(rlpx_devp2p_hello_capabilities(rlp, "les", 2));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "les", 2));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "les", 2));
 
     // Verify listen port
-    rlpx_devp2p_hello_listen_port(rlp, &num);
+    rlpx_devp2p_protocol_listen_port(rlp, &num);
     IF_ERR_EXIT((num == 44) ? 0 : -1);
 
     // verify node_id
-    rlpx_devp2p_hello_node_id(rlp, &mem, &num);
+    rlpx_devp2p_protocol_node_id(rlp, &mem, &num);
     IF_ERR_EXIT((num == 65) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mem, "A", 1) ? -1 : 0);
 
+    g_test_mask |= (0x01 << 0);
+
 EXIT:
+    return err;
+}
+int
+test_devp2p_on_disconnect(void* ctx, const urlp* rlp)
+{
+    ((void)ctx);
+    ((void)rlp);
+    int err = 0;
+    g_test_mask |= (0x01 << 1);
     return err;
 }
 
 int
 test_devp2p_on_ping(void* ctx, const urlp* rlp)
 {
+    ((void)ctx);
+    ((void)rlp);
+    int err = 0;
+    g_test_mask |= (0x01 << 2);
+    return err;
 }
 
 int
 test_devp2p_on_pong(void* ctx, const urlp* rlp)
 {
-}
-
-int
-test_devp2p_on_disconnect(void* ctx, const urlp* rlp)
-{
+    ((void)ctx);
+    ((void)rlp);
+    int err = 0;
+    g_test_mask |= (0x01 << 3);
+    return err;
 }

@@ -11,8 +11,8 @@ extern "C" {
 #endif
 
 #include "async_io.h"
-#include "protocols/devp2p/rlpx_devp2p.h"
 #include "rlpx_config.h"
+#include "rlpx_devp2p.h"
 
 typedef struct
 {

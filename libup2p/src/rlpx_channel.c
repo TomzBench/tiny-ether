@@ -215,9 +215,8 @@ rlpx_ch_secrets(rlpx_channel* s,
 int
 rlpx_ch_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
-    int err =
-        rlpx_devp2p_write_hello(&ch->x, ch->listen_port, ch->node_id, out, l);
-    return err;
+    return rlpx_devp2p_protocol_write_hello(&ch->x, ch->listen_port,
+                                            ch->node_id, out, l);
 }
 
 int
@@ -226,18 +225,19 @@ rlpx_ch_write_disconnect(rlpx_channel* ch,
                          uint8_t* out,
                          size_t* l)
 {
-    int err = rlpx_devp2p_write_disconnect(&ch->x, reason, out, l);
-    return err;
+    return rlpx_devp2p_protocol_write_disconnect(&ch->x, reason, out, l);
 }
 
 int
 rlpx_ch_write_ping(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
+    return rlpx_devp2p_protocol_write_ping(&ch->x, out, l);
 }
 
 int
 rlpx_channel_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
+    return rlpx_devp2p_protocol_write_pong(&ch->x, out, l);
 }
 
 int
