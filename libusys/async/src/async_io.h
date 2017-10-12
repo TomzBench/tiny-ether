@@ -73,6 +73,8 @@ typedef struct async_io_settings
     async_io_on_recv_fn on_recv;
     usys_io_send_fn tx;
     usys_io_recv_fn rx;
+    usys_io_connect_fn connect;
+    usys_io_close_fn close;
 } async_io_settings;
 
 typedef struct
@@ -90,6 +92,7 @@ void async_io_init(async_io*, void*, const async_io_settings*);
 void async_io_deinit(async_io* self);
 int async_io_connect(async_io* async, const char* ip, uint32_t p);
 void async_io_close(async_io* self);
+int async_io_print(async_io* self, uint32_t, const char* fmt, ...);
 int async_io_send(async_io*);
 int async_io_recv(async_io*);
 int async_io_poll_n(async_io** io, uint32_t n, uint32_t ms);

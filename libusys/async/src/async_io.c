@@ -4,18 +4,13 @@
 // Useful for test or portability.
 usys_io_send_fn g_usys_async_io_send = usys_send;
 usys_io_recv_fn g_usys_async_io_recv = usys_recv;
+usys_io_connect_fn g_usys_async_io_connect = usys_connect;
+usys_io_close_fn g_usys_async_io_close = usys_close;
 
 // Private prototypes.
 void async_error(async_io* self, int);
 
 // Public
-void
-async_io_install(usys_io_send_fn s, usys_io_recv_fn r)
-{
-    g_usys_async_io_send = s;
-    g_usys_async_io_recv = r;
-}
-
 void
 async_io_init(async_io* self, void* ctx, const async_io_settings* settings)
 {
@@ -30,6 +25,9 @@ async_io_init(async_io* self, void* ctx, const async_io_settings* settings)
     // Need to override empty callbacks.
     if (!self->settings.tx) self->settings.tx = g_usys_async_io_send;
     if (!self->settings.rx) self->settings.rx = g_usys_async_io_recv;
+    if (!self->settings.close) self->settings.close = g_usys_async_io_close;
+    if (!self->settings.connect)
+        self->settings.connect = g_usys_async_io_connect;
     if (!self->settings.on_connect)
         self->settings.on_connect = async_io_default_on_connect;
     if (!self->settings.on_accept)
@@ -69,6 +67,17 @@ void
 async_io_close(async_io* self)
 {
     ASYNC_IO_CLOSE(self);
+}
+
+int
+async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
+{
+    int l;
+    va_list ap;
+    va_start(ap, fmt);
+    l = vsnprintf((char*)&self->b[idx], sizeof(self->b) - idx, fmt, ap);
+    va_end(ap);
+    return l;
 }
 
 int
