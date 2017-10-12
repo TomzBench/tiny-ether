@@ -4,6 +4,7 @@
 // Useful for test or portability.
 usys_io_send_fn g_usys_async_io_send = usys_send;
 usys_io_recv_fn g_usys_async_io_recv = usys_recv;
+usys_io_ready_fn g_usys_async_io_ready = usys_sock_ready;
 usys_io_connect_fn g_usys_async_io_connect = usys_connect;
 usys_io_close_fn g_usys_async_io_close = usys_close;
 
@@ -26,6 +27,7 @@ async_io_init(async_io* self, void* ctx, const async_io_settings* settings)
     if (!self->settings.tx) self->settings.tx = g_usys_async_io_send;
     if (!self->settings.rx) self->settings.rx = g_usys_async_io_recv;
     if (!self->settings.close) self->settings.close = g_usys_async_io_close;
+    if (!self->settings.ready) self->settings.ready = g_usys_async_io_ready;
     if (!self->settings.connect)
         self->settings.connect = g_usys_async_io_connect;
     if (!self->settings.on_connect)
@@ -43,15 +45,15 @@ async_io_init(async_io* self, void* ctx, const async_io_settings* settings)
 void
 async_io_deinit(async_io* self)
 {
-    if (ASYNC_IO_SOCK(self)) usys_close(&self->sock);
+    if (ASYNC_IO_SOCK(self)) self->settings.close(&self->sock);
     memset(self, 0, sizeof(async_io));
 }
 
 int
 async_io_connect(async_io* self, const char* ip, uint32_t p)
 {
-    if (ASYNC_IO_SOCK(self)) usys_close(&self->sock);
-    int ret = usys_connect(&self->sock, ip, p);
+    if (ASYNC_IO_SOCK(self)) self->settings.close(&self->sock);
+    int ret = self->settings.connect(&self->sock, ip, p);
     if (ret < 0) {
         ASYNC_IO_SET_ERRO(self);
     } else if (ret == 0) {
@@ -69,6 +71,12 @@ async_io_close(async_io* self)
     ASYNC_IO_CLOSE(self);
 }
 
+const void*
+async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l)
+{
+    return memcpy(&self->b[idx], mem, l);
+}
+
 int
 async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
 {
@@ -76,6 +84,7 @@ async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
     va_list ap;
     va_start(ap, fmt);
     l = vsnprintf((char*)&self->b[idx], sizeof(self->b) - idx, fmt, ap);
+    if (l >= 0) self->len = l;
     va_end(ap);
     return l;
 }
@@ -127,10 +136,10 @@ async_io_poll(async_io* self)
     ((void)start);
     if (!(ASYNC_IO_READY(self->state))) {
         if (ASYNC_IO_SOCK(self)) {
-            ret = usys_sock_ready(&self->sock);
+            ret = self->settings.ready(&self->sock);
             if (ret < 0) {
                 ASYNC_IO_SET_ERRO(self);
-            } else if (ret > 0) {
+            } else {
                 ASYNC_IO_SET_READY(self);
                 ASYNC_IO_SET_RECV(self);
             }

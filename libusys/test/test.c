@@ -4,6 +4,7 @@
 char* g_lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
 
 // Mock overrides
+int io_mock_ready(usys_socket_fd*);
 int io_mock_connect(usys_socket_fd* fd, const char* host, int port);
 void io_mock_close(usys_socket_fd* fd);
 int io_mock_send_all(usys_socket_fd* fd, const byte* b, uint32_t l);
@@ -29,6 +30,7 @@ async_io_settings g_io_settings_all = {.on_connect = io_on_connect,
                                        .on_erro = io_on_erro,
                                        .on_send = io_on_send,
                                        .on_recv = io_on_recv,
+                                       .ready = io_mock_ready,
                                        .connect = io_mock_connect,
                                        .close = io_mock_close,
                                        .tx = io_mock_send_all,
@@ -38,6 +40,7 @@ async_io_settings g_io_settings_one = {.on_connect = io_on_connect,
                                        .on_erro = io_on_erro,
                                        .on_send = io_on_send,
                                        .on_recv = io_on_recv,
+                                       .ready = io_mock_ready,
                                        .connect = io_mock_connect,
                                        .close = io_mock_close,
                                        .tx = io_mock_send_one,
@@ -47,6 +50,7 @@ async_io_settings g_io_settings_min = {.on_connect = io_on_connect,
                                        .on_erro = io_on_erro,
                                        .on_send = io_on_send,
                                        .on_recv = io_on_recv,
+                                       .ready = io_mock_ready,
                                        .connect = io_mock_connect,
                                        .close = io_mock_close,
                                        .tx = io_mock_send_min,
@@ -59,25 +63,29 @@ main(int argc, char* argv[])
     ((void)argv);
 
     // Stack
-    int err = 0;
+    int err = 0, i, c;
     async_io io;
     io_test_settings settings[] = {
         {.n = 1, .settings = &g_io_settings_all },  // Test one shot send/recv
-        {.n = 56, .settings = &g_io_settings_one }, // Test busy io
-        {.n = 19, .settings = &g_io_settings_min }  // Test less busy io
+        {.n = 28, .settings = &g_io_settings_one }, // Test busy io
+        {.n = 10, .settings = &g_io_settings_min }  // Test less busy io
     };
 
     // Run test
-    for (int i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) {
         err = -1;
         async_io_init(&io, &err, settings[i].settings);
+
+        // Mock peer
+        async_io_connect(&io, "thhpt", 8080);
+        async_io_poll(&io);
 
         // Test transmit (prepare send buffer and send)
         async_io_print(&io, 0, "%s", g_lorem);
         async_io_send(&io);
-        for (int i = 0; i < settings[i].n; i++) async_io_poll(&io);
+        for (c = 0; c < settings[i].n; c++) async_io_poll(&io);
 
-        // Send complete callback?
+        // Did send callback signal Send complete?
         if (err) break;
 
         // Test receive.
@@ -95,6 +103,12 @@ io_mock_connect(usys_socket_fd* fd, const char* host, int port)
     if (*fd >= 0) return -1; // err already connect
     *fd = sock++;
     return 0;
+}
+
+int
+io_mock_ready(usys_socket_fd* fd)
+{
+    return *fd;
 }
 
 void

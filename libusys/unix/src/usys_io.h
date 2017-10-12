@@ -27,6 +27,7 @@ int usys_file_close(usys_file_fd* fd);
 typedef int (*usys_io_send_fn)(usys_socket_fd*, const byte*, uint32_t);
 typedef int (*usys_io_recv_fn)(usys_socket_fd*, byte*, uint32_t);
 typedef int (*usys_io_connect_fn)(usys_socket_fd*, const char*, int);
+typedef int (*usys_io_ready_fn)(usys_socket_fd*);
 typedef void (*usys_io_close_fn)(usys_socket_fd*);
 int usys_connect(usys_socket_fd* fd, const char* host, int port);
 int usys_send_fd(usys_socket_fd fd, const byte* b, uint32_t len);
