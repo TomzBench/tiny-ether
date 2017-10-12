@@ -31,54 +31,114 @@ extern "C" {
         (x)->state |= ASYNC_IO_STATE_RECV;                                     \
         (x)->state &= (~(ASYNC_IO_STATE_SEND));                                \
         (x)->c = 0;                                                            \
-        (x)->end = 1200;                                                       \
+        (x)->len = 1200;                                                       \
     } while (0)
 
 #define ASYNC_IO_SET_ERRO(x)                                                   \
     do {                                                                       \
-        (x)->on_erro((x)->ctx, -1, 0, 0);                                      \
+        (x)->settings.on_erro((x)->ctx);                                       \
         (x)->state = 0;                                                        \
         (x)->c = 0;                                                            \
-        (x)->end = 0;                                                          \
+        (x)->len = 0;                                                          \
         if (ASYNC_IO_SOCK((x))) usys_close(&(x)->sock);                        \
+    } while (0)
+
+#define ASYNC_IO_SET_READY(x)                                                  \
+    do {                                                                       \
+        (x)->state |= ASYNC_IO_STATE_READY;                                    \
+        (x)->c = 0;                                                            \
+        (x)->len = 0;                                                          \
     } while (0)
 
 #define ASYNC_IO_CLOSE(x)                                                      \
     do {                                                                       \
         (x)->state = 0;                                                        \
         (x)->c = 0;                                                            \
-        (x)->end = 0;                                                          \
+        (x)->len = 0;                                                          \
         if (ASYNC_IO_SOCK((x))) usys_close(&(x)->sock);                        \
     } while (0)
 
-typedef int (*async_io_cb)(void* ctx, int err, const uint8_t* b, uint32_t l);
+typedef int (*async_io_on_connect_fn)(void*);
+typedef int (*async_io_on_accept_fn)(void*);
+typedef int (*async_io_on_erro_fn)(void*);
+typedef int (*async_io_on_send_fn)(void*, int err, const uint8_t* b, uint32_t);
+typedef int (*async_io_on_recv_fn)(void*, int err, uint8_t* b, uint32_t);
+
+typedef struct async_io_settings
+{
+    async_io_on_connect_fn on_connect;
+    async_io_on_accept_fn on_accept;
+    async_io_on_erro_fn on_erro;
+    async_io_on_send_fn on_send;
+    async_io_on_recv_fn on_recv;
+    usys_io_send_fn tx;
+    usys_io_recv_fn rx;
+} async_io_settings;
+
 typedef struct
 {
     usys_socket_fd sock;
     uint32_t state;
-    usys_io_send_fn tx;
-    usys_io_recv_fn rx;
-    async_io_cb on_recv;
-    async_io_cb on_send;
-    async_io_cb on_erro;
+    async_io_settings settings;
     void* ctx;
-    uint32_t c, end;
+    uint32_t c, len;
     uint8_t b[1200];
 } async_io;
 
 void async_io_install(usys_io_send_fn s, usys_io_recv_fn r);
-void async_io_init(async_io*, void*, async_io_cb, async_io_cb, async_io_cb);
+void async_io_init(async_io*, void*, const async_io_settings*);
 void async_io_deinit(async_io* self);
 int async_io_connect(async_io* async, const char* ip, uint32_t p);
 void async_io_close(async_io* self);
-int async_io_send(async_io*, const char*, uint32_t);
-int async_io_recv(async_io* obj);
+int async_io_send(async_io*);
+int async_io_recv(async_io*);
 int async_io_poll_n(async_io** io, uint32_t n, uint32_t ms);
 int async_io_poll(async_io*);
 int async_io_sock(async_io* self);
 int async_io_has_sock(async_io* self);
 int async_io_state_recv(async_io* self);
 int async_io_state_send(async_io* self);
+
+static inline int
+async_io_default_on_connect(void* ctx)
+{
+    ((void)ctx);
+    return 0;
+}
+
+static inline int
+async_io_default_on_accept(void* ctx)
+{
+    ((void)ctx);
+    return 0;
+}
+static inline int
+
+async_io_default_on_erro(void* ctx)
+{
+    ((void)ctx);
+    return 0;
+}
+
+static inline int
+async_io_default_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
+{
+    ((void)ctx);
+    ((void)err);
+    ((void)b);
+    ((void)l);
+    return 0;
+}
+
+static inline int
+async_io_default_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+    ((void)ctx);
+    ((void)err);
+    ((void)b);
+    ((void)l);
+    return 0;
+}
 
 #ifdef __cplusplus
 } /* extern "C" */
