@@ -169,9 +169,9 @@ rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
     unonce(ch->nonce.b);
-    ch->hs = rlpx_handshake_alloc_auth(
-        &ch->skey, &ch->ekey, &ch->remote_version, &ch->nonce,
-        &ch->remote_nonce, &ch->remote_skey, &ch->remote_ekey, to);
+    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->remote_version,
+                                  &ch->nonce, &ch->remote_nonce,
+                                  &ch->remote_skey, &ch->remote_ekey, to);
     if (ch->hs) {
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
         async_io_send(&ch->io);
@@ -179,6 +179,36 @@ rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to)
     } else {
         return -1;
     }
+}
+
+int
+rlpx_ch_recv_auth(rlpx_channel* ch,
+                  const uecc_public_key* from,
+                  const uint8_t* b,
+                  size_t l)
+{
+    int err = 0;
+    urlp* rlp = NULL;
+
+    // Free or assert make sure no handshake context
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+
+    // Allocate a handshake context
+    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->remote_version,
+                                  &ch->nonce, &ch->remote_nonce,
+                                  &ch->remote_skey, &ch->remote_ekey, from);
+
+    // Decrypt authentication packet (allocates rlp context)
+    if ((err = rlpx_handshake_auth_recv(ch->hs, b, l, &rlp))) return err;
+
+    // Process the Decrypted RLP data
+    if (!(err = rlpx_handshake_auth_install(ch->hs, &rlp))) {
+        err = rlpx_handshake_secrets(ch->hs, &ch->x, 0);
+    }
+
+    // Free rlp and return
+    urlp_free(&rlp);
+    return err;
 }
 
 int
@@ -196,9 +226,9 @@ rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
     unonce(ch->nonce.b);
-    ch->hs = rlpx_handshake_alloc_ack(&ch->skey, &ch->ekey, &ch->remote_version,
-                                      &ch->nonce, &ch->remote_nonce,
-                                      &ch->remote_skey, &ch->remote_ekey, to);
+    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->remote_version,
+                                  &ch->nonce, &ch->remote_nonce,
+                                  &ch->remote_skey, &ch->remote_ekey, to);
     if (ch->hs) {
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
         async_io_send(&ch->io);
@@ -206,6 +236,33 @@ rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to)
     } else {
         return -1;
     }
+}
+
+int
+rlpx_ch_recv_ack(rlpx_channel* ch,
+                 const uecc_public_key* from,
+                 const uint8_t* ack,
+                 size_t l)
+{
+    int err = -1;
+    urlp* rlp = NULL;
+    if (!ch->hs) {
+        ch->hs = rlpx_handshake_alloc(
+            1, &ch->skey, &ch->ekey, &ch->remote_version, &ch->nonce,
+            &ch->remote_nonce, &ch->remote_skey, &ch->remote_ekey, from);
+    }
+
+    // Decrypt authentication packet
+    if ((err = rlpx_handshake_ack_recv(ch->hs, ack, l, &rlp))) return err;
+
+    // Process the Decrypted RLP data
+    if (!(err = rlpx_handshake_ack_install(ch->hs, &rlp))) {
+        err = rlpx_handshake_secrets(ch->hs, &ch->x, 1);
+    }
+
+    // Free rlp and return
+    urlp_free(&rlp);
+    return err;
 }
 
 int

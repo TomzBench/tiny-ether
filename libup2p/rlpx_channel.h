@@ -79,11 +79,19 @@ int rlpx_ch_secrets(rlpx_channel* s,
                     uint32_t recvlen);
 int rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l);
 int rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to);
+int rlpx_ch_recv_auth(rlpx_channel*,
+                      const uecc_public_key* from,
+                      const uint8_t*,
+                      size_t l);
 int rlpx_ch_write_auth(rlpx_channel* ch,
                        const uecc_public_key*,
                        uint8_t* auth,
                        size_t* l);
 int rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to);
+int rlpx_ch_recv_ack(rlpx_channel* ch,
+                     const uecc_public_key* from,
+                     const uint8_t*,
+                     size_t l);
 int rlpx_ch_write_ack(rlpx_channel* ch,
                       const uecc_public_key*,
                       uint8_t* ack,

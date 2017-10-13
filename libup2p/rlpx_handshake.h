@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 #include "rlpx_config.h"
+#include "rlpx_frame.h"
 #include "uecc.h"
 #include "urlp.h"
 
@@ -27,46 +28,46 @@ typedef struct
     h256* nonce_remote;
     uecc_public_key* ekey_remote;
     uecc_public_key* skey_remote;
-    size_t cipher_len, cipher_remote_len;
+    size_t cipher_len;
+    size_t cipher_remote_len;
     uint8_t cipher[800];        /*!< cipher buffers for exchange */
     uint8_t cipher_remote[800]; /*!< cipher buffers for exchange */
 } rlpx_handshake;
 
-rlpx_handshake* rlpx_handshake_alloc_auth(uecc_ctx* skey,
-                                          uecc_ctx* ekey,
-                                          uint64_t* version_remote,
-                                          h256* nonce,
-                                          h256* nonce_remote,
-                                          uecc_public_key* ekey_remote,
-                                          uecc_public_key* skey_remote,
-                                          const uecc_public_key* to);
-rlpx_handshake* rlpx_handshake_alloc_ack(uecc_ctx* skey,
-                                         uecc_ctx* ekey,
-                                         uint64_t* version_remote,
-                                         h256* nonce,
-                                         h256* nonce_remote,
-                                         uecc_public_key* ekey_remote,
-                                         uecc_public_key* skey_remote,
-                                         const uecc_public_key* to);
-rlpx_handshake* rlpx_handshake_alloc(uecc_ctx* ekey,
+// Constructors
+rlpx_handshake* rlpx_handshake_alloc(int orig,
                                      uecc_ctx* skey,
+                                     uecc_ctx* ekey,
                                      uint64_t* version_remote,
                                      h256* nonce,
                                      h256* nonce_remote,
+                                     uecc_public_key* skey_remote,
                                      uecc_public_key* ekey_remote,
-                                     uecc_public_key* skey_remote);
-int rlpx_handshake_auth_init(rlpx_handshake*, h256*, const uecc_public_key*);
-int rlpx_handshake_ack_init(rlpx_handshake*, h256*, const uecc_public_key*);
-
+                                     const uecc_public_key* to);
 void rlpx_handshake_free(rlpx_handshake** hs_p);
-int rlpx_handshake_auth_read(rlpx_handshake* hs,
+
+int rlpx_handshake_secrets(rlpx_handshake* hs, rlpx_coder* x, int orig);
+int rlpx_handshake_auth_init(rlpx_handshake*, h256*, const uecc_public_key*);
+int rlpx_handshake_auth_install(rlpx_handshake* hs, urlp** rlp_p);
+int rlpx_handshake_auth_recv(rlpx_handshake* hs,
                              const uint8_t* b,
                              size_t l,
                              urlp** rlp_p);
-int rlpx_handshake_auth_read_legacy(rlpx_handshake* hs,
+int rlpx_handshake_auth_recv_legacy(rlpx_handshake* hs,
                                     const uint8_t* b,
                                     size_t l,
                                     urlp** rlp_p);
+// Ack
+int rlpx_handshake_ack_init(rlpx_handshake*, h256*, const uecc_public_key*);
+int rlpx_handshake_ack_install(rlpx_handshake* hs, urlp** rlp_p);
+int rlpx_handshake_ack_recv(rlpx_handshake* hs,
+                            const uint8_t* b,
+                            size_t l,
+                            urlp** rlp_p);
+int rlpx_handshake_ack_recv_legacy(rlpx_handshake* hs,
+                                   const uint8_t* b,
+                                   size_t l,
+                                   urlp** rlp_p);
 
 //
 //
