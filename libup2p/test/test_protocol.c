@@ -35,8 +35,8 @@ test_protocol()
     rlpx_ch_accept(s.bob, &s.alice->skey.Q);
 
     // Send keys
-    IF_ERR_EXIT(rlpx_ch_send_auth(s.alice, qb));
-    IF_ERR_EXIT(rlpx_ch_send_ack(s.bob, qa));
+    //IF_ERR_EXIT(rlpx_ch_send_auth(s.alice, qb));
+    //IF_ERR_EXIT(rlpx_ch_send_ack(s.bob, qa));
 
     // Recv keys
     IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, qb, s.bob->io.b, s.bob->io.len));
