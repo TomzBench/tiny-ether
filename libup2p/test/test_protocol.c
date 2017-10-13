@@ -29,6 +29,11 @@ test_protocol()
     qa = &s.alice->skey.Q;
     qb = &s.bob->skey.Q;
 
+    rlpx_ch_nonce(s.alice);
+    rlpx_ch_nonce(s.bob);
+    rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
+
     // Send keys
     IF_ERR_EXIT(rlpx_ch_send_auth(s.alice, qb));
     IF_ERR_EXIT(rlpx_ch_send_ack(s.bob, qa));

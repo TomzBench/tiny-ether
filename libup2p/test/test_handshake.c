@@ -37,6 +37,10 @@ test_read()
         qb = &s.bob->skey.Q;
         rlpx_test_remote_ekey_clr(s.alice);
         rlpx_test_remote_ekey_clr(s.bob);
+        rlpx_ch_nonce(s.alice);
+        rlpx_ch_nonce(s.bob);
+        rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+        rlpx_ch_accept(s.bob, &s.alice->skey.Q);
         if (rlpx_ch_recv_auth(s.bob, qa, s.auth, s.authlen)) break;
         if (rlpx_ch_recv_ack(s.alice, qb, s.ack, s.acklen)) break;
         if (!(s.bob->remote_version == tv->authver)) break;
@@ -62,6 +66,10 @@ test_write()
     qb = &s.bob->skey.Q;
 
     // Trade keys
+    rlpx_ch_nonce(s.alice);
+    rlpx_ch_nonce(s.bob);
+    rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
     IF_ERR_EXIT(rlpx_ch_send_auth(s.alice, qb));
     IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, qa, s.alice->io.b, s.alice->io.len));
     IF_ERR_EXIT(rlpx_ch_send_ack(s.bob, qa));
@@ -95,6 +103,8 @@ test_secrets()
     rlpx_test_remote_nonce_set(s.bob, &s.alice_n);
     rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
+    rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
     rlpx_ch_recv_auth(s.bob, qa, s.auth, s.authlen);
     rlpx_ch_recv_ack(s.alice, qb, s.ack, s.acklen);
     IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,

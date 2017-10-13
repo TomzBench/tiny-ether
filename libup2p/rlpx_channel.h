@@ -48,15 +48,16 @@ int rlpx_ch_mock_init(rlpx_channel*,
 void rlpx_ch_deinit(rlpx_channel* session);
 
 // methods
+void rlpx_ch_nonce(rlpx_channel* ch);
 int rlpx_ch_connect(rlpx_channel* ch, const uecc_public_key* to);
 int rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from);
-int rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l);
 int rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to);
+int rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to);
+int rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l);
 int rlpx_ch_recv_auth(rlpx_channel*,
                       const uecc_public_key* from,
                       const uint8_t*,
                       size_t l);
-int rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to);
 int rlpx_ch_recv_ack(rlpx_channel* ch,
                      const uecc_public_key* from,
                      const uint8_t*,

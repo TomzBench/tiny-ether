@@ -90,14 +90,46 @@ rlpx_ch_deinit(rlpx_channel* ch)
     if (ch->hs) rlpx_handshake_free(&ch->hs);
 }
 
+void
+rlpx_ch_nonce(rlpx_channel* ch)
+{
+    unonce(ch->nonce.b);
+}
+
 int
 rlpx_ch_connect(rlpx_channel* ch, const uecc_public_key* to)
 {
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->remote_version,
+                                  &ch->nonce, &ch->remote_nonce,
+                                  &ch->remote_skey, &ch->remote_ekey, to);
+    async_io_connect(&ch->io, "thhpty", 80); // TODO ----
+    return ch->hs ? 0 : -1;
 }
 
 int
 rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from)
 {
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->remote_version,
+                                  &ch->nonce, &ch->remote_nonce,
+                                  &ch->remote_skey, &ch->remote_ekey, from);
+    ch->io.sock = 3; // TODO ---
+    return ch->hs ? 0 : -1;
+}
+
+int
+rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to)
+{
+    async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+    return async_io_send(&ch->io);
+}
+
+int
+rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to)
+{
+    async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+    return async_io_send(&ch->io);
 }
 
 int
@@ -118,24 +150,6 @@ rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
 }
 
 int
-rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to)
-{
-    if (ch->hs) rlpx_handshake_free(&ch->hs);
-    unonce(ch->nonce.b);
-    // TODO - channel handshake should be populated from rlpx_ch_connect();
-    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->remote_version,
-                                  &ch->nonce, &ch->remote_nonce,
-                                  &ch->remote_skey, &ch->remote_ekey, to);
-    if (ch->hs) {
-        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
-        async_io_send(&ch->io);
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
-int
 rlpx_ch_recv_auth(rlpx_channel* ch,
                   const uecc_public_key* from,
                   const uint8_t* b,
@@ -143,13 +157,6 @@ rlpx_ch_recv_auth(rlpx_channel* ch,
 {
     int err = 0;
     urlp* rlp = NULL;
-
-    // TODO - hs should be populated during rlpx_ch_accept
-    if (!ch->hs) {
-        ch->hs = rlpx_handshake_alloc(
-            0, &ch->skey, &ch->ekey, &ch->remote_version, &ch->nonce,
-            &ch->remote_nonce, &ch->remote_skey, &ch->remote_ekey, from);
-    }
 
     // Decrypt authentication packet (allocates rlp context)
     if ((err = rlpx_handshake_auth_recv(ch->hs, b, l, &rlp))) return err;
@@ -165,24 +172,6 @@ rlpx_ch_recv_auth(rlpx_channel* ch,
 }
 
 int
-rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to)
-{
-    if (ch->hs) rlpx_handshake_free(&ch->hs);
-    unonce(ch->nonce.b);
-    // TODO - channel handshake should be populated from rlpx_ch_accept()
-    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->remote_version,
-                                  &ch->nonce, &ch->remote_nonce,
-                                  &ch->remote_skey, &ch->remote_ekey, to);
-    if (ch->hs) {
-        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
-        async_io_send(&ch->io);
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
-int
 rlpx_ch_recv_ack(rlpx_channel* ch,
                  const uecc_public_key* from,
                  const uint8_t* ack,
@@ -190,13 +179,6 @@ rlpx_ch_recv_ack(rlpx_channel* ch,
 {
     int err = -1;
     urlp* rlp = NULL;
-
-    // TODO - hs should be populated during rlpx_ch_connect()
-    if (!ch->hs) {
-        ch->hs = rlpx_handshake_alloc(
-            1, &ch->skey, &ch->ekey, &ch->remote_version, &ch->nonce,
-            &ch->remote_nonce, &ch->remote_skey, &ch->remote_ekey, from);
-    }
 
     // Decrypt authentication packet
     if ((err = rlpx_handshake_ack_recv(ch->hs, ack, l, &rlp))) return err;
