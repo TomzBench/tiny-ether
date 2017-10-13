@@ -310,9 +310,9 @@ rlpx_handshake_alloc(int orig,
         hs->ekey_remote = ekey_remote;
         hs->version_remote = version_remote;
         if (orig) {
-            rlpx_handshake_auth_init(hs, nonce, to);
+            rlpx_handshake_auth_init(hs, to);
         } else {
-            rlpx_handshake_ack_init(hs, nonce, to);
+            rlpx_handshake_ack_init(hs, to);
         }
     }
     return hs;
@@ -363,9 +363,7 @@ rlpx_handshake_secrets(rlpx_handshake* hs, rlpx_coder* x, int orig)
 }
 
 int
-rlpx_handshake_auth_init(rlpx_handshake* hs,
-                         h256* nonce,
-                         const uecc_public_key* to)
+rlpx_handshake_auth_init(rlpx_handshake* hs, const uecc_public_key* to)
 {
 
     int err = 0;
@@ -377,7 +375,7 @@ rlpx_handshake_auth_init(rlpx_handshake* hs,
     urlp* rlp;
     if (uecc_agree(hs->skey, to)) return -1;
     for (int i = 0; i < 32; i++) {
-        x.b[i] = hs->skey->z.b[i + 1] ^ nonce->b[i];
+        x.b[i] = hs->skey->z.b[i + 1] ^ hs->nonce->b[i];
     }
     if (uecc_sign(hs->ekey, x.b, 32, &sig)) return -1;
     uecc_sig_to_bin(&sig, rawsig);
@@ -385,19 +383,16 @@ rlpx_handshake_auth_init(rlpx_handshake* hs,
     if ((rlp = urlp_list())) {
         urlp_push(rlp, urlp_item_u8(rawsig, 65));
         urlp_push(rlp, urlp_item_u8(&rawpub[1], 64));
-        urlp_push(rlp, urlp_item_u8(nonce->b, 32));
+        urlp_push(rlp, urlp_item_u8(hs->nonce->b, 32));
         urlp_push(rlp, urlp_item_u64(&v, 1));
     }
     err = rlpx_encrypt(rlp, to, hs->cipher, &hs->cipher_len);
-    if (!err) *hs->nonce = *nonce;
     urlp_free(&rlp);
     return err;
 }
 
 int
-rlpx_handshake_ack_init(rlpx_handshake* hs,
-                        h256* nonce,
-                        const uecc_public_key* to)
+rlpx_handshake_ack_init(rlpx_handshake* hs, const uecc_public_key* to)
 {
     h520 rawekey;
     urlp* rlp;
@@ -407,7 +402,7 @@ rlpx_handshake_ack_init(rlpx_handshake* hs,
     if (!(rlp = urlp_list())) return -1;
     if (rlp) {
         urlp_push(rlp, urlp_item_u8(&rawekey.b[1], 64));
-        urlp_push(rlp, urlp_item_u8(nonce->b, 32));
+        urlp_push(rlp, urlp_item_u8(hs->nonce->b, 32));
         urlp_push(rlp, urlp_item_u64(&ver, 1));
     }
     if (!(urlp_children(rlp) == 3)) {

@@ -60,6 +60,7 @@ int
 test_frame_write()
 {
     int err = 0;
+    uecc_public_key *qa, *qb;
     test_session s;
     test_session_init(&s, 1);
     size_t lena = 1000, lenb = 1000, alen = 1000, blen = 1000;
@@ -68,14 +69,16 @@ test_frame_write()
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
     uint32_t numa, numb;
+    qa = &s.alice->skey.Q;
+    qb = &s.bob->skey.Q;
 
-    // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_ch_write_auth(s.alice, &s.bob->skey.Q, a, &alen));
-    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
+    // Send keys
+    IF_ERR_EXIT(rlpx_ch_send_auth(s.alice, qb));
+    IF_ERR_EXIT(rlpx_ch_send_ack(s.bob, &s.alice->skey.Q));
 
-    // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ch_write_ack(s.bob, &s.alice->skey.Q, b, &blen));
-    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
+    // Recv keys
+    IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, qb, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, qa, s.alice->io.b, s.alice->io.len));
 
     // Check key exchange
     IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));

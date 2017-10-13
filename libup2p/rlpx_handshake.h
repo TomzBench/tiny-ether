@@ -47,7 +47,7 @@ rlpx_handshake* rlpx_handshake_alloc(int orig,
 void rlpx_handshake_free(rlpx_handshake** hs_p);
 
 int rlpx_handshake_secrets(rlpx_handshake* hs, rlpx_coder* x, int orig);
-int rlpx_handshake_auth_init(rlpx_handshake*, h256*, const uecc_public_key*);
+int rlpx_handshake_auth_init(rlpx_handshake*, const uecc_public_key*);
 int rlpx_handshake_auth_install(rlpx_handshake* hs, urlp** rlp_p);
 int rlpx_handshake_auth_recv(rlpx_handshake* hs,
                              const uint8_t* b,
@@ -58,7 +58,7 @@ int rlpx_handshake_auth_recv_legacy(rlpx_handshake* hs,
                                     size_t l,
                                     urlp** rlp_p);
 // Ack
-int rlpx_handshake_ack_init(rlpx_handshake*, h256*, const uecc_public_key*);
+int rlpx_handshake_ack_init(rlpx_handshake*, const uecc_public_key*);
 int rlpx_handshake_ack_install(rlpx_handshake* hs, urlp** rlp_p);
 int rlpx_handshake_ack_recv(rlpx_handshake* hs,
                             const uint8_t* b,
