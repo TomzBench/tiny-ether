@@ -91,42 +91,6 @@ rlpx_ch_deinit(rlpx_channel* ch)
 }
 
 int
-rlpx_ch_auth_load(rlpx_channel* ch, const uint8_t* auth, size_t l)
-{
-    int err = 0;
-    urlp* rlp = NULL;
-
-    // Decrypt authentication packet
-    if ((err = rlpx_auth_read(&ch->skey, auth, l, &rlp))) return err;
-
-    // Process the Decrypted RLP data
-    err = rlpx_auth_load(&ch->skey, &ch->remote_version, &ch->remote_nonce,
-                         &ch->remote_skey, &ch->remote_ekey, &rlp);
-
-    // Free rlp and return
-    urlp_free(&rlp);
-    return err;
-}
-
-int
-rlpx_ch_ack_load(rlpx_channel* ch, const uint8_t* ack, size_t l)
-{
-    int err = 0;
-    urlp* rlp = NULL;
-
-    // Decrypt acknowledge packet
-    if ((err = rlpx_ack_read(&ch->skey, ack, l, &rlp))) return err;
-
-    // Process the Decrypted RLP data
-    err = rlpx_ack_load(&ch->remote_version, &ch->remote_nonce,
-                        &ch->remote_ekey, &rlp);
-
-    // Free rlp and return
-    urlp_free(&rlp);
-    return err;
-}
-
-int
 rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
