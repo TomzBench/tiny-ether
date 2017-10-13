@@ -91,6 +91,33 @@ rlpx_ch_deinit(rlpx_channel* ch)
 }
 
 int
+rlpx_ch_connect(rlpx_channel* ch, const uecc_public_key* to)
+{
+}
+
+int
+rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from)
+{
+}
+
+int
+rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
+{
+    int err, type;
+    urlp* rlp = NULL;
+    err = rlpx_frame_parse(&ch->x, d, l, &rlp);
+    if (!err) {
+        type = rlpx_frame_header_type(rlp);
+        if (type >= 0 && type < 2) {
+            err = ch->protocols[type]->parse(ch->protocols[type],
+                                             rlpx_frame_body(rlp));
+        }
+        urlp_free(&rlp);
+    }
+    return err;
+}
+
+int
 rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
@@ -210,23 +237,6 @@ int
 rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
     return rlpx_devp2p_protocol_write_pong(&ch->x, out, l);
-}
-
-int
-rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
-{
-    int err, type;
-    urlp* rlp = NULL;
-    err = rlpx_frame_parse(&ch->x, d, l, &rlp);
-    if (!err) {
-        type = rlpx_frame_header_type(rlp);
-        if (type >= 0 && type < 2) {
-            err = ch->protocols[type]->parse(ch->protocols[type],
-                                             rlpx_frame_body(rlp));
-        }
-        urlp_free(&rlp);
-    }
-    return err;
 }
 
 int

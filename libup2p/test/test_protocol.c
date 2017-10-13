@@ -40,8 +40,8 @@ test_protocol()
     // Read/Write HELLO
     IF_ERR_EXIT(rlpx_ch_write_hello(s.alice, from_alice, &lena));
     IF_ERR_EXIT(rlpx_ch_write_hello(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+    IF_ERR_EXIT(rlpx_ch_recv(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_recv(s.bob, from_alice, lena));
 
     // Read/Write DISCONNECT
     lena = 1000;
@@ -50,24 +50,24 @@ test_protocol()
                                          from_alice, &lena));
     IF_ERR_EXIT(rlpx_ch_write_disconnect(s.bob, DEVP2P_DISCONNECT_BAD_VERSION,
                                          from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+    IF_ERR_EXIT(rlpx_ch_recv(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_recv(s.bob, from_alice, lena));
 
     // Read/Write PING
     lena = 1000;
     lenb = 1000;
     IF_ERR_EXIT(rlpx_ch_write_ping(s.alice, from_alice, &lena));
     IF_ERR_EXIT(rlpx_ch_write_ping(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+    IF_ERR_EXIT(rlpx_ch_recv(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_recv(s.bob, from_alice, lena));
 
     // Read/Write PONG
     lena = 1000;
     lenb = 1000;
     IF_ERR_EXIT(rlpx_ch_write_pong(s.alice, from_alice, &lena));
     IF_ERR_EXIT(rlpx_ch_write_pong(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+    IF_ERR_EXIT(rlpx_ch_recv(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_recv(s.bob, from_alice, lena));
 
     // Confirm all callbacks readback
     IF_ERR_EXIT((g_test_mask == 0x0f) ? 0 : -1);
