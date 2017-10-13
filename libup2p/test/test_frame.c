@@ -40,7 +40,7 @@ test_frame_read()
     rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
     // Update our secrets
-    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
+    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, &s.alice->skey.Q, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                          s.authlen, aes, mac, NULL));
     IF_ERR_EXIT(rlpx_frame_parse(&s.bob->x, makebin(g_hello_packet, NULL),
