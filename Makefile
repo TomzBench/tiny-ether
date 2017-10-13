@@ -1,5 +1,5 @@
 #ulib makefile
-# TODO - Need to filter the 'test' filder from each module when linking libs
+# TODO - Need to filter the 'test' folder from each module when linking libs
 
 # setup install directory
 TARGET		?=	target
