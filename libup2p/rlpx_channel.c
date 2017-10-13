@@ -192,13 +192,7 @@ rlpx_ch_secrets(rlpx_channel* s,
     ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(aes-secret))
     uaes_init_bin(&s->x.aes_mac, out, 32); // mac-secret save
 
-    // ingress / egress
-    // Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
-    //           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
-    // Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
-    //           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recv-init)
-    // egress  = sha3(mac-secret^their nonce || cipher sent )
-    // ingress = sha3(mac-secret^our nonce   || cipher received)
+    // Ingress / egress
     ukeccak256_init(&s->x.emac);
     ukeccak256_init(&s->x.imac);
     XOR32_SET(buf, out, s->nonce.b); // (mac-secret^recepient-nonce);
@@ -249,11 +243,6 @@ rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
     if (!err) {
         type = rlpx_frame_header_type(rlp);
         if (type >= 0 && type < 2) {
-            // If this is a devp2p frame - included the header to parser
-            // I think future upgrades would nest the type into the list
-            // So this makes migrating in future easier.
-            // err = ch->protocols[type]->parse(
-            //    ch->protocols[type], type == 0 ? rlp : rlpx_frame_body(rlp));
             err = ch->protocols[type]->parse(ch->protocols[type],
                                              rlpx_frame_body(rlp));
         }

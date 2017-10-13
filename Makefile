@@ -11,31 +11,34 @@ CONFIGS_D 	+= 	URLP_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	"memset_s(W,WL,V,OL)=memset(W,V,OL)"
 
+# external includes dependancies -I
+DEPS 		+= 	external/mbedtls/include
+DEPS 		+= 	external/secp256k1/include
+
 # Collect lib objects *.o
-MODULES 	+= 	libusys/unix
-MODULES 	+= 	libusys/async
 MODULES 	+= 	libup2p
 MODULES 	+= 	libucrypto
 MODULES 	+=	liburlp
+MODULES 	+= 	libusys/async
+MODULES 	+= 	libusys/unix
 
 # Build test applications
 APPLICATIONS 	+=	liburlp/test
+APPLICATIONS 	+= 	libusys/test
 APPLICATIONS 	+=	libucrypto/test
 APPLICATIONS 	+=	libup2p/test
 
 # Build vars
 APP_SRCS	+=	$(APPLICATIONS)
-MODULE_SRCS 	+= 	$(addsuffix /src,$(MODULES))
-MODULE_INCS 	+= 	$(addsuffix /include,$(MODULES))
-MODULE_DIRS 	+=	$(MODULE_INCS) $(MODULE_SRCS)
 LIBS 		+= 	$(addprefix $(TARGET)/lib/,$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod)))))
 APPS 		+= 	$(addprefix $(TARGET)/bin/,$(foreach bin, $(APPLICATIONS),$(subst /,-,$(bin))))
-SRCS 		+=	$(shell find $(MODULE_SRCS) -name '*.c')
+SRCS 		+=	$(shell find $(MODULES) -name '*.c')
 SRCS 		+=	$(shell find $(APP_SRCS) -name '*.c')
-HDRS 		+= 	$(shell find $(MODULE_INCS) -name '*.h')
+HDRS 		+= 	$(shell find $(MODULES) -name '*.h')
 OBJS		+=	$(addprefix $(TARGET)/obj/,$(SRCS:.c=.o))
-INCS		+=	$(addprefix -I./,$(MODULE_DIRS))
+INCS		+=	$(addprefix -I./,$(MODULES))
 INCS	 	+=	$(addprefix -I./,$(TARGET)/include)
+INCS 		+= 	$(addprefix -I./,$(DEPS))
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
 DIRS 		+= 	$(sort $(dir $(OBJS)))
 DIRS 		+=	$(TARGET)/bin
@@ -43,7 +46,6 @@ CFLAGS 		+= 	$(DEFS)
 LDFLAGS 	+=	$(LIBS) $(addprefix $(TARGET)/lib/, libmbedcrypto.a libsecp256k1.a)
 INSTALL 	+= 	$(LIBS)
 INSTALL 	+= 	$(APPS)
-INSTALL 	+= 	$(addprefix $(TARGET)/include/,$(notdir $(HDRS)))
 
 all: $(DIRS) $(OBJS) $(INSTALL)
 

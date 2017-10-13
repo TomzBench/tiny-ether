@@ -2,56 +2,66 @@
 
 // Override system IO with MOCK implementation OR other IO implementation.
 // Useful for test or portability.
-usys_io_send_fn g_usys_async_io_send = usys_send;
-usys_io_recv_fn g_usys_async_io_recv = usys_recv;
+async_io_settings g_async_io_settings_default = {
+    .on_connect = async_io_default_on_connect,
+    .on_accept = async_io_default_on_accept,
+    .on_erro = async_io_default_on_erro,
+    .on_send = async_io_default_on_send,
+    .on_recv = async_io_default_on_recv,
+    .tx = usys_send,
+    .rx = usys_recv,
+    .ready = usys_sock_ready,
+    .connect = usys_connect,
+    .close = usys_close
+};
 
 // Private prototypes.
-int async_io_start(async_io* self);
 void async_error(async_io* self, int);
 
 // Public
 void
-async_io_install(usys_io_send_fn s, usys_io_recv_fn r)
+async_io_init(async_io* self, void* ctx, const async_io_settings* opts)
 {
-    g_usys_async_io_send = s;
-    g_usys_async_io_recv = r;
-}
-
-void
-async_io_init(async_io* self,
-              void* ctx,
-              async_io_cb on_send,
-              async_io_cb on_recv,
-              async_io_cb on_erro)
-{
+    // Zero mem
     memset(self, 0, sizeof(async_io));
+
+    // Init state
     self->sock = -1;
     self->ctx = ctx;
-    self->tx = g_usys_async_io_send;
-    self->rx = g_usys_async_io_recv;
-    self->on_send = on_send;
-    self->on_recv = on_recv;
-    self->on_erro = on_erro;
+    self->settings = g_async_io_settings_default;
+
+    // override defaults with callers mock functions.
+    if (opts->on_connect) self->settings.on_connect = opts->on_connect;
+    if (opts->on_accept) self->settings.on_accept = opts->on_accept;
+    if (opts->on_erro) self->settings.on_erro = opts->on_erro;
+    if (opts->on_send) self->settings.on_send = opts->on_send;
+    if (opts->on_recv) self->settings.on_recv = opts->on_recv;
+    if (opts->tx) self->settings.tx = opts->tx;
+    if (opts->rx) self->settings.rx = opts->rx;
+    if (opts->ready) self->settings.ready = opts->ready;
+    if (opts->connect) self->settings.connect = opts->connect;
+    if (opts->close) self->settings.close = opts->close;
 }
 
 void
 async_io_deinit(async_io* self)
 {
-    if (ASYNC_IO_SOCK(self)) usys_close(&self->sock);
+    if (ASYNC_IO_SOCK(self)) self->settings.close(&self->sock);
     memset(self, 0, sizeof(async_io));
 }
 
 int
 async_io_connect(async_io* self, const char* ip, uint32_t p)
 {
-    if (ASYNC_IO_SOCK(self)) usys_close(&self->sock);
-    int ret = usys_connect(&self->sock, ip, p);
+    if (ASYNC_IO_SOCK(self)) self->settings.close(&self->sock);
+    int ret = self->settings.connect(&self->sock, ip, p);
     if (ret < 0) {
         ASYNC_IO_SET_ERRO(self);
     } else if (ret == 0) {
         self->state |= ASYNC_IO_STATE_SEND;
     } else {
-        self->state |= ASYNC_IO_STATE_READY;
+        self->state |= ASYNC_IO_STATE_RECV | ASYNC_IO_STATE_READY;
+        self->settings.on_connect(self->ctx);
     }
     return ret;
 }
@@ -62,14 +72,32 @@ async_io_close(async_io* self)
     ASYNC_IO_CLOSE(self);
 }
 
+const void*
+async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l)
+{
+    return memcpy(&self->b[idx], mem, l);
+}
+
 int
-async_io_send(async_io* self, const char* ip, uint32_t port)
+async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
+{
+    int l;
+    va_list ap;
+    va_start(ap, fmt);
+    l = vsnprintf((char*)&self->b[idx], sizeof(self->b) - idx, fmt, ap);
+    if (l >= 0) self->len = l;
+    va_end(ap);
+    return l;
+}
+
+int
+async_io_send(async_io* self)
 {
     if (ASYNC_IO_SOCK(self)) {
         ASYNC_IO_SET_SEND(self);
-        return async_io_start(self);
+        return 0;
     } else {
-        return async_io_connect(self, ip, port);
+        return -1;
     }
 }
 
@@ -82,26 +110,6 @@ async_io_recv(async_io* self)
     } else {
         return -1;
     }
-}
-
-int
-async_io_start(async_io* self)
-{
-    int ret, end = self->end;
-    self->c = 0;
-    ret = self->tx(&self->sock, &self->b[self->c], self->end - self->c);
-    if (ret > 0) {
-        if (ret == end) {
-            ret = 0; // Send complete, put into listen
-            ASYNC_IO_SET_RECV(self);
-            self->on_send(self->ctx, ret, self->b, self->end);
-        } else {
-            ret = 0;
-        }
-    } else {
-        ASYNC_IO_SET_ERRO(self);
-    }
-    return ret;
 }
 
 int
@@ -125,30 +133,26 @@ async_io_poll_n(async_io** io, uint32_t n, uint32_t ms)
 int
 async_io_poll(async_io* self)
 {
-    int c, ret = -1, end = self->end, start = self->c;
+    int c, ret = -1, end = self->len, start = self->c;
     ((void)start);
     if (!(ASYNC_IO_READY(self->state))) {
         if (ASYNC_IO_SOCK(self)) {
-            ret = usys_sock_ready(&self->sock);
+            ret = self->settings.ready(&self->sock);
             if (ret < 0) {
                 ASYNC_IO_SET_ERRO(self);
-            } else if (ret > 0) {
-                if (self->end) {
-                    self->state |= ASYNC_IO_STATE_READY;
-                    ASYNC_IO_SET_SEND(self);
-                    async_io_start(self);
-                } else {
-                    self->state |= ASYNC_IO_STATE_READY;
-                }
+            } else {
+                ASYNC_IO_SET_READY(self);
+                ASYNC_IO_SET_RECV(self);
             }
         } else {
         }
     } else if (ASYNC_IO_SEND(self->state)) {
         for (c = 0; c < 2; c++) {
-            ret = self->tx(&self->sock, &self->b[self->c], self->end - self->c);
+            ret = self->settings.tx(&self->sock, &self->b[self->c],
+                                    self->len - self->c);
             if (ret >= 0) {
                 if (ret + (int)self->c == end) {
-                    self->on_send(self->ctx, 0, self->b, self->end);
+                    self->settings.on_send(self->ctx, 0, self->b, self->len);
                     ASYNC_IO_SET_RECV(self); // Send complete, put into listen
                     break;
                 } else if (ret == 0) {
@@ -159,16 +163,18 @@ async_io_poll(async_io* self)
                     ret = 0; // OK, but maybe more to send
                 }
             } else {
-                self->on_send(self->ctx, -1, 0, 0); // IO error
+                self->settings.on_send(self->ctx, -1, 0, 0); // IO error
                 ASYNC_IO_SET_ERRO(self);
             }
         }
     } else if (ASYNC_IO_RECV(self->state)) {
         for (c = 0; c < 2; c++) {
-            ret = self->rx(&self->sock, &self->b[self->c], self->end - self->c);
+            ret = self->settings.rx(&self->sock, &self->b[self->c],
+                                    self->len - self->c);
             if (ret >= 0) {
                 if (ret + (int)self->c == end) {
-                    self->on_recv(self->ctx, -1, 0, 0); // buffer to small
+                    self->settings.on_recv(self->ctx, -1, 0,
+                                           0); // buffer to small
                     ASYNC_IO_SET_ERRO(self);
                     break;
                 } else if (ret == 0) {
@@ -177,7 +183,7 @@ async_io_poll(async_io* self)
                         // that means remote has disconnected.
                         ASYNC_IO_SET_ERRO(self);
                     } else {
-                        self->on_recv(self->ctx, 0, self->b, self->c);
+                        self->settings.on_recv(self->ctx, 0, self->b, self->c);
                         ret = 0; // OK no more data
                     }
                     break;
@@ -186,7 +192,7 @@ async_io_poll(async_io* self)
                     ret = 0; // OK maybe more data
                 }
             } else {
-                self->on_recv(self->ctx, -1, 0, 0); // IO error
+                self->settings.on_recv(self->ctx, -1, 0, 0); // IO error
                 ASYNC_IO_SET_ERRO(self);
             }
         }
