@@ -11,6 +11,10 @@ CONFIGS_D 	+= 	URLP_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	"memset_s(W,WL,V,OL)=memset(W,V,OL)"
 
+# external includes dependancies -I
+DEPS 		+= 	external/mbedtls/include
+DEPS 		+= 	external/secp256k1/include
+
 # Collect lib objects *.o
 MODULES 	+= 	libup2p
 MODULES 	+= 	libucrypto
@@ -37,6 +41,7 @@ HDRS 		+= 	$(shell find $(MODULE_INCS) -name '*.h')
 OBJS		+=	$(addprefix $(TARGET)/obj/,$(SRCS:.c=.o))
 INCS		+=	$(addprefix -I./,$(MODULE_DIRS))
 INCS	 	+=	$(addprefix -I./,$(TARGET)/include)
+INCS 		+= 	$(addprefix -I./,$(DEPS))
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
 DIRS 		+= 	$(sort $(dir $(OBJS)))
 DIRS 		+=	$(TARGET)/bin
