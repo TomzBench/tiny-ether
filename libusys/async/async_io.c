@@ -72,6 +72,12 @@ async_io_close(async_io* self)
     ASYNC_IO_CLOSE(self);
 }
 
+void*
+async_io_mem(async_io* self, uint32_t idx)
+{
+    return &self->b[idx];
+}
+
 const void*
 async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l)
 {

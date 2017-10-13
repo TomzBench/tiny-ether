@@ -93,6 +93,7 @@ void async_io_init(async_io*, void*, const async_io_settings*);
 void async_io_deinit(async_io* self);
 int async_io_connect(async_io* async, const char* ip, uint32_t p);
 void async_io_close(async_io* self);
+void* async_io_mem(async_io* self, uint32_t idx);
 const void* async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l);
 int async_io_print(async_io* self, uint32_t, const char* fmt, ...);
 int async_io_send(async_io*);

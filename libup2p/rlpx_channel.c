@@ -3,26 +3,42 @@
 #include "rlpx_helper_macros.h"
 #include "unonce.h"
 
-// Private callbacks
+// Private io callbacks
+int rlpx_ch_on_accept(void* ctx);
+int rlpx_ch_on_connect(void* ctx);
+int rlpx_ch_on_erro(void* ctx);
+int rlpx_ch_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
+int rlpx_ch_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
+
+// Private protocol callbacks
 int rlpx_ch_on_hello(void* ctx, const urlp* rlp);
+int rlpx_ch_on_disconnect(void* ctx, const urlp* rlp);
 int rlpx_ch_on_ping(void* ctx, const urlp* rlp);
 int rlpx_ch_on_pong(void* ctx, const urlp* rlp);
-int rlpx_ch_on_disconnect(void* ctx, const urlp* rlp);
+
+// IO callback handlers
+async_io_settings g_rlpx_ch_io_settings = { //
+    .on_accept = rlpx_ch_on_accept,
+    .on_connect = rlpx_ch_on_connect,
+    .on_erro = rlpx_ch_on_erro,
+    .on_send = rlpx_ch_on_send,
+    .on_recv = rlpx_ch_on_recv
+};
 
 // Protocol callback handlers
 rlpx_devp2p_protocol_settings g_devp2p_settings = { //
     .on_hello = rlpx_ch_on_hello,
+    .on_disconnect = rlpx_ch_on_disconnect,
     .on_ping = rlpx_ch_on_ping,
-    .on_pong = rlpx_ch_on_pong,
-    .on_disconnect = rlpx_ch_on_disconnect
+    .on_pong = rlpx_ch_on_pong
 };
 
 rlpx_channel*
-rlpx_ch_alloc_keypair(uecc_private_key* skey, uecc_private_key* ekey)
+rlpx_ch_alloc(uecc_private_key* skey, uecc_private_key* ekey)
 {
     rlpx_channel* ch = rlpx_malloc(sizeof(rlpx_channel));
     if (ch) {
-        rlpx_ch_init_keypair(ch, skey, ekey);
+        rlpx_ch_init(ch, skey, ekey);
     }
     return ch;
 }
@@ -37,10 +53,13 @@ rlpx_ch_free(rlpx_channel** ch_p)
 }
 
 int
-rlpx_ch_init_keypair(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
+rlpx_ch_init(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
 {
     // clean mem
     memset(ch, 0, sizeof(rlpx_channel));
+
+    // Install network io handler
+    async_io_init(&ch->io, ch, &g_rlpx_ch_io_settings);
 
     // update info
     ch->listen_port = 44;         // TODO
@@ -210,7 +229,37 @@ rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
 }
 
 int
+rlpx_ch_on_accept(void* ctx)
+{
+}
+
+int
+rlpx_ch_on_connect(void* ctx)
+{
+}
+
+int
+rlpx_ch_on_erro(void* ctx)
+{
+}
+
+int
+rlpx_ch_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
+{
+}
+
+int
+rlpx_ch_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+}
+
+int
 rlpx_ch_on_hello(void* ctx, const urlp* rlp)
+{
+}
+
+int
+rlpx_ch_on_disconnect(void* ctx, const urlp* rlp)
 {
 }
 
@@ -221,11 +270,6 @@ rlpx_ch_on_ping(void* ctx, const urlp* rlp)
 
 int
 rlpx_ch_on_pong(void* ctx, const urlp* rlp)
-{
-}
-
-int
-rlpx_ch_on_disconnect(void* ctx, const urlp* rlp)
 {
 }
 

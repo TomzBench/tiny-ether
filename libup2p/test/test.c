@@ -1,6 +1,8 @@
 #include "test.h"
 #include <string.h>
 
+extern async_io_settings g_io_mock_settings;
+
 test_vector g_test_vectors[] = { //
     {.auth = AUTH_1,
      .ack = ACK_1,
@@ -92,8 +94,8 @@ test_session_init(test_session* s, int vec)
     memcpy(s->alice_n.b, makebin(g_test_vectors[vec].alice_n, NULL), 32);
     memcpy(s->bob_n.b, makebin(g_test_vectors[vec].bob_n, NULL), 32);
     // init test_session with alice,bob,etc
-    s->alice = rlpx_ch_alloc_keypair(&alice_s, &alice_e);
-    s->bob = rlpx_ch_alloc_keypair(&bob_s, &bob_e);
+    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &alice_s, &alice_e);
+    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &bob_s, &bob_e);
     // sanity check
     if ((check_q(&s->alice->ekey.Q, g_alice_epub))) return -1;
     if ((check_q(&s->bob->ekey.Q, g_bob_epub))) return -1;
