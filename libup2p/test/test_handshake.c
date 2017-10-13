@@ -57,8 +57,8 @@ test_write()
     test_session s;
     test_session_init(&s, 0);
 
-    IF_ERR_EXIT(rlpx_ch_write_auth(s.alice, &s.bob->skey.Q, buf, &l));
-    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, buf, l));
+    IF_ERR_EXIT(rlpx_ch_send_auth(s.alice, &s.bob->skey.Q));
+    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.alice->io.b, s.alice->io.len));
 
     l = 800;
     IF_ERR_EXIT(rlpx_ch_write_ack(s.bob, &s.alice->skey.Q, buf, &l));

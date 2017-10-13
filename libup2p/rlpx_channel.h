@@ -13,6 +13,7 @@ extern "C" {
 #include "async_io.h"
 #include "rlpx_config.h"
 #include "rlpx_devp2p.h"
+#include "rlpx_handshake.h"
 
 typedef struct
 {
@@ -21,6 +22,7 @@ typedef struct
     rlpx_protocol* protocols[2]; /*!< protocol handlers */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
+    rlpx_handshake* hs;          /*!< temp context during handshake process */
     h256 nonce;                  /*!< local nonce */
     char node_id[65];            /*!< node id */
     uint32_t listen_port;        /*!< our listen port */
@@ -76,6 +78,7 @@ int rlpx_ch_secrets(rlpx_channel* s,
                     uint8_t* recv,
                     uint32_t recvlen);
 int rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l);
+int rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to);
 int rlpx_ch_write_auth(rlpx_channel* ch,
                        const uecc_public_key*,
                        uint8_t* auth,

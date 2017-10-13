@@ -256,6 +256,120 @@ rlpx_ack_write(uecc_ctx* skey,
     return err;
 }
 
+rlpx_handshake*
+rlpx_handshake_alloc_auth(uecc_ctx* skey,
+                          uecc_ctx* ekey,
+                          uint64_t* version_remote,
+                          h256* nonce,
+                          h256* nonce_remote,
+                          uecc_public_key* skey_remote,
+                          uecc_public_key* ekey_remote,
+                          const uecc_public_key* to)
+{
+    rlpx_handshake* hs =
+        rlpx_handshake_alloc(skey, ekey, version_remote, nonce, nonce_remote,
+                             skey_remote, ekey_remote);
+    if (hs) rlpx_handshake_auth_init(hs, nonce, to);
+    return hs;
+}
+
+rlpx_handshake*
+rlpx_handshake_alloc(uecc_ctx* skey,
+                     uecc_ctx* ekey,
+                     uint64_t* version_remote,
+                     h256* nonce,
+                     h256* nonce_remote,
+                     uecc_public_key* skey_remote,
+                     uecc_public_key* ekey_remote)
+{
+    rlpx_handshake* hs = rlpx_malloc(sizeof(rlpx_handshake));
+    if (hs) {
+        hs->cipher_len = sizeof(hs->cipher);
+        hs->cipher_remote_len = sizeof(hs->cipher_remote);
+        hs->ekey = ekey;
+        hs->skey = skey;
+        hs->nonce = nonce;
+        hs->nonce_remote = nonce_remote;
+        hs->skey_remote = skey_remote;
+        hs->ekey_remote = ekey_remote;
+        hs->version_remote = version_remote;
+    }
+    return hs;
+}
+
+void
+rlpx_handshake_free(rlpx_handshake** hs_p)
+{
+    rlpx_handshake* hs = *hs_p;
+    *hs_p = NULL;
+    memset(hs, 0, sizeof(rlpx_handshake));
+    rlpx_free(hs);
+}
+
+int
+rlpx_handshake_auth_init(rlpx_handshake* hs,
+                         h256* nonce,
+                         const uecc_public_key* to)
+{
+
+    int err = 0;
+    uint64_t v = 4;
+    uint8_t rawsig[65];
+    uint8_t rawpub[65];
+    uecc_shared_secret x;
+    uecc_signature sig;
+    urlp* rlp;
+    if (uecc_agree(hs->skey, to)) return -1;
+    for (int i = 0; i < 32; i++) {
+        x.b[i] = hs->skey->z.b[i + 1] ^ nonce->b[i];
+    }
+    if (uecc_sign(hs->ekey, x.b, 32, &sig)) return -1;
+    uecc_sig_to_bin(&sig, rawsig);
+    uecc_qtob(&hs->skey->Q, rawpub, 65);
+    if ((rlp = urlp_list())) {
+        urlp_push(rlp, urlp_item_u8(rawsig, 65));
+        urlp_push(rlp, urlp_item_u8(&rawpub[1], 64));
+        urlp_push(rlp, urlp_item_u8(nonce->b, 32));
+        urlp_push(rlp, urlp_item_u64(&v, 1));
+    }
+    err = rlpx_encrypt(rlp, to, hs->cipher, &hs->cipher_len);
+    if (!err) *hs->nonce = *nonce;
+    urlp_free(&rlp);
+    return err;
+}
+
+int
+rlpx_handshake_auth_read(rlpx_handshake* hs,
+                         const uint8_t* b,
+                         size_t l,
+                         urlp** rlp_p)
+{
+    int err = rlpx_decrypt(hs->skey, b, l, rlp_p);
+    memcpy(hs->cipher_remote, b, l);
+    hs->cipher_remote_len = l;
+    if (err) err = rlpx_handshake_auth_read_legacy(hs, b, l, rlp_p);
+    return err;
+}
+
+int
+rlpx_handshake_auth_read_legacy(rlpx_handshake* hs,
+                                const uint8_t* auth,
+                                size_t l,
+                                urlp** rlp_p)
+{
+    int err = -1;
+    uint8_t b[194];
+    uint64_t v = 4;
+    if (!(l == 307)) return err;
+    if (!(uecies_decrypt(hs->skey, NULL, 0, auth, l, b) == 194)) return err;
+    if (!(*rlp_p = urlp_list())) return err;
+    urlp_push(*rlp_p, urlp_item_u8(b, 65));                // signature
+    urlp_push(*rlp_p, urlp_item_u8(&b[65 + 32], 64));      // pubkey
+    urlp_push(*rlp_p, urlp_item_u8(&b[65 + 32 + 64], 32)); // nonce
+    urlp_push(*rlp_p, urlp_item_u64(&v, 1));               // version
+    return 0;
+}
+
 //
 //
 //

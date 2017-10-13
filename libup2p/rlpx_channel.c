@@ -87,6 +87,7 @@ rlpx_ch_deinit(rlpx_channel* ch)
 {
     uecc_key_deinit(&ch->skey);
     uecc_key_deinit(&ch->ekey);
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
 }
 
 int
@@ -161,6 +162,23 @@ rlpx_ch_secrets(rlpx_channel* s,
     ukeccak256_update(&s->x.emac, buf, 32 + slen); // S(m..^nonce)||auth-sent)
 
     return err;
+}
+
+int
+rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to)
+{
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+    unonce(ch->nonce.b);
+    ch->hs = rlpx_handshake_alloc_auth(
+        &ch->skey, &ch->ekey, &ch->remote_version, &ch->nonce,
+        &ch->remote_nonce, &ch->remote_skey, &ch->remote_ekey, to);
+    if (ch->hs) {
+        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+        async_io_send(&ch->io);
+        return 0;
+    } else {
+        return -1;
+    }
 }
 
 int
