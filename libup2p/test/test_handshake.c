@@ -57,11 +57,11 @@ test_write()
     test_session s;
     test_session_init(&s, 0);
 
-    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, &s.bob->skey.Q, buf, &l));
+    IF_ERR_EXIT(rlpx_ch_write_auth(s.alice, &s.bob->skey.Q, buf, &l));
     IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, buf, l));
 
     l = 800;
-    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, &s.alice->skey.Q, buf, &l));
+    IF_ERR_EXIT(rlpx_ch_write_ack(s.bob, &s.alice->skey.Q, buf, &l));
     IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, buf, l));
 
     IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));

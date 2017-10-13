@@ -46,15 +46,7 @@ int rlpx_ch_mock_init(rlpx_channel*,
 void rlpx_ch_deinit(rlpx_channel* session);
 
 // methods
-int rlpx_ch_auth_write(rlpx_channel* ch,
-                       const uecc_public_key*,
-                       uint8_t* auth,
-                       size_t* l);
 int rlpx_ch_auth_load(rlpx_channel* ch, const uint8_t* auth, size_t l);
-int rlpx_ch_ack_write(rlpx_channel* ch,
-                      const uecc_public_key*,
-                      uint8_t* ack,
-                      size_t* l);
 int rlpx_ch_ack_load(rlpx_channel* ch, const uint8_t* ack, size_t l);
 
 /**
@@ -84,6 +76,14 @@ int rlpx_ch_secrets(rlpx_channel* s,
                     uint8_t* recv,
                     uint32_t recvlen);
 int rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l);
+int rlpx_ch_write_auth(rlpx_channel* ch,
+                       const uecc_public_key*,
+                       uint8_t* auth,
+                       size_t* l);
+int rlpx_ch_write_ack(rlpx_channel* ch,
+                      const uecc_public_key*,
+                      uint8_t* ack,
+                      size_t* l);
 int rlpx_ch_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l);
 int rlpx_ch_write_disconnect(rlpx_channel* ch,
                              RLPX_DEVP2P_DISCONNECT_REASON,

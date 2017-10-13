@@ -26,11 +26,11 @@ test_protocol()
     rlpx_test_mock_devp2p(&g_test_devp2p_settings);
 
     // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, &s.bob->skey.Q, a, &alen));
+    IF_ERR_EXIT(rlpx_ch_write_auth(s.alice, &s.bob->skey.Q, a, &alen));
     IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
 
     // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, &s.alice->skey.Q, b, &blen));
+    IF_ERR_EXIT(rlpx_ch_write_ack(s.bob, &s.alice->skey.Q, b, &blen));
     IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
 
     // Update secrets
