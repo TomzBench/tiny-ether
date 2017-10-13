@@ -95,8 +95,8 @@ test_session_init(test_session* s, int vec)
     s->alice = rlpx_ch_alloc_keypair(&alice_s, &alice_e);
     s->bob = rlpx_ch_alloc_keypair(&bob_s, &bob_e);
     // sanity check
-    if ((check_q(rlpx_ch_pub_ekey(s->alice), g_alice_epub))) return -1;
-    if ((check_q(rlpx_ch_pub_ekey(s->bob), g_bob_epub))) return -1;
+    if ((check_q(&s->alice->ekey.Q, g_alice_epub))) return -1;
+    if ((check_q(&s->bob->ekey.Q, g_bob_epub))) return -1;
     return 0;
 }
 

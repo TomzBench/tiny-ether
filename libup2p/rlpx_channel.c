@@ -70,48 +70,6 @@ rlpx_ch_deinit(rlpx_channel* ch)
     uecc_key_deinit(&ch->ekey);
 }
 
-uint64_t
-rlpx_ch_version_remote(rlpx_channel* s)
-{
-    return s->remote_version;
-}
-
-const uecc_public_key*
-rlpx_ch_pub_skey(rlpx_channel* s)
-{
-    return &s->skey.Q;
-}
-
-const uecc_public_key*
-rlpx_ch_pub_ekey(rlpx_channel* s)
-{
-    return &s->ekey.Q;
-}
-
-const uecc_public_key*
-rlpx_ch_remote_pub_ekey(rlpx_channel* s)
-{
-    return &s->remote_ekey;
-}
-
-const uecc_public_key*
-rlpx_ch_remote_pub_skey(rlpx_channel* s)
-{
-    return &s->remote_skey;
-}
-
-uint32_t
-rlpx_ch_listen_port(rlpx_channel* s)
-{
-    return s->listen_port;
-}
-
-const char*
-rlpx_ch_node_id(rlpx_channel* s)
-{
-    return s->node_id;
-}
-
 int
 rlpx_ch_auth_write(rlpx_channel* ch,
                    const uecc_public_key* to,

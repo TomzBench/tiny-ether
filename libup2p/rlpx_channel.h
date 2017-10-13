@@ -40,13 +40,13 @@ int rlpx_ch_init_keypair(rlpx_channel*, uecc_private_key*, uecc_private_key*);
 void rlpx_ch_deinit(rlpx_channel* session);
 
 // setters / getters
-uint64_t rlpx_ch_version_remote(rlpx_channel*);
-const uecc_public_key* rlpx_ch_pub_skey(rlpx_channel*);
-const uecc_public_key* rlpx_ch_pub_ekey(rlpx_channel*);
-const uecc_public_key* rlpx_ch_remote_pub_ekey(rlpx_channel*);
-const uecc_public_key* rlpx_ch_remote_pub_skey(rlpx_channel*);
-uint32_t rlpx_ch_listen_port(rlpx_channel* s);
-const char* rlpx_ch_node_id(rlpx_channel* s);
+// uint64_t rlpx_ch_version_remote(rlpx_channel*);
+// const uecc_public_key* rlpx_ch_pub_skey(rlpx_channel*);
+// const uecc_public_key* rlpx_ch_pub_ekey(rlpx_channel*);
+// const uecc_public_key* rlpx_ch_remote_pub_ekey(rlpx_channel*);
+// const uecc_public_key* rlpx_ch_remote_pub_skey(rlpx_channel*);
+// uint32_t rlpx_ch_listen_port(rlpx_channel* s);
+// const char* rlpx_ch_node_id(rlpx_channel* s);
 
 // methods
 int rlpx_ch_auth_write(rlpx_channel* ch,

@@ -36,12 +36,10 @@ test_read()
         rlpx_test_remote_ekey_clr(s.bob);
         if (rlpx_ch_auth_load(s.bob, s.auth, s.authlen)) break;
         if (rlpx_ch_ack_load(s.alice, s.ack, s.acklen)) break;
-        if (!(rlpx_ch_version_remote(s.bob) == tv->authver)) break;
-        if (!(rlpx_ch_version_remote(s.alice) == tv->ackver)) break;
-        if ((cmp_q(rlpx_ch_remote_pub_ekey(s.bob), rlpx_ch_pub_ekey(s.alice))))
-            break;
-        if ((cmp_q(rlpx_ch_remote_pub_ekey(s.alice), rlpx_ch_pub_ekey(s.bob))))
-            break;
+        if (!(s.bob->remote_version == tv->authver)) break;
+        if (!(s.alice->remote_version == tv->ackver)) break;
+        if ((cmp_q(&s.bob->remote_ekey, &s.alice->ekey.Q))) break;
+        if ((cmp_q(&s.alice->remote_ekey, &s.bob->ekey.Q))) break;
         test_session_deinit(&s);
         i++;
         tv++;
@@ -59,15 +57,15 @@ test_write()
     test_session s;
     test_session_init(&s, 0);
 
-    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, rlpx_ch_pub_skey(s.bob), buf, &l));
+    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, &s.bob->skey.Q, buf, &l));
     IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, buf, l));
 
     l = 800;
-    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, rlpx_ch_pub_skey(s.alice), buf, &l));
+    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, &s.alice->skey.Q, buf, &l));
     IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, buf, l));
 
-    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.alice), g_bob_epub));
-    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.bob), g_alice_epub));
+    IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));
+    IF_ERR_EXIT(check_q(&s.bob->remote_ekey, g_alice_epub));
 EXIT:
     test_session_deinit(&s);
     return err;

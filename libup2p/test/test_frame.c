@@ -70,16 +70,16 @@ test_frame_write()
     uint32_t numa, numb;
 
     // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, rlpx_ch_pub_skey(s.bob), a, &alen));
+    IF_ERR_EXIT(rlpx_ch_auth_write(s.alice, &s.bob->skey.Q, a, &alen));
     IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
 
     // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, rlpx_ch_pub_skey(s.alice), b, &blen));
+    IF_ERR_EXIT(rlpx_ch_ack_write(s.bob, &s.alice->skey.Q, b, &blen));
     IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
 
     // Check key exchange
-    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.alice), g_bob_epub));
-    IF_ERR_EXIT(check_q(rlpx_ch_remote_pub_ekey(s.bob), g_alice_epub));
+    IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));
+    IF_ERR_EXIT(check_q(&s.bob->remote_ekey, g_alice_epub));
 
     // Update secrets
     IF_ERR_EXIT(rlpx_ch_secrets(s.bob, 0, b, blen, a, alen));
@@ -115,16 +115,16 @@ test_frame_write()
     // verify listen port
     rlpx_devp2p_protocol_listen_port(bodya, &numa);
     rlpx_devp2p_protocol_listen_port(bodyb, &numb);
-    IF_ERR_EXIT((numa == rlpx_ch_listen_port(s.alice)) ? 0 : -1);
-    IF_ERR_EXIT((numb == rlpx_ch_listen_port(s.bob)) ? 0 : -1);
+    IF_ERR_EXIT((numa == s.alice->listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numb == s.bob->listen_port) ? 0 : -1);
 
     // verify node_id
     rlpx_devp2p_protocol_node_id(bodya, &mema, &numa);
     rlpx_devp2p_protocol_node_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == 65) ? 0 : -1);
     IF_ERR_EXIT((numb == 65) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mema, rlpx_ch_node_id(s.alice), numa) ? -1 : 0);
-    IF_ERR_EXIT(memcmp(memb, rlpx_ch_node_id(s.bob), numb) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(mema, s.alice->node_id, numa) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(memb, s.bob->node_id, numb) ? -1 : 0);
 
 EXIT:
     // clean
