@@ -40,6 +40,14 @@ rlpx_handshake* rlpx_handshake_alloc_auth(uecc_ctx* skey,
                                           uecc_public_key* ekey_remote,
                                           uecc_public_key* skey_remote,
                                           const uecc_public_key* to);
+rlpx_handshake* rlpx_handshake_alloc_ack(uecc_ctx* skey,
+                                         uecc_ctx* ekey,
+                                         uint64_t* version_remote,
+                                         h256* nonce,
+                                         h256* nonce_remote,
+                                         uecc_public_key* ekey_remote,
+                                         uecc_public_key* skey_remote,
+                                         const uecc_public_key* to);
 rlpx_handshake* rlpx_handshake_alloc(uecc_ctx* ekey,
                                      uecc_ctx* skey,
                                      uint64_t* version_remote,
@@ -48,6 +56,7 @@ rlpx_handshake* rlpx_handshake_alloc(uecc_ctx* ekey,
                                      uecc_public_key* ekey_remote,
                                      uecc_public_key* skey_remote);
 int rlpx_handshake_auth_init(rlpx_handshake*, h256*, const uecc_public_key*);
+int rlpx_handshake_ack_init(rlpx_handshake*, h256*, const uecc_public_key*);
 
 void rlpx_handshake_free(rlpx_handshake** hs_p);
 int rlpx_handshake_auth_read(rlpx_handshake* hs,

@@ -274,6 +274,23 @@ rlpx_handshake_alloc_auth(uecc_ctx* skey,
 }
 
 rlpx_handshake*
+rlpx_handshake_alloc_ack(uecc_ctx* skey,
+                         uecc_ctx* ekey,
+                         uint64_t* version_remote,
+                         h256* nonce,
+                         h256* nonce_remote,
+                         uecc_public_key* skey_remote,
+                         uecc_public_key* ekey_remote,
+                         const uecc_public_key* to)
+{
+    rlpx_handshake* hs =
+        rlpx_handshake_alloc(skey, ekey, version_remote, nonce, nonce_remote,
+                             skey_remote, ekey_remote);
+    if (hs) rlpx_handshake_ack_init(hs, nonce, to);
+    return hs;
+}
+
+rlpx_handshake*
 rlpx_handshake_alloc(uecc_ctx* skey,
                      uecc_ctx* ekey,
                      uint64_t* version_remote,
@@ -334,6 +351,32 @@ rlpx_handshake_auth_init(rlpx_handshake* hs,
     }
     err = rlpx_encrypt(rlp, to, hs->cipher, &hs->cipher_len);
     if (!err) *hs->nonce = *nonce;
+    urlp_free(&rlp);
+    return err;
+}
+
+int
+rlpx_handshake_ack_init(rlpx_handshake* hs,
+                        h256* nonce,
+                        const uecc_public_key* to)
+{
+    h520 rawekey;
+    urlp* rlp;
+    uint64_t ver = 4;
+    int err = 0;
+    if (uecc_qtob(&hs->ekey->Q, rawekey.b, sizeof(rawekey.b))) return -1;
+    if (!(rlp = urlp_list())) return -1;
+    if (rlp) {
+        urlp_push(rlp, urlp_item_u8(&rawekey.b[1], 64));
+        urlp_push(rlp, urlp_item_u8(nonce->b, 32));
+        urlp_push(rlp, urlp_item_u64(&ver, 1));
+    }
+    if (!(urlp_children(rlp) == 3)) {
+        urlp_free(&rlp);
+        return -1;
+    }
+
+    err = rlpx_encrypt(rlp, to, hs->cipher, &hs->cipher_len);
     urlp_free(&rlp);
     return err;
 }
