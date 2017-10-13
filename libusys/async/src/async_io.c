@@ -2,18 +2,25 @@
 
 // Override system IO with MOCK implementation OR other IO implementation.
 // Useful for test or portability.
-usys_io_send_fn g_usys_async_io_send = usys_send;
-usys_io_recv_fn g_usys_async_io_recv = usys_recv;
-usys_io_ready_fn g_usys_async_io_ready = usys_sock_ready;
-usys_io_connect_fn g_usys_async_io_connect = usys_connect;
-usys_io_close_fn g_usys_async_io_close = usys_close;
+async_io_settings g_async_io_settings_default = {
+    .on_connect = async_io_default_on_connect,
+    .on_accept = async_io_default_on_accept,
+    .on_erro = async_io_default_on_erro,
+    .on_send = async_io_default_on_send,
+    .on_recv = async_io_default_on_recv,
+    .tx = usys_send,
+    .rx = usys_recv,
+    .ready = usys_sock_ready,
+    .connect = usys_connect,
+    .close = usys_close
+};
 
 // Private prototypes.
 void async_error(async_io* self, int);
 
 // Public
 void
-async_io_init(async_io* self, void* ctx, const async_io_settings* settings)
+async_io_init(async_io* self, void* ctx, const async_io_settings* opts)
 {
     // Zero mem
     memset(self, 0, sizeof(async_io));
@@ -21,25 +28,19 @@ async_io_init(async_io* self, void* ctx, const async_io_settings* settings)
     // Init state
     self->sock = -1;
     self->ctx = ctx;
-    self->settings = *settings;
+    self->settings = g_async_io_settings_default;
 
-    // Need to override empty callbacks.
-    if (!self->settings.tx) self->settings.tx = g_usys_async_io_send;
-    if (!self->settings.rx) self->settings.rx = g_usys_async_io_recv;
-    if (!self->settings.close) self->settings.close = g_usys_async_io_close;
-    if (!self->settings.ready) self->settings.ready = g_usys_async_io_ready;
-    if (!self->settings.connect)
-        self->settings.connect = g_usys_async_io_connect;
-    if (!self->settings.on_connect)
-        self->settings.on_connect = async_io_default_on_connect;
-    if (!self->settings.on_accept)
-        self->settings.on_accept = async_io_default_on_accept;
-    if (!self->settings.on_erro)
-        self->settings.on_erro = async_io_default_on_erro;
-    if (!self->settings.on_send)
-        self->settings.on_send = async_io_default_on_send;
-    if (!self->settings.on_recv)
-        self->settings.on_recv = async_io_default_on_recv;
+    // override defaults with callers mock functions.
+    if (opts->on_connect) self->settings.on_connect = opts->on_connect;
+    if (opts->on_accept) self->settings.on_accept = opts->on_accept;
+    if (opts->on_erro) self->settings.on_erro = opts->on_erro;
+    if (opts->on_send) self->settings.on_send = opts->on_send;
+    if (opts->on_recv) self->settings.on_recv = opts->on_recv;
+    if (opts->tx) self->settings.tx = opts->tx;
+    if (opts->rx) self->settings.rx = opts->rx;
+    if (opts->ready) self->settings.ready = opts->ready;
+    if (opts->connect) self->settings.connect = opts->connect;
+    if (opts->close) self->settings.close = opts->close;
 }
 
 void
