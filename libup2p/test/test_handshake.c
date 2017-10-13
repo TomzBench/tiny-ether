@@ -52,17 +52,14 @@ int
 test_write()
 {
     int err;
-    size_t l = 800; // ecies+pad
-    uint8_t buf[l];
     test_session s;
     test_session_init(&s, 0);
 
+    // Trade keys
     IF_ERR_EXIT(rlpx_ch_send_auth(s.alice, &s.bob->skey.Q));
     IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.alice->io.b, s.alice->io.len));
-
-    l = 800;
-    IF_ERR_EXIT(rlpx_ch_write_ack(s.bob, &s.alice->skey.Q, buf, &l));
-    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, buf, l));
+    IF_ERR_EXIT(rlpx_ch_send_ack(s.bob, &s.alice->skey.Q));
+    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, s.bob->io.b, s.bob->io.len));
 
     IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));
     IF_ERR_EXIT(check_q(&s.bob->remote_ekey, g_alice_epub));

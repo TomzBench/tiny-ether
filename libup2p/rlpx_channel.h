@@ -83,6 +83,7 @@ int rlpx_ch_write_auth(rlpx_channel* ch,
                        const uecc_public_key*,
                        uint8_t* auth,
                        size_t* l);
+int rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to);
 int rlpx_ch_write_ack(rlpx_channel* ch,
                       const uecc_public_key*,
                       uint8_t* ack,

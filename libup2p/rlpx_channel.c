@@ -192,6 +192,23 @@ rlpx_ch_write_auth(rlpx_channel* ch,
 }
 
 int
+rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to)
+{
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+    unonce(ch->nonce.b);
+    ch->hs = rlpx_handshake_alloc_ack(&ch->skey, &ch->ekey, &ch->remote_version,
+                                      &ch->nonce, &ch->remote_nonce,
+                                      &ch->remote_skey, &ch->remote_ekey, to);
+    if (ch->hs) {
+        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+        async_io_send(&ch->io);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int
 rlpx_ch_write_ack(rlpx_channel* ch,
                   const uecc_public_key* to,
                   uint8_t* ack,
