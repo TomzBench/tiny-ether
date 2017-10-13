@@ -46,6 +46,23 @@ rlpx_handshake* rlpx_handshake_alloc(int orig,
                                      const uecc_public_key* to);
 void rlpx_handshake_free(rlpx_handshake** hs_p);
 
+/**
+ * @brief - extract secrets from the handshake cipher texts and nonces
+ *
+ * ingress / egress
+ * Initiator egress-mac: sha3(mac-secret^recipient-nonce || auth-sent-init)
+ *           ingress-mac: sha3(mac-secret^initiator-nonce || auth-recvd-ack)
+ * Recipient egress-mac: sha3(mac-secret^initiator-nonce || auth-sent-ack)
+ *           ingress-mac: sha3(mac-secret^recipient-nonce || auth-recv-init)
+ * egress  = sha3(mac-secret^their nonce || cipher sent )
+ * ingress = sha3(mac-secret^our nonce   || cipher received)
+ *
+ * @param hs
+ * @param x
+ * @param orig
+ *
+ * @return
+ */
 int rlpx_handshake_secrets(rlpx_handshake* hs, rlpx_coder* x, int orig);
 int rlpx_handshake_auth_init(rlpx_handshake*, const uecc_public_key*);
 int rlpx_handshake_auth_install(rlpx_handshake* hs, urlp** rlp_p);

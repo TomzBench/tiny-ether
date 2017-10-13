@@ -300,6 +300,7 @@ rlpx_handshake_alloc(int orig,
 {
     rlpx_handshake* hs = rlpx_malloc(sizeof(rlpx_handshake));
     if (hs) {
+        memset(hs, 0, sizeof(rlpx_handshake));
         hs->cipher_len = sizeof(hs->cipher);
         hs->cipher_remote_len = sizeof(hs->cipher_remote);
         hs->ekey = ekey;

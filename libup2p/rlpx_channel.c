@@ -127,48 +127,11 @@ rlpx_ch_ack_load(rlpx_channel* ch, const uint8_t* ack, size_t l)
 }
 
 int
-rlpx_ch_secrets(rlpx_channel* s,
-                int orig,
-                uint8_t* sent,
-                uint32_t slen,
-                uint8_t* recv,
-                uint32_t rlen)
-{
-    int err;
-    uint8_t buf[32 + ((slen > rlen) ? slen : rlen)], *out = &buf[32];
-    if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
-    memcpy(buf, orig ? s->remote_nonce.b : s->nonce.b, 32);
-    memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
-
-    // aes-secret / mac-secret
-    ukeccak256(buf, 64, out, 32);          // h(nonces)
-    memcpy(buf, &s->ekey.z.b[1], 32);      // (ephemeral || h(nonces))
-    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(nonces))
-    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(shared))
-    uaes_init_bin(&s->x.aes_enc, out, 32); // aes-secret save
-    uaes_init_bin(&s->x.aes_dec, out, 32); // aes-secret save
-    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(aes-secret))
-    uaes_init_bin(&s->x.aes_mac, out, 32); // mac-secret save
-
-    // Ingress / egress
-    ukeccak256_init(&s->x.emac);
-    ukeccak256_init(&s->x.imac);
-    XOR32_SET(buf, out, s->nonce.b); // (mac-secret^recepient-nonce);
-    memcpy(&buf[32], recv, rlen);    // (m..^nonce)||auth-recv-init)
-    ukeccak256_update(&s->x.imac, buf, 32 + rlen); // S(m..^nonce)||auth-recv)
-    XOR32(buf, s->nonce.b);                        // UNDO xor
-    XOR32(buf, s->remote_nonce.b);                 // (mac-secret^nonce);
-    memcpy(&buf[32], sent, slen); // (m..^nonce)||auth-sentd-init)
-    ukeccak256_update(&s->x.emac, buf, 32 + slen); // S(m..^nonce)||auth-sent)
-
-    return err;
-}
-
-int
 rlpx_ch_send_auth(rlpx_channel* ch, const uecc_public_key* to)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
     unonce(ch->nonce.b);
+    // TODO - channel handshake should be populated from rlpx_ch_connect();
     ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->remote_version,
                                   &ch->nonce, &ch->remote_nonce,
                                   &ch->remote_skey, &ch->remote_ekey, to);
@@ -190,13 +153,12 @@ rlpx_ch_recv_auth(rlpx_channel* ch,
     int err = 0;
     urlp* rlp = NULL;
 
-    // Free or assert make sure no handshake context
-    if (ch->hs) rlpx_handshake_free(&ch->hs);
-
-    // Allocate a handshake context
-    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->remote_version,
-                                  &ch->nonce, &ch->remote_nonce,
-                                  &ch->remote_skey, &ch->remote_ekey, from);
+    // TODO - hs should be populated during rlpx_ch_accept
+    if (!ch->hs) {
+        ch->hs = rlpx_handshake_alloc(
+            0, &ch->skey, &ch->ekey, &ch->remote_version, &ch->nonce,
+            &ch->remote_nonce, &ch->remote_skey, &ch->remote_ekey, from);
+    }
 
     // Decrypt authentication packet (allocates rlp context)
     if ((err = rlpx_handshake_auth_recv(ch->hs, b, l, &rlp))) return err;
@@ -212,20 +174,11 @@ rlpx_ch_recv_auth(rlpx_channel* ch,
 }
 
 int
-rlpx_ch_write_auth(rlpx_channel* ch,
-                   const uecc_public_key* to,
-                   uint8_t* auth,
-                   size_t* l)
-{
-    unonce(ch->nonce.b);
-    return rlpx_auth_write(&ch->skey, &ch->ekey, &ch->nonce, to, auth, l);
-}
-
-int
 rlpx_ch_send_ack(rlpx_channel* ch, const uecc_public_key* to)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
     unonce(ch->nonce.b);
+    // TODO - channel handshake should be populated from rlpx_ch_accept()
     ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->remote_version,
                                   &ch->nonce, &ch->remote_nonce,
                                   &ch->remote_skey, &ch->remote_ekey, to);
@@ -246,6 +199,8 @@ rlpx_ch_recv_ack(rlpx_channel* ch,
 {
     int err = -1;
     urlp* rlp = NULL;
+
+    // TODO - hs should be populated during rlpx_ch_connect()
     if (!ch->hs) {
         ch->hs = rlpx_handshake_alloc(
             1, &ch->skey, &ch->ekey, &ch->remote_version, &ch->nonce,
@@ -263,16 +218,6 @@ rlpx_ch_recv_ack(rlpx_channel* ch,
     // Free rlp and return
     urlp_free(&rlp);
     return err;
-}
-
-int
-rlpx_ch_write_ack(rlpx_channel* ch,
-                  const uecc_public_key* to,
-                  uint8_t* ack,
-                  size_t* l)
-{
-    unonce(ch->nonce.b);
-    return rlpx_ack_write(&ch->skey, &ch->ekey, &ch->nonce, to, ack, l);
 }
 
 int

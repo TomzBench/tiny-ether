@@ -63,8 +63,8 @@ test_frame_write()
     uecc_public_key *qa, *qb;
     test_session s;
     test_session_init(&s, 1);
-    size_t lena = 1000, lenb = 1000, alen = 1000, blen = 1000;
-    uint8_t from_alice[lena], from_bob[lenb], a[alen], b[blen];
+    size_t lena = 1000, lenb = 1000;
+    uint8_t from_alice[lena], from_bob[lenb];
     urlp *framea = NULL, *frameb = NULL;
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
@@ -74,7 +74,7 @@ test_frame_write()
 
     // Send keys
     IF_ERR_EXIT(rlpx_ch_send_auth(s.alice, qb));
-    IF_ERR_EXIT(rlpx_ch_send_ack(s.bob, &s.alice->skey.Q));
+    IF_ERR_EXIT(rlpx_ch_send_ack(s.bob, qa));
 
     // Recv keys
     IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, qb, s.bob->io.b, s.bob->io.len));
@@ -83,10 +83,6 @@ test_frame_write()
     // Check key exchange
     IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));
     IF_ERR_EXIT(check_q(&s.bob->remote_ekey, g_alice_epub));
-
-    // Update secrets
-    IF_ERR_EXIT(rlpx_ch_secrets(s.bob, 0, b, blen, a, alen));
-    IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
 
     // Write some packets
     IF_ERR_EXIT(rlpx_ch_write_hello(s.alice, from_alice, &lena));
