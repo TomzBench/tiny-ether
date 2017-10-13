@@ -17,6 +17,28 @@ extern "C" {
 #define RLPX_MIN_PAD 100
 #define RLPX_MAX_PAD 250
 
+typedef struct
+{
+    uint64_t* remote_version;
+    const uecc_ctx* ekey;
+    const uecc_ctx* skey;
+    h256* nonce;
+    h256* nonce_remote;
+    uecc_public_key* ekey_remote;
+    uecc_public_key* skey_remote;
+    uint8_t cipher[800];        /*!< cipher buffers for exchange */
+    uint8_t cipher_remote[800]; /*!< cipher buffers for exchange */
+} rlpx_handshake;
+
+rlpx_handshake* rlpx_handshake_alloc(const uecc_ctx* ekey,
+                                     const uecc_ctx* skey,
+                                     h256* nonce,
+                                     h256* nonce_remote,
+                                     uecc_public_key* ekey_remote,
+                                     uecc_public_key* skey_remote,
+                                     uint64_t* version_remote);
+void rlpx_handshake_free(rlpx_handshake** hs_p);
+
 int rlpx_auth_read(uecc_ctx* skey, const uint8_t* auth, size_t l, urlp**);
 int rlpx_auth_load(uecc_ctx* skey,
                    uint64_t* remote_version,
