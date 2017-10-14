@@ -18,7 +18,6 @@ int
 test_protocol()
 {
     int err = 0;
-    uecc_public_key *qa, *qb;
     test_session s;
     size_t lena = 1000, lenb = 1000;
     uint8_t from_alice[lena], from_bob[lenb];
@@ -26,17 +25,14 @@ test_protocol()
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
     rlpx_test_mock_devp2p(&g_test_devp2p_settings);
 
-    qa = &s.alice->skey.Q;
-    qb = &s.bob->skey.Q;
-
     rlpx_ch_nonce(s.alice);
     rlpx_ch_nonce(s.bob);
     rlpx_ch_connect(s.alice, &s.bob->skey.Q);
     rlpx_ch_accept(s.bob, &s.alice->skey.Q);
 
     // Recv keys
-    IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, qb, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, qa, s.alice->io.b, s.alice->io.len));
+    IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Read/Write HELLO
     IF_ERR_EXIT(rlpx_ch_write_hello(s.alice, from_alice, &lena));

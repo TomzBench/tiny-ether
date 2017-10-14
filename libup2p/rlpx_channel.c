@@ -149,7 +149,6 @@ rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
 // TODO - free handshake context after receiving secrets.
 int
 rlpx_ch_recv_auth(rlpx_channel* ch,
-                  const uecc_public_key* from,
                   const uint8_t* b,
                   size_t l)
 {
@@ -170,10 +169,7 @@ rlpx_ch_recv_auth(rlpx_channel* ch,
 }
 
 int
-rlpx_ch_recv_ack(rlpx_channel* ch,
-                 const uecc_public_key* from,
-                 const uint8_t* ack,
-                 size_t l)
+rlpx_ch_recv_ack(rlpx_channel* ch, const uint8_t* ack, size_t l)
 {
     int err = -1;
     urlp* rlp = NULL;
