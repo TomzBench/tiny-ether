@@ -12,7 +12,6 @@ extern "C" {
 #endif
 
 #include "rlpx_config.h"
-//#include "rlpx_frame.h"
 #include "uaes.h"
 #include "uecc.h"
 #include "ukeccak256.h"
