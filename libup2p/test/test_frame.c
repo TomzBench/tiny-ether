@@ -40,7 +40,9 @@ test_frame_read()
     rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
     // Update our secrets
-    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, s.auth, s.authlen));
+    rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
+    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                          s.authlen, aes, mac, NULL));
     IF_ERR_EXIT(rlpx_frame_parse(&s.bob->x, makebin(g_hello_packet, NULL),
@@ -62,28 +64,26 @@ test_frame_write()
     int err = 0;
     test_session s;
     test_session_init(&s, 1);
-    size_t lena = 1000, lenb = 1000, alen = 1000, blen = 1000;
-    uint8_t from_alice[lena], from_bob[lenb], a[alen], b[blen];
+    size_t lena = 1000, lenb = 1000;
+    uint8_t from_alice[lena], from_bob[lenb];
     urlp *framea = NULL, *frameb = NULL;
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
     uint32_t numa, numb;
 
-    // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_ch_write_auth(s.alice, &s.bob->skey.Q, a, &alen));
-    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
+    // Send keys
+    rlpx_ch_nonce(s.alice);
+    rlpx_ch_nonce(s.bob);
+    rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
 
-    // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ch_write_ack(s.bob, &s.alice->skey.Q, b, &blen));
-    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
+    // Recv keys
+    IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Check key exchange
     IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));
     IF_ERR_EXIT(check_q(&s.bob->remote_ekey, g_alice_epub));
-
-    // Update secrets
-    IF_ERR_EXIT(rlpx_ch_secrets(s.bob, 0, b, blen, a, alen));
-    IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
 
     // Write some packets
     IF_ERR_EXIT(rlpx_ch_write_hello(s.alice, from_alice, &lena));

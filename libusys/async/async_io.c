@@ -78,9 +78,16 @@ async_io_mem(async_io* self, uint32_t idx)
     return &self->b[idx];
 }
 
+void
+async_io_len(async_io* self, uint32_t len)
+{
+    self->len = len;
+}
+
 const void*
 async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l)
 {
+    self->len = idx + l;
     return memcpy(&self->b[idx], mem, l);
 }
 

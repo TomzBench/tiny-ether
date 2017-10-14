@@ -87,100 +87,101 @@ rlpx_ch_deinit(rlpx_channel* ch)
 {
     uecc_key_deinit(&ch->skey);
     uecc_key_deinit(&ch->ekey);
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+}
+
+void
+rlpx_ch_nonce(rlpx_channel* ch)
+{
+    unonce(ch->nonce.b);
 }
 
 int
-rlpx_ch_auth_load(rlpx_channel* ch, const uint8_t* auth, size_t l)
+rlpx_ch_connect(rlpx_channel* ch, const uecc_public_key* to)
+{
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->remote_version,
+                                  &ch->nonce, &ch->remote_nonce,
+                                  &ch->remote_skey, &ch->remote_ekey, to);
+    if (ch->hs) {
+        async_io_connect(&ch->io, "thhpty", 80); // TODO ----
+        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+        return async_io_send(&ch->io);
+    } else {
+        return -1;
+    }
+}
+
+int
+rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from)
+{
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->remote_version,
+                                  &ch->nonce, &ch->remote_nonce,
+                                  &ch->remote_skey, &ch->remote_ekey, from);
+    if (ch->hs) {
+        ch->io.sock = 3; // TODO ---
+        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+        return async_io_send(&ch->io);
+    } else {
+        return -1;
+    }
+}
+
+int
+rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
+{
+    int err, type;
+    urlp* rlp = NULL;
+    err = rlpx_frame_parse(&ch->x, d, l, &rlp);
+    if (!err) {
+        type = rlpx_frame_header_type(rlp);
+        if (type >= 0 && type < 2) {
+            err = ch->protocols[type]->recv(ch->protocols[type],
+                                            rlpx_frame_body(rlp));
+        }
+        urlp_free(&rlp);
+    }
+    return err;
+}
+
+// TODO - free handshake context after receiving secrets.
+int
+rlpx_ch_recv_auth(rlpx_channel* ch, const uint8_t* b, size_t l)
 {
     int err = 0;
+    urlp* rlp = NULL;
+
+    // Decrypt authentication packet (allocates rlp context)
+    if ((err = rlpx_handshake_auth_recv(ch->hs, b, l, &rlp))) return err;
+
+    // Process the Decrypted RLP data
+    if (!(err = rlpx_handshake_auth_install(ch->hs, &rlp))) {
+        err = rlpx_handshake_secrets(ch->hs, &ch->x, 0);
+    }
+
+    // Free rlp and return
+    urlp_free(&rlp);
+    return err;
+}
+
+int
+rlpx_ch_recv_ack(rlpx_channel* ch, const uint8_t* ack, size_t l)
+{
+    int err = -1;
     urlp* rlp = NULL;
 
     // Decrypt authentication packet
-    if ((err = rlpx_auth_read(&ch->skey, auth, l, &rlp))) return err;
+    if ((err = rlpx_handshake_ack_recv(ch->hs, ack, l, &rlp))) return err;
 
     // Process the Decrypted RLP data
-    err = rlpx_auth_load(&ch->skey, &ch->remote_version, &ch->remote_nonce,
-                         &ch->remote_skey, &ch->remote_ekey, &rlp);
+    if (!(err = rlpx_handshake_ack_install(ch->hs, &rlp))) {
+        err = rlpx_handshake_secrets(ch->hs, &ch->x, 1);
+    }
 
     // Free rlp and return
     urlp_free(&rlp);
     return err;
-}
-
-int
-rlpx_ch_ack_load(rlpx_channel* ch, const uint8_t* ack, size_t l)
-{
-    int err = 0;
-    urlp* rlp = NULL;
-
-    // Decrypt acknowledge packet
-    if ((err = rlpx_ack_read(&ch->skey, ack, l, &rlp))) return err;
-
-    // Process the Decrypted RLP data
-    err = rlpx_ack_load(&ch->remote_version, &ch->remote_nonce,
-                        &ch->remote_ekey, &rlp);
-
-    // Free rlp and return
-    urlp_free(&rlp);
-    return err;
-}
-
-int
-rlpx_ch_secrets(rlpx_channel* s,
-                int orig,
-                uint8_t* sent,
-                uint32_t slen,
-                uint8_t* recv,
-                uint32_t rlen)
-{
-    int err;
-    uint8_t buf[32 + ((slen > rlen) ? slen : rlen)], *out = &buf[32];
-    if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
-    memcpy(buf, orig ? s->remote_nonce.b : s->nonce.b, 32);
-    memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
-
-    // aes-secret / mac-secret
-    ukeccak256(buf, 64, out, 32);          // h(nonces)
-    memcpy(buf, &s->ekey.z.b[1], 32);      // (ephemeral || h(nonces))
-    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(nonces))
-    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(shared))
-    uaes_init_bin(&s->x.aes_enc, out, 32); // aes-secret save
-    uaes_init_bin(&s->x.aes_dec, out, 32); // aes-secret save
-    ukeccak256(buf, 64, out, 32);          // S(ephemeral || H(aes-secret))
-    uaes_init_bin(&s->x.aes_mac, out, 32); // mac-secret save
-
-    // Ingress / egress
-    ukeccak256_init(&s->x.emac);
-    ukeccak256_init(&s->x.imac);
-    XOR32_SET(buf, out, s->nonce.b); // (mac-secret^recepient-nonce);
-    memcpy(&buf[32], recv, rlen);    // (m..^nonce)||auth-recv-init)
-    ukeccak256_update(&s->x.imac, buf, 32 + rlen); // S(m..^nonce)||auth-recv)
-    XOR32(buf, s->nonce.b);                        // UNDO xor
-    XOR32(buf, s->remote_nonce.b);                 // (mac-secret^nonce);
-    memcpy(&buf[32], sent, slen); // (m..^nonce)||auth-sentd-init)
-    ukeccak256_update(&s->x.emac, buf, 32 + slen); // S(m..^nonce)||auth-sent)
-
-    return err;
-}
-
-int
-rlpx_ch_write_auth(rlpx_channel* ch,
-                   const uecc_public_key* to,
-                   uint8_t* auth,
-                   size_t* l)
-{
-    unonce(ch->nonce.b);
-    return rlpx_auth_write(&ch->skey, &ch->ekey, &ch->nonce, to, auth, l);
-}
-
-int
-rlpx_ch_write_ack(rlpx_channel* ch,
-                  const uecc_public_key* to,
-                  uint8_t* ack,
-                  size_t* l)
-{
-    unonce(ch->nonce.b);
-    return rlpx_ack_write(&ch->skey, &ch->ekey, &ch->nonce, to, ack, l);
 }
 
 int
@@ -209,23 +210,6 @@ int
 rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
 {
     return rlpx_devp2p_protocol_write_pong(&ch->x, out, l);
-}
-
-int
-rlpx_ch_read(rlpx_channel* ch, const uint8_t* d, size_t l)
-{
-    int err, type;
-    urlp* rlp = NULL;
-    err = rlpx_frame_parse(&ch->x, d, l, &rlp);
-    if (!err) {
-        type = rlpx_frame_header_type(rlp);
-        if (type >= 0 && type < 2) {
-            err = ch->protocols[type]->parse(ch->protocols[type],
-                                             rlpx_frame_body(rlp));
-        }
-        urlp_free(&rlp);
-    }
-    return err;
 }
 
 int

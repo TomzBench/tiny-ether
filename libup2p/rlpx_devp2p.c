@@ -1,6 +1,6 @@
 #include "rlpx_devp2p.h"
 
-int rlpx_devp2p_protocol_parse(rlpx_protocol*, const urlp* rlp);
+int rlpx_devp2p_protocol_recv(rlpx_protocol*, const urlp* rlp);
 
 rlpx_devp2p_protocol*
 rlpx_devp2p_protocol_alloc(const rlpx_devp2p_protocol_settings* settings)
@@ -28,8 +28,8 @@ rlpx_devp2p_protocol_init(rlpx_devp2p_protocol* self,
     // Iniitlize base class.
     rlpx_protocol_init(&self->base, 0, "p2p", NULL);
 
-    // Override parse method.
-    self->base.parse = rlpx_devp2p_protocol_parse;
+    // Override recv method.
+    self->base.recv = rlpx_devp2p_protocol_recv;
 
     // Install protocol specific handlers.
     self->settings = settings;
@@ -43,7 +43,7 @@ rlpx_devp2p_protocol_deinit(rlpx_devp2p_protocol* self)
 }
 
 int
-rlpx_devp2p_protocol_parse(rlpx_protocol* base, const urlp* rlp)
+rlpx_devp2p_protocol_recv(rlpx_protocol* base, const urlp* rlp)
 {
     int err = -1;
     const urlp *type = NULL, *body = NULL;

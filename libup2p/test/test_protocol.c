@@ -19,29 +19,26 @@ test_protocol()
 {
     int err = 0;
     test_session s;
-    size_t lena = 1000, lenb = 1000, alen = 1000, blen = 1000;
-    uint8_t from_alice[lena], from_bob[lenb], a[alen], b[blen];
+    size_t lena = 1000, lenb = 1000;
+    uint8_t from_alice[lena], from_bob[lenb];
 
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
     rlpx_test_mock_devp2p(&g_test_devp2p_settings);
 
-    // Bob exchange alice keys
-    IF_ERR_EXIT(rlpx_ch_write_auth(s.alice, &s.bob->skey.Q, a, &alen));
-    IF_ERR_EXIT(rlpx_ch_auth_load(s.bob, a, alen));
+    rlpx_ch_nonce(s.alice);
+    rlpx_ch_nonce(s.bob);
+    rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
 
-    // Alice exchange bob keys
-    IF_ERR_EXIT(rlpx_ch_write_ack(s.bob, &s.alice->skey.Q, b, &blen));
-    IF_ERR_EXIT(rlpx_ch_ack_load(s.alice, b, blen));
-
-    // Update secrets
-    IF_ERR_EXIT(rlpx_ch_secrets(s.bob, 0, b, blen, a, alen));
-    IF_ERR_EXIT(rlpx_ch_secrets(s.alice, 1, a, alen, b, blen));
+    // Recv keys
+    IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Read/Write HELLO
     IF_ERR_EXIT(rlpx_ch_write_hello(s.alice, from_alice, &lena));
     IF_ERR_EXIT(rlpx_ch_write_hello(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+    IF_ERR_EXIT(rlpx_ch_recv(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_recv(s.bob, from_alice, lena));
 
     // Read/Write DISCONNECT
     lena = 1000;
@@ -50,24 +47,24 @@ test_protocol()
                                          from_alice, &lena));
     IF_ERR_EXIT(rlpx_ch_write_disconnect(s.bob, DEVP2P_DISCONNECT_BAD_VERSION,
                                          from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+    IF_ERR_EXIT(rlpx_ch_recv(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_recv(s.bob, from_alice, lena));
 
     // Read/Write PING
     lena = 1000;
     lenb = 1000;
     IF_ERR_EXIT(rlpx_ch_write_ping(s.alice, from_alice, &lena));
     IF_ERR_EXIT(rlpx_ch_write_ping(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+    IF_ERR_EXIT(rlpx_ch_recv(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_recv(s.bob, from_alice, lena));
 
     // Read/Write PONG
     lena = 1000;
     lenb = 1000;
     IF_ERR_EXIT(rlpx_ch_write_pong(s.alice, from_alice, &lena));
     IF_ERR_EXIT(rlpx_ch_write_pong(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.alice, from_bob, lenb));
-    IF_ERR_EXIT(rlpx_ch_read(s.bob, from_alice, lena));
+    IF_ERR_EXIT(rlpx_ch_recv(s.alice, from_bob, lenb));
+    IF_ERR_EXIT(rlpx_ch_recv(s.bob, from_alice, lena));
 
     // Confirm all callbacks readback
     IF_ERR_EXIT((g_test_mask == 0x0f) ? 0 : -1);
