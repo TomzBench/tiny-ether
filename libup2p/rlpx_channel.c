@@ -145,12 +145,9 @@ rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
     return err;
 }
 
-// TODO - remove keys from recv (auth/ack)
 // TODO - free handshake context after receiving secrets.
 int
-rlpx_ch_recv_auth(rlpx_channel* ch,
-                  const uint8_t* b,
-                  size_t l)
+rlpx_ch_recv_auth(rlpx_channel* ch, const uint8_t* b, size_t l)
 {
     int err = 0;
     urlp* rlp = NULL;
