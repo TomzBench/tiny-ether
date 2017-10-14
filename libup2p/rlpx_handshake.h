@@ -12,8 +12,10 @@ extern "C" {
 #endif
 
 #include "rlpx_config.h"
-#include "rlpx_frame.h"
+//#include "rlpx_frame.h"
+#include "uaes.h"
 #include "uecc.h"
+#include "ukeccak256.h"
 #include "urlp.h"
 
 #define RLPX_MIN_PAD 100
@@ -59,7 +61,14 @@ void rlpx_handshake_free(rlpx_handshake** hs_p);
  *
  * @return
  */
-int rlpx_handshake_secrets(rlpx_handshake* hs, rlpx_coder* x, int orig);
+
+int rlpx_handshake_secrets(rlpx_handshake* hs,
+                           int orig,
+                           ukeccak256_ctx* emac,
+                           ukeccak256_ctx* imac,
+                           uaes_ctx* aes_enc,
+                           uaes_ctx* aes_dec,
+                           uaes_ctx* aes_mac);
 int rlpx_handshake_auth_init(rlpx_handshake*, const uecc_public_key*);
 int rlpx_handshake_auth_install(rlpx_handshake* hs, urlp** rlp_p);
 int rlpx_handshake_auth_recv(rlpx_handshake* hs,

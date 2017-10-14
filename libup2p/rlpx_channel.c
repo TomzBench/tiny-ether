@@ -153,7 +153,9 @@ rlpx_ch_recv_auth(rlpx_channel* ch, const uint8_t* b, size_t l)
 
     // Process the Decrypted RLP data
     if (!(err = rlpx_handshake_auth_install(ch->hs, &rlp))) {
-        err = rlpx_handshake_secrets(ch->hs, &ch->x, 0);
+        err = rlpx_handshake_secrets(ch->hs, 0, &ch->x.emac, &ch->x.imac,
+                                     &ch->x.aes_enc, &ch->x.aes_dec,
+                                     &ch->x.aes_mac);
     }
 
     // Free rlp and return
@@ -172,7 +174,9 @@ rlpx_ch_recv_ack(rlpx_channel* ch, const uint8_t* ack, size_t l)
 
     // Process the Decrypted RLP data
     if (!(err = rlpx_handshake_ack_install(ch->hs, &rlp))) {
-        err = rlpx_handshake_secrets(ch->hs, &ch->x, 1);
+        err = rlpx_handshake_secrets(ch->hs, 1, &ch->x.emac, &ch->x.imac,
+                                     &ch->x.aes_enc, &ch->x.aes_dec,
+                                     &ch->x.aes_mac);
     }
 
     // Free rlp and return
