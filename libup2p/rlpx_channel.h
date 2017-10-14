@@ -1,4 +1,4 @@
-/*
+/**
  * @file rlpx_internal.h
  *
  * @brief
@@ -15,6 +15,8 @@ extern "C" {
 #include "rlpx_devp2p.h"
 #include "rlpx_handshake.h"
 
+// TODO - remote_* properties should be part of handshake context. Do not need
+// after rlpx_coder is populated. remote_skey can be saved in rlpx_node.
 typedef struct
 {
     async_io io;                 /*!< io context for network sys calls */
