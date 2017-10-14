@@ -100,9 +100,7 @@ int
 rlpx_ch_connect(rlpx_channel* ch, const uecc_public_key* to)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
-    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->remote_version,
-                                  &ch->nonce, &ch->remote_nonce,
-                                  &ch->remote_skey, &ch->remote_ekey, to);
+    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce, to);
     if (ch->hs) {
         async_io_connect(&ch->io, "thhpty", 80); // TODO ----
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
@@ -116,9 +114,7 @@ int
 rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
-    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->remote_version,
-                                  &ch->nonce, &ch->remote_nonce,
-                                  &ch->remote_skey, &ch->remote_ekey, from);
+    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->nonce, from);
     if (ch->hs) {
         ch->io.sock = 3; // TODO ---
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);

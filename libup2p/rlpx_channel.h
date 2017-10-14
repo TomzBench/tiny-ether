@@ -15,8 +15,6 @@ extern "C" {
 #include "rlpx_devp2p.h"
 #include "rlpx_handshake.h"
 
-// TODO - remote_* properties should be part of handshake context. Do not need
-// after rlpx_coder is populated. remote_skey can be saved in rlpx_node.
 typedef struct
 {
     async_io io;                 /*!< io context for network sys calls */
@@ -24,16 +22,11 @@ typedef struct
     rlpx_protocol* protocols[2]; /*!< protocol handlers */
     uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
-    rlpx_handshake* hs;          /*!< temp context during handshake process */
+    rlpx_coder x;                /*!< igress/ingress */
     h256 nonce;                  /*!< local nonce */
+    rlpx_handshake* hs;          /*!< temp context during handshake process */
     char node_id[65];            /*!< node id */
     uint32_t listen_port;        /*!< our listen port */
-    uint64_t remote_version;     /*!< remote version from auth */
-    h512 remote_node_id;         /*!< remote public address */
-    h256 remote_nonce;           /*!< remote nonce */
-    uecc_public_key remote_ekey; /*!< remote ephermeral pubkey */
-    uecc_public_key remote_skey; /*!< remote static pubkey */
-    rlpx_coder x;                /*!< igress/ingress */
 } rlpx_channel;
 
 // constructors
