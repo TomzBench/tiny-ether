@@ -32,18 +32,16 @@ test_read()
     int i = 0;
     while (tv->auth) {
         test_session_init(&s, i);
-        rlpx_test_remote_ekey_clr(s.alice);
-        rlpx_test_remote_ekey_clr(s.bob);
         rlpx_ch_nonce(s.alice);
         rlpx_ch_nonce(s.bob);
         rlpx_ch_connect(s.alice, &s.bob->skey.Q);
         rlpx_ch_accept(s.bob, &s.alice->skey.Q);
         if (rlpx_ch_recv_auth(s.bob, s.auth, s.authlen)) break;
         if (rlpx_ch_recv_ack(s.alice, s.ack, s.acklen)) break;
-        if (!(s.bob->remote_version == tv->authver)) break;
-        if (!(s.alice->remote_version == tv->ackver)) break;
-        if ((cmp_q(&s.bob->remote_ekey, &s.alice->ekey.Q))) break;
-        if ((cmp_q(&s.alice->remote_ekey, &s.bob->ekey.Q))) break;
+        if (!(s.bob->hs->version_remote == tv->authver)) break;
+        if (!(s.alice->hs->version_remote == tv->ackver)) break;
+        if ((cmp_q(&s.bob->hs->ekey_remote, &s.alice->ekey.Q))) break;
+        if ((cmp_q(&s.alice->hs->ekey_remote, &s.bob->ekey.Q))) break;
         test_session_deinit(&s);
         i++;
         tv++;
@@ -67,8 +65,8 @@ test_write()
     IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
     IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
 
-    IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));
-    IF_ERR_EXIT(check_q(&s.bob->remote_ekey, g_alice_epub));
+    IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
+    IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
 EXIT:
     test_session_deinit(&s);
     return err;
@@ -89,8 +87,6 @@ test_secrets()
     // Set some phoney nonces to read expected secrets
     rlpx_test_nonce_set(s.bob, &s.bob_n);
     rlpx_test_nonce_set(s.alice, &s.alice_n);
-    rlpx_test_remote_nonce_set(s.bob, &s.alice_n);
-    rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
     rlpx_ch_connect(s.alice, &s.bob->skey.Q);
     rlpx_ch_accept(s.bob, &s.alice->skey.Q);

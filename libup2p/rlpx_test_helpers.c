@@ -26,18 +26,6 @@ rlpx_test_nonce_set(rlpx_channel* s, h256* nonce)
     memcpy(s->nonce.b, nonce->b, 32);
 }
 
-void
-rlpx_test_remote_nonce_set(rlpx_channel* s, h256* nonce)
-{
-    memcpy(s->remote_nonce.b, nonce->b, 32);
-}
-
-void
-rlpx_test_remote_ekey_clr(rlpx_channel* s)
-{
-    memset(s->remote_ekey.data, 0, 64);
-}
-
 ukeccak256_ctx*
 rlpx_test_ingress(rlpx_channel* ch)
 {
@@ -81,9 +69,9 @@ rlpx_test_expect_secrets(rlpx_channel* s,
 {
     int err;
     uint8_t buf[32 + ((slen > rlen) ? slen : rlen)], *out = &buf[32];
-    if ((err = uecc_agree(&s->ekey, &s->remote_ekey))) return err;
-    memcpy(buf, orig ? s->remote_nonce.b : s->nonce.b, 32);
-    memcpy(out, orig ? s->nonce.b : s->remote_nonce.b, 32);
+    if ((err = uecc_agree(&s->ekey, &s->hs->ekey_remote))) return err;
+    memcpy(buf, orig ? s->hs->nonce_remote.b : s->nonce.b, 32);
+    memcpy(out, orig ? s->nonce.b : s->hs->nonce_remote.b, 32);
 
     // aes-secret / mac-secret
     ukeccak256(buf, 64, out, 32);          // h(nonces)
@@ -104,7 +92,7 @@ rlpx_test_expect_secrets(rlpx_channel* s,
     memcpy(&buf[32], recv, rlen);    // (m..^nonce)||auth-recv-init)
     ukeccak256_update(&s->x.imac, buf, 32 + rlen); // S(m..^nonce)||auth-recv)
     XOR32(buf, s->nonce.b);                        // UNDO xor
-    XOR32(buf, s->remote_nonce.b);                 // (mac-secret^nonce);
+    XOR32(buf, s->hs->nonce_remote.b);             // (mac-secret^nonce);
     memcpy(&buf[32], sent, slen); // (m..^nonce)||auth-sentd-init)
     ukeccak256_update(&s->x.emac, buf, 32 + slen); // S(m..^nonce)||auth-sent)
 

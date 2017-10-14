@@ -36,8 +36,6 @@ test_frame_read()
     // Set some phoney nonces
     rlpx_test_nonce_set(s.bob, &s.bob_n);
     rlpx_test_nonce_set(s.alice, &s.alice_n);
-    rlpx_test_remote_nonce_set(s.bob, &s.alice_n);
-    rlpx_test_remote_nonce_set(s.alice, &s.bob_n);
 
     // Update our secrets
     rlpx_ch_connect(s.alice, &s.bob->skey.Q);
@@ -82,8 +80,8 @@ test_frame_write()
     IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Check key exchange
-    IF_ERR_EXIT(check_q(&s.alice->remote_ekey, g_bob_epub));
-    IF_ERR_EXIT(check_q(&s.bob->remote_ekey, g_alice_epub));
+    IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
+    IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
 
     // Write some packets
     IF_ERR_EXIT(rlpx_ch_write_hello(s.alice, from_alice, &lena));
