@@ -137,8 +137,8 @@ rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
     if (!err) {
         type = rlpx_frame_header_type(rlp);
         if (type >= 0 && type < 2) {
-            err = ch->protocols[type]->parse(ch->protocols[type],
-                                             rlpx_frame_body(rlp));
+            err = ch->protocols[type]->recv(ch->protocols[type],
+                                            rlpx_frame_body(rlp));
         }
         urlp_free(&rlp);
     }
