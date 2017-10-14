@@ -44,7 +44,7 @@ test_vector g_test_vectors[] = { //
      .bob_n = BOB_NONCE_GO,
      .authver = AUTHVER_1,
      .ackver = ACKVER_1 },
-    { 0, 0, 0, 0 }
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;
 const char* g_alice_epri = ALICE_EPRI;

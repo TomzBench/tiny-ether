@@ -82,11 +82,7 @@ rlpx_handshake*
 rlpx_handshake_alloc(int orig,
                      uecc_ctx* skey,
                      uecc_ctx* ekey,
-                     uint64_t* version_remote,
                      h256* nonce,
-                     h256* nonce_remote,
-                     uecc_public_key* skey_remote,
-                     uecc_public_key* ekey_remote,
                      const uecc_public_key* to)
 {
     rlpx_handshake* hs = rlpx_malloc(sizeof(rlpx_handshake));
@@ -97,10 +93,6 @@ rlpx_handshake_alloc(int orig,
         hs->ekey = ekey;
         hs->skey = skey;
         hs->nonce = nonce;
-        hs->nonce_remote = nonce_remote;
-        hs->skey_remote = skey_remote;
-        hs->ekey_remote = ekey_remote;
-        hs->version_remote = version_remote;
         if (orig) {
             rlpx_handshake_auth_init(hs, to);
         } else {
@@ -120,36 +112,42 @@ rlpx_handshake_free(rlpx_handshake** hs_p)
 }
 
 int
-rlpx_handshake_secrets(rlpx_handshake* hs, rlpx_coder* x, int orig)
+rlpx_handshake_secrets(rlpx_handshake* hs,
+                       int orig,
+                       ukeccak256_ctx* emac,
+                       ukeccak256_ctx* imac,
+                       uaes_ctx* aes_enc,
+                       uaes_ctx* aes_dec,
+                       uaes_ctx* aes_mac)
 {
     int err;
     uint8_t *sent = hs->cipher, *recv = hs->cipher_remote;
     uint32_t slen = hs->cipher_len, rlen = hs->cipher_remote_len;
     uint8_t buf[32 + ((slen > rlen) ? slen : rlen)], *out = &buf[32];
-    if ((err = uecc_agree(hs->ekey, hs->ekey_remote))) return err;
-    memcpy(buf, orig ? hs->nonce_remote->b : hs->nonce->b, 32);
-    memcpy(out, orig ? hs->nonce->b : hs->nonce_remote->b, 32);
+    if ((err = uecc_agree(hs->ekey, &hs->ekey_remote))) return err;
+    memcpy(buf, orig ? hs->nonce_remote.b : hs->nonce->b, 32);
+    memcpy(out, orig ? hs->nonce->b : hs->nonce_remote.b, 32);
 
     // aes-secret / mac-secret
-    ukeccak256(buf, 64, out, 32);        // h(nonces)
-    memcpy(buf, &hs->ekey->z.b[1], 32);  // (ephemeral || h(nonces))
-    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(nonces))
-    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(shared))
-    uaes_init_bin(&x->aes_enc, out, 32); // aes-secret save
-    uaes_init_bin(&x->aes_dec, out, 32); // aes-secret save
-    ukeccak256(buf, 64, out, 32);        // S(ephemeral || H(aes-secret))
-    uaes_init_bin(&x->aes_mac, out, 32); // mac-secret save
+    ukeccak256(buf, 64, out, 32);       // h(nonces)
+    memcpy(buf, &hs->ekey->z.b[1], 32); // (ephemeral || h(nonces))
+    ukeccak256(buf, 64, out, 32);       // S(ephemeral || H(nonces))
+    ukeccak256(buf, 64, out, 32);       // S(ephemeral || H(shared))
+    uaes_init_bin(aes_enc, out, 32);    // aes-secret save
+    uaes_init_bin(aes_dec, out, 32);    // aes-secret save
+    ukeccak256(buf, 64, out, 32);       // S(ephemeral || H(aes-secret))
+    uaes_init_bin(aes_mac, out, 32);    // mac-secret save
 
     // Ingress / egress
-    ukeccak256_init(&x->emac);
-    ukeccak256_init(&x->imac);
-    XOR32_SET(buf, out, hs->nonce->b); // (mac-secret^recepient-nonce);
-    memcpy(&buf[32], recv, rlen);      // (m..^nonce)||auth-recv-init)
-    ukeccak256_update(&x->imac, buf, 32 + rlen); // S(m..^nonce)||auth-recv)
-    XOR32(buf, hs->nonce->b);                    // UNDO xor
-    XOR32(buf, hs->nonce_remote->b);             // (mac-secret^nonce);
-    memcpy(&buf[32], sent, slen); // (m..^nonce)||auth-sentd-init)
-    ukeccak256_update(&x->emac, buf, 32 + slen); // S(m..^nonce)||auth-sent)
+    ukeccak256_init(emac);
+    ukeccak256_init(imac);
+    XOR32_SET(buf, out, hs->nonce->b);       // (mac-secret^recepient-nonce);
+    memcpy(&buf[32], recv, rlen);            // (m..^nonce)||auth-recv-init)
+    ukeccak256_update(imac, buf, 32 + rlen); // S(m..^nonce)||auth-recv)
+    XOR32(buf, hs->nonce->b);                // UNDO xor
+    XOR32(buf, hs->nonce_remote.b);          // (mac-secret^nonce);
+    memcpy(&buf[32], sent, slen);            // (m..^nonce)||auth-sentd-init)
+    ukeccak256_update(emac, buf, 32 + slen); // S(m..^nonce)||auth-sent)
 
     return err;
 }
@@ -216,26 +214,26 @@ rlpx_handshake_auth_install(rlpx_handshake* hs, urlp** rlp_p)
     const urlp* seek;
     if ((seek = urlp_at(rlp, 3))) {
         // Get version
-        *hs->version_remote = urlp_as_u64(seek);
+        hs->version_remote = urlp_as_u64(seek);
     }
     if ((seek = urlp_at(rlp, 2)) && urlp_size(seek) == sizeof(h256)) {
         // Read remote nonce
-        memcpy(hs->nonce_remote->b, urlp_ref(seek, NULL), sizeof(h256));
+        memcpy(hs->nonce_remote.b, urlp_ref(seek, NULL), sizeof(h256));
     }
     if ((seek = urlp_at(rlp, 1)) &&
         urlp_size(seek) == sizeof(uecc_public_key)) {
         // Get secret from remote public key
         buffer[0] = 0x04;
         memcpy(&buffer[1], urlp_ref(seek, NULL), urlp_size(seek));
-        uecc_btoq(buffer, 65, hs->skey_remote);
-        uecc_agree(hs->skey, hs->skey_remote);
+        uecc_btoq(buffer, 65, &hs->skey_remote);
+        uecc_agree(hs->skey, &hs->skey_remote);
     }
     if ((seek = urlp_at(rlp, 0)) &&
         // Get remote ephemeral public key from signature
         urlp_size(seek) == sizeof(uecc_signature)) {
         uecc_shared_secret x;
-        XOR32_SET(x.b, (&hs->skey->z.b[1]), hs->nonce_remote->b);
-        err = uecc_recover_bin(urlp_ref(seek, NULL), &x, hs->ekey_remote);
+        XOR32_SET(x.b, (&hs->skey->z.b[1]), hs->nonce_remote.b);
+        err = uecc_recover_bin(urlp_ref(seek, NULL), &x, &hs->ekey_remote);
     }
     // urlp_free(&rlp);
     return err;
@@ -284,13 +282,13 @@ rlpx_handshake_ack_install(rlpx_handshake* hs, urlp** rlp_p)
         (urlp_size(seek) == sizeof(uecc_public_key))) {
         buff[0] = 0x04;
         memcpy(&buff[1], urlp_ref(seek, NULL), urlp_size(seek));
-        uecc_btoq(buff, 65, hs->ekey_remote);
+        uecc_btoq(buff, 65, &hs->ekey_remote);
     }
     if ((seek = urlp_at(rlp, 1)) && (urlp_size(seek) == sizeof(h256))) {
-        memcpy(hs->nonce_remote->b, urlp_ref(seek, NULL), sizeof(h256));
+        memcpy(hs->nonce_remote.b, urlp_ref(seek, NULL), sizeof(h256));
         err = 0;
     }
-    if ((seek = urlp_at(rlp, 2))) *hs->version_remote = urlp_as_u64(seek);
+    if ((seek = urlp_at(rlp, 2))) hs->version_remote = urlp_as_u64(seek);
     return err;
 }
 
