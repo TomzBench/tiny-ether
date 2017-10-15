@@ -72,6 +72,7 @@ main(int argc, char* argv[])
     IF_ERR_EXIT(test_handshake());
     IF_ERR_EXIT(test_frame());
     IF_ERR_EXIT(test_protocol());
+    IF_ERR_EXIT(test_enode());
 EXIT:
     return err;
 }

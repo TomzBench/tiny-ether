@@ -14,6 +14,7 @@ extern "C" {
 #include "rlpx_config.h"
 #include "rlpx_devp2p.h"
 #include "rlpx_handshake.h"
+#include "rlpx_node.h"
 
 typedef struct
 {
