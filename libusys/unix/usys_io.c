@@ -141,11 +141,11 @@ usys_sock_ready(usys_socket_fd* sock)
 {
     // If error return < 0
     // If waiting return 0
-    // If ready return > 0 (sock)
+    // If ready return > 0
     int optval = -1, err;
     socklen_t optlen = sizeof(optval);
     err = getsockopt(*sock, SOL_SOCKET, SO_ERROR, &optval, &optlen);
-    return err ? err : (optval == EINPROGRESS) ? 0 : optval ? -1 : *sock;
+    return err ? err : (optval == EINPROGRESS) ? 0 : optval ? -1 : 1;
 }
 
 //
