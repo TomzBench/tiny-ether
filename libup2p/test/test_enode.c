@@ -39,17 +39,30 @@ test_node()
 {
     int err = 0;
     char* alice = "enode://" ALICE_SPUB "@1.1.1.1:33.89";
-    rlpx_node node;
+    char* maxok = "enode://" ALICE_SPUB "@111.111.111.111:65535.65535";
+    char* failsz = "enode://" ALICE_SPUB "x@111.111.111.111:65535.65535";
+    char* failfmt = "enode://" ALICE_SPUB "@111.111.111.111:65535x65535";
+    rlpx_node node_alice, node_maxok, node_failsz, node_failfmt;
     test_session s;
 
     test_session_init(&s, 1);
-    IF_ERR_EXIT(rlpx_node_init_enode(&node, alice));
-    IF_ERR_EXIT(cmp_q(&node.id, &s.alice->skey.Q));
-    IF_ERR_EXIT((node.port_tcp == 33) ? 0 : -1);
-    IF_ERR_EXIT((node.port_udp == 89) ? 0 : -1);
+    IF_ERR_EXIT(rlpx_node_init_enode(&node_alice, alice));
+    IF_ERR_EXIT(rlpx_node_init_enode(&node_maxok, maxok));
+    IF_ERR_EXIT(rlpx_node_init_enode(&node_failsz, failsz) ? 0 : -1);
+    IF_ERR_EXIT(rlpx_node_init_enode(&node_failfmt, failfmt) ? 0 : -1);
+    IF_ERR_EXIT(rlpx_node_init_enode(&node_alice, alice));
+    IF_ERR_EXIT(cmp_q(&node_alice.id, &s.alice->skey.Q));
+    IF_ERR_EXIT((node_alice.port_tcp == 33) ? 0 : -1);
+    IF_ERR_EXIT((node_alice.port_udp == 89) ? 0 : -1);
+    IF_ERR_EXIT(cmp_q(&node_maxok.id, &s.alice->skey.Q));
+    IF_ERR_EXIT((node_maxok.port_tcp == 65535) ? 0 : -1);
+    IF_ERR_EXIT((node_maxok.port_udp == 65535) ? 0 : -1);
 
 EXIT:
     test_session_deinit(&s);
-    rlpx_node_deinit(&node);
+    rlpx_node_deinit(&node_alice);
+    rlpx_node_deinit(&node_maxok);
+    rlpx_node_deinit(&node_failsz);
+    rlpx_node_deinit(&node_failfmt);
     return err;
 }

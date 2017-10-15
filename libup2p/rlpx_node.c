@@ -26,8 +26,7 @@ rlpx_node_init_enode(rlpx_node* self, const char* enode)
     char host[16], *tcp = NULL, *udp = NULL;
     uecc_public_key key;
 
-    // TODO add max length boundry
-    if (((l = strlen(enode)) < 136) ||                           //
+    if ((((l = strlen(enode)) < 136) || (l > 164)) ||            //
         (memcmp(enode, "enode://", 8)) ||                        //
         (!(enode[136] == '@')) ||                                //
         (rlpx_node_hex_to_bin(&enode[8], 128, &raw[1], NULL)) || //
