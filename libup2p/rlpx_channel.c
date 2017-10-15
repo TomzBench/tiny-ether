@@ -1,6 +1,4 @@
 #include "rlpx_channel.h"
-#include "rlpx_handshake.h"
-#include "rlpx_helper_macros.h"
 #include "unonce.h"
 
 // Private io callbacks
