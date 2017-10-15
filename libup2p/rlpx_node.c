@@ -23,19 +23,22 @@ rlpx_node_init_enode(rlpx_node* self, const char* enode)
 {
     uint32_t l;
     uint8_t raw[65] = { 0x04 };
-    char host[16], *colon = NULL;
+    char host[16], *tcp = NULL, *udp = NULL;
     uecc_public_key key;
+
     // TODO add max length boundry
-    if (((l = strlen(enode)) < 136) ||                       //
-        (memcmp(enode, "enode://", 8)) ||                    //
-        (!(enode[136] == '@')) ||                            //
-        (rlpx_node_hex_to_bin(&enode[8], 128, raw, NULL)) || //
-        (!(colon = memchr(&enode[136], l - 136, ':'))) ||    //
+    if (((l = strlen(enode)) < 136) ||                           //
+        (memcmp(enode, "enode://", 8)) ||                        //
+        (!(enode[136] == '@')) ||                                //
+        (rlpx_node_hex_to_bin(&enode[8], 128, &raw[1], NULL)) || //
+        (!(tcp = memchr(&enode[136], ':', l - 136))) ||          //
+        (!(udp = memchr(tcp, '.', &enode[l] - tcp))) ||          //
         (uecc_btoq(raw, 65, &key))) {
         return -1;
     }
-    memcpy(host, &enode[136], colon - &enode[136]);
-    return rlpx_node_init(self, &key, host, 0, 0);
+    memcpy(host, &enode[137], tcp - &enode[137]);
+    host[tcp - &enode[137]] = 0;
+    return rlpx_node_init(self, &key, host, atoi(++tcp), atoi(++udp));
 }
 
 void
