@@ -23,7 +23,7 @@ typedef struct
 } rlpx_node;
 
 int rlpx_node_init(rlpx_node* self,
-                   uecc_public_key* id,
+                   const uecc_public_key* id,
                    const char* host,
                    uint32_t tcp,
                    uint32_t udp);

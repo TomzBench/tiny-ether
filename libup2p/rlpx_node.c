@@ -5,7 +5,7 @@ int rlpx_node_bin_to_hex(const uint8_t*, uint32_t, char*, uint32_t*);
 
 int
 rlpx_node_init(rlpx_node* self,
-               uecc_public_key* id,
+               const uecc_public_key* id,
                const char* host,
                uint32_t tcp,
                uint32_t udp)

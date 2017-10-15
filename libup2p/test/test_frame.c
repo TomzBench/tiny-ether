@@ -38,7 +38,7 @@ test_frame_read()
     rlpx_test_nonce_set(s.alice, &s.alice_n);
 
     // Update our secrets
-    rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+    rlpx_ch_connect(s.alice, &s.bob->skey.Q, "1.1.1.1", 33);
     rlpx_ch_accept(s.bob, &s.alice->skey.Q);
     IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
@@ -72,7 +72,7 @@ test_frame_write()
     // Send keys
     rlpx_ch_nonce(s.alice);
     rlpx_ch_nonce(s.bob);
-    rlpx_ch_connect(s.alice, &s.bob->skey.Q);
+    rlpx_ch_connect(s.alice, &s.bob->skey.Q, "1.1.1.1", 33);
     rlpx_ch_accept(s.bob, &s.alice->skey.Q);
 
     // Recv keys
