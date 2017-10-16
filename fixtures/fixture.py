@@ -18,6 +18,7 @@ except:
     import devp2p.slogging as slogging
 log = slogging.get_logger('app')
 
+# test fixture uses "bobs" private static key from the test vectors
 def main():
     import gevent
     import signal
@@ -32,7 +33,7 @@ def main():
                                 peermanager.PeerManager.default_config)
     default_config['client_version_string'] = client_version_string
     default_config['post_app_start_callback'] = None
-    default_config['node']['privkey_hex'] = encode_hex(sha3('%d:udp:%d' % (0, 0)))
+    default_config['node']['privkey_hex'] = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
     app = BaseApp(default_config)
     peermanager.PeerManager.register_with_app(app)
 

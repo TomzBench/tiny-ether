@@ -38,10 +38,10 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
     size_t padsz = urand_min_max_u8(RLPX_MIN_PAD, RLPX_MAX_PAD);
 
     // cipher prefix big endian
-    uint16_t sz = uecies_encrypt_size(padsz + rlpsz) + sizeof(uint16_t);
+    uint16_t prefix = uecies_encrypt_size(padsz + rlpsz), sz = prefix + 2;
 
     // Dynamic stack buffer for plain text
-    uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&sz;
+    uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&prefix;
 
     // endian test
     static int x = 1;
@@ -71,8 +71,12 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
     // Dynamic stack buffer for cipher text
     uint8_t buffer[sz];
 
+    sz += 2;
+    if (l < sz) return -1;
+
     // Decrypt and parse rlp
-    int err = uecies_decrypt(ecc, c, 2, &c[2], l - 2, buffer);
+    // int err = uecies_decrypt(ecc, c, 2, &c[2], l - 2, buffer);
+    int err = uecies_decrypt(ecc, c, 2, &c[2], sz - 2, buffer);
     return ((err > 0) && (*rlp_p = urlp_parse(buffer, err))) ? 0 : -1;
 }
 
