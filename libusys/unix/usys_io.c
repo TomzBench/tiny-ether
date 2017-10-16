@@ -33,7 +33,7 @@ usys_connect(usys_socket_fd* sock_p, const char* host, int port)
             ret = -1;
         }
     } else {
-        ret = *sock;
+        ret = 1;
     }
     return ret;
 }

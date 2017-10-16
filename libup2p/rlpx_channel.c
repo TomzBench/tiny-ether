@@ -125,9 +125,7 @@ rlpx_ch_connect_node(rlpx_channel* ch, const rlpx_node* n)
     if (ch->hs) rlpx_handshake_free(&ch->hs);
     ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce, &n->id);
     if (ch->hs) {
-        async_io_connect(&ch->io, n->ip_v4, n->port_tcp);
-        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
-        return async_io_send(&ch->io);
+        return async_io_connect(&ch->io, n->ip_v4, n->port_tcp) < 0 ? -1 : 0;
     } else {
         return -1;
     }
@@ -243,6 +241,9 @@ rlpx_ch_on_accept(void* ctx)
 int
 rlpx_ch_on_connect(void* ctx)
 {
+    rlpx_channel* ch = (rlpx_channel*)ctx;
+    async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+    return async_io_send(&ch->io);
 }
 
 int
