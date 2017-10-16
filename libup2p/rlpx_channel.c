@@ -243,6 +243,9 @@ rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
 int
 rlpx_ch_on_accept(void* ctx)
 {
+    rlpx_channel* ch = (rlpx_channel*)ctx;
+    usys_log_ok("p2p.accept %d", ch->io.sock);
+    return 0;
 }
 
 int
@@ -257,11 +260,17 @@ rlpx_ch_on_connect(void* ctx)
 int
 rlpx_ch_on_erro(void* ctx)
 {
+    rlpx_channel* ch = (rlpx_channel*)ctx;
+    usys_log_ok("p2p.erro %d", ch->io.sock);
+    return 0;
 }
 
 int
 rlpx_ch_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
 {
+    rlpx_channel* ch = (rlpx_channel*)ctx;
+    usys_log_ok("p2p.send %d", ch->io.sock);
+    return 0;
 }
 
 int
