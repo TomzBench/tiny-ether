@@ -84,8 +84,8 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
     IF_ERR_EXIT(memcmp(mem, RLPX_CLIENT_ID_STR, num) ? -1 : 0);
 
     // Verify caps
-    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "les", 2));
-    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "les", 2));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "p2p", 4));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "p2p", 4));
 
     // Verify listen port
     rlpx_devp2p_protocol_listen_port(rlp, &num);

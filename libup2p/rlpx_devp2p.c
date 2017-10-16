@@ -94,11 +94,11 @@ rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
                                  uint32_t* l)
 {
     int err = -1;
-    uint32_t p2pver = RLPX_VERSION_P2P, les = 2;
+    uint32_t p2pver = RLPX_VERSION_P2P, p2p = 4;
     urlp *body = urlp_list(), *caps = urlp_list();
 
-    // Create cababilities list (les/2)
-    urlp_push(caps, urlp_push(urlp_item_str("les", 3), urlp_item_u32(&les, 1)));
+    // Create cababilities list (p2p/4)
+    urlp_push(caps, urlp_push(urlp_item_str("p2p", 3), urlp_item_u32(&p2p, 1)));
 
     // Create body list
     urlp_push(body, urlp_item_u32(&p2pver, 1));

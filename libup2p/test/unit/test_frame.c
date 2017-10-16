@@ -109,8 +109,8 @@ test_frame_write()
     IF_ERR_EXIT(memcmp(memb, RLPX_CLIENT_ID_STR, numb) ? -1 : 0);
 
     // Verify capabilities read ok
-    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(bodya, "les", 2));
-    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(bodyb, "les", 2));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(bodya, "p2p", 4));
+    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(bodyb, "p2p", 4));
 
     // verify listen port
     rlpx_devp2p_protocol_listen_port(bodya, &numa);

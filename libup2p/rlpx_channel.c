@@ -169,6 +169,7 @@ rlpx_ch_send_auth(rlpx_channel* ch)
 int
 rlpx_ch_send_hello(rlpx_channel* ch)
 {
+    // TODO - node id needs to match
     int err = rlpx_devp2p_protocol_write_hello(
         &ch->x, ch->listen_port, ch->node_id, ch->io.b, &ch->io.len);
     if (!err) {
