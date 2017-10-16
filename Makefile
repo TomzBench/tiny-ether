@@ -27,7 +27,7 @@ MODULES 	+= 	libusys/unix
 APPLICATIONS 	+=	liburlp/test
 APPLICATIONS 	+= 	libusys/test
 APPLICATIONS 	+=	libucrypto/test
-APPLICATIONS 	+=	libup2p/test
+APPLICATIONS 	+=	libup2p/test/unit
 
 # Build vars
 APP_SRCS	+=	$(APPLICATIONS)

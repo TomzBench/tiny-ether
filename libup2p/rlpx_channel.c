@@ -1,5 +1,6 @@
 #include "rlpx_channel.h"
 #include "unonce.h"
+#include "usys_log.h"
 
 // Private io callbacks
 int rlpx_ch_on_accept(void* ctx);
@@ -248,6 +249,7 @@ int
 rlpx_ch_on_connect(void* ctx)
 {
     rlpx_channel* ch = (rlpx_channel*)ctx;
+    usys_log_ok("p2p.connect %d", ch->io.sock);
     async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
     return async_io_send(&ch->io);
 }
@@ -265,6 +267,9 @@ rlpx_ch_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
 int
 rlpx_ch_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
 {
+    rlpx_channel* ch = (rlpx_channel*)ctx;
+    usys_log_ok("p2p.recv %d", ch->io.sock);
+    return 0;
 }
 
 int
