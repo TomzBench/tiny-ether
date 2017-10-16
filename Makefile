@@ -1,4 +1,5 @@
 #ulib makefile
+# TODO - Need to filter the 'test' folder from each module when linking libs
 
 # setup install directory
 TARGET		?=	target
@@ -11,39 +12,44 @@ CONFIGS_D 	+= 	URLP_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	URLPX_CONFIG_LINUX_EMU
 CONFIGS_D 	+= 	"memset_s(W,WL,V,OL)=memset(W,V,OL)"
 
+# external includes dependancies -I
+DEPS 		+= 	external/mbedtls/include
+DEPS 		+= 	external/secp256k1/include
+
 # Collect lib objects *.o
-MODULES 	+= 	libusys/unix
-MODULES 	+= 	libusys/async
 MODULES 	+= 	libup2p
 MODULES 	+= 	libucrypto
 MODULES 	+=	liburlp
+MODULES 	+= 	libusys/async
+MODULES 	+= 	libusys/unix
 
 # Build test applications
 APPLICATIONS 	+=	liburlp/test
+APPLICATIONS 	+= 	libusys/test
 APPLICATIONS 	+=	libucrypto/test
-APPLICATIONS 	+=	libup2p/test
+APPLICATIONS 	+=	libup2p/test/unit
+APPLICATIONS 	+=	libup2p/test/integration
 
 # Build vars
 APP_SRCS	+=	$(APPLICATIONS)
-MODULE_SRCS 	+= 	$(addsuffix /src,$(MODULES))
-MODULE_INCS 	+= 	$(addsuffix /include,$(MODULES))
-MODULE_DIRS 	+=	$(MODULE_INCS) $(MODULE_SRCS)
 LIBS 		+= 	$(addprefix $(TARGET)/lib/,$(addsuffix .a,$(foreach mod, $(MODULES),$(subst /,-,$(mod)))))
 APPS 		+= 	$(addprefix $(TARGET)/bin/,$(foreach bin, $(APPLICATIONS),$(subst /,-,$(bin))))
-SRCS 		+=	$(shell find $(MODULE_SRCS) -name '*.c')
+SRCS 		+=	$(shell find $(MODULES) -name '*.c')
 SRCS 		+=	$(shell find $(APP_SRCS) -name '*.c')
-HDRS 		+= 	$(shell find $(MODULE_INCS) -name '*.h')
+HDRS 		+= 	$(shell find $(MODULES) -name '*.h')
 OBJS		+=	$(addprefix $(TARGET)/obj/,$(SRCS:.c=.o))
-INCS		+=	$(addprefix -I./,$(MODULE_DIRS))
+INCS		+=	$(addprefix -I./,$(MODULES))
 INCS	 	+=	$(addprefix -I./,$(TARGET)/include)
+INCS 		+= 	$(addprefix -I./,$(DEPS))
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
 DIRS 		+= 	$(sort $(dir $(OBJS)))
 DIRS 		+=	$(TARGET)/bin
+DIRS 		+=	$(TARGET)/include
+DIRS 		+=	$(TARGET)/lib
 CFLAGS 		+= 	$(DEFS)
 LDFLAGS 	+=	$(LIBS) $(addprefix $(TARGET)/lib/, libmbedcrypto.a libsecp256k1.a)
 INSTALL 	+= 	$(LIBS)
 INSTALL 	+= 	$(APPS)
-INSTALL 	+= 	$(addprefix $(TARGET)/include/,$(notdir $(HDRS)))
 
 all: $(DIRS) $(OBJS) $(INSTALL)
 
@@ -74,7 +80,7 @@ $(TARGET)/include/%.h:
 	@echo "COPY $(notdir $@)"
 	@cp $(shell find $(MODULE_INCS) -name $(notdir $@)) $@
 
-.PHONY: clean test print cscope
+.PHONY: clean test test-mem print cscope
 
 # clean our mess
 clean:
@@ -83,6 +89,12 @@ clean:
 	@rm -rf $(TARGET)/obj
 
 test:
+	@$(foreach bin,$(APPS),     \
+		echo TEST $(bin);   \
+		./$(bin);           \
+		)
+
+test-mem:
 	@$(foreach bin,$(APPS),     \
 		echo TEST $(bin);   \
 		valgrind            \
