@@ -14,8 +14,6 @@
 #include "rlpx_helper_macros.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
-#include "ukeccak256.h"
-#include "unonce.h"
 #include "urand.h"
 
 // rlp <--> cipher text

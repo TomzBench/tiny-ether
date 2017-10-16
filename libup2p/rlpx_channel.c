@@ -1,6 +1,4 @@
 #include "rlpx_channel.h"
-#include "rlpx_handshake.h"
-#include "rlpx_helper_macros.h"
 #include "unonce.h"
 
 // Private io callbacks
@@ -97,12 +95,37 @@ rlpx_ch_nonce(rlpx_channel* ch)
 }
 
 int
-rlpx_ch_connect(rlpx_channel* ch, const uecc_public_key* to)
+rlpx_ch_connect(rlpx_channel* ch,
+                const uecc_public_key* to,
+                const char* host,
+                uint32_t tcp)
+{
+    rlpx_node n;
+    if (!rlpx_node_init(&n, to, host, tcp, 0)) {
+        return rlpx_ch_connect_node(ch, &n);
+    } else {
+        return -1;
+    }
+}
+
+int
+rlpx_ch_connect_enode(rlpx_channel* ch, const char* enode)
+{
+    rlpx_node n;
+    if (rlpx_node_init_enode(&n, enode)) {
+        return rlpx_ch_connect_node(ch, &n);
+    } else {
+        return -1;
+    }
+}
+
+int
+rlpx_ch_connect_node(rlpx_channel* ch, const rlpx_node* n)
 {
     if (ch->hs) rlpx_handshake_free(&ch->hs);
-    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce, to);
+    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce, &n->id);
     if (ch->hs) {
-        async_io_connect(&ch->io, "thhpty", 80); // TODO ----
+        async_io_connect(&ch->io, n->ip_v4, n->port_tcp);
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
         return async_io_send(&ch->io);
     } else {
