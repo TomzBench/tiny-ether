@@ -95,6 +95,12 @@ rlpx_ch_nonce(rlpx_channel* ch)
 }
 
 int
+rlpx_ch_poll(rlpx_channel** ch, uint32_t count, uint32_t ms)
+{
+    return async_io_poll_n((async_io**)ch, count, ms);
+}
+
+int
 rlpx_ch_connect(rlpx_channel* ch,
                 const uecc_public_key* to,
                 const char* host,
@@ -112,7 +118,7 @@ int
 rlpx_ch_connect_enode(rlpx_channel* ch, const char* enode)
 {
     rlpx_node n;
-    if (rlpx_node_init_enode(&n, enode)) {
+    if (!rlpx_node_init_enode(&n, enode)) {
         return rlpx_ch_connect_node(ch, &n);
     } else {
         return -1;

@@ -45,10 +45,12 @@ void rlpx_ch_deinit(rlpx_channel* session);
 
 // methods
 void rlpx_ch_nonce(rlpx_channel* ch);
+int rlpx_ch_poll(rlpx_channel** ch, uint32_t count, uint32_t ms);
 int rlpx_ch_connect(rlpx_channel* ch,
                     const uecc_public_key* to,
                     const char* host,
                     uint32_t tcp);
+int rlpx_ch_connect_enode(rlpx_channel* ch, const char* enode);
 int rlpx_ch_connect_node(rlpx_channel* ch, const rlpx_node* node);
 int rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from);
 int rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l);

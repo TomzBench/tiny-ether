@@ -154,6 +154,7 @@ async_io_poll(async_io* self)
             if (ret < 0) {
                 ASYNC_IO_SET_ERRO(self);
             } else {
+                self->settings.on_connect(self->ctx);
                 ASYNC_IO_SET_READY(self);
                 ASYNC_IO_SET_RECV(self);
             }

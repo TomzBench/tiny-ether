@@ -51,5 +51,6 @@ int test_handshake();
 int test_frame();
 int test_protocol();
 int test_enode();
+int test_integration();
 
 #endif
