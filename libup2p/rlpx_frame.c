@@ -75,7 +75,7 @@ rlpx_frame_write(rlpx_coder* x,
                  uint8_t* data,
                  size_t datalen,
                  uint8_t* out,
-                 size_t* l)
+                 uint32_t* l)
 {
     size_t len = AES_LEN(datalen);
     uint8_t head[32], body[len];

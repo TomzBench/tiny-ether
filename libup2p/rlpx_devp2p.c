@@ -72,21 +72,17 @@ rlpx_devp2p_protocol_write(rlpx_coder* x,
                            RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type,
                            urlp* rlp,
                            uint8_t* out,
-                           size_t* outlen)
+                           uint32_t* outlen)
 {
-    uint32_t tmp = 1;
-    urlp* id = urlp_item_u32((uint32_t*)&type, 1);
-    if (!id) return -1;
-    int err = urlp_print(id, out, &tmp);
-    if (!err) {
-        if (rlp) {
-            tmp = *outlen - 1;
-            err = urlp_print(rlp, &out[1], &tmp);
-            tmp++;
-        }
-        if (!err) err = rlpx_frame_write(x, 0, 0, out, tmp, out, outlen);
+    int err = 0;
+    uint32_t tmp = *outlen - 1;
+    if (!*outlen) return -1;
+    out[0] = type == DEVP2P_HELLO ? 0x80 : (uint8_t)type;
+    if (rlp) {
+        err = urlp_print(rlp, &out[1], &tmp);
+        tmp++;
     }
-    urlp_free(&id);
+    if (!err) err = rlpx_frame_write(x, 0, 0, out, tmp, out, outlen);
     return err;
 }
 
@@ -95,7 +91,7 @@ rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
                                  uint32_t port,
                                  const char* id,
                                  uint8_t* out,
-                                 size_t* l)
+                                 uint32_t* l)
 {
     int err = -1;
     uint32_t p2pver = RLPX_VERSION_P2P, les = 2;
@@ -121,7 +117,7 @@ int
 rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,
                                       RLPX_DEVP2P_DISCONNECT_REASON reason,
                                       uint8_t* out,
-                                      size_t* l)
+                                      uint32_t* l)
 {
     int err;
     urlp* body = urlp_item_u32((uint32_t*)&reason, 1);
@@ -131,13 +127,13 @@ rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,
 }
 
 int
-rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, size_t* l)
+rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, uint32_t* l)
 {
     return rlpx_devp2p_protocol_write(x, DEVP2P_PING, NULL, out, l);
 }
 
 int
-rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, size_t* l)
+rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l)
 {
     return rlpx_devp2p_protocol_write(x, DEVP2P_PONG, NULL, out, l);
 }

@@ -58,18 +58,18 @@ int rlpx_devp2p_protocol_write(rlpx_coder* x,
                                RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type,
                                urlp* rlp,
                                uint8_t* out,
-                               size_t* outlen);
+                               uint32_t* outlen);
 int rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
                                      uint32_t port,
                                      const char* id,
                                      uint8_t* out,
-                                     size_t* l);
+                                     uint32_t* l);
 int rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,
                                           RLPX_DEVP2P_DISCONNECT_REASON reason,
                                           uint8_t* out,
-                                          size_t* l);
-int rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, size_t* l);
-int rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, size_t* l);
+                                          uint32_t* l);
+int rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, uint32_t* l);
+int rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l);
 
 static inline int
 rlpx_devp2p_protocol_p2p_version(const urlp* rlp, uint32_t* out)
