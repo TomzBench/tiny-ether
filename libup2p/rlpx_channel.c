@@ -131,13 +131,16 @@ rlpx_ch_connect_enode(rlpx_channel* ch, const char* enode)
 int
 rlpx_ch_connect_node(rlpx_channel* ch, const rlpx_node* n)
 {
-    if (ch->hs) rlpx_handshake_free(&ch->hs);
-    ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce, &n->id);
-    if (ch->hs) {
-        return async_io_connect(&ch->io, n->ip_v4, n->port_tcp) < 0 ? -1 : 0;
-    } else {
-        return -1;
-    }
+    ch->node = *n;
+    return async_io_connect(&ch->io, n->ip_v4, n->port_tcp) < 0 ? -1 : 0;
+    // if (ch->hs) rlpx_handshake_free(&ch->hs);
+    // ch->hs = rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce,
+    // &n->id);
+    // if (ch->hs) {
+    //    return async_io_connect(&ch->io, n->ip_v4, n->port_tcp) < 0 ? -1 : 0;
+    //} else {
+    //    return -1;
+    //}
 }
 
 int
@@ -151,6 +154,75 @@ rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from)
         return async_io_send(&ch->io);
     } else {
         return -1;
+    }
+}
+
+int
+rlpx_ch_send_auth(rlpx_channel* ch)
+{
+
+    if (ch->hs) rlpx_handshake_free(&ch->hs);
+    ch->hs =
+        rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce, &ch->node.id);
+    if (ch->hs) {
+        async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv_ack);
+        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+        return async_io_send(&ch->io);
+    } else {
+        return -1;
+    }
+}
+
+int
+rlpx_ch_send_hello(rlpx_channel* ch)
+{
+    size_t len = async_io_len(&ch->io);
+    int err = rlpx_devp2p_protocol_write_hello(
+        &ch->x, ch->listen_port, ch->node_id, async_io_mem(&ch->io, 0), &len);
+    if (!err) {
+        async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv);
+        return async_io_send(&ch->io);
+    } else {
+        return err;
+    }
+}
+
+int
+rlpx_ch_send_disconnect(rlpx_channel* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
+{
+    size_t l = async_io_len(&ch->io);
+    int err = rlpx_devp2p_protocol_write_disconnect(
+        &ch->x, reason, async_io_mem(&ch->io, 0), &l);
+    if (!err) {
+        return async_io_send(&ch->io);
+    } else {
+        return err;
+    }
+}
+
+int
+rlpx_ch_send_ping(rlpx_channel* ch)
+{
+    size_t l = async_io_len(&ch->io);
+    int err =
+        rlpx_devp2p_protocol_write_ping(&ch->x, async_io_mem(&ch->io, 0), &l);
+    if (!err) {
+        return async_io_send(&ch->io);
+    } else {
+        return err;
+    }
+}
+
+int
+rlpx_ch_send_pong(rlpx_channel* ch)
+{
+    size_t l = async_io_len(&ch->io);
+    int err =
+        rlpx_devp2p_protocol_write_pong(&ch->x, async_io_mem(&ch->io, 0), &l);
+    if (!err) {
+        return async_io_send(&ch->io);
+    } else {
+        return err;
     }
 }
 
@@ -214,33 +286,33 @@ rlpx_ch_recv_ack(rlpx_channel* ch, const uint8_t* ack, size_t l)
     return err;
 }
 
-int
-rlpx_ch_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l)
-{
-    return rlpx_devp2p_protocol_write_hello(&ch->x, ch->listen_port,
-                                            ch->node_id, out, l);
-}
-
-int
-rlpx_ch_write_disconnect(rlpx_channel* ch,
-                         RLPX_DEVP2P_DISCONNECT_REASON reason,
-                         uint8_t* out,
-                         size_t* l)
-{
-    return rlpx_devp2p_protocol_write_disconnect(&ch->x, reason, out, l);
-}
-
-int
-rlpx_ch_write_ping(rlpx_channel* ch, uint8_t* out, size_t* l)
-{
-    return rlpx_devp2p_protocol_write_ping(&ch->x, out, l);
-}
-
-int
-rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
-{
-    return rlpx_devp2p_protocol_write_pong(&ch->x, out, l);
-}
+// int
+// rlpx_ch_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l)
+//{
+//    return rlpx_devp2p_protocol_write_hello(&ch->x, ch->listen_port,
+//                                            ch->node_id, out, l);
+//}
+//
+// int
+// rlpx_ch_write_disconnect(rlpx_channel* ch,
+//                         RLPX_DEVP2P_DISCONNECT_REASON reason,
+//                         uint8_t* out,
+//                         size_t* l)
+//{
+//    return rlpx_devp2p_protocol_write_disconnect(&ch->x, reason, out, l);
+//}
+//
+// int
+// rlpx_ch_write_ping(rlpx_channel* ch, uint8_t* out, size_t* l)
+//{
+//    return rlpx_devp2p_protocol_write_ping(&ch->x, out, l);
+//}
+//
+// int
+// rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l)
+//{
+//    return rlpx_devp2p_protocol_write_pong(&ch->x, out, l);
+//}
 
 int
 rlpx_ch_on_accept(void* ctx)
@@ -253,11 +325,20 @@ rlpx_ch_on_accept(void* ctx)
 int
 rlpx_ch_on_connect(void* ctx)
 {
+    // rlpx_channel* ch = (rlpx_channel*)ctx;
+    // usys_log_ok("p2p.connect %d", ch->io.sock);
+    // async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv_ack);
+    // async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+    // return async_io_send(&ch->io);
+
     rlpx_channel* ch = (rlpx_channel*)ctx;
     usys_log_ok("p2p.connect %d", ch->io.sock);
-    async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv_ack);
-    async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
-    return async_io_send(&ch->io);
+    return rlpx_ch_send_auth(ch);
+    // if (ch->hs) {
+    //    return async_io_connect(&ch->io, n->ip_v4, n->port_tcp) < 0 ? -1 : 0;
+    //} else {
+    //    return -1;
+    //}
 }
 
 int
@@ -301,17 +382,16 @@ rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
 {
     rlpx_channel* ch = (rlpx_channel*)ctx;
     if (!err) {
-        usys_log_ok("p2p.recv ack %d", ch->io.sock);
         if (!rlpx_ch_recv_ack(ch, b, l)) {
             // Free handshake?
-            async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv);
             usys_log_ok("p2p.recv ack %d OK", ch->io.sock);
-            return 0;
+            return rlpx_ch_send_hello(ch);
         } else {
             usys_log_ok("p2p.recv ack %d Fail", ch->io.sock);
             return -1;
         }
     } else {
+        usys_log_ok("p2p.recv ack %d Fail", ch->io.sock);
         return err;
     }
 }

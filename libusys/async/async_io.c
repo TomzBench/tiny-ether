@@ -79,9 +79,15 @@ async_io_mem(async_io* self, uint32_t idx)
 }
 
 void
-async_io_len(async_io* self, uint32_t len)
+async_io_len_set(async_io* self, uint32_t len)
 {
     self->len = len;
+}
+
+uint32_t
+async_io_len(async_io* self)
+{
+    return self->len;
 }
 
 const void*

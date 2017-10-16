@@ -62,9 +62,9 @@ test_frame_write()
     int err = 0;
     test_session s;
     test_session_init(&s, 1);
-    size_t lena = 1000, lenb = 1000;
-    uint8_t from_alice[lena], from_bob[lenb];
-    urlp *framea = NULL, *frameb = NULL;
+    // size_t lena = 1000, lenb = 1000;
+    // uint8_t from_alice[lena], from_bob[lenb];
+    urlp *rlpa = NULL, *rlpb = NULL;
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
     uint32_t numa, numb;
@@ -84,13 +84,15 @@ test_frame_write()
     IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
 
     // Write some packets
-    IF_ERR_EXIT(rlpx_ch_write_hello(s.alice, from_alice, &lena));
-    IF_ERR_EXIT(rlpx_ch_write_hello(s.bob, from_bob, &lenb));
-    IF_ERR_EXIT(rlpx_frame_parse(&s.alice->x, from_bob, lenb, &frameb));
-    IF_ERR_EXIT(rlpx_frame_parse(&s.bob->x, from_alice, lena, &framea));
+    IF_ERR_EXIT(rlpx_ch_send_hello(s.alice));
+    IF_ERR_EXIT(rlpx_ch_send_hello(s.bob));
+    IF_ERR_EXIT(
+        rlpx_frame_parse(&s.alice->x, s.bob->io.b, s.bob->io.len, &rlpb));
+    IF_ERR_EXIT(
+        rlpx_frame_parse(&s.bob->x, s.alice->io.b, s.alice->io.len, &rlpa));
 
-    bodya = urlp_at(urlp_at(framea, 1), 1); // get body frame
-    bodyb = urlp_at(urlp_at(frameb, 1), 1); // get body frame
+    bodya = urlp_at(urlp_at(rlpa, 1), 1); // get body frame
+    bodyb = urlp_at(urlp_at(rlpb, 1), 1); // get body frame
 
     // Verify p2pver
     rlpx_devp2p_protocol_p2p_version(bodya, &numa);
@@ -126,8 +128,8 @@ test_frame_write()
 
 EXIT:
     // clean
-    if (framea) urlp_free(&framea);
-    if (frameb) urlp_free(&frameb);
+    if (rlpa) urlp_free(&rlpa);
+    if (rlpb) urlp_free(&rlpb);
     test_session_deinit(&s);
     return err;
 }

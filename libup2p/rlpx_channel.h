@@ -25,6 +25,7 @@ typedef struct
     uecc_ctx skey;               /*!< our static key */
     rlpx_coder x;                /*!< igress/ingress */
     h256 nonce;                  /*!< local nonce */
+    rlpx_node node;              /*!< remote node info */
     rlpx_handshake* hs;          /*!< temp context during handshake process */
     char node_id[65];            /*!< node id */
     uint32_t listen_port;        /*!< our listen port */
@@ -53,16 +54,14 @@ int rlpx_ch_connect(rlpx_channel* ch,
 int rlpx_ch_connect_enode(rlpx_channel* ch, const char* enode);
 int rlpx_ch_connect_node(rlpx_channel* ch, const rlpx_node* node);
 int rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from);
+int rlpx_ch_send_auth(rlpx_channel* ch);
+int rlpx_ch_send_hello(rlpx_channel* ch);
+int rlpx_ch_send_disconnect(rlpx_channel* ch, RLPX_DEVP2P_DISCONNECT_REASON);
+int rlpx_ch_send_ping(rlpx_channel* ch);
+int rlpx_ch_send_pong(rlpx_channel* ch);
 int rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l);
 int rlpx_ch_recv_auth(rlpx_channel*, const uint8_t*, size_t l);
 int rlpx_ch_recv_ack(rlpx_channel* ch, const uint8_t*, size_t l);
-int rlpx_ch_write_hello(rlpx_channel* ch, uint8_t* out, size_t* l);
-int rlpx_ch_write_disconnect(rlpx_channel* ch,
-                             RLPX_DEVP2P_DISCONNECT_REASON,
-                             uint8_t* out,
-                             size_t* l);
-int rlpx_ch_write_ping(rlpx_channel* ch, uint8_t* out, size_t* l);
-int rlpx_ch_write_pong(rlpx_channel* ch, uint8_t* out, size_t* l);
 
 #ifdef __cplusplus
 }
