@@ -101,6 +101,7 @@ int async_io_send(async_io*);
 int async_io_recv(async_io*);
 int async_io_poll_n(async_io** io, uint32_t n, uint32_t ms);
 int async_io_poll(async_io*);
+void async_io_set_cb_recv(async_io* self, async_io_on_recv_fn fn);
 int async_io_sock(async_io* self);
 int async_io_has_sock(async_io* self);
 int async_io_state_recv(async_io* self);

@@ -8,6 +8,8 @@ int rlpx_ch_on_connect(void* ctx);
 int rlpx_ch_on_erro(void* ctx);
 int rlpx_ch_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
 int rlpx_ch_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
+int rlpx_ch_on_recv_auth(void* ctx, int err, uint8_t* b, uint32_t l);
+int rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l);
 
 // Private protocol callbacks
 int rlpx_ch_on_hello(void* ctx, const urlp* rlp);
@@ -253,6 +255,7 @@ rlpx_ch_on_connect(void* ctx)
 {
     rlpx_channel* ch = (rlpx_channel*)ctx;
     usys_log_ok("p2p.connect %d", ch->io.sock);
+    async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv_ack);
     async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
     return async_io_send(&ch->io);
 }
@@ -279,6 +282,38 @@ rlpx_ch_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
     rlpx_channel* ch = (rlpx_channel*)ctx;
     usys_log_ok("p2p.recv %d", ch->io.sock);
     return 0;
+}
+
+int
+rlpx_ch_on_recv_auth(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+    rlpx_channel* ch = (rlpx_channel*)ctx;
+    if (!err) {
+        usys_log_ok("p2p.recv auth %d", ch->io.sock);
+        return rlpx_ch_recv_auth(ch, b, l);
+    } else {
+        return err;
+    }
+}
+
+int
+rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+    rlpx_channel* ch = (rlpx_channel*)ctx;
+    if (!err) {
+        usys_log_ok("p2p.recv ack %d", ch->io.sock);
+        if (!rlpx_ch_recv_ack(ch, b, l)) {
+            // Free handshake?
+            async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv);
+            usys_log_ok("p2p.recv ack %d OK", ch->io.sock);
+            return 0;
+        } else {
+            usys_log_ok("p2p.recv ack %d Fail", ch->io.sock);
+            return -1;
+        }
+    } else {
+        return err;
+    }
 }
 
 int
