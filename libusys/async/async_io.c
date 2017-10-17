@@ -193,8 +193,7 @@ async_io_poll(async_io* self)
                                     self->len - self->c);
             if (ret >= 0) {
                 if (ret + (int)self->c == end) {
-                    self->settings.on_recv(self->ctx, -1, 0,
-                                           0); // buffer to small
+                    self->settings.on_recv(self->ctx, -1, 0, 0);
                     ASYNC_IO_SET_ERRO(self);
                     break;
                 } else if (ret == 0) {

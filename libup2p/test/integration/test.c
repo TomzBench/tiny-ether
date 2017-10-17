@@ -24,7 +24,7 @@ main(int argc, char* arg[])
     rlpx_ch_connect_enode(alice, g_test_enode);
 
     // Enter while 1 loop.
-    while (usys_running() && (c++ < 100)) {
+    while (usys_running()) {
         usys_msleep(200);
         rlpx_ch_poll(&alice, 1, 100);
     }
