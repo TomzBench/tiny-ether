@@ -163,7 +163,7 @@ rlpx_ch_send_auth(rlpx_channel* ch)
     ch->hs =
         rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce, &ch->node.id);
     if (ch->hs) {
-        usys_log_ok("[OUT] %d bytes (auth)", ch->hs->cipher_len);
+        usys_log_ok("[OUT] (auth) size: %d", ch->hs->cipher_len);
         async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv_ack);
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
         return async_io_send(&ch->io);
@@ -181,7 +181,7 @@ rlpx_ch_send_hello(rlpx_channel* ch)
     err = rlpx_devp2p_protocol_write_hello(
         &ch->x, ch->listen_port, &ch->node_id[1], ch->io.b, &ch->io.len);
     if (!err) {
-        usys_log_ok("[OUT] %d bytes (hello)", ch->io.len);
+        usys_log_ok("[OUT] (hello) size: %d", ch->io.len);
         return async_io_send(&ch->io);
     } else {
         return err;
@@ -196,7 +196,7 @@ rlpx_ch_send_disconnect(rlpx_channel* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
     err = rlpx_devp2p_protocol_write_disconnect(&ch->x, reason, ch->io.b,
                                                 &ch->io.len);
     if (!err) {
-        usys_log_ok("[OUT] %d bytes (disconnect)", ch->io.len);
+        usys_log_ok("[OUT] (disconnect) size: %d", ch->io.len);
         async_io_set_cb_send(&ch->io, rlpx_ch_on_send_shutdown);
         return async_io_send(&ch->io);
     } else {
@@ -212,7 +212,7 @@ rlpx_ch_send_ping(rlpx_channel* ch)
     err = rlpx_devp2p_protocol_write_ping(&ch->x, ch->io.b, &ch->io.len);
     if (!err) {
         ch->devp2p.ping = usys_now();
-        usys_log_ok("[OUT] %d bytes (ping)", ch->io.len);
+        usys_log_ok("[OUT] (ping) size: %d", ch->io.len);
         return async_io_send(&ch->io);
     } else {
         return err;
@@ -226,7 +226,7 @@ rlpx_ch_send_pong(rlpx_channel* ch)
     ch->io.len = sizeof(ch->io.b);
     err = rlpx_devp2p_protocol_write_pong(&ch->x, ch->io.b, &ch->io.len);
     if (!err) {
-        usys_log_ok("[OUT] %d bytes (pong)", ch->io.len);
+        usys_log_ok("[OUT] (pong) size: %d", ch->io.len);
         return async_io_send(&ch->io);
     } else {
         return err;
@@ -356,7 +356,6 @@ rlpx_ch_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
 {
     rlpx_channel* ch = (rlpx_channel*)ctx;
     if (!err) {
-        usys_log_ok("[ IN] %d bytes", l, l);
         return rlpx_ch_recv(ch, b, l);
     } else {
         usys_log_ok("[ERR] socket: %d", ch->io.sock);
@@ -369,7 +368,7 @@ rlpx_ch_on_recv_auth(void* ctx, int err, uint8_t* b, uint32_t l)
 {
     rlpx_channel* ch = (rlpx_channel*)ctx;
     if (!err) {
-        usys_log_ok("[ IN] %d bytes (auth)", l);
+        usys_log_ok("[ IN] (auth) size: %d", l);
         return rlpx_ch_recv_auth(ch, b, l);
     } else {
         return err;
@@ -384,7 +383,7 @@ rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
         if (!rlpx_ch_recv_ack(ch, b, l)) {
             // TODO Free handshake?
             l -= ch->hs->cipher_remote_len;
-            usys_log_ok("[ IN] %d bytes (ack)", ch->hs->cipher_remote_len);
+            usys_log_ok("[ IN] (ack) size: %d", ch->hs->cipher_remote_len);
             if (l) {
                 if (rlpx_ch_recv(ch, &b[ch->hs->cipher_remote_len], l)) {
                     usys_log_ok("[ERR] %d", ch->io.sock);
