@@ -55,7 +55,7 @@ test_write()
 {
     int err;
     test_session s;
-    test_session_init(&s, 0);
+    test_session_init(&s, 1);
 
     // Trade keys
     rlpx_ch_nonce(s.alice);

@@ -79,9 +79,15 @@ async_io_mem(async_io* self, uint32_t idx)
 }
 
 void
-async_io_len(async_io* self, uint32_t len)
+async_io_len_set(async_io* self, uint32_t len)
 {
     self->len = len;
+}
+
+uint32_t
+async_io_len(async_io* self)
+{
+    return self->len;
 }
 
 const void*
@@ -156,6 +162,7 @@ async_io_poll(async_io* self)
             } else {
                 ASYNC_IO_SET_READY(self);
                 ASYNC_IO_SET_RECV(self);
+                self->settings.on_connect(self->ctx);
             }
         } else {
         }
@@ -186,8 +193,7 @@ async_io_poll(async_io* self)
                                     self->len - self->c);
             if (ret >= 0) {
                 if (ret + (int)self->c == end) {
-                    self->settings.on_recv(self->ctx, -1, 0,
-                                           0); // buffer to small
+                    self->settings.on_recv(self->ctx, -1, 0, 0);
                     ASYNC_IO_SET_ERRO(self);
                     break;
                 } else if (ret == 0) {
@@ -211,6 +217,18 @@ async_io_poll(async_io* self)
         }
     }
     return ret;
+}
+
+void
+async_io_set_cb_recv(async_io* self, async_io_on_recv_fn fn)
+{
+    self->settings.on_recv = fn ? fn : async_io_default_on_recv;
+}
+
+void
+async_io_set_cb_send(async_io* self, async_io_on_send_fn fn)
+{
+    self->settings.on_send = fn ? fn : async_io_default_on_send;
 }
 
 int

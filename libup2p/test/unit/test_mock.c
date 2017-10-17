@@ -22,7 +22,7 @@ test_mock_connect(usys_socket_fd* fd, const char* host, int port)
     static int sock = 0;     // 0 is a valid socket.
     if (*fd >= 0) return -1; // err already connect
     *fd = sock++;
-    return 0;
+    return 1;
 }
 
 int

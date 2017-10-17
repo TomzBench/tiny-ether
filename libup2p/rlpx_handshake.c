@@ -18,7 +18,7 @@
 
 // rlp <--> cipher text
 int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
-int rlpx_decrypt(uecc_ctx* ctx, const uint8_t* cipher, size_t l, urlp** rlp);
+uint32_t rlpx_decrypt(uecc_ctx* ctx, const uint8_t*, size_t l, urlp** rlp);
 
 int rlpx_handshake_auth_recv_legacy(rlpx_handshake* hs,
                                     const uint8_t* b,
@@ -38,10 +38,10 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
     size_t padsz = urand_min_max_u8(RLPX_MIN_PAD, RLPX_MAX_PAD);
 
     // cipher prefix big endian
-    uint16_t sz = uecies_encrypt_size(padsz + rlpsz) + sizeof(uint16_t);
+    uint16_t prefix = uecies_encrypt_size(padsz + rlpsz), sz = prefix + 2;
 
     // Dynamic stack buffer for plain text
-    uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&sz;
+    uint8_t plain[rlpsz + padsz], *psz = (uint8_t *)&prefix;
 
     // endian test
     static int x = 1;
@@ -61,7 +61,7 @@ rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
     return err;
 }
 
-int
+uint32_t
 rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
 {
     // endian test
@@ -71,9 +71,12 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
     // Dynamic stack buffer for cipher text
     uint8_t buffer[sz];
 
-    // Decrypt and parse rlp
-    int err = uecies_decrypt(ecc, c, 2, &c[2], l - 2, buffer);
-    return ((err > 0) && (*rlp_p = urlp_parse(buffer, err))) ? 0 : -1;
+    sz += 2;
+    if (l < sz) return 0;
+
+    // Decrypt and parse rlp returns 0 on err, cipher_len on OK
+    int err = uecies_decrypt(ecc, c, 2, &c[2], sz - 2, buffer);
+    return ((err > 0) && (*rlp_p = urlp_parse(buffer, err))) ? sz : 0;
 }
 
 rlpx_handshake*
@@ -243,11 +246,13 @@ rlpx_handshake_auth_recv(rlpx_handshake* hs,
                          size_t l,
                          urlp** rlp_p)
 {
-    int err = rlpx_decrypt(hs->skey, b, l, rlp_p);
-    memcpy(hs->cipher_remote, b, l);
-    hs->cipher_remote_len = l;
-    if (err) err = rlpx_handshake_auth_recv_legacy(hs, b, l, rlp_p);
-    return err;
+    hs->cipher_remote_len = rlpx_decrypt(hs->skey, b, l, rlp_p);
+    if (hs->cipher_remote_len) {
+        memcpy(hs->cipher_remote, b, hs->cipher_remote_len);
+        return 0;
+    } else {
+        return rlpx_handshake_auth_recv_legacy(hs, b, l, rlp_p);
+    }
 }
 
 int
@@ -296,11 +301,13 @@ rlpx_handshake_ack_recv(rlpx_handshake* hs,
                         size_t l,
                         urlp** rlp_p)
 {
-    int err = rlpx_decrypt(hs->skey, ack, l, rlp_p);
-    memcpy(hs->cipher_remote, ack, l);
-    hs->cipher_remote_len = l;
-    if (err) err = rlpx_handshake_ack_recv_legacy(hs, ack, l, rlp_p);
-    return err;
+    hs->cipher_remote_len = rlpx_decrypt(hs->skey, ack, l, rlp_p);
+    if (hs->cipher_remote_len) {
+        memcpy(hs->cipher_remote, ack, hs->cipher_remote_len);
+        return 0;
+    } else {
+        return rlpx_handshake_ack_recv_legacy(hs, ack, l, rlp_p);
+    }
 }
 
 int

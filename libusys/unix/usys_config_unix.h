@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
 
 #define usys_malloc_fn malloc
 #define usys_malloc(x) usys_malloc_fn(x)

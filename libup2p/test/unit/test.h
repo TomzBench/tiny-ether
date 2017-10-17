@@ -4,6 +4,7 @@
 //#include "rlpx.h"
 #include "rlpx_channel.h"
 #include "rlpx_test_helpers.h"
+#include "rlpx_devp2p.h"
 #include "test_vectors.h"
 #include "unonce.h"
 #include <string.h>
