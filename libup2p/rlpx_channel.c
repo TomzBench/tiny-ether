@@ -229,6 +229,9 @@ rlpx_ch_send_pong(rlpx_channel* ch)
     }
 }
 
+// TODO - frame_parse should return number of bytes process, or 0 if err.
+// Continue to process data until l==0 Because we may receive two packets at a
+// time.
 int
 rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
 {
