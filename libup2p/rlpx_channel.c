@@ -209,11 +209,9 @@ int
 rlpx_ch_send_ping(rlpx_channel* ch)
 {
     int err;
-    uint32_t l = 1200;
-    uint8_t buf[l];
-    err = rlpx_devp2p_protocol_write_ping(&ch->x, buf, &l);
+    ch->io.len = sizeof(ch->io.b);
+    err = rlpx_devp2p_protocol_write_ping(&ch->x, ch->io.b, &ch->io.len);
     if (!err) {
-        async_io_memcpy(&ch->io, 0, buf, l);
         return async_io_send(&ch->io);
     } else {
         return err;
