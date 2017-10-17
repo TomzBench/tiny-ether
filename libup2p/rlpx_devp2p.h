@@ -46,12 +46,14 @@ typedef struct
 
 // Heap constructors
 rlpx_devp2p_protocol* rlpx_devp2p_protocol_alloc(
-    const rlpx_devp2p_protocol_settings* settings);
+    const rlpx_devp2p_protocol_settings* settings,
+    void* ctx);
 void rlpx_devp2p_protocol_free(rlpx_devp2p_protocol** self_p);
 
 // Initializers/Deinitializers
 void rlpx_devp2p_protocol_init(rlpx_devp2p_protocol* self,
-                               const rlpx_devp2p_protocol_settings* settings);
+                               const rlpx_devp2p_protocol_settings* settings,
+                               void* ctx);
 void rlpx_devp2p_protocol_deinit(rlpx_devp2p_protocol* self);
 
 int rlpx_devp2p_protocol_write(rlpx_coder* x,

@@ -19,8 +19,6 @@ test_protocol()
 {
     int err = 0;
     test_session s;
-    // size_t lena = 1000, lenb = 1000;
-    // uint8_t from_alice[lena], from_bob[lenb];
 
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
     rlpx_test_mock_devp2p(&g_test_devp2p_settings);
@@ -73,6 +71,9 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
     int err = 0;
     const char* mem;
     uint32_t num;
+    rlpx_channel* ch = ctx;
+    uint8_t remote_id[65];
+    uecc_qtob(&ch->node.id, remote_id, 65);
 
     // Verify p2p ver
     rlpx_devp2p_protocol_p2p_version(rlp, &num);
@@ -93,8 +94,8 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
 
     // verify node_id
     rlpx_devp2p_protocol_node_id(rlp, &mem, &num);
-    IF_ERR_EXIT((num == 65) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mem, "A", 1) ? -1 : 0);
+    IF_ERR_EXIT((num == 64) ? 0 : -1);
+    IF_ERR_EXIT(memcmp(mem, &remote_id[1], 64) ? -1 : 0);
 
     g_test_mask |= (0x01 << 0);
 

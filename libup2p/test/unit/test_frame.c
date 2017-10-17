@@ -121,10 +121,10 @@ test_frame_write()
     // verify node_id
     rlpx_devp2p_protocol_node_id(bodya, &mema, &numa);
     rlpx_devp2p_protocol_node_id(bodyb, &memb, &numb);
-    IF_ERR_EXIT((numa == 65) ? 0 : -1);
-    IF_ERR_EXIT((numb == 65) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mema, s.alice->node_id, numa) ? -1 : 0);
-    IF_ERR_EXIT(memcmp(memb, s.bob->node_id, numb) ? -1 : 0);
+    IF_ERR_EXIT((numa == 64) ? 0 : -1);
+    IF_ERR_EXIT((numb == 64) ? 0 : -1);
+    IF_ERR_EXIT(memcmp(mema, &s.alice->node_id[1], numa) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(memb, &s.bob->node_id[1], numb) ? -1 : 0);
 
 EXIT:
     // clean

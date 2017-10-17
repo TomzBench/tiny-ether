@@ -79,7 +79,7 @@ rlpx_ch_init(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
     uecc_qtob(&ch->skey.Q, ch->node_id, 65);
 
     // Install protocols
-    rlpx_devp2p_protocol_init(&ch->devp2p, &g_devp2p_settings);
+    rlpx_devp2p_protocol_init(&ch->devp2p, &g_devp2p_settings, ch);
     ch->protocols[0] = (rlpx_protocol*)&ch->devp2p;
 
     return 0;
@@ -142,6 +142,7 @@ rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from)
 {
     // TODO - this is a stub.
     if (ch->hs) rlpx_handshake_free(&ch->hs);
+    ch->node.id = *from;
     ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->nonce, from);
     if (ch->hs) {
         ch->io.sock = 3;
@@ -168,14 +169,21 @@ rlpx_ch_send_auth(rlpx_channel* ch)
     }
 }
 
+// TODO - remove memcpy from rlpx_ch_send_.. functions
+// TODO - remove memcpy from rlpx_ch_send_.. functions
+// TODO - remove memcpy from rlpx_ch_send_.. functions
+// TODO - remove memcpy from rlpx_ch_send_.. functions
 int
 rlpx_ch_send_hello(rlpx_channel* ch)
 {
-    // TODO - node id needs to match
-    int err = rlpx_devp2p_protocol_write_hello(
-        &ch->x, ch->listen_port, &ch->node_id[1], ch->io.b, &ch->io.len);
+    int err;
+    uint32_t l = 1200;
+    uint8_t buf[l];
+    err = rlpx_devp2p_protocol_write_hello(&ch->x, ch->listen_port,
+                                           &ch->node_id[1], buf, &l);
     if (!err) {
         async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv);
+        async_io_memcpy(&ch->io, 0, buf, l);
         return async_io_send(&ch->io);
     } else {
         return err;
@@ -185,9 +193,12 @@ rlpx_ch_send_hello(rlpx_channel* ch)
 int
 rlpx_ch_send_disconnect(rlpx_channel* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
 {
-    int err = rlpx_devp2p_protocol_write_disconnect(&ch->x, reason, ch->io.b,
-                                                    &ch->io.len);
+    int err;
+    uint32_t l = 1200;
+    uint8_t buf[l];
+    err = rlpx_devp2p_protocol_write_disconnect(&ch->x, reason, buf, &l);
     if (!err) {
+        async_io_memcpy(&ch->io, 0, buf, l);
         return async_io_send(&ch->io);
     } else {
         return err;
@@ -197,8 +208,12 @@ rlpx_ch_send_disconnect(rlpx_channel* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
 int
 rlpx_ch_send_ping(rlpx_channel* ch)
 {
-    int err = rlpx_devp2p_protocol_write_ping(&ch->x, ch->io.b, &ch->io.len);
+    int err;
+    uint32_t l = 1200;
+    uint8_t buf[l];
+    err = rlpx_devp2p_protocol_write_ping(&ch->x, buf, &l);
     if (!err) {
+        async_io_memcpy(&ch->io, 0, buf, l);
         return async_io_send(&ch->io);
     } else {
         return err;
@@ -208,8 +223,12 @@ rlpx_ch_send_ping(rlpx_channel* ch)
 int
 rlpx_ch_send_pong(rlpx_channel* ch)
 {
-    int err = rlpx_devp2p_protocol_write_pong(&ch->x, ch->io.b, &ch->io.len);
+    int err;
+    uint32_t l = 1200;
+    uint8_t buf[l];
+    err = rlpx_devp2p_protocol_write_pong(&ch->x, buf, &l);
     if (!err) {
+        async_io_memcpy(&ch->io, 0, buf, l);
         return async_io_send(&ch->io);
     } else {
         return err;

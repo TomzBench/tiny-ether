@@ -3,11 +3,12 @@
 int rlpx_devp2p_protocol_recv(rlpx_protocol*, const urlp* rlp);
 
 rlpx_devp2p_protocol*
-rlpx_devp2p_protocol_alloc(const rlpx_devp2p_protocol_settings* settings)
+rlpx_devp2p_protocol_alloc(const rlpx_devp2p_protocol_settings* settings,
+                           void* ctx)
 {
     rlpx_devp2p_protocol* self = rlpx_malloc(sizeof(rlpx_devp2p_protocol));
     if (self) {
-        rlpx_devp2p_protocol_init(self, settings);
+        rlpx_devp2p_protocol_init(self, settings, ctx);
     }
     return self;
 }
@@ -23,10 +24,11 @@ rlpx_devp2p_protocol_free(rlpx_devp2p_protocol** self_p)
 
 void
 rlpx_devp2p_protocol_init(rlpx_devp2p_protocol* self,
-                          const rlpx_devp2p_protocol_settings* settings)
+                          const rlpx_devp2p_protocol_settings* settings,
+                          void* ctx)
 {
     // Iniitlize base class.
-    rlpx_protocol_init(&self->base, 0, "p2p", NULL);
+    rlpx_protocol_init(&self->base, 0, "p2p", ctx);
 
     // Override recv method.
     self->base.recv = rlpx_devp2p_protocol_recv;
@@ -81,6 +83,8 @@ rlpx_devp2p_protocol_write(rlpx_coder* x,
     if (rlp) {
         err = urlp_print(rlp, &out[1], &tmp);
         tmp++;
+    } else {
+        tmp = 1;
     }
     if (!err) err = rlpx_frame_write(x, 0, 0, out, tmp, out, outlen);
     return err;
