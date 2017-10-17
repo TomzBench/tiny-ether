@@ -1,12 +1,14 @@
 #include "rlpx_channel.h"
 #include "unonce.h"
 #include "usys_log.h"
+#include "usys_time.h"
 
 // Private io callbacks
 int rlpx_ch_on_accept(void* ctx);
 int rlpx_ch_on_connect(void* ctx);
 int rlpx_ch_on_erro(void* ctx);
 int rlpx_ch_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
+int rlpx_ch_on_send_shutdown(void* ctx, int err, const uint8_t* b, uint32_t l);
 int rlpx_ch_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
 int rlpx_ch_on_recv_auth(void* ctx, int err, uint8_t* b, uint32_t l);
 int rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l);
@@ -195,6 +197,7 @@ rlpx_ch_send_disconnect(rlpx_channel* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
                                                 &ch->io.len);
     if (!err) {
         usys_log_ok("[OUT] %d bytes (disconnect)", ch->io.len);
+        async_io_set_cb_send(&ch->io, rlpx_ch_on_send_shutdown);
         return async_io_send(&ch->io);
     } else {
         return err;
@@ -208,6 +211,7 @@ rlpx_ch_send_ping(rlpx_channel* ch)
     ch->io.len = sizeof(ch->io.b);
     err = rlpx_devp2p_protocol_write_ping(&ch->x, ch->io.b, &ch->io.len);
     if (!err) {
+        ch->devp2p.ping = usys_now();
         usys_log_ok("[OUT] %d bytes (ping)", ch->io.len);
         return async_io_send(&ch->io);
     } else {
@@ -322,12 +326,25 @@ int
 rlpx_ch_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
 {
     rlpx_channel* ch = (rlpx_channel*)ctx;
+    ((void)b);
+    ((void)l);
     if (!err) {
         return 0;
     } else {
         usys_log_ok("[ERR] socket: %d", ch->io.sock);
         return -1;
     }
+}
+
+int
+rlpx_ch_on_send_shutdown(void* ctx, int err, const uint8_t* b, uint32_t l)
+{
+    rlpx_channel* ch = (rlpx_channel*)ctx;
+    ((void)b);
+    ((void)l);
+    ch->shutdown = 1;
+    async_io_close(&ch->io);
+    return err;
 }
 
 int
@@ -384,13 +401,19 @@ rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
 int
 rlpx_ch_on_hello(void* ctx, const urlp* rlp)
 {
+    ((void)rlp); // TODO - proccess hello
+    rlpx_channel* ch = ctx;
     usys_log_ok("[ IN] (hello)");
+    ch->ready = 1;
     return 0;
 }
 
 int
 rlpx_ch_on_disconnect(void* ctx, const urlp* rlp)
 {
+    rlpx_channel* ch = ctx;
+    ((void)ch);
+    ((void)rlp); // TODO
     usys_log_ok("[ IN] (disconnect)");
     return 0;
 }
@@ -398,6 +421,7 @@ rlpx_ch_on_disconnect(void* ctx, const urlp* rlp)
 int
 rlpx_ch_on_ping(void* ctx, const urlp* rlp)
 {
+    ((void)rlp);
     rlpx_channel* ch = ctx;
     usys_log_ok("[ IN] (ping)");
     rlpx_ch_send_pong(ch);
@@ -407,7 +431,10 @@ rlpx_ch_on_ping(void* ctx, const urlp* rlp)
 int
 rlpx_ch_on_pong(void* ctx, const urlp* rlp)
 {
+    ((void)rlp);
+    rlpx_channel* ch = ctx;
     usys_log_ok("[ IN] (pong)");
+    ch->devp2p.latency = usys_now() - ch->devp2p.ping;
     return 0;
 }
 

@@ -23,7 +23,7 @@ typedef enum {
     DEVP2P_DISCONNECT_ALREADY_CONNECTED = 5,
     DEVP2P_DISCONNECT_BAD_VERSION = 6,
     DEVP2P_DISCONNECT_NODE_ID_RECEIVED = 7,
-    DEVP2P_DISCONNECT_CLIENT_QUITTING = 8,
+    DEVP2P_DISCONNECT_QUITTING = 8,
     DEVP2P_DISCONNECT_UNEXPECTED_ID = 9,
     DEVP2P_DISCONNECT_SELF_CONNECT = 0x0a,
     DEVP2P_DISCONNECT_TIMEOUT = 0x0b,
@@ -42,6 +42,8 @@ typedef struct
 {
     rlpx_protocol base;
     const rlpx_devp2p_protocol_settings* settings;
+    int64_t ping;
+    uint32_t latency;
 } rlpx_devp2p_protocol;
 
 // Heap constructors

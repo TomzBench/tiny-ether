@@ -8,6 +8,7 @@ extern "C" {
 #include "usys_config.h"
 
 void usys_msleep(uint32_t ms);
+int64_t usys_now();
 
 #ifdef __cplusplus
 }

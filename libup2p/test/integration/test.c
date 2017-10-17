@@ -1,4 +1,5 @@
 #include "rlpx_channel.h"
+#include "usys_log.h"
 #include "usys_signals.h"
 #include "usys_time.h"
 
@@ -12,20 +13,42 @@ main(int argc, char* arg[])
 {
     ((void)argc);
     ((void)arg);
-    int err = 0, c = 0;
+    int err = 0, c = 0, has_connected = 0;
     rlpx_channel* alice = rlpx_ch_alloc(NULL, NULL);
 
     // Install interrupt control
     usys_install_signal_handlers();
 
-    // Connect to integration test node.
-    // TODO - start test node if not running?
     rlpx_ch_nonce(alice);
     rlpx_ch_connect_enode(alice, g_test_enode);
 
     // Enter while 1 loop.
     while (usys_running()) {
-        usys_msleep(200);
+        usys_msleep(alice->io.sock < 0 ? 4000 : 100);
+
+        // Need connect?
+        if (alice->io.sock < 0) {
+            if (has_connected) {
+                usys_shutdown();
+            } else {
+                rlpx_ch_nonce(alice);
+                rlpx_ch_connect_enode(alice, g_test_enode);
+            }
+        } else {
+            has_connected = alice->ready ? 1 : 0;
+            // send ping every 2s
+            if (alice->ready && (++c >= 10)) {
+                rlpx_ch_send_ping(alice);
+                c = 0;
+            }
+
+            // Received a pong? send disconnect
+            if (alice->devp2p.latency) {
+                rlpx_ch_send_disconnect(alice, DEVP2P_DISCONNECT_QUITTING);
+            }
+        }
+
+        // Poll io
         rlpx_ch_poll(&alice, 1, 100);
     }
 

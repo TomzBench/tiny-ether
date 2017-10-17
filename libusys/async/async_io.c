@@ -225,6 +225,12 @@ async_io_set_cb_recv(async_io* self, async_io_on_recv_fn fn)
     self->settings.on_recv = fn ? fn : async_io_default_on_recv;
 }
 
+void
+async_io_set_cb_send(async_io* self, async_io_on_send_fn fn)
+{
+    self->settings.on_send = fn ? fn : async_io_default_on_send;
+}
+
 int
 async_io_sock(async_io* self)
 {

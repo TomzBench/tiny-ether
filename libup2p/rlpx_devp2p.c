@@ -124,9 +124,11 @@ rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,
                                       uint32_t* l)
 {
     int err;
-    urlp* body = urlp_item_u32((uint32_t*)&reason, 1);
-    err = rlpx_devp2p_protocol_write(x, DEVP2P_DISCONNECT, body, out, l);
-    urlp_free(&body);
+    urlp* rlp = urlp_list();
+    if (!rlp) return -1;
+    urlp_push(rlp, urlp_item_u32((uint32_t*)&reason, 1));
+    err = rlpx_devp2p_protocol_write(x, DEVP2P_DISCONNECT, rlp, out, l);
+    urlp_free(&rlp);
     return err;
 }
 
