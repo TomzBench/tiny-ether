@@ -358,7 +358,12 @@ rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
             // TODO Free handshake?
             l -= ch->hs->cipher_remote_len;
             usys_log_ok("[ IN] %d bytes (ack)", ch->hs->cipher_remote_len);
-            if (l) usys_log_ok("[ IN] %d bytes (hello)", l);
+            if (l) {
+                usys_log_ok("[ IN] %d bytes (hello?)", l);
+                if (rlpx_ch_recv(ch, &b[ch->hs->cipher_remote_len], l)) {
+                    usys_log_ok("[ERR] %d", ch->io.sock);
+                }
+            }
             async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv);
             return rlpx_ch_send_hello(ch);
         } else {
