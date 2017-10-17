@@ -43,8 +43,10 @@ test_frame_read()
     IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
                                          s.authlen, aes, mac, NULL));
-    IF_ERR_EXIT(rlpx_frame_parse(&s.bob->x, makebin(g_hello_packet, NULL),
-                                 strlen(g_hello_packet) / 2, &frame));
+    if (!rlpx_frame_parse(&s.bob->x, makebin(g_hello_packet, NULL),
+                          strlen(g_hello_packet) / 2, &frame)) {
+        goto EXIT;
+    }
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
     IF_ERR_EXIT(rlpx_devp2p_protocol_p2p_version(seek, &p2pver));
     IF_ERR_EXIT(p2pver == 3 ? 0 : -1);
@@ -86,10 +88,12 @@ test_frame_write()
     // Write some packets
     IF_ERR_EXIT(rlpx_ch_send_hello(s.alice));
     IF_ERR_EXIT(rlpx_ch_send_hello(s.bob));
-    IF_ERR_EXIT(
-        rlpx_frame_parse(&s.alice->x, s.bob->io.b, s.bob->io.len, &rlpb));
-    IF_ERR_EXIT(
-        rlpx_frame_parse(&s.bob->x, s.alice->io.b, s.alice->io.len, &rlpa));
+    if (!rlpx_frame_parse(&s.alice->x, s.bob->io.b, s.bob->io.len, &rlpb)) {
+        goto EXIT;
+    }
+    if (!rlpx_frame_parse(&s.bob->x, s.alice->io.b, s.alice->io.len, &rlpa)) {
+        goto EXIT;
+    }
 
     bodya = urlp_at(urlp_at(rlpa, 1), 1); // get body frame
     bodyb = urlp_at(urlp_at(rlpb, 1), 1); // get body frame

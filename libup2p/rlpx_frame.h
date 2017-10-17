@@ -45,7 +45,10 @@ int rlpx_frame_write(rlpx_coder* x,
                      size_t datalen,
                      uint8_t* out,
                      uint32_t* l);
-int rlpx_frame_parse(rlpx_coder* x, const uint8_t* frame, size_t l, urlp**);
+uint32_t rlpx_frame_parse(rlpx_coder* x,
+                          const uint8_t* frame,
+                          size_t l,
+                          urlp**);
 
 #ifdef __cplusplus
 }

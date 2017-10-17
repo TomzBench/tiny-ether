@@ -229,22 +229,25 @@ rlpx_ch_send_pong(rlpx_channel* ch)
     }
 }
 
-// TODO - frame_parse should return number of bytes process, or 0 if err.
-// Continue to process data until l==0 Because we may receive two packets at a
-// time.
 int
 rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
 {
-    int err, type;
+    int err = 0, type;
+    uint32_t sz;
     urlp* rlp = NULL;
-    err = rlpx_frame_parse(&ch->x, d, l, &rlp);
-    if (!err) {
-        type = rlpx_frame_header_type(rlp);
-        if (type >= 0 && type < 2) {
-            err = ch->protocols[type]->recv(ch->protocols[type],
-                                            rlpx_frame_body(rlp));
+    rlpx_protocol* p;
+    while ((l) && (!err)) {
+        sz = rlpx_frame_parse(&ch->x, d, l, &rlp);
+        if ((sz > 0) && (sz <= l)) {
+            type = rlpx_frame_header_type(rlp);
+            p = (type >= 0 && type < 2) ? ch->protocols[type] : NULL;
+            err = p ? p->recv(p, rlpx_frame_body(rlp)) : -1;
+            d += sz;
+            l -= sz;
+        } else {
+            err = -1;
+            break;
         }
-        urlp_free(&rlp);
     }
     return err;
 }
