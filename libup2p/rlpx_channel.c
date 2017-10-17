@@ -250,8 +250,8 @@ rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
             l -= sz;
         } else {
             err = -1;
-            break;
         }
+        urlp_free(&rlp);
     }
     return err;
 }
