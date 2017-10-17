@@ -177,13 +177,11 @@ int
 rlpx_ch_send_hello(rlpx_channel* ch)
 {
     int err;
-    uint32_t l = 1200;
-    uint8_t buf[l];
+    uint32_t l = sizeof(ch->io.b);
     err = rlpx_devp2p_protocol_write_hello(&ch->x, ch->listen_port,
-                                           &ch->node_id[1], buf, &l);
+                                           &ch->node_id[1], ch->io.b, &l);
     if (!err) {
         async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv);
-        async_io_memcpy(&ch->io, 0, buf, l);
         return async_io_send(&ch->io);
     } else {
         return err;
