@@ -242,16 +242,20 @@ rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l)
     rlpx_protocol* p;
     while ((l) && (!err)) {
         sz = rlpx_frame_parse(&ch->x, d, l, &rlp);
-        if ((sz > 0) && (sz <= l)) {
-            type = rlpx_frame_header_type(rlp);
-            p = (type >= 0 && type < 2) ? ch->protocols[type] : NULL;
-            err = p ? p->recv(p, rlpx_frame_body(rlp)) : -1;
-            d += sz;
-            l -= sz;
+        if (sz > 0) {
+            if (sz <= l) {
+                type = rlpx_frame_header_type(rlp);
+                p = (type >= 0 && type < 2) ? ch->protocols[type] : NULL;
+                err = p ? p->recv(p, rlpx_frame_body(rlp)) : -1;
+                d += sz;
+                l -= sz;
+            } else {
+                err = -1;
+            }
+            urlp_free(&rlp);
         } else {
             err = -1;
         }
-        urlp_free(&rlp);
     }
     return err;
 }
