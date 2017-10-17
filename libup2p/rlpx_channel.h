@@ -49,6 +49,7 @@ void rlpx_ch_deinit(rlpx_channel* session);
 // methods
 void rlpx_ch_nonce(rlpx_channel* ch);
 int rlpx_ch_poll(rlpx_channel** ch, uint32_t count, uint32_t ms);
+int rlpx_ch_connected(rlpx_channel* ch);
 int rlpx_ch_connect(rlpx_channel* ch,
                     const uecc_public_key* to,
                     const char* host,

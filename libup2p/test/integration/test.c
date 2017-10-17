@@ -8,12 +8,21 @@ const char* g_test_enode = "enode://"
                            "00f3258cd31387574077f301b421bc84df7266c44e9e6d569fc"
                            "56be00812904767bf5ccd1fc7f@127.0.0.1:30303.0";
 
+/**
+ * @brief 1) Connect and authenticate to a remote endpoint.
+ * Ping/Pong/Disconnect
+ *
+ * @param argc not used
+ * @param arg[] not used
+ *
+ * @return -1 err, 0 ok
+ */
 int
 main(int argc, char* arg[])
 {
     ((void)argc);
     ((void)arg);
-    int err = 0, c = 0, has_connected = 0;
+    int err = -1, c = 0, has_connected = 0;
     rlpx_channel* alice = rlpx_ch_alloc(NULL, NULL);
 
     // Install interrupt control
@@ -24,7 +33,9 @@ main(int argc, char* arg[])
 
     // Enter while 1 loop.
     while (usys_running()) {
-        usys_msleep(alice->io.sock < 0 ? 4000 : 100);
+        if (!alice->shutdown) {
+            usys_msleep(rlpx_ch_connected(alice) ? 100 : 5000);
+        }
 
         // Need connect?
         if (alice->io.sock < 0) {
@@ -44,6 +55,7 @@ main(int argc, char* arg[])
 
             // Received a pong? send disconnect
             if (alice->devp2p.latency) {
+                err = 0;
                 rlpx_ch_send_disconnect(alice, DEVP2P_DISCONNECT_QUITTING);
             }
         }
