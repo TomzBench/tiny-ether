@@ -133,13 +133,23 @@ rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,
 int
 rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, uint32_t* l)
 {
-    return rlpx_devp2p_protocol_write(x, DEVP2P_PING, NULL, out, l);
+    int err;
+    urlp* rlp = urlp_list();
+    if (!rlp) return -1;
+    err = rlpx_devp2p_protocol_write(x, DEVP2P_PING, rlp, out, l);
+    urlp_free(&rlp);
+    return err;
 }
 
 int
 rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l)
 {
-    return rlpx_devp2p_protocol_write(x, DEVP2P_PONG, NULL, out, l);
+    int err;
+    urlp* rlp = urlp_list();
+    if (!rlp) return -1;
+    err = rlpx_devp2p_protocol_write(x, DEVP2P_PONG, rlp, out, l);
+    urlp_free(&rlp);
+    return err;
 }
 
 //
