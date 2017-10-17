@@ -89,7 +89,7 @@ rlpx_devp2p_protocol_write(rlpx_coder* x,
 int
 rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
                                  uint32_t port,
-                                 const char* id,
+                                 const uint8_t* id,
                                  uint8_t* out,
                                  uint32_t* l)
 {
@@ -105,7 +105,7 @@ rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
     urlp_push(body, urlp_item_str(RLPX_CLIENT_ID_STR, RLPX_CLIENT_ID_LEN));
     urlp_push(body, caps);
     urlp_push(body, urlp_item_u32(&port, 1));
-    urlp_push(body, urlp_item_str(id, 65));
+    urlp_push(body, urlp_item_u8(id, 64));
 
     // Encode
     err = rlpx_devp2p_protocol_write(x, DEVP2P_HELLO, body, out, l);

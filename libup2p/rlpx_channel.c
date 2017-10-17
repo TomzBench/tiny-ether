@@ -59,16 +59,6 @@ rlpx_ch_init(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
     // clean mem
     memset(ch, 0, sizeof(rlpx_channel));
 
-    // Install network io handler
-    async_io_init(&ch->io, ch, &g_rlpx_ch_io_settings);
-
-    // update info
-    ch->listen_port = 44;         // TODO
-    memset(ch->node_id, 'A', 65); // TODO
-
-    rlpx_devp2p_protocol_init(&ch->devp2p, &g_devp2p_settings);
-    ch->protocols[0] = (rlpx_protocol*)&ch->devp2p;
-
     // Create keys
     if (s) {
         uecc_key_init_binary(&ch->skey, s);
@@ -80,6 +70,18 @@ rlpx_ch_init(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
     } else {
         uecc_key_init_new(&ch->ekey);
     }
+
+    // Install network io handler
+    async_io_init(&ch->io, ch, &g_rlpx_ch_io_settings);
+
+    // update info
+    ch->listen_port = 44; // TODO
+    uecc_qtob(&ch->skey.Q, ch->node_id, 65);
+
+    // Install protocols
+    rlpx_devp2p_protocol_init(&ch->devp2p, &g_devp2p_settings);
+    ch->protocols[0] = (rlpx_protocol*)&ch->devp2p;
+
     return 0;
 }
 
@@ -171,7 +173,7 @@ rlpx_ch_send_hello(rlpx_channel* ch)
 {
     // TODO - node id needs to match
     int err = rlpx_devp2p_protocol_write_hello(
-        &ch->x, ch->listen_port, ch->node_id, ch->io.b, &ch->io.len);
+        &ch->x, ch->listen_port, &ch->node_id[1], ch->io.b, &ch->io.len);
     if (!err) {
         async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv);
         return async_io_send(&ch->io);
@@ -314,8 +316,13 @@ int
 rlpx_ch_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
 {
     rlpx_channel* ch = (rlpx_channel*)ctx;
-    usys_log_ok("p2p.recv %d", ch->io.sock);
-    return 0;
+    if (!err) {
+        usys_log_ok("p2p.recv %d", ch->io.sock);
+        return rlpx_ch_recv(ch, b, l);
+    } else {
+        usys_log_ok("p2p.recv %d erro", ch->io.sock);
+        return -1;
+    }
 }
 
 int
@@ -352,21 +359,29 @@ rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
 int
 rlpx_ch_on_hello(void* ctx, const urlp* rlp)
 {
+    usys_log_ok("p2p.recv hello");
+    return 0;
 }
 
 int
 rlpx_ch_on_disconnect(void* ctx, const urlp* rlp)
 {
+    usys_log_ok("p2p.recv disconnect");
+    return 0;
 }
 
 int
 rlpx_ch_on_ping(void* ctx, const urlp* rlp)
 {
+    usys_log_ok("p2p.recv ping");
+    return 0;
 }
 
 int
 rlpx_ch_on_pong(void* ctx, const urlp* rlp)
 {
+    usys_log_ok("p2p.recv pong");
+    return 0;
 }
 
 //

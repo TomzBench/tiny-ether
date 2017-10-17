@@ -61,7 +61,7 @@ int rlpx_devp2p_protocol_write(rlpx_coder* x,
                                uint32_t* outlen);
 int rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
                                      uint32_t port,
-                                     const char* id,
+                                     const uint8_t* id,
                                      uint8_t* out,
                                      uint32_t* l);
 int rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,

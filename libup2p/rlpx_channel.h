@@ -27,7 +27,7 @@ typedef struct
     h256 nonce;                  /*!< local nonce */
     rlpx_node node;              /*!< remote node info */
     rlpx_handshake* hs;          /*!< temp context during handshake process */
-    char node_id[65];            /*!< node id */
+    uint8_t node_id[65];         /*!< node id */
     uint32_t listen_port;        /*!< our listen port */
 } rlpx_channel;
 
