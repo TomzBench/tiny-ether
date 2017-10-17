@@ -28,6 +28,7 @@ main(int argc, char* arg[])
     // Install interrupt control
     usys_install_signal_handlers();
 
+    // Try and connect on start
     rlpx_ch_nonce(alice);
     rlpx_ch_connect_enode(alice, g_test_enode);
 
