@@ -13,12 +13,12 @@ extern "C" {
 typedef int (*rlpx_protocol_cb)(void* ctx, const urlp* rlp);
 typedef struct rlpx_protocol
 {
-    int (*parse)(struct rlpx_protocol*, const urlp*); /*!< process rlp packet */
+    int (*recv)(struct rlpx_protocol*, const urlp*); /*!< process rlp packet */
     void* ctx;     /*!< protocol callback context */
     uint32_t type; /*!< type found in the rlpx header */
     char cap[6];   /*!< capability typically 3 letters */
 } rlpx_protocol;
-typedef int (*rlpx_protocol_parse_fn)(rlpx_protocol*, const urlp*);
+typedef int (*rlpx_protocol_recv_fn)(rlpx_protocol*, const urlp*);
 
 // Constructurs
 rlpx_protocol* rlpx_protocol_alloc(uint32_t type, const char* cap, void* ctx);

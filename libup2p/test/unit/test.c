@@ -1,6 +1,8 @@
 #include "test.h"
 #include <string.h>
 
+extern async_io_settings g_io_mock_settings;
+
 test_vector g_test_vectors[] = { //
     {.auth = AUTH_1,
      .ack = ACK_1,
@@ -42,7 +44,7 @@ test_vector g_test_vectors[] = { //
      .bob_n = BOB_NONCE_GO,
      .authver = AUTHVER_1,
      .ackver = ACKVER_1 },
-    { 0, 0, 0, 0 }
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;
 const char* g_alice_epri = ALICE_EPRI;
@@ -70,6 +72,7 @@ main(int argc, char* argv[])
     IF_ERR_EXIT(test_handshake());
     IF_ERR_EXIT(test_frame());
     IF_ERR_EXIT(test_protocol());
+    IF_ERR_EXIT(test_enode());
 EXIT:
     return err;
 }
@@ -92,11 +95,11 @@ test_session_init(test_session* s, int vec)
     memcpy(s->alice_n.b, makebin(g_test_vectors[vec].alice_n, NULL), 32);
     memcpy(s->bob_n.b, makebin(g_test_vectors[vec].bob_n, NULL), 32);
     // init test_session with alice,bob,etc
-    s->alice = rlpx_ch_alloc_keypair(&alice_s, &alice_e);
-    s->bob = rlpx_ch_alloc_keypair(&bob_s, &bob_e);
+    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &alice_s, &alice_e);
+    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &bob_s, &bob_e);
     // sanity check
-    if ((check_q(rlpx_ch_pub_ekey(s->alice), g_alice_epub))) return -1;
-    if ((check_q(rlpx_ch_pub_ekey(s->bob), g_bob_epub))) return -1;
+    if ((check_q(&s->alice->ekey.Q, g_alice_epub))) return -1;
+    if ((check_q(&s->bob->ekey.Q, g_bob_epub))) return -1;
     return 0;
 }
 

@@ -75,7 +75,7 @@ rlpx_frame_write(rlpx_coder* x,
                  uint8_t* data,
                  size_t datalen,
                  uint8_t* out,
-                 size_t* l)
+                 uint32_t* l)
 {
     size_t len = AES_LEN(datalen);
     uint8_t head[32], body[len];
@@ -97,7 +97,7 @@ rlpx_frame_write(rlpx_coder* x,
     return 0;
 }
 
-int
+uint32_t
 rlpx_frame_parse(rlpx_coder* x, const uint8_t* frame, size_t l, urlp** rlp_p)
 {
 
@@ -105,23 +105,23 @@ rlpx_frame_parse(rlpx_coder* x, const uint8_t* frame, size_t l, urlp** rlp_p)
     uint32_t sz;
     urlp *head = NULL, *body = NULL;
 
-    if (l < 32) return -1;
+    if (l < 32) return 0;
 
     // Parse header
     err = frame_parse_header(x, frame, &head, &sz);
-    if (err) return err;
+    if (err) return 0;
 
     // Check length (accounts for aes padding)
     if (l < (32 + (AES_LEN(sz)) + 16)) {
         urlp_free(&head);
-        return err;
+        return 0;
     }
 
     // Parse body
     err = frame_parse_body(x, frame + 32, sz, &body);
     if (err) {
         urlp_free(&head);
-        return err;
+        return 0;
     }
 
     // Return rlp frame to caller
@@ -130,12 +130,12 @@ rlpx_frame_parse(rlpx_coder* x, const uint8_t* frame, size_t l, urlp** rlp_p)
         if (!*rlp_p) {
             urlp_free(&head);
             urlp_free(&body);
-            return -1;
+            return 0;
         }
     }
     urlp_push(*rlp_p, head);
     urlp_push(*rlp_p, body);
-    return err;
+    return 32 + AES_LEN(sz) + 16;
 }
 
 int
@@ -239,6 +239,7 @@ frame_ingress(rlpx_coder* x,
         ukeccak256_update(&x->imac, (uint8_t*)cipher, xlen);
         ukeccak256_digest(&x->imac, xin);
     } else {
+        xlen = 16;
         memcpy(xin, cipher, 16);
     }
     ukeccak256_digest(&x->imac, tmp);          // ingress-mac
@@ -247,7 +248,7 @@ frame_ingress(rlpx_coder* x,
     ukeccak256_update(&x->imac, tmp, 16);      // ingress(...)
     ukeccak256_digest(&x->imac, tmp);          // ingress(...).digest
     if (memcmp(tmp, expect, 16)) return -1;    // compare expect with actual
-    return uaes_crypt_ctr_update(&x->aes_dec, cipher, xlen ? xlen : 16, out);
+    return uaes_crypt_ctr_update(&x->aes_dec, cipher, xlen, out);
 }
 
 //

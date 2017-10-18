@@ -115,6 +115,10 @@
 #define ALICE_EPRI                                                             \
     "869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d"
 
+#define ALICE_SPUB                                                             \
+    "fda1cff674c90c9a197539fe3dfb53086ace64f83ed7c6eabec741f7f381cc803e52ab2c" \
+    "d55d5569bce4347107a310dfd5f88a010cd2ffd1005ca406f1842877"
+
 #define ALICE_EPUB                                                             \
     "654d1044b69c577a44e5f01a1209523adb4026e70c62d1c13"                        \
     "a067acabc09d2667a49821a0ad4b634554d330a15a58fe61f"                        \
@@ -125,6 +129,10 @@
 
 #define BOB_EPRI                                                               \
     "e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4"
+
+#define BOB_SPUB                                                               \
+    "ca634cae0d49acb401d8a4c6b6fe8c55b70d115bf400769cc1400f3258cd31387574077f" \
+    "301b421bc84df7266c44e9e6d569fc56be00812904767bf5ccd1fc7f"
 
 #define BOB_EPUB                                                               \
     "b6d82fa3409da933dbf9cb0140c5dde89f4e64aec88d476af64"                      \

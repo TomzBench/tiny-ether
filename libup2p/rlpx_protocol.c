@@ -1,6 +1,6 @@
 #include "rlpx_protocol.h"
 
-int rlpx_protocol_default_parse(rlpx_protocol*, const urlp* rlp);
+int rlpx_protocol_default_recv(rlpx_protocol*, const urlp* rlp);
 
 rlpx_protocol*
 rlpx_protocol_alloc(uint32_t type, const char* cap, void* ctx)
@@ -27,7 +27,7 @@ rlpx_protocol_init(rlpx_protocol* self,
     memset(self, 0, sizeof(rlpx_protocol));
     self->type = type;
     self->ctx = ctx;
-    self->parse = rlpx_protocol_default_parse;
+    self->recv = rlpx_protocol_default_recv;
     snprintf(self->cap, 6, "%s", name);
 }
 
@@ -39,7 +39,7 @@ rlpx_protocol_deinit(rlpx_protocol* self)
 }
 
 int
-rlpx_protocol_default_parse(rlpx_protocol* self, const urlp* rlp)
+rlpx_protocol_default_recv(rlpx_protocol* self, const urlp* rlp)
 {
     // Other classes expected to override.
     ((void)rlp);

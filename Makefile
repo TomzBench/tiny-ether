@@ -1,4 +1,5 @@
 #ulib makefile
+# TODO - Need to filter the 'test' folder from each module when linking libs
 
 # setup install directory
 TARGET		?=	target
@@ -26,7 +27,8 @@ MODULES 	+= 	libusys/unix
 APPLICATIONS 	+=	liburlp/test
 APPLICATIONS 	+= 	libusys/test
 APPLICATIONS 	+=	libucrypto/test
-APPLICATIONS 	+=	libup2p/test
+APPLICATIONS 	+=	libup2p/test/unit
+APPLICATIONS 	+=	libup2p/test/integration
 
 # Build vars
 APP_SRCS	+=	$(APPLICATIONS)
@@ -42,6 +44,8 @@ INCS 		+= 	$(addprefix -I./,$(DEPS))
 DEFS 		+= 	$(addprefix -D,$(CONFIGS_D))
 DIRS 		+= 	$(sort $(dir $(OBJS)))
 DIRS 		+=	$(TARGET)/bin
+DIRS 		+=	$(TARGET)/include
+DIRS 		+=	$(TARGET)/lib
 CFLAGS 		+= 	$(DEFS)
 LDFLAGS 	+=	$(LIBS) $(addprefix $(TARGET)/lib/, libmbedcrypto.a libsecp256k1.a)
 INSTALL 	+= 	$(LIBS)
@@ -76,7 +80,7 @@ $(TARGET)/include/%.h:
 	@echo "COPY $(notdir $@)"
 	@cp $(shell find $(MODULE_INCS) -name $(notdir $@)) $@
 
-.PHONY: clean test print cscope
+.PHONY: clean test test-mem print cscope
 
 # clean our mess
 clean:
@@ -85,6 +89,12 @@ clean:
 	@rm -rf $(TARGET)/obj
 
 test:
+	@$(foreach bin,$(APPS),     \
+		echo TEST $(bin);   \
+		./$(bin);           \
+		)
+
+test-mem:
 	@$(foreach bin,$(APPS),     \
 		echo TEST $(bin);   \
 		valgrind            \
