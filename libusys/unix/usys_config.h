@@ -4,7 +4,7 @@
 // Include a user config file or use a default
 #ifdef USYS_CONFIG_FILE
 #include USYS_CONFIG_FILE
-#elif URLPX_CONFIG_LINUX_EMU
+#elif USYS_CONFIG_UNIX
 #include "usys_config_unix.h"
 #endif
 
