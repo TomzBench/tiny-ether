@@ -239,6 +239,7 @@ frame_ingress(rlpx_coder* x,
         ukeccak256_update(&x->imac, (uint8_t*)cipher, xlen);
         ukeccak256_digest(&x->imac, xin);
     } else {
+        xlen = 16;
         memcpy(xin, cipher, 16);
     }
     ukeccak256_digest(&x->imac, tmp);          // ingress-mac
@@ -247,7 +248,7 @@ frame_ingress(rlpx_coder* x,
     ukeccak256_update(&x->imac, tmp, 16);      // ingress(...)
     ukeccak256_digest(&x->imac, tmp);          // ingress(...).digest
     if (memcmp(tmp, expect, 16)) return -1;    // compare expect with actual
-    return uaes_crypt_ctr_update(&x->aes_dec, cipher, xlen ? xlen : 16, out);
+    return uaes_crypt_ctr_update(&x->aes_dec, cipher, xlen, out);
 }
 
 //
