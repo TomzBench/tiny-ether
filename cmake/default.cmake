@@ -4,7 +4,9 @@
 set(UETH_TARGET_OS UNIX)
 
 # libucrypto config
-set(UETH_USE_LIBSECP256K1 TRUE)
+option(UETH_USE_MBEDTLS "Link with libmbedcrypto.a" ON)
+option(UETH_USE_KECCAK_TINY "Link with libkeccak-tiny.a" ON)
+option(UETH_USE_SECP256K1 "Link with libsecp256k1.a" ON)
 
 # TODO depreciate these?
 add_definitions(-DURLP_CONFIG_UNIX)

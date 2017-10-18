@@ -44,6 +44,7 @@ add_custom_target(ecmult_static_context gen_context WORKING_DIRECTORY ${UETH_EXT
 add_library(secp256k1 STATIC ${UETH_EXTERNAL}/secp256k1/src/secp256k1.c)
 target_compile_definitions(secp256k1 PRIVATE ${COMMON_COMPILE_FLAGS} ${COMPILE_FLAGS})
 target_include_directories(secp256k1 PRIVATE ${UETH_EXTERNAL}/secp256k1 ${UETH_EXTERNAL}/secp256k1/src)
+target_include_directories(secp256k1 PUBLIC ${UETH_EXTERNAL}/secp256k1/include)
 target_compile_options(secp256k1 PRIVATE ${COMPILE_OPTIONS})
 add_dependencies(secp256k1 ecmult_static_context)
 
