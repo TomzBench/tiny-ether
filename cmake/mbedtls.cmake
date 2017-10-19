@@ -1,7 +1,7 @@
 #mbedtls project
 
 ExternalProject_Add(mbedtls
-	PREFIX ${CMAKE_SOURCE_DIR}/target
+	PREFIX ${UETH_INSTALL_ROOT}
 	GIT_REPOSITORY https://github.com/ARMmbed/mbedtls
 	GIT_TAG master
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

@@ -1,7 +1,7 @@
 #secp256k1 project
 
 ExternalProject_Add(secp256k1
-	PREFIX ${CMAKE_SOURCE_DIR}/target
+	PREFIX ${UETH_INSTALL_ROOT}
 	GIT_REPOSITORY https://github.com/thomaskey/secp256k1
 	GIT_TAG develop
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
