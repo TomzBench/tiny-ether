@@ -1,5 +1,6 @@
 #include "ukeccak256.h"
 #include "urand.h"
+#include "unonce.h"
 
 int
 unonce(uint8_t* out32)

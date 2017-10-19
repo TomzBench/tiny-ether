@@ -73,14 +73,14 @@ const char* g_ecdh_secret =
 /**
  * @brief Prototypes
  */
-int test_ecc();
-int test_ecdh();
-int test_recover();
-int test_kdf();
-int test_hmac();
-int test_keccak();
-int test_ecies_encrypt();
-int test_ecies_decrypt();
+int test_ecc(void);
+int test_ecdh(void);
+int test_recover(void);
+int test_kdf(void);
+int test_hmac(void);
+int test_keccak(void);
+int test_ecies_encrypt(void);
+int test_ecies_decrypt(void);
 
 int
 main(int argc, char* argv[])

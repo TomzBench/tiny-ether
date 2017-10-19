@@ -27,3 +27,6 @@ output/doc/*
 config.log
 config.status
 **/*vgcore*
+
+#cmake
+build

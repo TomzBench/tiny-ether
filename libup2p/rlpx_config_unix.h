@@ -1,5 +1,5 @@
-#ifndef URLPX_CONFIG_LINUX_EMU_H_
-#define URLPX_CONFIG_LINUX_EMU_H_
+#ifndef URLPX_CONFIG_UNIX_H_
+#define URLPX_CONFIG_UNIX_H_
 
 #include <stdarg.h>
 #include <stdint.h>
