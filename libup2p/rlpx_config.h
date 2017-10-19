@@ -4,8 +4,8 @@
 // Include a user config file or use a default
 #ifdef URLPX_CONFIG_FILE
 #include URLPX_CONFIG_FILE
-#elif URLPX_CONFIG_LINUX_EMU
-#include "rlpx_config_linux_emu.h"
+#elif URLPX_CONFIG_UNIX
+#include "rlpx_config_unix.h"
 #endif
 
 // P2P client name
