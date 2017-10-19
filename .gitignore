@@ -11,7 +11,6 @@
 target
 
 #libatx
-*.txt
 *.json
 
 #cscope
