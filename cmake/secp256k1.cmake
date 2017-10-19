@@ -18,6 +18,7 @@ ExternalProject_Add(secp256k1-project
 	LOG_INSTALL 1
 	BUILD_COMMAND ""
 	${_overwrite_install_command}
+	EXCLUDE_FROM_ALL TRUE
 )
 
 # Trying not to recompile external projects so much, ideas welcome

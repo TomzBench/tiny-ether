@@ -16,6 +16,7 @@ ExternalProject_Add(mbedtls-project
 	           ${_only_release_configuration}
 	LOG_CONFIGURE 1
 	LOG_INSTALL 1
+	EXCLUDE_FROM_ALL TRUE
 	${_overwrite_install_command}
 )
 
