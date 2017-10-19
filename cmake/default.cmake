@@ -16,6 +16,6 @@ add_definitions(-DUSYS_CONFIG_UNIX)
 if(UETH_USE_SECP256K1)
 	ExternalProject_Add(secp256k1
 		INSTALL_DIR ${CMAKE_SOURCE_DIR}/target
-		GIT_REPOSITORY https://github.com/chfast/secp256k1
+		GIT_REPOSITORY https://github.com/thomaskey/secp256k1
 	)
 endif()
