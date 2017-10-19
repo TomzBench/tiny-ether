@@ -2,11 +2,15 @@
 
 source ./scripts/test_config.sh
 
-for bin in ${BIN[$@]};do
-	eval valgrind  \
-		--track-origins=yes \
-		--tool=memcheck \
-		--leak-check=full \
-		--quiet \
-		$bin
+for(( i = 0; i < ${#BIN[@]} ; i++));do
+	VAL[$i]="valgrind --tool=memcheck
+			  --leak-check=full
+			  --track-origins=yes
+			  --quiet ${BIN[$i]}"
+done
+
+
+for(( i = 0; i < ${#VAL[@]} ; i++));do
+	echo TEST: ${BIN[$i]}
+	eval ${VAL[$i]}
 done
