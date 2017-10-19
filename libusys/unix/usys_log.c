@@ -1,6 +1,4 @@
 #include "usys_log.h"
-#include <stdarg.h>
-#include <stdio.h>
 
 void
 usys_log(USYS_LOG_LEVEL lvl, const char* fmt, ...)
