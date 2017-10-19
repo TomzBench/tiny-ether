@@ -2,8 +2,6 @@
 
 **Build**
 ```
-#!c
-
 mkdir build
 cd build
 cmake ..
