@@ -27,6 +27,7 @@ set(MBEDCRYPTO_INCLUDE_DIR ${UETH_INSTALL_ROOT}/include)
 add_library(mbedcrypto STATIC IMPORTED)
 add_custom_target(mbedcrypto-lib DEPENDS ${MBEDCRYPTO_LIBRARY})
 add_dependencies(mbedcrypto mbedcrypto-lib)
+file(MAKE_DIRECTORY ${MBEDCRYPTO_INCLUDE_DIR})  # Must exist.
 set_property(TARGET mbedcrypto PROPERTY IMPORTED_CONFIGURATIONS Release)
 set_property(TARGET mbedcrypto PROPERTY IMPORTED_LOCATION_RELEASE ${MBEDCRYPTO_LIBRARY})
 set_property(TARGET mbedcrypto PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MBEDCRYPTO_INCLUDE_DIR})
