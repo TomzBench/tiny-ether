@@ -1,0 +1,18 @@
+# micro-ether #
+
+**Build**
+```
+#!c
+
+mkdir build
+cd build
+cmake ..
+make
+make install
+```
+
+** run tests (*nix only)**
+```
+./scripts/run_tests.sh
+./scripts/mem_tests.sh
+```
