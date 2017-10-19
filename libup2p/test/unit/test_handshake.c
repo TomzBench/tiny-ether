@@ -15,10 +15,11 @@ int
 test_handshake()
 {
     int err = 0;
-    err |= test_read();
-    err |= test_write();
-    err |= test_secrets();
+    IF_ERR_EXIT(test_read());
+    IF_ERR_EXIT(test_write());
+    IF_ERR_EXIT(test_secrets());
 
+EXIT:
     return err;
 }
 

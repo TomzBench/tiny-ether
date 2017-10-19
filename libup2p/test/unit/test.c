@@ -73,7 +73,13 @@ main(int argc, char* argv[])
     IF_ERR_EXIT(test_frame());
     IF_ERR_EXIT(test_protocol());
     IF_ERR_EXIT(test_enode());
+
 EXIT:
+    if (!err) {
+        usys_log_ok("%s", "[ OK]");
+    } else {
+        usys_log_err("%s", "[ERR]");
+    }
     return err;
 }
 

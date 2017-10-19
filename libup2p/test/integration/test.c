@@ -65,6 +65,12 @@ main(int argc, char* arg[])
         rlpx_ch_poll(&alice, 1, 100);
     }
 
+    if (!err) {
+        usys_log_ok("%s", "[ OK]");
+    } else {
+        usys_log_err("%s", "[ERR]");
+    }
+
     rlpx_ch_free(&alice);
     return err;
 }
