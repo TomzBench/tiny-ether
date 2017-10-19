@@ -1,6 +1,11 @@
 #secp256k1 project
 
-ExternalProject_Add(secp256k1
+if (MSVC)
+    set(_only_release_configuration -DCMAKE_CONFIGURATION_TYPES=Release)
+    set(_overwrite_install_command INSTALL_COMMAND cmake --build <BINARY_DIR> --config Release --target install)
+endif()
+
+ExternalProject_Add(secp256k1-project
 	PREFIX ${UETH_INSTALL_ROOT}
 	GIT_REPOSITORY https://github.com/thomaskey/secp256k1
 	GIT_TAG develop
@@ -10,19 +15,22 @@ ExternalProject_Add(secp256k1
 	           -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
 	           ${_only_release_configuration}
 	LOG_CONFIGURE 1
+	LOG_INSTALL 1
 	BUILD_COMMAND ""
 	${_overwrite_install_command}
-	LOG_INSTALL 1
 )
 
-# Create imported library
-ExternalProject_Get_Property(secp256k1 INSTALL_DIR)
-add_library(Secp256k1 STATIC IMPORTED)
-set(SECP256K1_LIBRARY ${INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}secp256k1${CMAKE_STATIC_LIBRARY_SUFFIX})
-set(SECP256K1_INCLUDE_DIR ${INSTALL_DIR}/include)
-file(MAKE_DIRECTORY ${SECP256K1_INCLUDE_DIR})  # Must exist.
-set_property(TARGET Secp256k1 PROPERTY IMPORTED_CONFIGURATIONS Release)
-set_property(TARGET Secp256k1 PROPERTY IMPORTED_LOCATION_RELEASE ${SECP256K1_LIBRARY})
-set_property(TARGET Secp256k1 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SECP256K1_INCLUDE_DIR})
-add_dependencies(Secp256k1 secp256k1)
-unset(INSTALL_DIR)
+# Trying not to recompile external projects so much, ideas welcome
+set(SECP256K1_LIBRARY ${UETH_INSTALL_ROOT}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}secp256k1${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(SECP256K1_INCLUDE_DIR ${UETH_INSTALL_ROOT}/include)
+
+add_library(secp256k1 STATIC IMPORTED)
+add_custom_target(secp256k1-lib DEPENDS ${SECP256K1_LIBRARY})
+add_dependencies(secp256k1 secp256k1-lib)
+set_property(TARGET secp256k1 PROPERTY IMPORTED_CONFIGURATIONS Release)
+set_property(TARGET secp256k1 PROPERTY IMPORTED_LOCATION_RELEASE ${SECP256K1_LIBRARY})
+set_property(TARGET secp256k1 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SECP256K1_INCLUDE_DIR})
+
+add_custom_command(
+	OUTPUT "${SECP256K1_LIBRARY}"
+	COMMAND make secp256k1-project)
