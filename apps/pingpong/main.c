@@ -46,7 +46,7 @@ main(int argc, char* argv[])
         rlpx_ch_poll(&alice, 1, 100);
     }
 
-    // Send disconnect to peer signal, wait 5 seconds and quit.
+    // Send disconnect to peer signal, wait at most 5 seconds and quit.
     if (alice->io.sock >= 0) {
         c = 0;
         usys_log_ok("Disconnecting...");
