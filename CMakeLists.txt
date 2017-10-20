@@ -22,3 +22,6 @@ add_subdirectory(libusys)
 add_subdirectory(libucrypto)
 add_subdirectory(libup2p)
 add_subdirectory(libueth)
+
+# some apps
+add_subdirectory(apps/pingpong)

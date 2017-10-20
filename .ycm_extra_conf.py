@@ -110,6 +110,8 @@ flags = [
 './libueth/test',
 '-I',
 './libueth/include',
+'-I',
+'./apps/pingpong',
 ]
 
 
