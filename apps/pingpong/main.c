@@ -57,5 +57,6 @@ main(int argc, char* argv[])
         }
     }
 
+    rlpx_ch_free(&alice);
     return 0;
 }
