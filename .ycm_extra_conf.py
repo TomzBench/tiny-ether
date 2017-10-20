@@ -107,6 +107,8 @@ flags = [
 '-I',
 './libueth',
 '-I',
+'./libueth/test',
+'-I',
 './libueth/include',
 ]
 
