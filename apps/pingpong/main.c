@@ -24,7 +24,12 @@ main(int argc, char* argv[])
     // Install interrupt control
     usys_install_signal_handlers();
 
+    // Try and connect on start.
+    rlpx_ch_nonce(alice);
+    rlpx_ch_connect_enode(alice, g_test_enode);
+
     while (usys_running()) {
+        usys_msleep(rlpx_ch_connected(alice) ? 100 : 5000);
 
         // TODO - fix connect api to handle nonce. Provide connected api
         if (alice->io.sock < 0) {
