@@ -41,7 +41,7 @@ test_node()
     char* alice = "enode://" ALICE_SPUB "@1.1.1.1:33.89";
     char* maxok = "enode://" ALICE_SPUB "@111.111.111.111:65535.65535";
     char* failsz = "enode://" ALICE_SPUB "x@111.111.111.111:65535.65535";
-    char* failfmt = "enode://" ALICE_SPUB "@111.111.111.111:65535x65535";
+    char* failfmt = "enode://" ALICE_SPUB " 111.111.111.111@65535.65535";
     rlpx_node node_alice, node_maxok, node_failsz, node_failfmt;
     test_session s;
 
