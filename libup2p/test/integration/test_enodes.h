@@ -3,6 +3,11 @@
 
 // Found some nodes on ethernode.org
 
+#define CPP_P2P_LOCAL                                                          \
+    "enode://"                                                                 \
+    "fe70d7e3f1e30abbc87a3b4ce02f27600aaded72cee185184ef2192ad257a1b4f482c887" \
+    "9e9b2c56e5a507bbe814e823f8a599e1bcbc90918cdf89c917bbd990@127.0.0.1:30303"
+
 #define PARITY_P2P_LOCAL                                                       \
     "enode://"                                                                 \
     "66fff838be611b6ee574e069f731f47ee6553a6538dc19cc8cd0eb0ff000eacb022154cc" \

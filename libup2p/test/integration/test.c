@@ -4,7 +4,7 @@
 #include "usys_time.h"
 #include "test_enodes.h"
 
-const char* g_test_enode = PYDEV_P2P_LOCAL;
+const char* g_test_enode = CPP_P2P_LOCAL;
 
 /**
  * @brief 1) Connect and authenticate to a remote endpoint.
