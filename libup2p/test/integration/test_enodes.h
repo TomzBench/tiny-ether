@@ -3,6 +3,12 @@
 
 // Found some nodes on ethernode.org
 
+#define PARITY_P2P_LOCAL                                                       \
+    "enode://"                                                                 \
+    "66fff838be611b6ee574e069f731f47ee6553a6538dc19cc8cd0eb0ff000eacb022154cc" \
+    "f5e0af537925b99afab23cdf7fb51985c40e36614f71d2f60edc275e@127.0.0.1:"      \
+    "30303"
+
 #define PYDEV_P2P_LOCAL                                                        \
     "enode://"                                                                 \
     "ca634cae0d49acb401d8a4c6b6fe8c55b70d115bf400769cc1400f3258cd31387574077f" \
