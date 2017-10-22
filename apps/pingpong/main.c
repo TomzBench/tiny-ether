@@ -29,16 +29,16 @@ main(int argc, char* argv[])
     rlpx_ch_connect_enode(alice, g_test_enode);
 
     while (usys_running()) {
-        usys_msleep(rlpx_ch_connected(alice) ? 100 : 5000);
+        usys_msleep(rlpx_ch_is_connected(alice) ? 100 : 5000);
 
         // TODO - fix connect api to handle nonce. Provide connected api
-        if (alice->io.sock < 0) {
+        if (!rlpx_ch_is_connected(alice)) {
             rlpx_ch_nonce(alice);
             rlpx_ch_connect_enode(alice, g_test_enode);
         }
 
         // TODO - provide ready api
-        if (alice->ready && ++c >= 100) {
+        if (rlpx_ch_is_ready(alice) && ++c >= 100) {
             rlpx_ch_send_ping(alice);
             c = 0;
         }
@@ -47,7 +47,7 @@ main(int argc, char* argv[])
     }
 
     // Send disconnect to peer signal, wait at most 5 seconds and quit.
-    if (alice->io.sock >= 0) {
+    if (rlpx_ch_is_connected(alice)) {
         c = 0;
         usys_log_ok("Disconnecting...");
         rlpx_ch_send_disconnect(alice, DEVP2P_DISCONNECT_QUITTING);

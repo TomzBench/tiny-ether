@@ -108,12 +108,6 @@ rlpx_ch_poll(rlpx_channel** ch, uint32_t count, uint32_t ms)
 }
 
 int
-rlpx_ch_connected(rlpx_channel* ch)
-{
-    return async_io_has_sock(&ch->io);
-}
-
-int
 rlpx_ch_connect(rlpx_channel* ch,
                 const uecc_public_key* to,
                 const char* host,
