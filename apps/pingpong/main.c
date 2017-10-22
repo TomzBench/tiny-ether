@@ -31,13 +31,12 @@ main(int argc, char* argv[])
     while (usys_running()) {
         usys_msleep(rlpx_ch_is_connected(alice) ? 100 : 5000);
 
-        // TODO - fix connect api to handle nonce. Provide connected api
+        // TODO - fix connect api to handle nonce.
         if (!rlpx_ch_is_connected(alice)) {
             rlpx_ch_nonce(alice);
             rlpx_ch_connect_enode(alice, g_test_enode);
         }
 
-        // TODO - provide ready api
         if (rlpx_ch_is_ready(alice) && ++c >= 100) {
             rlpx_ch_send_ping(alice);
             c = 0;
@@ -51,7 +50,7 @@ main(int argc, char* argv[])
         c = 0;
         usys_log_ok("Disconnecting...");
         rlpx_ch_send_disconnect(alice, DEVP2P_DISCONNECT_QUITTING);
-        while ((!alice->shutdown) && (++c < 50)) {
+        while ((!rlpx_ch_is_shutdown(alice)) && (++c < 50)) {
             usys_msleep(100);
             rlpx_ch_poll(&alice, 1, 100);
         }
