@@ -19,7 +19,7 @@ main(int argc, char* argv[])
     rlpx_channel* alice = rlpx_ch_alloc(NULL, NULL);
 
     // Log message
-    usys_log_ok("Running ping pong demo");
+    usys_log_note("Running ping pong demo");
 
     // Install interrupt control
     usys_install_signal_handlers();
@@ -48,7 +48,7 @@ main(int argc, char* argv[])
     // Send disconnect to peer signal, wait at most 5 seconds and quit.
     if (rlpx_ch_is_connected(alice)) {
         c = 0;
-        usys_log_ok("Disconnecting...");
+        usys_log_note("Disconnecting...");
         rlpx_ch_send_disconnect(alice, DEVP2P_DISCONNECT_QUITTING);
         while ((!rlpx_ch_is_shutdown(alice)) && (++c < 50)) {
             usys_msleep(100);
