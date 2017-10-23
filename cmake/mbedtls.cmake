@@ -1,4 +1,5 @@
 #mbedtls project
+# UPDATE_COMMAND "" when offline
 
 if (MSVC)
     set(_only_release_configuration -DCMAKE_CONFIGURATION_TYPES=Release)
@@ -16,6 +17,7 @@ ExternalProject_Add(mbedtls-project
 		   -DENABLE_PROGRAMS=OFF
 		   -DENABLE_TESTING=OFF
 	           ${_only_release_configuration}
+	UPDATE_COMMAND ""
 	LOG_CONFIGURE 1
 	LOG_INSTALL 1
 	EXCLUDE_FROM_ALL TRUE
