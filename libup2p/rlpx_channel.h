@@ -49,7 +49,6 @@ void rlpx_ch_deinit(rlpx_channel* session);
 // methods
 void rlpx_ch_nonce(rlpx_channel* ch);
 int rlpx_ch_poll(rlpx_channel** ch, uint32_t count, uint32_t ms);
-int rlpx_ch_connected(rlpx_channel* ch);
 int rlpx_ch_connect(rlpx_channel* ch,
                     const uecc_public_key* to,
                     const char* host,
@@ -65,6 +64,24 @@ int rlpx_ch_send_pong(rlpx_channel* ch);
 int rlpx_ch_recv(rlpx_channel* ch, const uint8_t* d, size_t l);
 int rlpx_ch_recv_auth(rlpx_channel*, const uint8_t*, size_t l);
 int rlpx_ch_recv_ack(rlpx_channel* ch, const uint8_t*, size_t l);
+
+static inline int
+rlpx_ch_is_connected(rlpx_channel* ch)
+{
+    return async_io_has_sock(&ch->io);
+}
+
+static inline int
+rlpx_ch_is_ready(rlpx_channel* ch)
+{
+    return ch->ready;
+}
+
+static inline int
+rlpx_ch_is_shutdown(rlpx_channel* ch)
+{
+    return ch->shutdown;
+}
 
 #ifdef __cplusplus
 }

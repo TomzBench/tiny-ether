@@ -1,12 +1,10 @@
 #include "rlpx_channel.h"
+#include "test_enodes.h"
 #include "usys_log.h"
 #include "usys_signals.h"
 #include "usys_time.h"
 
-const char* g_test_enode = "enode://"
-                           "ca634cae0d49acb401d8a4c6b6fe8c55b70d115bf400769cc14"
-                           "00f3258cd31387574077f301b421bc84df7266c44e9e6d569fc"
-                           "56be00812904767bf5ccd1fc7f@127.0.0.1:30303.0";
+const char* g_test_enode = PYDEV_P2P_LOCAL;
 
 /**
  * @brief 1) Connect and authenticate to a remote endpoint.
@@ -34,12 +32,12 @@ main(int argc, char* arg[])
 
     // Enter while 1 loop.
     while (usys_running()) {
-        if (!alice->shutdown) {
-            usys_msleep(rlpx_ch_connected(alice) ? 100 : 5000);
+        if (!rlpx_ch_is_shutdown(alice)) {
+            usys_msleep(rlpx_ch_is_connected(alice) ? 100 : 5000);
         }
 
         // Need connect?
-        if (alice->io.sock < 0) {
+        if (!rlpx_ch_is_connected(alice)) {
             if (has_connected) {
                 usys_shutdown();
             } else {
@@ -47,9 +45,9 @@ main(int argc, char* arg[])
                 rlpx_ch_connect_enode(alice, g_test_enode);
             }
         } else {
-            has_connected = alice->ready ? 1 : 0;
+            has_connected = rlpx_ch_is_ready(alice) ? 1 : 0;
             // send ping every 2s
-            if (alice->ready && (++c >= 10)) {
+            if (rlpx_ch_is_ready(alice) && (++c >= 10)) {
                 rlpx_ch_send_ping(alice);
                 c = 0;
             }

@@ -34,7 +34,9 @@ set(headers-unit-test
 	test/unit/test_vectors.h)
 
 #libp2p integration test sources
-set(sources-integration-test test/integration/test.c)
+set(sources-integration-test 
+	test/integration/test.c
+	test/integration/test_enodes.h)
 
 # lib
 add_library(up2p ${sources} ${headers})

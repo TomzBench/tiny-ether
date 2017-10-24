@@ -1,4 +1,5 @@
 #secp256k1 project
+# UPDATE_COMMAND "" when offline
 
 if (MSVC)
     set(_only_release_configuration -DCMAKE_CONFIGURATION_TYPES=Release)
@@ -17,6 +18,7 @@ ExternalProject_Add(secp256k1-project
 	LOG_CONFIGURE 1
 	LOG_INSTALL 1
 	BUILD_COMMAND ""
+	UPDATE_COMMAND ""
 	${_overwrite_install_command}
 	EXCLUDE_FROM_ALL TRUE
 )

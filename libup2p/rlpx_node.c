@@ -31,13 +31,13 @@ rlpx_node_init_enode(rlpx_node* self, const char* enode)
         (!(enode[136] == '@')) ||                                //
         (rlpx_node_hex_to_bin(&enode[8], 128, &raw[1], NULL)) || //
         (!(tcp = memchr(&enode[136], ':', l - 136))) ||          //
-        (!(udp = memchr(tcp, '.', &enode[l] - tcp))) ||          //
         (uecc_btoq(raw, 65, &key))) {
         return -1;
     }
+    udp = memchr(tcp, '.', &enode[l] - tcp); // optional
     memcpy(host, &enode[137], tcp - &enode[137]);
     host[tcp - &enode[137]] = 0;
-    return rlpx_node_init(self, &key, host, atoi(++tcp), atoi(++udp));
+    return rlpx_node_init(self, &key, host, atoi(++tcp), udp ? atoi(++udp) : 0);
 }
 
 void

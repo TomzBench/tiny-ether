@@ -32,6 +32,7 @@ uint8_t urlp_as_u8(const urlp*);
 const char* urlp_str(const urlp* rlp);
 const uint8_t* urlp_mem(const urlp* rlp, uint32_t*);
 const uint8_t* urlp_ref(const urlp*, uint32_t*);
+urlp* urlp_copy(const urlp*);
 int urlp_read_int(const urlp*, void* m, uint32_t);
 const urlp* urlp_at(const urlp*, uint32_t);
 urlp* urlp_push(urlp*, urlp*);
@@ -42,8 +43,8 @@ const urlp* urlp_child(const urlp* rlp);
 uint32_t urlp_children(const urlp* rlp);
 uint32_t urlp_children_walk(const urlp* rlp);
 uint32_t urlp_siblings(const urlp* rlp);
-uint32_t urlp_print_size(urlp* rlp);
-int urlp_print(urlp* rlp, uint8_t* b, uint32_t* sz);
+uint32_t urlp_print_size(const urlp* rlp);
+int urlp_print(const urlp* rlp, uint8_t* b, uint32_t* sz);
 urlp* urlp_parse(const uint8_t* b, uint32_t);
 
 #ifdef __cplusplus
