@@ -65,6 +65,7 @@ uint8_t rlp_random[] = {
 uint8_t rlp_wat[] = { '\xc7', '\xc0', '\xc1', '\xc0',
                       '\xc3', '\xc0', '\xc1', '\xc0' };
 
+int test_copy();
 int test_u8();
 int test_u16();
 int test_u32();
@@ -75,10 +76,22 @@ int
 main(int argc, char* argv[])
 {
     int err = 0;
+    err |= test_copy();
     err |= test_u8();
     err |= test_u16();
     err |= test_u32();
     err |= test_u64();
+    return err;
+}
+
+int
+test_copy()
+{
+    int err;
+    urlp *cpy = NULL, *wat = urlp_parse(rlp_wat, sizeof(rlp_wat));
+    cpy = urlp_copy(wat);
+    err = test_item(rlp_wat, sizeof(rlp_wat), &cpy);
+    urlp_free(&wat);
     return err;
 }
 
