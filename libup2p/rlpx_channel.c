@@ -194,8 +194,8 @@ rlpx_ch_send_disconnect(rlpx_channel* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
 {
     int err;
     ch->io.len = sizeof(ch->io.b);
-    err = rlpx_devp2p_protocol_write_disconnect(&ch->x, reason, ch->io.b,
-                                                &ch->io.len);
+    err = rlpx_devp2p_protocol_write_disconnect(
+        &ch->x, reason, ch->io.b, &ch->io.len);
     if (!err) {
         usys_log("[OUT] (disconnect) size: %d", ch->io.len);
         async_io_set_cb_send(&ch->io, rlpx_ch_on_send_shutdown);
@@ -272,8 +272,12 @@ rlpx_ch_recv_auth(rlpx_channel* ch, const uint8_t* b, size_t l)
 
     // Process the Decrypted RLP data
     if (!(err = rlpx_handshake_auth_install(ch->hs, &rlp))) {
-        err = rlpx_handshake_secrets(ch->hs, 0, &ch->x.emac, &ch->x.imac,
-                                     &ch->x.aes_enc, &ch->x.aes_dec,
+        err = rlpx_handshake_secrets(ch->hs,
+                                     0,
+                                     &ch->x.emac,
+                                     &ch->x.imac,
+                                     &ch->x.aes_enc,
+                                     &ch->x.aes_dec,
                                      &ch->x.aes_mac);
     }
 
@@ -293,8 +297,12 @@ rlpx_ch_recv_ack(rlpx_channel* ch, const uint8_t* ack, size_t l)
 
     // Process the Decrypted RLP data
     if (!(err = rlpx_handshake_ack_install(ch->hs, &rlp))) {
-        err = rlpx_handshake_secrets(ch->hs, 1, &ch->x.emac, &ch->x.imac,
-                                     &ch->x.aes_enc, &ch->x.aes_dec,
+        err = rlpx_handshake_secrets(ch->hs,
+                                     1,
+                                     &ch->x.emac,
+                                     &ch->x.imac,
+                                     &ch->x.aes_enc,
+                                     &ch->x.aes_dec,
                                      &ch->x.aes_mac);
     }
 
