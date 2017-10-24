@@ -92,6 +92,7 @@ rlpx_ch_deinit(rlpx_channel* ch)
 {
     uecc_key_deinit(&ch->skey);
     uecc_key_deinit(&ch->ekey);
+    rlpx_devp2p_protocol_deinit(&ch->devp2p);
     if (ch->hs) rlpx_handshake_free(&ch->hs);
 }
 
