@@ -404,7 +404,7 @@ rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
 int
 rlpx_ch_on_hello(void* ctx, const urlp* rlp)
 {
-    const char* memptr;
+    const char* ptr;
     const uint8_t* pub;
     uint8_t pub_expect[65];
     uint32_t l;
@@ -413,15 +413,11 @@ rlpx_ch_on_hello(void* ctx, const urlp* rlp)
     usys_log("[ IN] (hello)");
 
     // Copy client string.
-    rlpx_devp2p_protocol_client_id(rlp, &memptr, &l);
-    if (l < sizeof(ch->devp2p.client)) {
-        memcpy(ch->devp2p.client, memptr, l);
-    } else {
-        memcpy(ch->devp2p.client, memptr, sizeof(ch->devp2p.client));
-    }
+    rlpx_devp2p_protocol_client_id(rlp, &ptr, &l);
+    memcpy(ch->devp2p.client, ptr, l < DEVP2P_CLIENT_SZ ? l : DEVP2P_CLIENT_SZ);
 
     // Copy listening port.
-    rlpx_devp2p_protocol_listen_port(rlp, &ch->devp2p.listenport);
+    rlpx_devp2p_protocol_listen_port(rlp, &ch->devp2p.listen_port);
 
     // TODO - Check caps
 

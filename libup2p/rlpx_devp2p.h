@@ -6,6 +6,8 @@ extern "C" {
 
 #include "rlpx_protocol.h"
 
+#define DEVP2P_CLIENT_SZ RLPX_CLIENT_MAX_LEN
+
 typedef enum {
     DEVP2P_ERRO = -0x01,
     DEVP2P_HELLO = 0x00,
@@ -42,8 +44,8 @@ typedef struct
 {
     rlpx_protocol base;
     const rlpx_devp2p_protocol_settings* settings; /*!< user callbacks */
-    char client[128];                              /*!< Hello packet client*/
-    uint32_t listenport;                           /*!< */
+    char client[DEVP2P_CLIENT_SZ];                 /*!< Hello packet client*/
+    uint32_t listen_port;                          /*!< */
     int64_t ping;                                  /*!< ping now() */
     uint32_t latency;                              /*!< now() - ping */
 } rlpx_devp2p_protocol;
