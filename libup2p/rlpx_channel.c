@@ -433,7 +433,9 @@ rlpx_ch_on_hello(void* ctx, const urlp* rlp)
         ch->ready = 1;
     } else {
         // Bad public key...
-        usys_log_err("[ERR] Invalid \"hello\" - received incorrect public key");
+        usys_log_err("[ERR] Invalid \"hello\" - bad public key");
+        ch->shutdown = 1;
+        async_io_close(&ch->io);
     }
 
     return 0;
