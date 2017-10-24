@@ -404,10 +404,38 @@ rlpx_ch_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
 int
 rlpx_ch_on_hello(void* ctx, const urlp* rlp)
 {
-    ((void)rlp); // TODO - proccess hello
+    const char* memptr;
+    const uint8_t* pub;
+    uint8_t pub_expect[65];
+    uint32_t l;
     rlpx_channel* ch = ctx;
+
     usys_log("[ IN] (hello)");
-    ch->ready = 1;
+
+    // Copy client string.
+    rlpx_devp2p_protocol_client_id(rlp, &memptr, &l);
+    if (l < sizeof(ch->devp2p.client)) {
+        memcpy(ch->devp2p.client, memptr, l);
+    } else {
+        memcpy(ch->devp2p.client, memptr, sizeof(ch->devp2p.client));
+    }
+
+    // Copy listening port.
+    rlpx_devp2p_protocol_listen_port(rlp, &ch->devp2p.listenport);
+
+    // TODO - Check caps
+
+    if ((rlp = urlp_at(rlp, 4)) &&                    //
+        (pub = urlp_ref(rlp, &l)) &&                  //
+        (l == 64) &&                                  //
+        (!uecc_qtob(&ch->node.id, pub_expect, 65)) && //
+        (!(memcmp(pub, &pub_expect[1], 64)))) {
+        ch->ready = 1;
+    } else {
+        // Bad public key...
+        usys_log_err("[ERR] Invalid \"hello\" - received incorrect public key");
+    }
+
     return 0;
 }
 

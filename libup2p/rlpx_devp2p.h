@@ -41,9 +41,11 @@ typedef struct
 typedef struct
 {
     rlpx_protocol base;
-    const rlpx_devp2p_protocol_settings* settings;
-    int64_t ping;
-    uint32_t latency;
+    const rlpx_devp2p_protocol_settings* settings; /*!< user callbacks */
+    char client[128];                              /*!< Hello packet client*/
+    uint32_t listenport;                           /*!< */
+    int64_t ping;                                  /*!< ping now() */
+    uint32_t latency;                              /*!< now() - ping */
 } rlpx_devp2p_protocol;
 
 // Heap constructors
