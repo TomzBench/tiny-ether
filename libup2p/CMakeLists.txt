@@ -5,6 +5,7 @@ set(sources
 	rlpx_devp2p.c
 	rlpx_frame.c
 	rlpx_handshake.c
+	rlpx_kademlia.c
 	rlpx_node.c
 	rlpx_protocol.c
 	rlpx_test_helpers.c)
@@ -16,6 +17,7 @@ set(headers
 	rlpx_frame.h
 	rlpx_handshake.h
 	rlpx_helper_macros.h
+	rlpx_kademlia.h
 	rlpx_node.h
 	rlpx_protocol.h
 	rlpx_test_helpers.h
