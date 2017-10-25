@@ -27,6 +27,7 @@ set(sources-unit-test
 	test/unit/test_enode.c
 	test/unit/test_frame.c
 	test/unit/test_handshake.c
+	test/unit/test_kademlia.c
 	test/unit/test_mock.c
 	test/unit/test_protocol.c)
 set(headers-unit-test

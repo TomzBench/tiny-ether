@@ -49,9 +49,10 @@ int check_q(const uecc_public_key* key, const char* str);
 int test_session_init(test_session*, int);
 void test_session_deinit(test_session*);
 
-int test_handshake();
-int test_frame();
-int test_protocol();
-int test_enode();
+int test_handshake(void);
+int test_frame(void);
+int test_protocol(void);
+int test_enode(void);
+int test_kademlia(void);
 
 #endif
