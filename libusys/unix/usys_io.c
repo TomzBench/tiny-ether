@@ -39,6 +39,24 @@ usys_connect(usys_socket_fd* sock_p, const char* host, int port)
 }
 
 int
+usys_listen_udp(usys_socket_fd* sock_p, int port)
+{
+    int ret = 0;
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = INADDR_ANY;
+    *sock_p = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
+    if (*sock_p < 0) return -1;
+    if (bind(*sock_p, (const struct sockaddr*)&addr, sizeof(addr)) == -1) {
+        usys_close(sock_p);
+        return -1;
+    }
+    return ret;
+}
+
+int
 usys_recv_fd(int sockfd, byte* b, size_t len)
 {
     ssize_t bytes_read = 0;

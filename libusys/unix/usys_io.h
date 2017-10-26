@@ -30,6 +30,7 @@ typedef int (*usys_io_connect_fn)(usys_socket_fd*, const char*, int);
 typedef int (*usys_io_ready_fn)(usys_socket_fd*);
 typedef void (*usys_io_close_fn)(usys_socket_fd*);
 int usys_connect(usys_socket_fd* fd, const char* host, int port);
+int usys_listen_udp(usys_socket_fd* sock_p, int port);
 int usys_send_fd(usys_socket_fd fd, const byte* b, uint32_t len);
 int usys_recv_fd(int sockfd, byte* b, size_t len);
 void usys_close(usys_socket_fd* fd);
