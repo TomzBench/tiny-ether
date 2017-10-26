@@ -21,6 +21,8 @@ async_io_settings g_ueth_io_settings = {
 int
 ueth_init(ueth_context* ctx, ueth_config* config)
 {
+    h256 key;
+
     // Copy config.
     ctx->config = *config;
 
@@ -33,8 +35,12 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     // Polling mode (p2p enable, etc)
     ctx->poll = config->p2p_enable ? ueth_poll_udp : ueth_poll_tcp;
 
-    // Static key (TODO read from file conf etc)
-    uecc_key_init_new(&ctx->p2p_static_key);
+    if (config->p2p_private_key) {
+        rlpx_node_hex_to_bin(config->p2p_private_key, 0, key.b, NULL);
+        uecc_key_init_binary(&ctx->p2p_static_key, &key);
+    } else {
+        uecc_key_init_new(&ctx->p2p_static_key);
+    }
 
     // init constants
     ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_channel));
@@ -43,6 +49,12 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     for (uint32_t i = 0; i < ctx->n; i++) {
         rlpx_ch_init(&ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
     }
+
+    char hex[129];
+    uint8_t q[65];
+    uecc_qtob(&ctx->p2p_static_key.Q, q, 65);
+    rlpx_node_bin_to_hex(&q[1], 64, hex, NULL);
+    usys_log_info("enode://%s:%d", hex, ctx->config.udp);
 
     return 0;
 }
@@ -130,18 +142,31 @@ ueth_poll_udp(ueth_context* ctx)
 int
 ueth_on_erro(void* ctx)
 {
+    ((void)ctx);
     usys_log("[ IN] [UDP] error");
+    return 0;
 }
 
 int
 ueth_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
 {
+    ((void)ctx);
+    ((void)err);
+    ((void)b);
+    ((void)l);
+    usys_log("[ IN] [UDP] send");
+    return 0;
 }
 
 int
 ueth_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
 {
+    ((void)ctx);
+    ((void)err);
+    ((void)b);
+    ((void)l);
     usys_log("[ IN] [UDP] hit");
+    return 0;
 }
 
 //

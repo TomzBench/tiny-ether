@@ -11,6 +11,7 @@ extern "C" {
 
 typedef struct
 {
+    const char* p2p_private_key;
     int p2p_enable;
     uint32_t udp;
 } ueth_config;

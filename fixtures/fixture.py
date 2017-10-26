@@ -38,7 +38,7 @@ def main():
     default_config['post_app_start_callback'] = None
     default_config['node']['privkey_hex'] = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
     default_config['discovery']['bootstrap_nodes'] = [
-        "enode://6ce05930c72abc632c58e2e4324f7c7ea478cec0ed4fa2528982cf34483094e9cbc9216e7aa349691242576d552a2a56aaeae426c5303ded677ce455ba1acd9d@13.84.180.240:30303"
+            "enode://762dd8a0636e07a54b31169eba0c7a20a1ac1ef68596f1f283b5c676bae4064abfcce24799d09f67e392632d3ffdc12e3d6430dcb0ea19c318343ffa7aae74d4@127.0.0.1:22332"
         ]
     app = BaseApp(default_config)
     peermanager.PeerManager.register_with_app(app)
