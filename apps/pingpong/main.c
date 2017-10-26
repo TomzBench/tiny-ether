@@ -16,7 +16,9 @@ main(int argc, char* argv[])
     ((void)argc);
     ((void)argv);
     int c = 0;
-    rlpx_channel* alice = rlpx_ch_alloc(NULL, NULL);
+    uecc_ctx static_key;
+    uecc_key_init_new(&static_key);
+    rlpx_channel* alice = rlpx_ch_alloc(&static_key);
 
     // Log message
     usys_log_note("Running ping pong demo");
@@ -57,5 +59,6 @@ main(int argc, char* argv[])
     }
 
     rlpx_ch_free(&alice);
+    uecc_key_deinit(&static_key);
     return 0;
 }

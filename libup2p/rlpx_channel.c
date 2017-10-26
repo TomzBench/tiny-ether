@@ -37,11 +37,11 @@ rlpx_devp2p_protocol_settings g_devp2p_settings = { //
 };
 
 rlpx_channel*
-rlpx_ch_alloc(uecc_private_key* skey, uecc_private_key* ekey)
+rlpx_ch_alloc(uecc_ctx* skey)
 {
     rlpx_channel* ch = rlpx_malloc(sizeof(rlpx_channel));
     if (ch) {
-        rlpx_ch_init(ch, skey, ekey);
+        rlpx_ch_init(ch, skey);
     }
     return ch;
 }
@@ -56,29 +56,23 @@ rlpx_ch_free(rlpx_channel** ch_p)
 }
 
 int
-rlpx_ch_init(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
+rlpx_ch_init(rlpx_channel* ch, uecc_ctx* s)
 {
     // clean mem
     memset(ch, 0, sizeof(rlpx_channel));
 
-    // Create keys
-    if (s) {
-        uecc_key_init_binary(&ch->skey, s);
-    } else {
-        uecc_key_init_new(&ch->skey);
-    }
-    if (e) {
-        uecc_key_init_binary(&ch->ekey, e);
-    } else {
-        uecc_key_init_new(&ch->ekey);
-    }
+    // Our static identity
+    ch->skey = s;
+
+    // Create random epheremeral key
+    uecc_key_init_new(&ch->ekey);
 
     // Install network io handler
     async_io_init(&ch->io, ch, &g_rlpx_ch_io_settings);
 
     // update info
     ch->listen_port = 44; // TODO
-    uecc_qtob(&ch->skey.Q, ch->node_id, 65);
+    uecc_qtob(&ch->skey->Q, ch->node_id, 65);
 
     // Install protocols
     rlpx_devp2p_protocol_init(&ch->devp2p, &g_devp2p_settings, ch);
@@ -90,7 +84,6 @@ rlpx_ch_init(rlpx_channel* ch, uecc_private_key* s, uecc_private_key* e)
 void
 rlpx_ch_deinit(rlpx_channel* ch)
 {
-    uecc_key_deinit(&ch->skey);
     uecc_key_deinit(&ch->ekey);
     rlpx_devp2p_protocol_deinit(&ch->devp2p);
     if (ch->hs) rlpx_handshake_free(&ch->hs);
@@ -146,7 +139,7 @@ rlpx_ch_accept(rlpx_channel* ch, const uecc_public_key* from)
     // TODO - this is a stub.
     if (ch->hs) rlpx_handshake_free(&ch->hs);
     ch->node.id = *from;
-    ch->hs = rlpx_handshake_alloc(0, &ch->skey, &ch->ekey, &ch->nonce, from);
+    ch->hs = rlpx_handshake_alloc(0, ch->skey, &ch->ekey, &ch->nonce, from);
     if (ch->hs) {
         ch->io.sock = 3;
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
@@ -162,7 +155,7 @@ rlpx_ch_send_auth(rlpx_channel* ch)
 
     if (ch->hs) rlpx_handshake_free(&ch->hs);
     ch->hs =
-        rlpx_handshake_alloc(1, &ch->skey, &ch->ekey, &ch->nonce, &ch->node.id);
+        rlpx_handshake_alloc(1, ch->skey, &ch->ekey, &ch->nonce, &ch->node.id);
     if (ch->hs) {
         usys_log("[OUT] (auth) size: %d", ch->hs->cipher_len);
         async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv_ack);

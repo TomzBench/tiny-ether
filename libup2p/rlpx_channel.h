@@ -21,7 +21,7 @@ typedef struct
     async_io io;                 /*!< io context for network sys calls */
     rlpx_devp2p_protocol devp2p; /*!< hello/disconnect/ping/pong */
     rlpx_protocol* protocols[2]; /*!< protocol handlers */
-    uecc_ctx skey;               /*!< our static key */
+    uecc_ctx* skey;              /*!< our static key */
     uecc_ctx ekey;               /*!< our epheremal key */
     rlpx_coder x;                /*!< igress/ingress */
     h256 nonce;                  /*!< local nonce */
@@ -34,16 +34,11 @@ typedef struct
 } rlpx_channel;
 
 // constructors
-rlpx_channel* rlpx_ch_alloc(uecc_private_key* skey, uecc_private_key* ekey);
-rlpx_channel* rlpx_ch_mock_alloc(async_io_settings*,
-                                 uecc_private_key*,
-                                 uecc_private_key*);
+rlpx_channel* rlpx_ch_alloc(uecc_ctx* skey);
+rlpx_channel* rlpx_ch_mock_alloc(async_io_settings*, uecc_ctx*);
 void rlpx_ch_free(rlpx_channel** ch_p);
-int rlpx_ch_init(rlpx_channel*, uecc_private_key*, uecc_private_key*);
-int rlpx_ch_mock_init(rlpx_channel*,
-                      async_io_settings*,
-                      uecc_private_key*,
-                      uecc_private_key*);
+int rlpx_ch_init(rlpx_channel*, uecc_ctx*);
+int rlpx_ch_mock_init(rlpx_channel*, async_io_settings*, uecc_ctx*);
 void rlpx_ch_deinit(rlpx_channel* session);
 
 // methods

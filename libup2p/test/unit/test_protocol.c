@@ -25,8 +25,8 @@ test_protocol()
 
     rlpx_ch_nonce(s.alice);
     rlpx_ch_nonce(s.bob);
-    rlpx_ch_connect(s.alice, &s.bob->skey.Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
+    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
 
     // Recv keys
     IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));

@@ -47,9 +47,11 @@ test_vector g_test_vectors[] = { //
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;
+const char* g_alice_spub = ALICE_SPUB;
 const char* g_alice_epri = ALICE_EPRI;
 const char* g_alice_epub = ALICE_EPUB;
 const char* g_bob_spri = BOB_SPRI;
+const char* g_bob_spub = BOB_SPUB;
 const char* g_bob_epri = BOB_EPRI;
 const char* g_bob_epub = BOB_EPUB;
 const char* g_aes_secret = AES_SECRET;
@@ -88,25 +90,38 @@ int
 test_session_init(test_session* s, int vec)
 {
     // buffers for keys, nonces, cipher text, etc
-    uecc_private_key alice_e, alice_s, bob_s, bob_e;
+    uecc_private_key alice_s, alice_e, bob_s, bob_e;
+    uecc_ctx ekey_a, ekey_b;
+
     memset(s, 0, sizeof(test_session));
-    // read in test vectors
+    memcpy(alice_s.b, makebin(g_test_vectors[vec].alice_s, NULL), 32);
+    memcpy(bob_s.b, makebin(g_test_vectors[vec].bob_s, NULL), 32);
+    memcpy(alice_e.b, makebin(g_test_vectors[vec].alice_e, NULL), 32);
+    memcpy(bob_e.b, makebin(g_test_vectors[vec].bob_e, NULL), 32);
     s->authlen = strlen(g_test_vectors[vec].auth) / 2;
     s->acklen = strlen(g_test_vectors[vec].ack) / 2;
-    memcpy(alice_e.b, makebin(g_test_vectors[vec].alice_e, NULL), 32);
-    memcpy(alice_s.b, makebin(g_test_vectors[vec].alice_s, NULL), 32);
-    memcpy(bob_e.b, makebin(g_test_vectors[vec].bob_e, NULL), 32);
-    memcpy(bob_s.b, makebin(g_test_vectors[vec].bob_s, NULL), 32);
     memcpy(s->auth, makebin(g_test_vectors[vec].auth, NULL), s->authlen);
     memcpy(s->ack, makebin(g_test_vectors[vec].ack, NULL), s->acklen);
     memcpy(s->alice_n.b, makebin(g_test_vectors[vec].alice_n, NULL), 32);
     memcpy(s->bob_n.b, makebin(g_test_vectors[vec].bob_n, NULL), 32);
+
     // init test_session with alice,bob,etc
-    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &alice_s, &alice_e);
-    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &bob_s, &bob_e);
+    uecc_key_init_binary(&s->skey_a, &alice_s);
+    uecc_key_init_binary(&s->skey_b, &bob_s);
+    uecc_key_init_binary(&ekey_a, &alice_e);
+    uecc_key_init_binary(&ekey_b, &bob_e);
+    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_a);
+    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_b);
+
+    // Install mock ekeys
+    rlpx_test_ekey_set(s->alice, &ekey_a);
+    rlpx_test_ekey_set(s->bob, &ekey_b);
+
     // sanity check
     if ((check_q(&s->alice->ekey.Q, g_alice_epub))) return -1;
     if ((check_q(&s->bob->ekey.Q, g_bob_epub))) return -1;
+    if ((check_q(&s->alice->skey->Q, g_alice_spub))) return -1;
+    if ((check_q(&s->bob->skey->Q, g_bob_spub))) return -1;
     return 0;
 }
 
@@ -115,6 +130,8 @@ test_session_deinit(test_session* s)
 {
     rlpx_ch_free(&s->alice);
     rlpx_ch_free(&s->bob);
+    uecc_key_deinit(&s->skey_a);
+    uecc_key_deinit(&s->skey_b);
 }
 
 int
