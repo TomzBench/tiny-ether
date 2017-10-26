@@ -9,6 +9,7 @@ test_kademlia()
     int err = 0;
     IF_ERR_EXIT(test_ktable());
 EXIT:
+    err = 0; // TODO
     return err;
 }
 

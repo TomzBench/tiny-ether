@@ -21,8 +21,8 @@ typedef struct
     async_io io;                 /*!< io context for network sys calls */
     rlpx_devp2p_protocol devp2p; /*!< hello/disconnect/ping/pong */
     rlpx_protocol* protocols[2]; /*!< protocol handlers */
-    uecc_ctx ekey;               /*!< our epheremal key */
     uecc_ctx skey;               /*!< our static key */
+    uecc_ctx ekey;               /*!< our epheremal key */
     rlpx_coder x;                /*!< igress/ingress */
     h256 nonce;                  /*!< local nonce */
     rlpx_node node;              /*!< remote node info */
