@@ -116,13 +116,14 @@ ueth_poll_tcp(ueth_context* ctx)
 int
 ueth_poll_udp(ueth_context* ctx)
 {
+    async_io* io = &ctx->io;
     int err;
 
     // Poll tcp
     err = ueth_poll_tcp(ctx);
 
     // TODO - poll udp ports
-    async_io_poll(&ctx->io);
+    async_io_poll_n(&io, 1, 100);
     return 0;
 }
 
