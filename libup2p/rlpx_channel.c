@@ -37,11 +37,11 @@ rlpx_devp2p_protocol_settings g_devp2p_settings = { //
 };
 
 rlpx_channel*
-rlpx_ch_alloc(uecc_ctx* skey)
+rlpx_ch_alloc(uecc_ctx* skey, const uint32_t* listen)
 {
     rlpx_channel* ch = rlpx_malloc(sizeof(rlpx_channel));
     if (ch) {
-        rlpx_ch_init(ch, skey);
+        rlpx_ch_init(ch, skey, listen);
     }
     return ch;
 }
@@ -56,7 +56,7 @@ rlpx_ch_free(rlpx_channel** ch_p)
 }
 
 int
-rlpx_ch_init(rlpx_channel* ch, uecc_ctx* s)
+rlpx_ch_init(rlpx_channel* ch, uecc_ctx* s, const uint32_t* listen)
 {
     // clean mem
     memset(ch, 0, sizeof(rlpx_channel));
@@ -71,7 +71,7 @@ rlpx_ch_init(rlpx_channel* ch, uecc_ctx* s)
     async_io_init(&ch->io, ch, &g_rlpx_ch_io_settings);
 
     // update info
-    ch->listen_port = 44; // TODO
+    ch->listen_port = listen;
     uecc_qtob(&ch->skey->Q, ch->node_id, 65);
 
     // Install protocols
@@ -173,7 +173,7 @@ rlpx_ch_send_hello(rlpx_channel* ch)
     async_io_set_cb_recv(&ch->io, rlpx_ch_on_recv);
     ch->io.len = sizeof(ch->io.b);
     err = rlpx_devp2p_protocol_write_hello(
-        &ch->x, ch->listen_port, &ch->node_id[1], ch->io.b, &ch->io.len);
+        &ch->x, *ch->listen_port, &ch->node_id[1], ch->io.b, &ch->io.len);
     if (!err) {
         usys_log("[OUT] (hello) size: %d", ch->io.len);
         return async_io_send(&ch->io);

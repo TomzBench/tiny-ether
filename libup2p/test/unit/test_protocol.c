@@ -90,7 +90,7 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
 
     // Verify listen port
     rlpx_devp2p_protocol_listen_port(rlp, &num);
-    IF_ERR_EXIT((num == 44) ? 0 : -1);
+    if (!((num == UDP_TEST_PORT) || (num == UDP_TEST_PORT + 1))) goto EXIT;
 
     // verify node_id
     rlpx_devp2p_protocol_node_id(rlp, &mem, &num);

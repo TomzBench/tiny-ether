@@ -206,4 +206,6 @@
 #define BOB_NONCE_GO                                                           \
     "f37ec61d84cea03dcc5e8385db93248584e8af4b4d1c832d8c7453c0089687a7"
 
+#define UDP_TEST_PORT 33
+
 #endif

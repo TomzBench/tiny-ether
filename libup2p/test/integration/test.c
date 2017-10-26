@@ -21,9 +21,10 @@ main(int argc, char* arg[])
     ((void)argc);
     ((void)arg);
     int err = -1, c = 0, has_connected = 0;
+    uint32_t udp = 33433;
     uecc_ctx static_key;
     uecc_key_init_new(&static_key);
-    rlpx_channel* alice = rlpx_ch_alloc(&static_key);
+    rlpx_channel* alice = rlpx_ch_alloc(&static_key, &udp);
 
     // Install interrupt control
     usys_install_signal_handlers();

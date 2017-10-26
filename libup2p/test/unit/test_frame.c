@@ -121,8 +121,8 @@ test_frame_write()
     // verify listen port
     rlpx_devp2p_protocol_listen_port(bodya, &numa);
     rlpx_devp2p_protocol_listen_port(bodyb, &numb);
-    IF_ERR_EXIT((numa == s.alice->listen_port) ? 0 : -1);
-    IF_ERR_EXIT((numb == s.bob->listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numa == *s.alice->listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numb == *s.bob->listen_port) ? 0 : -1);
 
     // verify node_id
     rlpx_devp2p_protocol_node_id(bodya, &mema, &numa);

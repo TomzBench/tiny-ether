@@ -30,15 +30,20 @@ typedef struct
     int ready;                   /*!< handshake complete */
     int shutdown;                /*!< shutting down */
     uint8_t node_id[65];         /*!< node id */
-    uint32_t listen_port;        /*!< our listen port */
+    const uint32_t* listen_port; /*!< our listen port */
 } rlpx_channel;
 
 // constructors
-rlpx_channel* rlpx_ch_alloc(uecc_ctx* skey);
-rlpx_channel* rlpx_ch_mock_alloc(async_io_settings*, uecc_ctx*);
+rlpx_channel* rlpx_ch_alloc(uecc_ctx* skey, const uint32_t*);
+rlpx_channel* rlpx_ch_mock_alloc(async_io_settings*,
+                                 uecc_ctx*,
+                                 const uint32_t*);
 void rlpx_ch_free(rlpx_channel** ch_p);
-int rlpx_ch_init(rlpx_channel*, uecc_ctx*);
-int rlpx_ch_mock_init(rlpx_channel*, async_io_settings*, uecc_ctx*);
+int rlpx_ch_init(rlpx_channel*, uecc_ctx*, const uint32_t*);
+int rlpx_ch_mock_init(rlpx_channel*,
+                      async_io_settings*,
+                      uecc_ctx*,
+                      const uint32_t*);
 void rlpx_ch_deinit(rlpx_channel* session);
 
 // methods

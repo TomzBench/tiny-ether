@@ -7,6 +7,9 @@ int ueth_poll_internal_p2p(ueth_context* ctx);
 int
 ueth_init(ueth_context* ctx, ueth_config* config)
 {
+    // Copy config.
+    ctx->config = *config;
+
     // Polling mode (p2p enable, etc)
     ctx->poll = config->p2p_enable ? ueth_poll_internal : ueth_poll_internal;
 
@@ -18,7 +21,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
 
     // Init peer pipes
     for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_ch_init(&ctx->ch[i], &ctx->p2p_static_key);
+        rlpx_ch_init(&ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
     }
 
     return 0;

@@ -104,14 +104,16 @@ test_session_init(test_session* s, int vec)
     memcpy(s->ack, makebin(g_test_vectors[vec].ack, NULL), s->acklen);
     memcpy(s->alice_n.b, makebin(g_test_vectors[vec].alice_n, NULL), 32);
     memcpy(s->bob_n.b, makebin(g_test_vectors[vec].bob_n, NULL), 32);
+    s->udp[0] = UDP_TEST_PORT;
+    s->udp[1] = UDP_TEST_PORT + 1;
 
     // init test_session with alice,bob,etc
     uecc_key_init_binary(&s->skey_a, &alice_s);
     uecc_key_init_binary(&s->skey_b, &bob_s);
     uecc_key_init_binary(&ekey_a, &alice_e);
     uecc_key_init_binary(&ekey_b, &bob_e);
-    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_a);
-    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_b);
+    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_a, &s->udp[0]);
+    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_b, &s->udp[1]);
 
     // Install mock ekeys
     rlpx_test_ekey_set(s->alice, &ekey_a);
