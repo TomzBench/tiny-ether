@@ -8,7 +8,7 @@ const char* g_test_enode = "enode://"
                            "00f3258cd31387574077f301b421bc84df7266c44e9e6d569fc"
                            "56be00812904767bf5ccd1fc7f@127.0.0.1:30303.0";
 
-ueth_config config = {.p2p_enable = 1 };
+ueth_config config = {.p2p_enable = 1, .udp = 22332 };
 
 int main(int argc, char* argv[]);
 

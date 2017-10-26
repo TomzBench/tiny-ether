@@ -1,8 +1,8 @@
 #include "ueth.h"
 #include "usys_time.h"
 
-int ueth_poll_internal(ueth_context* ctx);
-int ueth_poll_internal_p2p(ueth_context* ctx);
+int ueth_poll_tcp(ueth_context* ctx);
+int ueth_poll_udp(ueth_context* ctx);
 
 int
 ueth_init(ueth_context* ctx, ueth_config* config)
@@ -11,7 +11,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     ctx->config = *config;
 
     // Polling mode (p2p enable, etc)
-    ctx->poll = config->p2p_enable ? ueth_poll_internal : ueth_poll_internal;
+    ctx->poll = config->p2p_enable ? ueth_poll_udp : ueth_poll_tcp;
 
     // Static key (TODO read from file conf etc)
     uecc_key_init_new(&ctx->p2p_static_key);
@@ -74,7 +74,7 @@ ueth_stop(ueth_context* ctx)
 }
 
 int
-ueth_poll_internal(ueth_context* ctx)
+ueth_poll_tcp(ueth_context* ctx)
 {
     uint32_t i, b = 0;
     rlpx_channel* ch[ctx->n];
@@ -94,12 +94,12 @@ ueth_poll_internal(ueth_context* ctx)
 }
 
 int
-ueth_poll_internal_p2p(ueth_context* ctx)
+ueth_poll_udp(ueth_context* ctx)
 {
     int err;
 
     // Poll tcp
-    err = ueth_poll_internal(ctx);
+    err = ueth_poll_tcp(ctx);
 
     // TODO - poll udp ports
     return 0;
