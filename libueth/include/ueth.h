@@ -11,8 +11,24 @@ extern "C" {
 
 typedef struct
 {
+    int p2p_enable;
+} ueth_config;
+
+typedef struct ueth_context
+{
+    int (*poll)(struct ueth_context*);
     rlpx_channel ch[UETH_CONFIG_NUM_CHANNELS];
 } ueth_context;
+
+int ueth_init(ueth_context* ctx, ueth_config* config);
+void ueth_deinit(ueth_context* ctx);
+int ueth_start(ueth_context* ctx, int, ...);
+
+static inline int
+ueth_poll(ueth_context* ctx)
+{
+    return ctx->poll(ctx);
+}
 
 #ifdef __cplusplus
 }
