@@ -19,6 +19,7 @@ typedef struct ueth_context
 {
     uecc_ctx p2p_static_key;
     ueth_config config;
+    async_io io;
     int (*poll)(struct ueth_context*);
     uint32_t n;
     rlpx_channel ch[UETH_CONFIG_NUM_CHANNELS];

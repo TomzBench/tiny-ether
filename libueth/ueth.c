@@ -1,14 +1,34 @@
 #include "ueth.h"
+#include "usys_log.h"
 #include "usys_time.h"
 
 int ueth_poll_tcp(ueth_context* ctx);
 int ueth_poll_udp(ueth_context* ctx);
+int ueth_on_accept(void* ctx);
+int ueth_on_connect(void* ctx);
+int ueth_on_erro(void* ctx);
+int ueth_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
+int ueth_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
+
+async_io_settings g_ueth_io_settings = {
+    .on_accept = NULL,       //
+    .on_connect = NULL,      //
+    .on_erro = ueth_on_erro, //
+    .on_send = ueth_on_send, //
+    .on_recv = ueth_on_recv, //
+};
 
 int
 ueth_init(ueth_context* ctx, ueth_config* config)
 {
     // Copy config.
     ctx->config = *config;
+
+    // Setup udp listener
+    if (ctx->config.udp) {
+        async_io_init(&ctx->io, ctx, &g_ueth_io_settings);
+        usys_listen_udp(&ctx->io.sock, ctx->config.udp);
+    }
 
     // Polling mode (p2p enable, etc)
     ctx->poll = config->p2p_enable ? ueth_poll_udp : ueth_poll_tcp;
@@ -102,7 +122,25 @@ ueth_poll_udp(ueth_context* ctx)
     err = ueth_poll_tcp(ctx);
 
     // TODO - poll udp ports
+    async_io_poll(&ctx->io);
     return 0;
+}
+
+int
+ueth_on_erro(void* ctx)
+{
+    usys_log("[ IN] [UDP] error");
+}
+
+int
+ueth_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
+{
+}
+
+int
+ueth_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+    usys_log("[ IN] [UDP] hit");
 }
 
 //
