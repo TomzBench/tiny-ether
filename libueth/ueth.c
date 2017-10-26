@@ -16,6 +16,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     // init constants
     ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_channel));
 
+    // Init peer pipes
     for (uint32_t i = 0; i < ctx->n; i++) {
         rlpx_ch_init(&ctx->ch[i], &ctx->p2p_static_key);
     }
@@ -92,7 +93,12 @@ ueth_poll_internal(ueth_context* ctx)
 int
 ueth_poll_internal_p2p(ueth_context* ctx)
 {
-    ((void)ctx); // TODO - poll udp ports
+    int err;
+
+    // Poll tcp
+    err = ueth_poll_internal(ctx);
+
+    // TODO - poll udp ports
     return 0;
 }
 
