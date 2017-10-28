@@ -15,6 +15,7 @@ extern "C" {
 uecc_ctx* rlpx_test_skey(rlpx_channel* ch);
 uecc_ctx* rlpx_test_ekey(rlpx_channel* ch);
 void rlpx_test_nonce_set(rlpx_channel* s, h256* nonce);
+void rlpx_test_ekey_set(rlpx_channel* s, uecc_ctx* ekey);
 ukeccak256_ctx* rlpx_test_ingress(rlpx_channel* ch);
 ukeccak256_ctx* rlpx_test_egress(rlpx_channel* ch);
 uaes_ctx* rlpx_test_aes_mac(rlpx_channel* ch);

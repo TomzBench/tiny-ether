@@ -25,8 +25,8 @@ test_protocol()
 
     rlpx_ch_nonce(s.alice);
     rlpx_ch_nonce(s.bob);
-    rlpx_ch_connect(s.alice, &s.bob->skey.Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
+    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
 
     // Recv keys
     IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
@@ -90,7 +90,7 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
 
     // Verify listen port
     rlpx_devp2p_protocol_listen_port(rlp, &num);
-    IF_ERR_EXIT((num == 44) ? 0 : -1);
+    if (!((num == UDP_TEST_PORT) || (num == UDP_TEST_PORT + 1))) goto EXIT;
 
     // verify node_id
     rlpx_devp2p_protocol_node_id(rlp, &mem, &num);

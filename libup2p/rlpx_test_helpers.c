@@ -11,7 +11,7 @@ extern rlpx_devp2p_protocol_settings g_devp2p_settings;
 uecc_ctx*
 rlpx_test_skey(rlpx_channel* ch)
 {
-    return &ch->skey;
+    return ch->skey;
 }
 
 uecc_ctx*
@@ -24,6 +24,13 @@ void
 rlpx_test_nonce_set(rlpx_channel* s, h256* nonce)
 {
     memcpy(s->nonce.b, nonce->b, 32);
+}
+
+void
+rlpx_test_ekey_set(rlpx_channel* s, uecc_ctx* ekey)
+{
+    uecc_key_deinit(&s->ekey);
+    s->ekey = *ekey;
 }
 
 ukeccak256_ctx*

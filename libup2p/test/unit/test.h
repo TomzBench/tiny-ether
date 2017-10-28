@@ -37,6 +37,8 @@ typedef struct
 
 typedef struct
 {
+    uecc_ctx skey_a, skey_b;     /*!< static keys */
+    uint32_t udp[2];             /*!< */
     rlpx_channel *alice, *bob;   /*!< rlpx context */
     size_t authlen, acklen;      /*!< size of cipher */
     uint8_t auth[800], ack[800]; /*!< cipher test buffers */
@@ -54,5 +56,6 @@ int test_frame(void);
 int test_protocol(void);
 int test_enode(void);
 int test_kademlia(void);
+int test_discovery(void);
 
 #endif

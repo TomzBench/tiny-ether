@@ -1,22 +1,20 @@
 #include "rlpx_channel.h"
 
 rlpx_channel*
-rlpx_ch_mock_alloc(async_io_settings* s,
-                   uecc_private_key* skey,
-                   uecc_private_key* ekey)
+rlpx_ch_mock_alloc(async_io_settings* s, uecc_ctx* skey, const uint32_t* listen)
 {
     rlpx_channel* ch = rlpx_malloc(sizeof(rlpx_channel));
-    if (ch) rlpx_ch_mock_init(ch, s, skey, ekey);
+    if (ch) rlpx_ch_mock_init(ch, s, skey, listen);
     return ch;
 }
 
 int
 rlpx_ch_mock_init(rlpx_channel* ch,
                   async_io_settings* settings,
-                  uecc_private_key* skey,
-                  uecc_private_key* ekey)
+                  uecc_ctx* skey,
+                  const uint32_t* listen)
 {
-    rlpx_ch_init(ch, skey, ekey);
+    rlpx_ch_init(ch, skey, listen);
     // Override io
     if (settings->connect) ch->io.settings.connect = settings->connect;
     if (settings->ready) ch->io.settings.ready = settings->ready;
