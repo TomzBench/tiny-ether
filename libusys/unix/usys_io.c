@@ -70,6 +70,27 @@ usys_recv_fd(int sockfd, byte* b, size_t len)
 }
 
 int
+usys_recv_from_fd(int sockfd, byte* b, size_t len, usys_sockaddr* addr)
+{
+    ssize_t r = 0;
+    struct sockaddr_storage in;
+    socklen_t inlen = sizeof(in);
+    if (addr) {
+        r = recvfrom(sockfd, (char*)b, len, 0, (struct sockaddr*)&in, &inlen);
+        addr->ip = ((struct sockaddr_in*)&in)->sin_addr.s_addr;
+        addr->port = ((struct sockaddr_in*)&in)->sin_port;
+    } else {
+        r = recvfrom(sockfd, (char*)b, len, 0, NULL, 0);
+    }
+    if (r < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            r = 0;
+        }
+    }
+    return r;
+}
+
+int
 usys_send_fd(usys_socket_fd sockfd, const byte* b, uint32_t len)
 {
     ssize_t bytes_sent = 0;
@@ -80,6 +101,32 @@ usys_send_fd(usys_socket_fd sockfd, const byte* b, uint32_t len)
         }
     }
     return bytes_sent;
+}
+
+int
+usys_send_to_fd(usys_socket_fd sockfd,
+                const byte* b,
+                uint32_t len,
+                usys_sockaddr* addr)
+{
+    ssize_t bytes = 0;
+    struct sockaddr_in dest;
+    socklen_t dlen = sizeof(dest);
+
+    if (addr) {
+        dest.sin_addr.s_addr = addr->ip;
+        dest.sin_port = addr->port;
+        bytes = sendto(sockfd, (char*)b, len, 0, (struct sockaddr*)&dest, dlen);
+    } else {
+        bytes = sendto(sockfd, (char*)b, len, 0, NULL, 0);
+    }
+
+    if (bytes < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            bytes = 0;
+        }
+    }
+    return bytes;
 }
 
 void

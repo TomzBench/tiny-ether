@@ -4,8 +4,11 @@
 int test_mock_ready(usys_socket_fd*);
 int test_mock_connect(usys_socket_fd* fd, const char* host, int port);
 void test_mock_close(usys_socket_fd* fd);
-int test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l);
-int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l);
+int test_mock_send(usys_socket_fd* fd,
+                   const byte* b,
+                   uint32_t l,
+                   usys_sockaddr*);
+int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr*);
 
 async_io_settings g_io_mock_settings = { //
     .connect = test_mock_connect,
@@ -38,18 +41,23 @@ test_mock_close(usys_socket_fd* fd)
 }
 
 int
-test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l)
+test_mock_send(usys_socket_fd* fd,
+               const byte* b,
+               uint32_t l,
+               usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);
+    ((void)addr);
     return l; // Sent all...
 }
 
 int
-test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l)
+test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);
     ((void)l);
+    ((void)addr);
     return 0;
 }
