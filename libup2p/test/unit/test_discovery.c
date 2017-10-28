@@ -108,8 +108,7 @@ test_disc_read()
                                        check_find_node,
                                        check_neighbours };
 
-    // TODO - neighbours packet breaking urlp (looks like read_sz buggy)
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         err = rlpx_disc_parse(
             &sock_addr, reads[i], reads_sz[i], &nodeid, &type, &rlp);
         if (!err) {
@@ -145,7 +144,7 @@ check_ping_v555(int type, urlp* rlp)
     int err = -1;
     int ver = urlp_as_u32(urlp_at(rlp, 0));
     if (type != 1) return err;
-    if (!(ver == 11520)) return err; // wtf? TODO
+    if (!(ver == 555)) return err;
     err = 0;
     return err;
 }
