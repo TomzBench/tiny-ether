@@ -109,7 +109,7 @@ test_disc_read()
                                        check_neighbours };
 
     for (int i = 0; i < 5; i++) {
-        err = rlpx_disc_parse(
+        err = rlpx_discovery_parse(
             &sock_addr, reads[i], reads_sz[i], &nodeid, &type, &rlp);
         if (!err) {
             err = check_fn[i](type, rlp);
