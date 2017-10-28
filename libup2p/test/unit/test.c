@@ -76,6 +76,7 @@ main(int argc, char* argv[])
     IF_ERR_EXIT(test_protocol());
     IF_ERR_EXIT(test_enode());
     IF_ERR_EXIT(test_kademlia());
+    IF_ERR_EXIT(test_discovery());
 
 EXIT:
     if (!err) {

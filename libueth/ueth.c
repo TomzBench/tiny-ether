@@ -28,7 +28,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
 
     // Setup udp listener
     if (ctx->config.udp) {
-        async_io_init(&ctx->io, ctx, &g_ueth_io_settings);
+        async_io_init_udp(&ctx->io, ctx, &g_ueth_io_settings);
         usys_listen_udp(&ctx->io.sock, ctx->config.udp);
     }
 
@@ -161,7 +161,7 @@ ueth_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
 int
 ueth_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
 {
-    ((void)ctx);
+    ueth_context* eth = (ueth_context*)ctx;
     ((void)err);
     ((void)b);
     ((void)l);

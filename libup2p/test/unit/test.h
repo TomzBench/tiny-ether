@@ -56,5 +56,6 @@ int test_frame(void);
 int test_protocol(void);
 int test_enode(void);
 int test_kademlia(void);
+int test_discovery(void);
 
 #endif
