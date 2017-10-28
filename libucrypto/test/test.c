@@ -189,7 +189,7 @@ test_recover()
     ukeccak256((uint8_t*)"hello bob", 9, msg, 32);
     uecc_sign(&alice, msg, 32, &sig);
     uecc_sig_to_bin(&sig, rawsig);
-    uecc_recover_bin(rawsig, (uecc_shared_secret*)&msg, &pub);
+    uecc_recover_bin(rawsig, msg, &pub);
     uecc_qtob(&pub, rawpub, 65);
     uecc_qtob(&alice.Q, alicepub, 65);
     err = memcmp(rawpub, alicepub, 65) ? -1 : 0;

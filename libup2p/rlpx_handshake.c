@@ -234,7 +234,7 @@ rlpx_handshake_auth_install(rlpx_handshake* hs, urlp** rlp_p)
         urlp_size(seek) == sizeof(uecc_signature)) {
         uecc_shared_secret x;
         XOR32_SET(x.b, (&hs->skey->z.b[1]), hs->nonce_remote.b);
-        err = uecc_recover_bin(urlp_ref(seek, NULL), &x, &hs->ekey_remote);
+        err = uecc_recover_bin(urlp_ref(seek, NULL), x.b, &hs->ekey_remote);
     }
     // urlp_free(&rlp);
     return err;

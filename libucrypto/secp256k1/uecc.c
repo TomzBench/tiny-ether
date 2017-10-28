@@ -87,8 +87,8 @@ uecc_qtob(const uecc_public_key* q, byte* b, size_t l)
     size_t tmp = l;
     secp256k1_context* ctx;
     ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
-    ok = secp256k1_ec_pubkey_serialize(ctx, b, &tmp, q,
-                                       SECP256K1_EC_UNCOMPRESSED);
+    ok = secp256k1_ec_pubkey_serialize(
+        ctx, b, &tmp, q, SECP256K1_EC_UNCOMPRESSED);
     secp256k1_context_destroy(ctx);
     return ok == 1 ? 0 : -1;
 }
@@ -123,8 +123,8 @@ int
 uecc_sign(uecc_ctx* ctx, const byte* msg, size_t sz, uecc_signature* sig)
 {
     if (!(sz == 32)) return -1;
-    int ok = secp256k1_ecdsa_sign_recoverable(ctx->grp, sig, msg, ctx->d.b,
-                                              NULL, NULL);
+    int ok = secp256k1_ecdsa_sign_recoverable(
+        ctx->grp, sig, msg, ctx->d.b, NULL, NULL);
     return ok ? 0 : -1;
 }
 
@@ -148,9 +148,7 @@ uecc_verify(const uecc_public_key* q,
 }
 
 int
-uecc_recover_bin(const byte* b,
-                 uecc_shared_secret* digest,
-                 uecc_public_key* key)
+uecc_recover_bin(const byte* b, byte* digest, uecc_public_key* key)
 {
     secp256k1_context* ctx;
     uecc_signature rawsig;
@@ -161,7 +159,7 @@ uecc_recover_bin(const byte* b,
 
     IF_ERR_EXIT(!secp256k1_ecdsa_recoverable_signature_parse_compact(
         ctx, &rawsig, b, v));
-    IF_ERR_EXIT(!secp256k1_ecdsa_recover(ctx, key, &rawsig, digest->b));
+    IF_ERR_EXIT(!secp256k1_ecdsa_recover(ctx, key, &rawsig, digest));
 
 EXIT:
     secp256k1_context_destroy(ctx);

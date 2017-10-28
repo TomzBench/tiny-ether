@@ -114,9 +114,7 @@ int uecc_verify(const uecc_public_key* q,
  *
  * @return
  */
-int uecc_recover_bin(const byte* bytes,
-                     uecc_shared_secret* digest,
-                     uecc_public_key* key);
+int uecc_recover_bin(const byte* bytes, byte* b, uecc_public_key* key);
 
 #ifdef __cplusplus
 }
