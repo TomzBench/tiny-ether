@@ -4,6 +4,7 @@
 #include "kademlia/ktable.h"
 #include "rlpx_channel.h"
 #include "rlpx_devp2p.h"
+#include "rlpx_discovery.h"
 #include "rlpx_test_helpers.h"
 #include "test_vectors.h"
 #include "unonce.h"

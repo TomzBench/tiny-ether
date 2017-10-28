@@ -3,6 +3,7 @@ set(sources
 	rlpx_channel.c
 	rlpx_channel_mock.c
 	rlpx_devp2p.c
+	rlpx_discovery.c
 	rlpx_frame.c
 	rlpx_handshake.c
 	kademlia/ktable.c
@@ -15,6 +16,7 @@ set(headers
 	rlpx_config.h
 	rlpx_config_unix.h
 	rlpx_devp2p.h
+	rlpx_discovery.h
 	rlpx_frame.h
 	rlpx_handshake.h
 	rlpx_helper_macros.h
