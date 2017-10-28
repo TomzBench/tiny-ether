@@ -162,11 +162,11 @@ check_q(const uecc_public_key* key, const char* str)
 const uint8_t*
 makebin(const char* str, size_t* len)
 {
-    static uint8_t buf[512];
+    static uint8_t buf[1024];
     size_t s;
     if (!len) len = &s;
     *len = strlen(str) / 2;
-    if (*len > 512) *len = 512;
+    if (*len > 1024) *len = 1024;
     for (size_t i = 0; i < *len; i++) {
         uint8_t c = 0;
         if (str[i * 2] >= '0' && str[i * 2] <= '9')
