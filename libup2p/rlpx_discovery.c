@@ -43,7 +43,6 @@ rlpx_discovery_parse(usys_sockaddr* addr,
 {
     // Stack
     h256 hash, shash;
-    uecc_shared_secret* s = (uecc_shared_secret*)shash.b;
     int err;
 
     // Check len before parsing around
@@ -55,7 +54,7 @@ rlpx_discovery_parse(usys_sockaddr* addr,
 
     // Recover signature from signed hash of type+rlp
     ukeccak256((uint8_t*)&b[32 + 65], l - (32 + 65), shash.b, 32);
-    err = uecc_recover_bin(&b[32], s, node_id);
+    err = uecc_recover_bin(&b[32], shash.b, node_id);
 
     // Return OK
     *type = b[32 + 65];
