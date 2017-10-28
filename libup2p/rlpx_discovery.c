@@ -5,7 +5,8 @@ int
 rlpx_discovery_recv(usys_sockaddr* ep, const uint8_t* b, uint32_t l)
 {
     uecc_public_key pub;
-    RLPX_DISCOVERY type, err = -1;
+    RLPX_DISCOVERY type;
+    int err = -1;
     urlp* rlp;
     const urlp* crlp;
 
