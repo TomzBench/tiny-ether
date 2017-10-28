@@ -30,14 +30,22 @@ int usys_file_close(usys_file_fd* fd);
 
 // Networking sys call abstraction layer
 typedef int (*usys_io_send_fn)(usys_socket_fd*, const byte*, uint32_t);
+typedef int (*usys_io_send_to_fn)(usys_socket_fd*,
+                                  const byte*,
+                                  uint32_t,
+                                  usys_sockaddr*);
 typedef int (*usys_io_recv_fn)(usys_socket_fd*, byte*, uint32_t);
+typedef int (*usys_io_recv_from_fn)(usys_socket_fd*,
+                                    byte*,
+                                    uint32_t,
+                                    usys_sockaddr*);
 typedef int (*usys_io_connect_fn)(usys_socket_fd*, const char*, int);
 typedef int (*usys_io_ready_fn)(usys_socket_fd*);
 typedef void (*usys_io_close_fn)(usys_socket_fd*);
 int usys_connect(usys_socket_fd* fd, const char* host, int port);
 int usys_listen_udp(usys_socket_fd* sock_p, int port);
 int usys_send_fd(usys_socket_fd fd, const byte* b, uint32_t len);
-int usys_send_to_fd(usys_socket_fd fd, const byte* b, uint32_t len);
+int usys_send_to_fd(usys_socket_fd, const byte*, uint32_t, usys_sockaddr*);
 int usys_recv_fd(int sockfd, byte* b, size_t len);
 int usys_recv_from_fd(int sockfd, byte* b, size_t len, usys_sockaddr*);
 void usys_close(usys_socket_fd* fd);
@@ -56,10 +64,20 @@ usys_send(usys_socket_fd* fd, const byte* b, uint32_t len)
 {
     return usys_send_fd(*(usys_socket_fd*)fd, b, len);
 }
+
 static inline int
 usys_recv(usys_socket_fd* fd, byte* b, uint32_t len)
 {
     return usys_recv_fd(*(usys_socket_fd*)fd, b, len);
+}
+
+static inline int
+usys_send_to(usys_socket_fd* fd,
+             const byte* b,
+             uint32_t len,
+             usys_sockaddr* addr)
+{
+    return usys_send_to_fd(*(usys_socket_fd*)fd, b, len, addr);
 }
 
 static inline int
