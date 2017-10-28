@@ -70,6 +70,23 @@ usys_recv_fd(int sockfd, byte* b, size_t len)
 }
 
 int
+usys_recv_from_fd(int sockfd, byte* b, size_t len, usys_sockaddr* addr)
+{
+    ssize_t bytes = 0;
+    struct sockaddr_storage in;
+    socklen_t inlen = sizeof(in);
+    bytes = recvfrom(sockfd, (char*)b, len, 0, (struct sockaddr*)&in, &inlen);
+    if (bytes < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            bytes = 0;
+        }
+    }
+    addr->ip = ((struct sockaddr_in*)&in)->sin_addr.s_addr;
+    addr->port = ((struct sockaddr_in*)&in)->sin_port;
+    return bytes;
+}
+
+int
 usys_send_fd(usys_socket_fd sockfd, const byte* b, uint32_t len)
 {
     ssize_t bytes_sent = 0;

@@ -16,6 +16,11 @@ extern "C" {
 typedef int usys_socket_fd;
 typedef int usys_file_fd;
 typedef unsigned char byte;
+typedef struct
+{
+    uint32_t ip;
+    uint32_t port;
+} usys_sockaddr;
 
 // File sys call abstraction layer
 usys_file_fd usys_file_open(const char* path);
@@ -32,7 +37,9 @@ typedef void (*usys_io_close_fn)(usys_socket_fd*);
 int usys_connect(usys_socket_fd* fd, const char* host, int port);
 int usys_listen_udp(usys_socket_fd* sock_p, int port);
 int usys_send_fd(usys_socket_fd fd, const byte* b, uint32_t len);
+int usys_send_to_fd(usys_socket_fd fd, const byte* b, uint32_t len);
 int usys_recv_fd(int sockfd, byte* b, size_t len);
+int usys_recv_from_fd(int sockfd, byte* b, size_t len, usys_sockaddr*);
 void usys_close(usys_socket_fd* fd);
 void usys_close_fd(usys_socket_fd s);
 int usys_sock_error(usys_socket_fd* fd);
@@ -53,6 +60,12 @@ static inline int
 usys_recv(usys_socket_fd* fd, byte* b, uint32_t len)
 {
     return usys_recv_fd(*(usys_socket_fd*)fd, b, len);
+}
+
+static inline int
+usys_recv_from(usys_socket_fd* fd, byte* b, uint32_t len, usys_sockaddr* addr)
+{
+    return usys_recv_from_fd(*(usys_socket_fd*)fd, b, len, addr);
 }
 
 #ifdef __cplusplus
