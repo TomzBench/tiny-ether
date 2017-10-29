@@ -22,5 +22,6 @@ for(( i = 0; i < ${#SOURCES[@]} ; i++));do
 	if ! grep -q Copyright ${SOURCES[$i]}
 	then
 		echo ${SOURCES[$i]} want copyright
+		cat ./scripts/copyright.txt ${SOURCES[$i]} > ${SOURCES[$i]}
 	fi
 done
