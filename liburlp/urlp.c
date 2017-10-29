@@ -555,6 +555,17 @@ urlp_parse_walk(const uint8_t* b, uint32_t l)
     return rlp;
 }
 
+void
+urlp_foreach(urlp* rlp, void* ctx, urlp_walk_fn fn)
+{
+    rlp = rlp ? rlp->child : NULL;
+    uint32_t n = urlp_siblings(rlp);
+    while (rlp) {
+        fn(rlp, --n, ctx);
+        rlp = rlp->next;
+    }
+}
+
 //
 //
 //
