@@ -110,13 +110,19 @@ rlpx_discovery_parse_find(usys_sockaddr* addr, const urlp** rlp)
 int
 rlpx_discovery_parse_neighbours(usys_sockaddr* addr, const urlp** rlp)
 {
-    // TODO - populate our node table
-    urlp_foreach(*rlp, addr, rlpx_walk_neighbours);
+    // rlp.list(rlp.list(neighbours),timestamp)
+    // rlp.list(rlp.list(neighbours),timestamp,a,b,c,d)
+    // where neighbours = [ipv4|6,udp,tcp,nodeid]
+    const urlp *n = urlp_at(*rlp, 0),            // get list of neighbours
+        ts = urlp_at(*rlp, 1);                   // get timestamp
+    ((void)ts);                                  // TODO
+    urlp_foreach(n, addr, rlpx_walk_neighbours); // loop and add to table
     return 0;
 }
 
 void
 rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
 {
+    // rlp.list(ipv(4|6),udp,tcp,nodeid)
     ((void)ctx);
 }
