@@ -34,7 +34,7 @@ extern "C" {
 #include "urlp_config.h"
 
 typedef struct urlp urlp; /*!< opaque class */
-typedef void (*urlp_walk_fn)(urlp*, int, void*);
+typedef void (*urlp_walk_fn)(const urlp*, int, void*);
 
 #define urlp_item(b, l) urlp_item_str(b, l) /*!< alias */
 #define urlp_is_list(rlp) (!(rlp->sz)) /*!< empty node signal start of list */
@@ -68,7 +68,7 @@ uint32_t urlp_siblings(const urlp* rlp);
 uint32_t urlp_print_size(const urlp* rlp);
 int urlp_print(const urlp* rlp, uint8_t* b, uint32_t* sz);
 urlp* urlp_parse(const uint8_t* b, uint32_t);
-void urlp_foreach(urlp* rlp, void* ctx, urlp_walk_fn fn);
+void urlp_foreach(const urlp* rlp, void* ctx, urlp_walk_fn fn);
 
 #ifdef __cplusplus
 }

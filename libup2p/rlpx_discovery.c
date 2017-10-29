@@ -22,6 +22,8 @@
 #include "rlpx_discovery.h"
 #include "ukeccak256.h"
 
+void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
+
 int
 rlpx_discovery_recv(usys_sockaddr* ep, const uint8_t* b, uint32_t l)
 {
@@ -109,5 +111,12 @@ int
 rlpx_discovery_parse_neighbours(usys_sockaddr* addr, const urlp** rlp)
 {
     // TODO - populate our node table
+    urlp_foreach(*rlp, addr, rlpx_walk_neighbours);
     return 0;
+}
+
+void
+rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
+{
+    ((void)ctx);
 }

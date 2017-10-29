@@ -93,7 +93,7 @@ int test_u16();
 int test_u32();
 int test_u64();
 int test_item(uint8_t*, uint32_t, urlp**);
-void test_walk_fn(urlp* rlp, int idx, void* ctx);
+void test_walk_fn(const urlp* rlp, int idx, void* ctx);
 
 int
 main(int argc, char* argv[])
@@ -122,7 +122,7 @@ test_foreach()
 }
 
 void
-test_walk_fn(urlp* rlp, int idx, void* ctx)
+test_walk_fn(const urlp* rlp, int idx, void* ctx)
 {
     uint32_t *mask_ptr = (uint32_t *)ctx, len = 0;
     uint8_t print[5];

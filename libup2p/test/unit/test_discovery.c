@@ -49,11 +49,11 @@ int test_disc_read();
 int test_disc_protocol();
 
 // check functions
-int check_ping_v4(int type, urlp* rlp);
-int check_ping_v555(int type, urlp* rlp);
-int check_pong(int type, urlp* rlp);
-int check_find_node(int type, urlp* rlp);
-int check_neighbours(int type, urlp* rlp);
+int check_ping_v4(int type, const urlp* rlp);
+int check_ping_v555(int type, const urlp* rlp);
+int check_pong(int type, const urlp* rlp);
+int check_find_node(int type, const urlp* rlp);
+int check_neighbours(int type, const urlp* rlp);
 
 int
 test_discovery()
@@ -123,7 +123,7 @@ test_disc_read()
                              g_disc_pong_len,
                              g_disc_find_node_len,
                              g_disc_neighbours_len };
-    int (*check_fn[5])(int, urlp*) = { check_ping_v4,
+    int (*check_fn[5])(int, const urlp*) = { check_ping_v4,
                                        check_ping_v555,
                                        check_pong,
                                        check_find_node,
@@ -148,7 +148,7 @@ test_disc_protocol()
 }
 
 int
-check_ping_v4(int type, urlp* rlp)
+check_ping_v4(int type, const urlp* rlp)
 {
 
     int err = -1;
@@ -160,7 +160,7 @@ check_ping_v4(int type, urlp* rlp)
 }
 
 int
-check_ping_v555(int type, urlp* rlp)
+check_ping_v555(int type, const urlp* rlp)
 {
     int err = -1;
     int ver = urlp_as_u32(urlp_at(rlp, 0));
@@ -171,7 +171,7 @@ check_ping_v555(int type, urlp* rlp)
 }
 
 int
-check_pong(int type, urlp* rlp)
+check_pong(int type, const urlp* rlp)
 {
     int err = -1;
     if (type != 2) return err;
@@ -180,7 +180,7 @@ check_pong(int type, urlp* rlp)
 }
 
 int
-check_find_node(int type, urlp* rlp)
+check_find_node(int type, const urlp* rlp)
 {
     int err = -1;
     if (type != 3) return err;
@@ -189,10 +189,10 @@ check_find_node(int type, urlp* rlp)
 }
 
 int
-check_neighbours(int type, urlp* rlp)
+check_neighbours(int type, const urlp* rlp)
 {
     int err = -1;
     if (type != 4) return err;
-    err = 0;
+    err = rlpx_discovery_parse_neighbours(NULL, &rlp);
     return err;
 }
