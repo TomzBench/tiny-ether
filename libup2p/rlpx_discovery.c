@@ -175,7 +175,7 @@ int
 rlpx_discovery_parse_find(usys_sockaddr* addr, const urlp** rlp)
 {
     // We send empty neighbours since we are not kademlia
-    // We are leach looking for light clients
+    // We are leach looking for light clients servers
     return 0;
 }
 

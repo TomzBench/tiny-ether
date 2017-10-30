@@ -126,6 +126,10 @@ test_conversions()
     urlp* rlp = urlp_list();
     urlp_push(rlp, urlp_item_mem((uint8_t*)"\x03\x02\x01", 3));
     urlp_push(rlp, urlp_item_str("hello world"));
+    // TODO - need to test conversion
+    // urlp_idx_to_..
+    // urlp_unsafe_idx_as_...
+    return 0;
 }
 
 int
