@@ -1,4 +1,4 @@
-# micro-ether #
+# tiny-ether #
 
 **Build**
 ```
