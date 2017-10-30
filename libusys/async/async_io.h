@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #ifndef ASYNC_ASYNC_IO_H_
 #define ASYNC_ASYNC_IO_H_
 
@@ -71,8 +92,8 @@ typedef struct async_io_settings
     async_io_on_erro_fn on_erro;
     async_io_on_send_fn on_send;
     async_io_on_recv_fn on_recv;
-    usys_io_send_fn tx;
-    usys_io_recv_fn rx;
+    usys_io_send_to_fn tx;
+    usys_io_recv_from_fn rx;
     usys_io_ready_fn ready;
     usys_io_connect_fn connect;
     usys_io_close_fn close;
@@ -84,11 +105,14 @@ typedef struct
     uint32_t state;
     async_io_settings settings;
     void* ctx;
+    usys_sockaddr addr;
+    usys_sockaddr* addr_ptr;
     uint32_t c, len;
     uint8_t b[1200];
 } async_io;
 
 void async_io_install(usys_io_send_fn s, usys_io_recv_fn r);
+void async_io_init_udp(async_io*, void*, const async_io_settings*);
 void async_io_init(async_io*, void*, const async_io_settings*);
 void async_io_deinit(async_io* self);
 int async_io_connect(async_io* async, const char* ip, uint32_t p);

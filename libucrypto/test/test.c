@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "uecc.h"
 #include "uecies_decrypt.h"
 #include "uecies_encrypt.h"
@@ -189,7 +210,7 @@ test_recover()
     ukeccak256((uint8_t*)"hello bob", 9, msg, 32);
     uecc_sign(&alice, msg, 32, &sig);
     uecc_sig_to_bin(&sig, rawsig);
-    uecc_recover_bin(rawsig, (uecc_shared_secret*)&msg, &pub);
+    uecc_recover_bin(rawsig, msg, &pub);
     uecc_qtob(&pub, rawpub, 65);
     uecc_qtob(&alice.Q, alicepub, 65);
     err = memcmp(rawpub, alicepub, 65) ? -1 : 0;

@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "rlpx_node.h"
 
 int rlpx_node_hex_to_bin(const char*, uint32_t, uint8_t*, uint32_t*);
@@ -31,13 +52,13 @@ rlpx_node_init_enode(rlpx_node* self, const char* enode)
         (!(enode[136] == '@')) ||                                //
         (rlpx_node_hex_to_bin(&enode[8], 128, &raw[1], NULL)) || //
         (!(tcp = memchr(&enode[136], ':', l - 136))) ||          //
-        (!(udp = memchr(tcp, '.', &enode[l] - tcp))) ||          //
         (uecc_btoq(raw, 65, &key))) {
         return -1;
     }
+    udp = memchr(tcp, '.', &enode[l] - tcp); // optional
     memcpy(host, &enode[137], tcp - &enode[137]);
     host[tcp - &enode[137]] = 0;
-    return rlpx_node_init(self, &key, host, atoi(++tcp), atoi(++udp));
+    return rlpx_node_init(self, &key, host, atoi(++tcp), udp ? atoi(++udp) : 0);
 }
 
 void

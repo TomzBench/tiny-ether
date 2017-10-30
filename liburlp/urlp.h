@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 /**
  * @file urlp.h
  *
@@ -13,6 +34,7 @@ extern "C" {
 #include "urlp_config.h"
 
 typedef struct urlp urlp; /*!< opaque class */
+typedef void (*urlp_walk_fn)(const urlp*, int, void*);
 
 #define urlp_item(b, l) urlp_item_str(b, l) /*!< alias */
 #define urlp_is_list(rlp) (!(rlp->sz)) /*!< empty node signal start of list */
@@ -32,6 +54,7 @@ uint8_t urlp_as_u8(const urlp*);
 const char* urlp_str(const urlp* rlp);
 const uint8_t* urlp_mem(const urlp* rlp, uint32_t*);
 const uint8_t* urlp_ref(const urlp*, uint32_t*);
+urlp* urlp_copy(const urlp*);
 int urlp_read_int(const urlp*, void* m, uint32_t);
 const urlp* urlp_at(const urlp*, uint32_t);
 urlp* urlp_push(urlp*, urlp*);
@@ -42,9 +65,10 @@ const urlp* urlp_child(const urlp* rlp);
 uint32_t urlp_children(const urlp* rlp);
 uint32_t urlp_children_walk(const urlp* rlp);
 uint32_t urlp_siblings(const urlp* rlp);
-uint32_t urlp_print_size(urlp* rlp);
-int urlp_print(urlp* rlp, uint8_t* b, uint32_t* sz);
+uint32_t urlp_print_size(const urlp* rlp);
+int urlp_print(const urlp* rlp, uint8_t* b, uint32_t* sz);
 urlp* urlp_parse(const uint8_t* b, uint32_t);
+void urlp_foreach(const urlp* rlp, void* ctx, urlp_walk_fn fn);
 
 #ifdef __cplusplus
 }

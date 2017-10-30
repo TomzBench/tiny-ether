@@ -2,6 +2,7 @@ import sys
 import random
 from devp2p.app import BaseApp
 from devp2p.protocol import BaseProtocol
+from devp2p.discovery import NodeDiscovery
 from devp2p.service import WiredService
 from devp2p.crypto import privtopub as privtopub_raw, sha3
 from devp2p.utils import colors, COLOR_END
@@ -31,11 +32,17 @@ def main():
     default_config = dict(BaseApp.default_config)
     update_config_with_defaults(default_config,
                                 peermanager.PeerManager.default_config)
+    update_config_with_defaults(default_config,
+                                NodeDiscovery.default_config)
     default_config['client_version_string'] = client_version_string
     default_config['post_app_start_callback'] = None
     default_config['node']['privkey_hex'] = "b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+    default_config['discovery']['bootstrap_nodes'] = [
+            "enode://762dd8a0636e07a54b31169eba0c7a20a1ac1ef68596f1f283b5c676bae4064abfcce24799d09f67e392632d3ffdc12e3d6430dcb0ea19c318343ffa7aae74d4@127.0.0.1:22332"
+        ]
     app = BaseApp(default_config)
     peermanager.PeerManager.register_with_app(app)
+    NodeDiscovery.register_with_app(app)
 
     gevent.get_hub().SYSTEM_ERROR = BaseException  # (KeyboardInterrupt, SystemExit, SystemError)
 

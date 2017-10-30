@@ -3,16 +3,20 @@ set(sources
 	rlpx_channel.c
 	rlpx_channel_mock.c
 	rlpx_devp2p.c
+	rlpx_discovery.c
 	rlpx_frame.c
 	rlpx_handshake.c
+	kademlia/ktable.c
 	rlpx_node.c
 	rlpx_protocol.c
 	rlpx_test_helpers.c)
 set(headers
+	kademlia/ktable.h
 	rlpx_channel.h
 	rlpx_config.h
 	rlpx_config_unix.h
 	rlpx_devp2p.h
+	rlpx_discovery.h
 	rlpx_frame.h
 	rlpx_handshake.h
 	rlpx_helper_macros.h
@@ -24,9 +28,11 @@ set(headers
 #libup2p unit test sources
 set(sources-unit-test
 	test/unit/test.c
+	test/unit/test_discovery.c
 	test/unit/test_enode.c
 	test/unit/test_frame.c
 	test/unit/test_handshake.c
+	test/unit/test_kademlia.c
 	test/unit/test_mock.c
 	test/unit/test_protocol.c)
 set(headers-unit-test
@@ -34,7 +40,9 @@ set(headers-unit-test
 	test/unit/test_vectors.h)
 
 #libp2p integration test sources
-set(sources-integration-test test/integration/test.c)
+set(sources-integration-test 
+	test/integration/test.c
+	test/integration/test_enodes.h)
 
 # lib
 add_library(up2p ${sources} ${headers})

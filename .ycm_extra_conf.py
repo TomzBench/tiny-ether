@@ -45,9 +45,9 @@ flags = [
 '-lpthread',
 '-lm',
 '-DNDEBUG',
-'-DURLP_CONFIG_LINUX_EMU',
-'-DURLPX_CONFIG_LINUX_EMU',
-'-DUSYS_CONFIG_LINUX_EMU',
+'-DURLP_CONFIG_UNIX',
+'-DURLPX_CONFIG_UNIX',
+'-DUSYS_CONFIG_UNIX',
 # You 100% do NOT need -DUSE_CLANG_COMPLETER in your flags; only the YCM
 # source code needs it.
 #'-DUSE_CLANG_COMPLETER',
@@ -104,6 +104,14 @@ flags = [
 './libusys/test',
 '-I',
 './libusys/async',
+'-I',
+'./libueth',
+'-I',
+'./libueth/test',
+'-I',
+'./libueth/include',
+'-I',
+'./apps/pingpong',
 ]
 
 

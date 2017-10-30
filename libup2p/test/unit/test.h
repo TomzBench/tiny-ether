@@ -1,9 +1,31 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #ifndef TEST_H_
 #define TEST_H_
 
-//#include "rlpx.h"
+#include "kademlia/ktable.h"
 #include "rlpx_channel.h"
 #include "rlpx_devp2p.h"
+#include "rlpx_discovery.h"
 #include "rlpx_test_helpers.h"
 #include "test_vectors.h"
 #include "unonce.h"
@@ -37,6 +59,8 @@ typedef struct
 
 typedef struct
 {
+    uecc_ctx skey_a, skey_b;     /*!< static keys */
+    uint32_t udp[2];             /*!< */
     rlpx_channel *alice, *bob;   /*!< rlpx context */
     size_t authlen, acklen;      /*!< size of cipher */
     uint8_t auth[800], ack[800]; /*!< cipher test buffers */
@@ -49,9 +73,11 @@ int check_q(const uecc_public_key* key, const char* str);
 int test_session_init(test_session*, int);
 void test_session_deinit(test_session*);
 
-int test_handshake();
-int test_frame();
-int test_protocol();
-int test_enode();
+int test_handshake(void);
+int test_frame(void);
+int test_protocol(void);
+int test_enode(void);
+int test_kademlia(void);
+int test_discovery(void);
 
 #endif

@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 /**
  * @file urlp.c
  *
@@ -39,7 +60,7 @@ uint32_t urlp_write_sz(uint8_t* b, uint32_t* s, uint32_t sz, int islist);
 uint32_t urlp_write_n_big_endian(uint8_t*, const void*, uint32_t, int);
 uint32_t urlp_write_big_endian(uint8_t*, const void*, int);
 uint32_t urlp_read_sz(const uint8_t* b, uint32_t* result);
-uint32_t urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot);
+uint32_t urlp_print_walk(const urlp* rlp, uint8_t* b, uint32_t* spot);
 urlp* urlp_parse_walk(const uint8_t* b, uint32_t l);
 
 urlp*
@@ -144,7 +165,8 @@ urlp_read_big_endian(void* dat, int szof, const uint8_t* b)
         return szof;
     }
     while (szof--) {
-        *x += inc = *b++;
+        *x = *b++;
+        x += inc;
     }
     return szof;
 }
@@ -300,6 +322,14 @@ urlp_ref(const urlp* rlp, uint32_t* sz)
     return b;
 }
 
+urlp*
+urlp_copy(const urlp* rlp)
+{
+    uint32_t sz = urlp_print_size(rlp);
+    uint8_t buf[sz];
+    return urlp_print(rlp, buf, &sz) ? NULL : urlp_parse(buf, sz);
+}
+
 int
 urlp_read_int(const urlp* rlp, void* mem, uint32_t szof)
 {
@@ -408,13 +438,13 @@ urlp_siblings(const urlp* rlp)
 }
 
 uint32_t
-urlp_print_size(urlp* rlp)
+urlp_print_size(const urlp* rlp)
 {
     return urlp_print_walk(rlp->child, NULL, 0);
 }
 
 int
-urlp_print(urlp* rlp, uint8_t* b, uint32_t* l)
+urlp_print(const urlp* rlp, uint8_t* b, uint32_t* l)
 {
     int err = -1;
     uint32_t sz, spot;
@@ -449,7 +479,7 @@ urlp_print(urlp* rlp, uint8_t* b, uint32_t* l)
 }
 
 uint32_t
-urlp_print_walk(urlp* rlp, uint8_t* b, uint32_t* spot)
+urlp_print_walk(const urlp* rlp, uint8_t* b, uint32_t* spot)
 {
     uint32_t sz = 0;
     while (rlp) {
@@ -523,6 +553,20 @@ urlp_parse_walk(const uint8_t* b, uint32_t l)
         }
     }
     return rlp;
+}
+
+void
+urlp_foreach(const urlp* rlp, void* ctx, urlp_walk_fn fn)
+{
+    uint32_t n;
+    if (rlp) {
+        rlp = urlp_is_list(rlp) ? rlp->child : NULL;
+        n = urlp_siblings(rlp);
+    }
+    while (rlp) {
+        fn(rlp, --n, ctx);
+        rlp = rlp->next;
+    }
 }
 
 //

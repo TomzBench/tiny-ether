@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "rlpx_channel.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
@@ -11,7 +32,7 @@ extern rlpx_devp2p_protocol_settings g_devp2p_settings;
 uecc_ctx*
 rlpx_test_skey(rlpx_channel* ch)
 {
-    return &ch->skey;
+    return ch->skey;
 }
 
 uecc_ctx*
@@ -24,6 +45,13 @@ void
 rlpx_test_nonce_set(rlpx_channel* s, h256* nonce)
 {
     memcpy(s->nonce.b, nonce->b, 32);
+}
+
+void
+rlpx_test_ekey_set(rlpx_channel* s, uecc_ctx* ekey)
+{
+    uecc_key_deinit(&s->ekey);
+    s->ekey = *ekey;
 }
 
 ukeccak256_ctx*
