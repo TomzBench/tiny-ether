@@ -86,6 +86,7 @@ uint8_t rlp_random[] = {
 uint8_t rlp_wat[] = { '\xc7', '\xc0', '\xc1', '\xc0',
                       '\xc3', '\xc0', '\xc1', '\xc0' };
 
+int test_conversions();
 int test_foreach();
 int test_copy();
 int test_u8();
@@ -106,6 +107,25 @@ main(int argc, char* argv[])
     err |= test_u32();
     err |= test_u64();
     return err;
+}
+
+int
+test_conversions()
+{
+    uint32_t memlen = 3;
+    uint8_t mem[memlen];
+    uint64_t tu64;
+    uint32_t tu32;
+    uint16_t tu16;
+    uint8_t tu8;
+    const uint8_t* cmem;
+    const uint64_t ctu64;
+    const uint32_t ctu32;
+    const uint16_t ctu16;
+    const uint8_t ctu8;
+    urlp* rlp = urlp_list();
+    urlp_push(rlp, urlp_item_mem((uint8_t*)"\x03\x02\x01", 3));
+    urlp_push(rlp, urlp_item_str("hello world"));
 }
 
 int
@@ -259,19 +279,19 @@ test_u16()
     uint16_t onefive[] = { 0x000f };
     urlp* rlp;
 
-    rlp = urlp_item_u16(cat, 3);
+    rlp = urlp_item_u16_arr(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
 
-    rlp = urlp_item_u16(max, 1);
+    rlp = urlp_item_u16_arr(max, 1);
     err |= test_item(rlp_max16, sizeof(rlp_max16), &rlp);
 
-    rlp = urlp_item_u16(half, 1);
+    rlp = urlp_item_u16_arr(half, 1);
     err |= test_item(rlp_half16, sizeof(rlp_half16), &rlp);
 
-    rlp = urlp_item_u16(NULL, 0);
+    rlp = urlp_item_u16_arr(NULL, 0);
     err |= test_item(rlp_null, sizeof(rlp_null), &rlp);
 
-    rlp = urlp_item_u16(onefive, 1);
+    rlp = urlp_item_u16_arr(onefive, 1);
     err |= test_item(rlp_15, sizeof(rlp_15), &rlp);
 
     return err;
@@ -287,19 +307,19 @@ test_u32()
     uint32_t onefive[] = { 0x00000f };
     urlp* rlp;
 
-    rlp = urlp_item_u32(cat, 3);
+    rlp = urlp_item_u32_arr(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
 
-    rlp = urlp_item_u32(max, 1);
+    rlp = urlp_item_u32_arr(max, 1);
     err |= test_item(rlp_max32, sizeof(rlp_max32), &rlp);
 
-    rlp = urlp_item_u32(half, 1);
+    rlp = urlp_item_u32_arr(half, 1);
     err |= test_item(rlp_half32, sizeof(rlp_half32), &rlp);
 
-    rlp = urlp_item_u32(NULL, 0);
+    rlp = urlp_item_u32_arr(NULL, 0);
     err |= test_item(rlp_null, sizeof(rlp_null), &rlp);
 
-    rlp = urlp_item_u32(onefive, 1);
+    rlp = urlp_item_u32_arr(onefive, 1);
     err |= test_item(rlp_15, sizeof(rlp_15), &rlp);
 
     return err;
@@ -315,19 +335,19 @@ test_u64()
     uint64_t onefive[] = { 0x0000000f };
     urlp* rlp;
 
-    rlp = urlp_item_u64(cat, 3);
+    rlp = urlp_item_u64_arr(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
 
-    rlp = urlp_item_u64(max, 1);
+    rlp = urlp_item_u64_arr(max, 1);
     err |= test_item(rlp_max64, sizeof(rlp_max64), &rlp);
 
-    rlp = urlp_item_u64(half, 1);
+    rlp = urlp_item_u64_arr(half, 1);
     err |= test_item(rlp_half64, sizeof(rlp_half64), &rlp);
 
-    rlp = urlp_item_u64(NULL, 0);
+    rlp = urlp_item_u64_arr(NULL, 0);
     err |= test_item(rlp_null, sizeof(rlp_null), &rlp);
 
-    rlp = urlp_item_u64(onefive, 1);
+    rlp = urlp_item_u64_arr(onefive, 1);
     err |= test_item(rlp_15, sizeof(rlp_15), &rlp);
 
     return err;
