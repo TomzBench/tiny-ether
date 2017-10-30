@@ -70,11 +70,32 @@ rlpx_discovery_table_add_node(rlpx_discovery_table* table,
                               uecc_public_key* id,
                               urlp* meta)
 {
-    table->nodes[0].ep.ip[0] = 0; // TODO
-    table->nodes[0].ep.udp = udp;
-    table->nodes[0].ep.tcp = tcp;
-    table->nodes[0].nodeid = *id;
-    if (meta) {
+    rlpx_discovery_node* n = &table->nodes[0];
+    uint32_t i = 0, c = sizeof(table->nodes) - sizeof(rlpx_discovery_node);
+
+    ((void)meta); // potential use in future
+
+    // Seek a free slot in our table and populate
+    for (i = 0; i < c; i++) {
+        if ((n->useful == RLPX_USEFUL_FALSE) ||
+            (n->useful == RLPX_USEFUL_FREE)) {
+            table->nodes[0].ep.ip[0] = 0; // TODO
+            table->nodes[0].ep.udp = udp;
+            table->nodes[0].ep.tcp = tcp;
+            table->nodes[0].nodeid = *id;
+
+            // Need devp2p hello to figure out if we like this node
+            // This will probably change with introduction of topics in the
+            // udp discovery protocol.
+            //
+            // The rlpx_discovery driver will mark this node as useless if
+            // it doesn't like it - it will then be overwritten with other
+            // nodes when usefulness is set to false.
+            //
+            // Not investing much effort here.
+            n->useful = RLPX_USEFUL_PENDING;
+            break;
+        }
     }
     return 0;
 }

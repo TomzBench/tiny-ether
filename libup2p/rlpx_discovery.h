@@ -38,6 +38,13 @@ typedef enum {
     RLPX_DISCOVERY_NEIGHBOURS = 4
 } RLPX_DISCOVERY;
 
+typedef enum {
+    RLPX_USEFUL_FREE = 0,
+    RLPX_USEFUL_PENDING = 1,
+    RLPX_USEFUL_TRUE = 2,
+    RLPX_USEFUL_FALSE = 3
+} RLPX_DISCOVERY_USEFUL;
+
 typedef struct
 {
     uint8_t ip[16]; /*!< BE encoding ipv4 or ipv3 data */
@@ -47,9 +54,9 @@ typedef struct
 
 typedef struct
 {
-    uecc_public_key nodeid;     /*!< pubkey */
-    rlpx_discovery_endpoint ep; /*!< remote endpoint routing*/
-    int useful;                 /*!< -1=discard, 0=free/unknown, 1=likey */
+    uecc_public_key nodeid;       /*!< pubkey */
+    rlpx_discovery_endpoint ep;   /*!< remote endpoint routing*/
+    RLPX_DISCOVERY_USEFUL useful; /*!< usefulness */
 } rlpx_discovery_node;
 
 typedef struct
