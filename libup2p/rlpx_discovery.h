@@ -97,8 +97,8 @@ int rlpx_discovery_table_add_node(rlpx_discovery_table* table,
                                   uecc_public_key* id,
                                   urlp* meta);
 
-int rlpx_discovery_recv(usys_sockaddr* addr, const uint8_t* b, uint32_t l);
-int rlpx_discovery_parse(usys_sockaddr* addr,
+int rlpx_discovery_recv(rlpx_discovery_table* t, const uint8_t* b, uint32_t l);
+int rlpx_discovery_parse(rlpx_discovery_table* t,
                          const uint8_t* b,
                          uint32_t l,
                          uecc_public_key* node_id,
@@ -123,7 +123,7 @@ int rlpx_discovery_print_find(uint8_t* nodeid,
                               uint32_t timestamp,
                               uint8_t* b,
                               uint32_t* l);
-int rlpx_discovery_parse_neighbours(usys_sockaddr* addr, const urlp** rlp);
+int rlpx_discovery_recv_neighbours(rlpx_discovery_table* t, const urlp** rlp);
 //  rlpx_discovery_print_neighbours( ....TODO
 
 #ifdef __cplusplus

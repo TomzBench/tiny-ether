@@ -352,7 +352,7 @@ urlp_idx_to_mem(const urlp* rlp, uint32_t idx, uint8_t* mem, uint32_t* l)
     uint32_t len;
     if (rlp) {
         ref = urlp_as_mem(rlp, &len);
-        if (*l <= len) {
+        if (len <= *l) {
             memcpy(mem, ref, len);
             *l = len;
             return 0;

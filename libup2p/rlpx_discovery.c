@@ -36,17 +36,49 @@ rlpx_discovery_table_init(rlpx_discovery_table* table)
 int
 rlpx_discovery_table_add_node_rlp(rlpx_discovery_table* table, const urlp* rlp)
 {
-    const urlp *ip = NULL, *udp = NULL, *tcp = NULL, *pub = NULL;
-    uint32_t n = urlp_siblings(rlp);
+    int err = 0;
+    uint32_t n = urlp_siblings(rlp), udp, ip, tcp, publen = 64, iplen = 16;
+    uint8_t ipbuf[iplen];
+    uint8_t pub[publen + 1];
+    uecc_public_key q;
     if (n < 4) return -1; /*!< invalid rlp */
-    ip = urlp_at(rlp, 0);
-    udp = urlp_at(rlp, 1);
-    tcp = urlp_at(rlp, 2);
-    pub = urlp_at(rlp, 3);
+
+    err |= urlp_idx_to_mem(rlp, 0, ipbuf, &iplen);
+    err |= urlp_idx_to_u32(rlp, 0, &ip); // TODO ipv4 support only atm
+    err |= urlp_idx_to_u32(rlp, 1, &udp);
+    err |= urlp_idx_to_u32(rlp, 2, &tcp);
+    err |= urlp_idx_to_mem(rlp, 3, &pub[1], &publen);
+    if ((!err)) {
+        pub[0] = 0x04;
+        err = uecc_btoq(pub, publen + 1, &q);
+        if (!err) {
+            err =
+                rlpx_discovery_table_add_node(table, ip, 4, udp, tcp, &q, NULL);
+        }
+    }
+    return err;
 }
 
 int
-rlpx_discovery_recv(usys_sockaddr* ep, const uint8_t* b, uint32_t l)
+rlpx_discovery_table_add_node(rlpx_discovery_table* table,
+                              uint8_t ip,
+                              uint32_t iplen,
+                              uint32_t tcp,
+                              uint32_t udp,
+                              uecc_public_key* id,
+                              urlp* meta)
+{
+    table->nodes[0].ep.ip[0] = 0; // TODO
+    table->nodes[0].ep.udp = udp;
+    table->nodes[0].ep.tcp = tcp;
+    table->nodes[0].nodeid = *id;
+    if (meta) {
+    }
+    return 0;
+}
+
+int
+rlpx_discovery_recv(rlpx_discovery_table* t, const uint8_t* b, uint32_t l)
 {
     uecc_public_key pub;
     RLPX_DISCOVERY type;
@@ -55,19 +87,19 @@ rlpx_discovery_recv(usys_sockaddr* ep, const uint8_t* b, uint32_t l)
     const urlp* crlp;
 
     // Parse (rlp is allocated on success - must free)
-    if ((err = rlpx_discovery_parse(ep, b, l, &pub, (int*)&type, &rlp))) {
+    if ((err = rlpx_discovery_parse(t, b, l, &pub, (int*)&type, &rlp))) {
         return err;
     }
 
     crlp = rlp;
     if (type == RLPX_DISCOVERY_PING) {
-        err = rlpx_discovery_parse_ping(ep, &crlp);
+        err = rlpx_discovery_parse_ping(NULL, &crlp);
     } else if (type == RLPX_DISCOVERY_PING) {
-        err = rlpx_discovery_parse_pong(ep, &crlp);
+        err = rlpx_discovery_parse_pong(NULL, &crlp);
     } else if (type == RLPX_DISCOVERY_FIND) {
-        err = rlpx_discovery_parse_find(ep, &crlp);
+        err = rlpx_discovery_parse_find(NULL, &crlp);
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
-        err = rlpx_discovery_parse_neighbours(ep, &crlp);
+        err = rlpx_discovery_recv_neighbours(t, &crlp);
     } else {
         // error
     }
@@ -79,7 +111,7 @@ rlpx_discovery_recv(usys_sockaddr* ep, const uint8_t* b, uint32_t l)
 
 // h256:32 + Signature:65 + type + RLP
 int
-rlpx_discovery_parse(usys_sockaddr* addr,
+rlpx_discovery_parse(rlpx_discovery_table* t,
                      const uint8_t* b,
                      uint32_t l,
                      uecc_public_key* node_id,
@@ -129,15 +161,15 @@ rlpx_discovery_parse_find(usys_sockaddr* addr, const urlp** rlp)
 }
 
 int
-rlpx_discovery_parse_neighbours(usys_sockaddr* addr, const urlp** rlp)
+rlpx_discovery_recv_neighbours(rlpx_discovery_table* t, const urlp** rlp)
 {
     // rlp.list(rlp.list(neighbours),timestamp)
     // rlp.list(rlp.list(neighbours),timestamp,a,b,c,d)
     // where neighbours = [ipv4|6,udp,tcp,nodeid]
-    const urlp *n = urlp_at(*rlp, 0),            // get list of neighbours
-        *ts = urlp_at(*rlp, 1);                  // get timestamp
-    ((void)ts);                                  // TODO
-    urlp_foreach(n, addr, rlpx_walk_neighbours); // loop and add to table
+    const urlp *n = urlp_at(*rlp, 0),         // get list of neighbours
+        *ts = urlp_at(*rlp, 1);               // get timestamp
+    ((void)ts);                               // TODO
+    urlp_foreach(n, t, rlpx_walk_neighbours); // loop and add to table
     return 0;
 }
 
@@ -145,5 +177,6 @@ void
 rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
 {
     // rlp.list(ipv(4|6),udp,tcp,nodeid)
-    ((void)ctx);
+    rlpx_discovery_table* table = (rlpx_discovery_table*)ctx;
+    rlpx_discovery_table_add_node_rlp(table, rlp);
 }
