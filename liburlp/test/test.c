@@ -124,19 +124,14 @@ test_foreach()
 void
 test_walk_fn(const urlp* rlp, int idx, void* ctx)
 {
-    uint32_t *mask_ptr = (uint32_t *)ctx, len = 0;
-    uint8_t print[5];
+    uint32_t *mask_ptr = (uint32_t *)ctx, len = 5;
+    uint8_t print[len];
+    urlp_print(rlp, print, &len);
     if (idx == 0) {
-        len = 5;
-        urlp_print(rlp, print, &len);
         if (!memcmp(print, "\x84zero", 5)) *mask_ptr |= 0x01 << idx;
     } else if (idx == 1) {
-        len = 5;
-        urlp_print(rlp, print, &len);
         if (!memcmp(print, "\x83one", 4)) *mask_ptr |= 0x01 << idx;
     } else if (idx == 2) {
-        len = 5;
-        urlp_print(rlp, print, &len);
         if (!memcmp(print, "\x83two", 4)) *mask_ptr |= 0x01 << idx;
     }
 }
