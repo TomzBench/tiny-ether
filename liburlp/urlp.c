@@ -209,34 +209,52 @@ urlp_list()
 }
 
 urlp*
-urlp_item_u64(const uint64_t* b, uint32_t sz)
+urlp_item_u64(const uint64_t val)
+{
+    return urlp_item_u64_arr(&val, 1);
+}
+
+urlp*
+urlp_item_u32(const uint32_t val)
+{
+    return urlp_item_u32_arr(&val, 1);
+}
+
+urlp*
+urlp_item_u16(const uint16_t val)
+{
+    return urlp_item_u16_arr(&val, 1);
+}
+// urlp* urlp_item_u8(const uint8_t);
+urlp*
+urlp_item_u64_arr(const uint64_t* b, uint32_t sz)
 {
     uint32_t blen = sz * sizeof(uint64_t); // worstcase
     uint8_t bytes[blen];
     uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint64_t));
-    return urlp_item_u8(bytes, len);
+    return urlp_item_u8_arr(bytes, len);
 }
 
 urlp*
-urlp_item_u32(const uint32_t* b, uint32_t sz)
+urlp_item_u32_arr(const uint32_t* b, uint32_t sz)
 {
     uint32_t blen = sz * sizeof(uint32_t); // worstcase
     uint8_t bytes[blen];
     uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint32_t));
-    return urlp_item_u8(bytes, len);
+    return urlp_item_u8_arr(bytes, len);
 }
 
 urlp*
-urlp_item_u16(const uint16_t* b, uint32_t sz)
+urlp_item_u16_arr(const uint16_t* b, uint32_t sz)
 {
     uint32_t blen = sz * sizeof(uint16_t); // worstcase
     uint8_t bytes[blen];
     uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint16_t));
-    return urlp_item_u8(bytes, len);
+    return urlp_item_u8_arr(bytes, len);
 }
 
 urlp*
-urlp_item_u8(const uint8_t* b, uint32_t sz)
+urlp_item_u8_arr(const uint8_t* b, uint32_t sz)
 {
     urlp* rlp = NULL;
     uint32_t size;
@@ -275,7 +293,7 @@ urlp_item_str(const char* b)
 urlp*
 urlp_item_mem(const uint8_t* b, uint32_t sz)
 {
-    return urlp_item_u8((uint8_t*)b, sz);
+    return urlp_item_u8_arr((uint8_t*)b, sz);
 }
 
 int
@@ -638,7 +656,7 @@ urlp_parse(const uint8_t* b, uint32_t l)
         // Handle case where this is a single item and not a list
         uint32_t sz;
         b += urlp_read_sz(b, &sz);
-        rlp = urlp_item_u8(b, sz);
+        rlp = urlp_item_u8_arr(b, sz);
     } else {
         if (*b > 0xc0) {
             // regular list
@@ -674,7 +692,7 @@ urlp_parse_walk(const uint8_t* b, uint32_t l)
         } else {
             // This is an item.
             b += urlp_read_sz(b, &sz);
-            rlp = urlp_push(rlp, urlp_item_u8(b, sz));
+            rlp = urlp_push(rlp, urlp_item_u8_arr(b, sz));
             b += sz;
         }
     }
