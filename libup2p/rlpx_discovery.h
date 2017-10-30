@@ -48,6 +48,7 @@ typedef enum {
 typedef struct
 {
     uint8_t ip[16]; /*!< BE encoding ipv4 or ipv6 data */
+    uint32_t iplen; /*!< ip4|6 */
     uint32_t tcp;   /*!< devp2p port */
     uint32_t udp;   /*!< p2p port */
 } rlpx_discovery_endpoint;
@@ -72,6 +73,12 @@ typedef struct
  */
 void rlpx_discovery_table_init(rlpx_discovery_table* table);
 
+int rlpx_discovery_table_find_node(rlpx_discovery_table* table,
+                                   uecc_public_key* target,
+                                   rlpx_discovery_node* node);
+
+void rlpx_discovery_table_update_recent(rlpx_discovery_table* table,
+                                        rlpx_discovery_node* node);
 /**
  * @brief
  *
@@ -111,25 +118,36 @@ int rlpx_discovery_parse(const uint8_t* b,
                          int* type,
                          urlp** rlp);
 
-int rlpx_discovery_parse_ping(usys_sockaddr* addr, const urlp** rlp);
+int rlpx_discovery_parse_endpoint(const urlp*, rlpx_discovery_endpoint* ep);
+
+int rlpx_discovery_parse_ping(const urlp**,
+                              uint8_t* version32,
+                              rlpx_discovery_endpoint* from,
+                              rlpx_discovery_endpoint* to,
+                              uint32_t* timestamp);
 int rlpx_discovery_print_ping(uint32_t ver,
-                              uint32_t timestamp,
                               const rlpx_discovery_endpoint* ep_src,
                               const rlpx_discovery_endpoint* ep_dst,
+                              uint32_t timestamp,
                               uint8_t* dst,
                               uint32_t* l);
-int rlpx_discovery_parse_pong(usys_sockaddr* addr, const urlp** rlp);
+int rlpx_discovery_parse_pong(const urlp** rlp,
+                              rlpx_discovery_endpoint* to,
+                              uint8_t* echo32,
+                              uint32_t* timestamp);
 int rlpx_discovery_print_pong(uint32_t timestamp,
                               h256* echo,
                               const rlpx_discovery_endpoint* ep_to,
                               uint8_t* d,
                               uint32_t* l);
-int rlpx_discovery_parse_find(usys_sockaddr* addr, const urlp** rlp);
+int rlpx_discovery_parse_find(const urlp** rlp,
+                              uecc_public_key* q,
+                              uint32_t* ts);
 int rlpx_discovery_print_find(uint8_t* nodeid,
                               uint32_t timestamp,
                               uint8_t* b,
                               uint32_t* l);
-int rlpx_discovery_recv_neighbours(rlpx_discovery_table* t, const urlp** rlp);
+int rlpx_discovery_parse_neighbours(rlpx_discovery_table* t, const urlp** rlp);
 //  rlpx_discovery_print_neighbours( ....TODO
 
 #ifdef __cplusplus
