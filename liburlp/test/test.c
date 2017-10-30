@@ -86,6 +86,7 @@ uint8_t rlp_random[] = {
 uint8_t rlp_wat[] = { '\xc7', '\xc0', '\xc1', '\xc0',
                       '\xc3', '\xc0', '\xc1', '\xc0' };
 
+int test_conversions();
 int test_foreach();
 int test_copy();
 int test_u8();
@@ -106,6 +107,25 @@ main(int argc, char* argv[])
     err |= test_u32();
     err |= test_u64();
     return err;
+}
+
+int
+test_conversions()
+{
+    uint32_t memlen = 3;
+    uint8_t mem[memlen];
+    uint64_t tu64;
+    uint32_t tu32;
+    uint16_t tu16;
+    uint8_t tu8;
+    const uint8_t* cmem;
+    const uint64_t ctu64;
+    const uint32_t ctu32;
+    const uint16_t ctu16;
+    const uint8_t ctu8;
+    urlp* rlp = urlp_list();
+    urlp_push(rlp, urlp_item_mem((uint8_t*)"\x03\x02\x01", 3));
+    urlp_push(rlp, urlp_item_str("hello world"));
 }
 
 int
