@@ -119,18 +119,17 @@ rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
                                  uint32_t* l)
 {
     int err = -1;
-    uint32_t p2pver = RLPX_VERSION_P2P, p2p = 4;
     urlp *body = urlp_list(), *caps = urlp_list();
 
     // Create cababilities list (p2p/4)
-    urlp_push(caps, urlp_push(urlp_item_str("p2p", 3), urlp_item_u32(&p2p, 1)));
+    urlp_push(caps, urlp_push(urlp_item_str("p2p"), urlp_item_u32(4)));
 
     // Create body list
-    urlp_push(body, urlp_item_u32(&p2pver, 1));
-    urlp_push(body, urlp_item_str(RLPX_CLIENT_ID_STR, RLPX_CLIENT_ID_LEN));
+    urlp_push(body, urlp_item_u32(RLPX_VERSION_P2P));
+    urlp_push(body, urlp_item_str(RLPX_CLIENT_ID_STR));
     urlp_push(body, caps);
-    urlp_push(body, urlp_item_u32(&port, 1));
-    urlp_push(body, urlp_item_u8(id, 64));
+    urlp_push(body, urlp_item_u32(port));
+    urlp_push(body, urlp_item_u8_arr(id, 64));
 
     // Encode
     err = rlpx_devp2p_protocol_write(x, DEVP2P_HELLO, body, out, l);
@@ -147,7 +146,7 @@ rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,
     int err;
     urlp* rlp = urlp_list();
     if (!rlp) return -1;
-    urlp_push(rlp, urlp_item_u32((uint32_t*)&reason, 1));
+    urlp_push(rlp, urlp_item_u32((uint32_t)reason));
     err = rlpx_devp2p_protocol_write(x, DEVP2P_DISCONNECT, rlp, out, l);
     urlp_free(&rlp);
     return err;

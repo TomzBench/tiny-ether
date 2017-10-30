@@ -55,7 +55,7 @@ static inline int
 rlpx_rlp_to_str(const urlp* rlp, int idx, const char** str_p)
 {
     if (!(rlp = urlp_at(rlp, idx))) return -1;
-    *str_p = urlp_str(rlp);
+    *str_p = urlp_as_str(rlp);
     return 0;
 }
 

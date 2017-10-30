@@ -49,11 +49,11 @@ int test_disc_read();
 int test_disc_protocol();
 
 // check functions
-int check_ping_v4(int type, const urlp* rlp);
-int check_ping_v555(int type, const urlp* rlp);
-int check_pong(int type, const urlp* rlp);
-int check_find_node(int type, const urlp* rlp);
-int check_neighbours(int type, const urlp* rlp);
+int check_ping_v4(rlpx_discovery_table* t, int type, const urlp* rlp);
+int check_ping_v555(rlpx_discovery_table* t, int type, const urlp* rlp);
+int check_pong(rlpx_discovery_table* t, int type, const urlp* rlp);
+int check_find_node(rlpx_discovery_table* t, int type, const urlp* rlp);
+int check_neighbours(rlpx_discovery_table* t, int type, const urlp* rlp);
 
 int
 test_discovery()
@@ -108,9 +108,11 @@ int
 test_disc_read()
 {
     urlp* rlp = NULL;
+    rlpx_discovery_table table;
     uecc_public_key nodeid;
     int type, err;
-    usys_sockaddr sock_addr;
+    // usys_sockaddr sock_addr;
+    rlpx_discovery_table_init(&table);
 
     // Construct test vector arrays for loop
     const uint8_t* reads[5] = { g_disc_ping_v4_bin,
@@ -123,17 +125,17 @@ test_disc_read()
                              g_disc_pong_len,
                              g_disc_find_node_len,
                              g_disc_neighbours_len };
-    int (*check_fn[5])(int, const urlp*) = { check_ping_v4,
-                                       check_ping_v555,
-                                       check_pong,
-                                       check_find_node,
-                                       check_neighbours };
+    int (*check_fn[5])(
+        rlpx_discovery_table*, int, const urlp*) = { check_ping_v4,
+                                                     check_ping_v555,
+                                                     check_pong,
+                                                     check_find_node,
+                                                     check_neighbours };
 
     for (int i = 0; i < 5; i++) {
-        err = rlpx_discovery_parse(
-            &sock_addr, reads[i], reads_sz[i], &nodeid, &type, &rlp);
+        err = rlpx_discovery_parse(reads[i], reads_sz[i], &nodeid, &type, &rlp);
         if (!err) {
-            err = check_fn[i](type, rlp);
+            err = check_fn[i](&table, type, rlp);
             urlp_free(&rlp);
         }
     }
@@ -148,51 +150,65 @@ test_disc_protocol()
 }
 
 int
-check_ping_v4(int type, const urlp* rlp)
+check_ping_v4(rlpx_discovery_table* t, int type, const urlp* rlp)
 {
-
+    ((void)t);
     int err = -1;
     int ver = urlp_as_u32(urlp_at(rlp, 0));
+    uint32_t timestamp;
+    uint8_t version[32];
+    rlpx_discovery_endpoint from, to;
     if (type != 1) return err;
     if (!(ver == 4)) return err;
-    err = 0;
+    err = rlpx_discovery_parse_ping(&rlp, version, &from, &to, &timestamp);
     return err;
 }
 
 int
-check_ping_v555(int type, const urlp* rlp)
+check_ping_v555(rlpx_discovery_table* t, int type, const urlp* rlp)
 {
+    ((void)t);
     int err = -1;
     int ver = urlp_as_u32(urlp_at(rlp, 0));
+    uint32_t timestamp;
+    uint8_t version[32];
+    rlpx_discovery_endpoint from, to;
     if (type != 1) return err;
     if (!(ver == 555)) return err;
-    err = 0;
+    err = rlpx_discovery_parse_ping(&rlp, version, &from, &to, &timestamp);
     return err;
 }
 
 int
-check_pong(int type, const urlp* rlp)
+check_pong(rlpx_discovery_table* t, int type, const urlp* rlp)
 {
+    ((void)t);
     int err = -1;
+    uint32_t timestamp;
+    uint8_t echo[32];
+    rlpx_discovery_endpoint to;
     if (type != 2) return err;
-    err = 0;
+    err = rlpx_discovery_parse_pong(&rlp, &to, echo, &timestamp);
     return err;
 }
 
 int
-check_find_node(int type, const urlp* rlp)
+check_find_node(rlpx_discovery_table* t, int type, const urlp* rlp)
 {
+    ((void)t);
     int err = -1;
     if (type != 3) return err;
-    err = 0;
+    uint32_t ts;
+    uecc_public_key q;
+    err = rlpx_discovery_parse_find(&rlp, &q, &ts);
     return err;
 }
 
 int
-check_neighbours(int type, const urlp* rlp)
+check_neighbours(rlpx_discovery_table* t, int type, const urlp* rlp)
 {
     int err = -1;
     if (type != 4) return err;
-    err = rlpx_discovery_parse_neighbours(NULL, &rlp);
+    err = rlpx_discovery_parse_neighbours(t, &rlp);
     return err;
 }
