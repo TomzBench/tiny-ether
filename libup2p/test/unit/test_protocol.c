@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "test.h"
 
 uint32_t g_test_mask = 0;
@@ -25,8 +46,8 @@ test_protocol()
 
     rlpx_ch_nonce(s.alice);
     rlpx_ch_nonce(s.bob);
-    rlpx_ch_connect(s.alice, &s.bob->skey.Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
+    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
 
     // Recv keys
     IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
@@ -90,7 +111,7 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
 
     // Verify listen port
     rlpx_devp2p_protocol_listen_port(rlp, &num);
-    IF_ERR_EXIT((num == 44) ? 0 : -1);
+    if (!((num == UDP_TEST_PORT) || (num == UDP_TEST_PORT + 1))) goto EXIT;
 
     // verify node_id
     rlpx_devp2p_protocol_node_id(rlp, &mem, &num);

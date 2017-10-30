@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 /**
  * @file urlp.c
  *
@@ -144,7 +165,8 @@ urlp_read_big_endian(void* dat, int szof, const uint8_t* b)
         return szof;
     }
     while (szof--) {
-        *x += inc = *b++;
+        *x = *b++;
+        x += inc;
     }
     return szof;
 }
@@ -531,6 +553,20 @@ urlp_parse_walk(const uint8_t* b, uint32_t l)
         }
     }
     return rlp;
+}
+
+void
+urlp_foreach(const urlp* rlp, void* ctx, urlp_walk_fn fn)
+{
+    uint32_t n;
+    if (rlp) {
+        rlp = urlp_is_list(rlp) ? rlp->child : NULL;
+        n = urlp_siblings(rlp);
+    }
+    while (rlp) {
+        fn(rlp, --n, ctx);
+        rlp = rlp->next;
+    }
 }
 
 //

@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "async_io.h"
 
 // 56 byte test vector
@@ -7,10 +28,19 @@ char* g_lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
 int io_mock_ready(usys_socket_fd*);
 int io_mock_connect(usys_socket_fd* fd, const char* host, int port);
 void io_mock_close(usys_socket_fd* fd);
-int io_mock_send_all(usys_socket_fd* fd, const byte* b, uint32_t l);
-int io_mock_send_one(usys_socket_fd* fd, const byte* b, uint32_t l);
-int io_mock_send_min(usys_socket_fd* fd, const byte* b, uint32_t l);
-int io_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l);
+int io_mock_send_all(usys_socket_fd* fd,
+                     const byte* b,
+                     uint32_t l,
+                     usys_sockaddr*);
+int io_mock_send_one(usys_socket_fd* fd,
+                     const byte* b,
+                     uint32_t l,
+                     usys_sockaddr*);
+int io_mock_send_min(usys_socket_fd* fd,
+                     const byte* b,
+                     uint32_t l,
+                     usys_sockaddr*);
+int io_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr*);
 
 // Callbacks from IO
 int io_on_connect(void* ctx);
@@ -118,35 +148,48 @@ io_mock_close(usys_socket_fd* fd)
 }
 
 int
-io_mock_send_all(usys_socket_fd* fd, const byte* b, uint32_t l)
+io_mock_send_all(usys_socket_fd* fd,
+                 const byte* b,
+                 uint32_t l,
+                 usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);
+    ((void)addr);
     return l;
 }
 
 int
-io_mock_send_one(usys_socket_fd* fd, const byte* b, uint32_t l)
+io_mock_send_one(usys_socket_fd* fd,
+                 const byte* b,
+                 uint32_t l,
+                 usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);
+    ((void)addr);
     return l ? 1 : 0;
 }
 
 int
-io_mock_send_min(usys_socket_fd* fd, const byte* b, uint32_t l)
+io_mock_send_min(usys_socket_fd* fd,
+                 const byte* b,
+                 uint32_t l,
+                 usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);
+    ((void)addr);
     return (l < 3) ? l : 3;
 }
 
 int
-io_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l)
+io_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);
     ((void)l);
+    ((void)addr);
     return 0; // TODO - need test vectors.
 }
 

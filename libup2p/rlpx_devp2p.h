@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #ifndef RLPX_DEVP2P_H_
 #define RLPX_DEVP2P_H_
 #ifdef __cplusplus
@@ -41,9 +62,11 @@ typedef struct
 typedef struct
 {
     rlpx_protocol base;
-    const rlpx_devp2p_protocol_settings* settings;
-    int64_t ping;
-    uint32_t latency;
+    const rlpx_devp2p_protocol_settings* settings; /*!< user callbacks */
+    char client[RLPX_CLIENT_MAX_LEN];              /*!< Hello packet client*/
+    uint32_t listen_port;                          /*!< */
+    int64_t ping;                                  /*!< ping now() */
+    uint32_t latency;                              /*!< now() - ping */
 } rlpx_devp2p_protocol;
 
 // Heap constructors

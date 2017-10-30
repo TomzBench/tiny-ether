@@ -19,16 +19,30 @@
  * @date 2017
  */
 
-#ifndef UETH_CONFIG_H_
-#define UETH_CONFIG_H_
+#include "ktable.h"
+#include "urand.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define UETH_CONFIG_NUM_CHANNELS 8
-
-#ifdef __cplusplus
+int
+ktable_init(ktable* ctx, knode* id)
+{
+    ctx->node = *id;
+    return 0;
 }
-#endif
-#endif
+
+void
+ktable_deinit(ktable* ctx)
+{
+    ((void)ctx);
+}
+
+int
+ktable_add_node(ktable* ctx, knode* node)
+{
+    return 0;
+}
+
+uint32_t
+ktable_buckets_len(ktable* ctx)
+{
+    return 0;
+}

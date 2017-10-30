@@ -19,16 +19,21 @@
  * @date 2017
  */
 
-#ifndef UETH_CONFIG_H_
-#define UETH_CONFIG_H_
+#ifndef KNODE_H_
+#define KNODE_H_
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define UETH_CONFIG_NUM_CHANNELS 8
+#include "rlpx_config.h"
+
+typedef struct
+{
+    uint8_t b[32];
+} knode;
 
 #ifdef __cplusplus
 }
-#endif
 #endif

@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "urlp.h"
 
 uint8_t rlp_null[] = { '\x80' };
@@ -65,23 +86,54 @@ uint8_t rlp_random[] = {
 uint8_t rlp_wat[] = { '\xc7', '\xc0', '\xc1', '\xc0',
                       '\xc3', '\xc0', '\xc1', '\xc0' };
 
+int test_foreach();
 int test_copy();
 int test_u8();
 int test_u16();
 int test_u32();
 int test_u64();
 int test_item(uint8_t*, uint32_t, urlp**);
+void test_walk_fn(const urlp* rlp, int idx, void* ctx);
 
 int
 main(int argc, char* argv[])
 {
     int err = 0;
+    err |= test_foreach();
     err |= test_copy();
     err |= test_u8();
     err |= test_u16();
     err |= test_u32();
     err |= test_u64();
     return err;
+}
+
+int
+test_foreach()
+{
+    uint32_t mask = 0;
+    urlp* rlp = urlp_list();
+    urlp_push(rlp, urlp_item_str("zero", 4));
+    urlp_push(rlp, urlp_item_str("one", 3));
+    urlp_push(rlp, urlp_item_str("two", 3));
+    urlp_foreach(rlp, &mask, test_walk_fn);
+    urlp_free(&rlp);
+    return mask == (0b111) ? 0 : -1;
+}
+
+void
+test_walk_fn(const urlp* rlp, int idx, void* ctx)
+{
+    uint32_t *mask_ptr = (uint32_t *)ctx, len = 5;
+    uint8_t print[len];
+    urlp_print(rlp, print, &len);
+    if (idx == 0) {
+        if (!memcmp(print, "\x84zero", 5)) *mask_ptr |= 0x01 << idx;
+    } else if (idx == 1) {
+        if (!memcmp(print, "\x83one", 4)) *mask_ptr |= 0x01 << idx;
+    } else if (idx == 2) {
+        if (!memcmp(print, "\x83two", 4)) *mask_ptr |= 0x01 << idx;
+    }
 }
 
 int
@@ -158,8 +210,9 @@ test_u8()
     rlp = urlp_list();
     urlp_push(rlp, urlp_list());
     urlp_push(rlp, urlp_push(urlp_list(), urlp_list()));
-    urlp_push(rlp, urlp_push(urlp_push(urlp_list(), urlp_list()), //
-                             urlp_push(urlp_list(), urlp_list())) //
+    urlp_push(rlp,
+              urlp_push(urlp_push(urlp_list(), urlp_list()), //
+                        urlp_push(urlp_list(), urlp_list())) //
               );
     err |= (urlp_siblings(urlp_child(rlp)) == 3 ? 0 : -1);
     err |= test_item(rlp_wat, sizeof(rlp_wat), &rlp);

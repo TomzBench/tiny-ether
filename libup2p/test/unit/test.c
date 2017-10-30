@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "test.h"
 #include <string.h>
 
@@ -47,9 +68,11 @@ test_vector g_test_vectors[] = { //
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 const char* g_alice_spri = ALICE_SPRI;
+const char* g_alice_spub = ALICE_SPUB;
 const char* g_alice_epri = ALICE_EPRI;
 const char* g_alice_epub = ALICE_EPUB;
 const char* g_bob_spri = BOB_SPRI;
+const char* g_bob_spub = BOB_SPUB;
 const char* g_bob_epri = BOB_EPRI;
 const char* g_bob_epub = BOB_EPUB;
 const char* g_aes_secret = AES_SECRET;
@@ -73,6 +96,8 @@ main(int argc, char* argv[])
     IF_ERR_EXIT(test_frame());
     IF_ERR_EXIT(test_protocol());
     IF_ERR_EXIT(test_enode());
+    IF_ERR_EXIT(test_kademlia());
+    IF_ERR_EXIT(test_discovery());
 
 EXIT:
     if (!err) {
@@ -87,25 +112,40 @@ int
 test_session_init(test_session* s, int vec)
 {
     // buffers for keys, nonces, cipher text, etc
-    uecc_private_key alice_e, alice_s, bob_s, bob_e;
+    uecc_private_key alice_s, alice_e, bob_s, bob_e;
+    uecc_ctx ekey_a, ekey_b;
+
     memset(s, 0, sizeof(test_session));
-    // read in test vectors
+    memcpy(alice_s.b, makebin(g_test_vectors[vec].alice_s, NULL), 32);
+    memcpy(bob_s.b, makebin(g_test_vectors[vec].bob_s, NULL), 32);
+    memcpy(alice_e.b, makebin(g_test_vectors[vec].alice_e, NULL), 32);
+    memcpy(bob_e.b, makebin(g_test_vectors[vec].bob_e, NULL), 32);
     s->authlen = strlen(g_test_vectors[vec].auth) / 2;
     s->acklen = strlen(g_test_vectors[vec].ack) / 2;
-    memcpy(alice_e.b, makebin(g_test_vectors[vec].alice_e, NULL), 32);
-    memcpy(alice_s.b, makebin(g_test_vectors[vec].alice_s, NULL), 32);
-    memcpy(bob_e.b, makebin(g_test_vectors[vec].bob_e, NULL), 32);
-    memcpy(bob_s.b, makebin(g_test_vectors[vec].bob_s, NULL), 32);
     memcpy(s->auth, makebin(g_test_vectors[vec].auth, NULL), s->authlen);
     memcpy(s->ack, makebin(g_test_vectors[vec].ack, NULL), s->acklen);
     memcpy(s->alice_n.b, makebin(g_test_vectors[vec].alice_n, NULL), 32);
     memcpy(s->bob_n.b, makebin(g_test_vectors[vec].bob_n, NULL), 32);
+    s->udp[0] = UDP_TEST_PORT;
+    s->udp[1] = UDP_TEST_PORT + 1;
+
     // init test_session with alice,bob,etc
-    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &alice_s, &alice_e);
-    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &bob_s, &bob_e);
+    uecc_key_init_binary(&s->skey_a, &alice_s);
+    uecc_key_init_binary(&s->skey_b, &bob_s);
+    uecc_key_init_binary(&ekey_a, &alice_e);
+    uecc_key_init_binary(&ekey_b, &bob_e);
+    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_a, &s->udp[0]);
+    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_b, &s->udp[1]);
+
+    // Install mock ekeys
+    rlpx_test_ekey_set(s->alice, &ekey_a);
+    rlpx_test_ekey_set(s->bob, &ekey_b);
+
     // sanity check
     if ((check_q(&s->alice->ekey.Q, g_alice_epub))) return -1;
     if ((check_q(&s->bob->ekey.Q, g_bob_epub))) return -1;
+    if ((check_q(&s->alice->skey->Q, g_alice_spub))) return -1;
+    if ((check_q(&s->bob->skey->Q, g_bob_spub))) return -1;
     return 0;
 }
 
@@ -114,6 +154,8 @@ test_session_deinit(test_session* s)
 {
     rlpx_ch_free(&s->alice);
     rlpx_ch_free(&s->bob);
+    uecc_key_deinit(&s->skey_a);
+    uecc_key_deinit(&s->skey_b);
 }
 
 int
@@ -141,11 +183,11 @@ check_q(const uecc_public_key* key, const char* str)
 const uint8_t*
 makebin(const char* str, size_t* len)
 {
-    static uint8_t buf[512];
+    static uint8_t buf[1024];
     size_t s;
     if (!len) len = &s;
     *len = strlen(str) / 2;
-    if (*len > 512) *len = 512;
+    if (*len > 1024) *len = 1024;
     for (size_t i = 0; i < *len; i++) {
         uint8_t c = 0;
         if (str[i * 2] >= '0' && str[i * 2] <= '9')

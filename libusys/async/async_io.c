@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "async_io.h"
 
 // Override system IO with MOCK implementation OR other IO implementation.
@@ -8,8 +29,8 @@ async_io_settings g_async_io_settings_default = {
     .on_erro = async_io_default_on_erro,
     .on_send = async_io_default_on_send,
     .on_recv = async_io_default_on_recv,
-    .tx = usys_send,
-    .rx = usys_recv,
+    .tx = usys_send_to,
+    .rx = usys_recv_from,
     .ready = usys_sock_ready,
     .connect = usys_connect,
     .close = usys_close
@@ -19,6 +40,13 @@ async_io_settings g_async_io_settings_default = {
 void async_error(async_io* self, int);
 
 // Public
+void
+async_io_init_udp(async_io* self, void* ctx, const async_io_settings* opts)
+{
+    async_io_init(self, ctx, opts);
+    self->addr_ptr = &self->addr;
+}
+
 void
 async_io_init(async_io* self, void* ctx, const async_io_settings* opts)
 {
@@ -168,8 +196,10 @@ async_io_poll(async_io* self)
         }
     } else if (ASYNC_IO_SEND(self->state)) {
         for (c = 0; c < 2; c++) {
-            ret = self->settings.tx(&self->sock, &self->b[self->c],
-                                    self->len - self->c);
+            ret = self->settings.tx(&self->sock,
+                                    &self->b[self->c],
+                                    self->len - self->c,
+                                    self->addr_ptr);
             if (ret >= 0) {
                 if (ret + (int)self->c == end) {
                     self->settings.on_send(self->ctx, 0, self->b, self->len);
@@ -189,8 +219,10 @@ async_io_poll(async_io* self)
         }
     } else if (ASYNC_IO_RECV(self->state)) {
         for (c = 0; c < 2; c++) {
-            ret = self->settings.rx(&self->sock, &self->b[self->c],
-                                    self->len - self->c);
+            ret = self->settings.rx(&self->sock,
+                                    &self->b[self->c],
+                                    self->len - self->c,
+                                    self->addr_ptr);
             if (ret >= 0) {
                 if (ret + (int)self->c == end) {
                     self->settings.on_recv(self->ctx, -1, 0, 0);

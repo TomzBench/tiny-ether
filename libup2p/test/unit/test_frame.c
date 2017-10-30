@@ -1,3 +1,24 @@
+// Copyright 2017 Altronix Corp.
+// This file is part of the tiny-ether library
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @author Thomas Chiantia <thomas@altronix>
+ * @date 2017
+ */
+
 #include "test.h"
 
 extern test_vector g_test_vectors[];
@@ -38,13 +59,15 @@ test_frame_read()
     rlpx_test_nonce_set(s.alice, &s.alice_n);
 
     // Update our secrets
-    rlpx_ch_connect(s.alice, &s.bob->skey.Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
+    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
     IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.auth, s.authlen));
-    IF_ERR_EXIT(rlpx_test_expect_secrets(s.bob, 0, s.ack, s.acklen, s.auth,
-                                         s.authlen, aes, mac, NULL));
-    if (!rlpx_frame_parse(&s.bob->x, makebin(g_hello_packet, NULL),
-                          strlen(g_hello_packet) / 2, &frame)) {
+    IF_ERR_EXIT(rlpx_test_expect_secrets(
+        s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, NULL));
+    if (!rlpx_frame_parse(&s.bob->x,
+                          makebin(g_hello_packet, NULL),
+                          strlen(g_hello_packet) / 2,
+                          &frame)) {
         goto EXIT;
     }
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
@@ -74,8 +97,8 @@ test_frame_write()
     // Send keys
     rlpx_ch_nonce(s.alice);
     rlpx_ch_nonce(s.bob);
-    rlpx_ch_connect(s.alice, &s.bob->skey.Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey.Q);
+    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
 
     // Recv keys
     IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
@@ -119,8 +142,8 @@ test_frame_write()
     // verify listen port
     rlpx_devp2p_protocol_listen_port(bodya, &numa);
     rlpx_devp2p_protocol_listen_port(bodyb, &numb);
-    IF_ERR_EXIT((numa == s.alice->listen_port) ? 0 : -1);
-    IF_ERR_EXIT((numb == s.bob->listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numa == *s.alice->listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numb == *s.bob->listen_port) ? 0 : -1);
 
     // verify node_id
     rlpx_devp2p_protocol_node_id(bodya, &mema, &numa);
