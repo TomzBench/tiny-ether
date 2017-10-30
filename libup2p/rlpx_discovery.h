@@ -49,8 +49,53 @@ typedef struct
 {
     uecc_public_key nodeid;     /*!< pubkey */
     rlpx_discovery_endpoint ep; /*!< remote endpoint routing*/
-    urlp* meta;                 /*!< meta data (topics?) */
+    int useful;                 /*!< -1=discard, 0=free/unknown, 1=likey */
 } rlpx_discovery_node;
+
+typedef struct
+{
+    rlpx_discovery_node nodes[10];   /*!< potential peers */
+    rlpx_discovery_node* recents[3]; /*!< ptrs to most recent pings */
+} rlpx_discovery_table;
+
+/**
+ * @brief
+ *
+ * @param table
+ */
+void rlpx_discovery_table_init(rlpx_discovery_table* table);
+
+/**
+ * @brief
+ *
+ * @param table
+ * @param rlp
+ *
+ * @return
+ */
+int rlpx_discovery_table_add_node_rlp(rlpx_discovery_table* table,
+                                      const urlp* rlp);
+
+/**
+ * @brief
+ *
+ * @param table
+ * @param ip
+ * @param iplen
+ * @param tcp
+ * @param udp
+ * @param id
+ * @param meta
+ *
+ * @return
+ */
+int rlpx_discovery_table_add_node(rlpx_discovery_table* table,
+                                  uint8_t ip,
+                                  uint32_t iplen,
+                                  uint32_t tcp,
+                                  uint32_t udp,
+                                  uecc_public_key* id,
+                                  urlp* meta);
 
 int rlpx_discovery_recv(usys_sockaddr* addr, const uint8_t* b, uint32_t l);
 int rlpx_discovery_parse(usys_sockaddr* addr,

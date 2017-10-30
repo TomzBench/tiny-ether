@@ -123,11 +123,11 @@ rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
     urlp *body = urlp_list(), *caps = urlp_list();
 
     // Create cababilities list (p2p/4)
-    urlp_push(caps, urlp_push(urlp_item_str("p2p", 3), urlp_item_u32(&p2p, 1)));
+    urlp_push(caps, urlp_push(urlp_item_str("p2p"), urlp_item_u32(&p2p, 1)));
 
     // Create body list
     urlp_push(body, urlp_item_u32(&p2pver, 1));
-    urlp_push(body, urlp_item_str(RLPX_CLIENT_ID_STR, RLPX_CLIENT_ID_LEN));
+    urlp_push(body, urlp_item_str(RLPX_CLIENT_ID_STR));
     urlp_push(body, caps);
     urlp_push(body, urlp_item_u32(&port, 1));
     urlp_push(body, urlp_item_u8(id, 64));

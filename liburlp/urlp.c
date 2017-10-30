@@ -267,9 +267,51 @@ urlp_item_u8(const uint8_t* b, uint32_t sz)
 }
 
 urlp*
-urlp_item_str(const char* b, uint32_t sz)
+urlp_item_str(const char* b)
+{
+    return urlp_item_mem((const uint8_t*)b, strlen(b));
+}
+
+urlp*
+urlp_item_mem(const uint8_t* b, uint32_t sz)
 {
     return urlp_item_u8((uint8_t*)b, sz);
+}
+
+uint64_t
+urlp_unsafe_idx_as_u64(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_u64(urlp_at(rlp, idx));
+}
+
+uint32_t
+urlp_unsafe_idx_as_u32(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_u32(urlp_at(rlp, idx));
+}
+
+uint16_t
+urlp_unsafe_idx_as_u16(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_u16(urlp_at(rlp, idx));
+}
+
+uint8_t
+urlp_unsafe_idx_as_u8(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_u8(urlp_at(rlp, idx));
+}
+
+const uint8_t*
+urlp_unsafe_idx_as_mem(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_mem(urlp_at(rlp, idx), NULL);
+}
+
+const char*
+urlp_unsafe_idx_as_str(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_str(urlp_at(rlp, idx));
 }
 
 uint64_t
@@ -301,13 +343,13 @@ urlp_as_u8(const urlp* rlp)
 }
 
 const char*
-urlp_str(const urlp* rlp)
+urlp_as_str(const urlp* rlp)
 {
     return (const char*)urlp_ref(rlp, NULL);
 }
 
 const uint8_t*
-urlp_mem(const urlp* rlp, uint32_t* sz)
+urlp_as_mem(const urlp* rlp, uint32_t* sz)
 {
     return urlp_ref(rlp, sz);
 }

@@ -36,7 +36,7 @@ extern "C" {
 typedef struct urlp urlp; /*!< opaque class */
 typedef void (*urlp_walk_fn)(const urlp*, int, void*);
 
-#define urlp_item(b, l) urlp_item_str(b, l) /*!< alias */
+#define urlp_item(b) urlp_item_str(b)  /*!< alias */
 #define urlp_is_list(rlp) (!(rlp->sz)) /*!< empty node signal start of list */
 
 urlp* urlp_alloc(uint32_t);
@@ -46,13 +46,26 @@ urlp* urlp_item_u64(const uint64_t*, uint32_t sz);
 urlp* urlp_item_u32(const uint32_t*, uint32_t sz);
 urlp* urlp_item_u16(const uint16_t*, uint32_t sz);
 urlp* urlp_item_u8(const uint8_t*, uint32_t);
-urlp* urlp_item_str(const char*, uint32_t);
+urlp* urlp_item_str(const char*);
+urlp* urlp_item_mem(const uint8_t* b, uint32_t l);
+int urlp_idx_to_u64(const urlp* rlp, uint32_t idx, uint64_t* val);
+int urlp_idx_to_u32(const urlp* rlp, uint32_t idx, uint32_t* val);
+int urlp_idx_to_u16(const urlp* rlp, uint32_t idx, uint16_t* val);
+int urlp_idx_to_u8(const urlp* rlp, uint32_t idx, uint8_t* val);
+int urlp_idx_to_mem(const urlp* rlp, uint32_t idx, uint8_t* mem, uint32_t* l);
+int urlp_idx_to_str(const urlp* rlp, uint32_t idx, char* str);
+uint64_t urlp_unsafe_idx_as_u64(const urlp* rlp, uint32_t idx);
+uint32_t urlp_unsafe_idx_as_u32(const urlp* rlp, uint32_t idx);
+uint16_t urlp_unsafe_idx_as_u16(const urlp* rlp, uint32_t idx);
+uint8_t urlp_unsafe_idx_as_u8(const urlp* rlp, uint32_t idx);
+const uint8_t* urlp_unsafe_idx_as_mem(const urlp* rlp, uint32_t idx);
+const char* urlp_unsafe_idx_as_str(const urlp* rlp, uint32_t idx);
 uint64_t urlp_as_u64(const urlp*);
 uint32_t urlp_as_u32(const urlp*);
 uint16_t urlp_as_u16(const urlp*);
 uint8_t urlp_as_u8(const urlp*);
-const char* urlp_str(const urlp* rlp);
-const uint8_t* urlp_mem(const urlp* rlp, uint32_t*);
+const char* urlp_as_str(const urlp* rlp);
+const uint8_t* urlp_as_mem(const urlp* rlp, uint32_t*);
 const uint8_t* urlp_ref(const urlp*, uint32_t*);
 urlp* urlp_copy(const urlp*);
 int urlp_read_int(const urlp*, void* m, uint32_t);

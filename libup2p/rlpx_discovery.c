@@ -24,6 +24,27 @@
 
 void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
 
+void
+rlpx_discovery_table_init(rlpx_discovery_table* table)
+{
+    memset(table, 0, sizeof(rlpx_discovery_table));
+    table->recents[0] = &table->nodes[0];
+    table->recents[1] = &table->nodes[1];
+    table->recents[2] = &table->nodes[2];
+}
+
+int
+rlpx_discovery_table_add_node_rlp(rlpx_discovery_table* table, const urlp* rlp)
+{
+    const urlp *ip = NULL, *udp = NULL, *tcp = NULL, *pub = NULL;
+    uint32_t n = urlp_siblings(rlp);
+    if (n < 4) return -1; /*!< invalid rlp */
+    ip = urlp_at(rlp, 0);
+    udp = urlp_at(rlp, 1);
+    tcp = urlp_at(rlp, 2);
+    pub = urlp_at(rlp, 3);
+}
+
 int
 rlpx_discovery_recv(usys_sockaddr* ep, const uint8_t* b, uint32_t l)
 {
