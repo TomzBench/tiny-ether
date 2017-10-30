@@ -47,7 +47,7 @@ typedef enum {
 
 typedef struct
 {
-    uint8_t ip[16]; /*!< BE encoding ipv4 or ipv3 data */
+    uint8_t ip[16]; /*!< BE encoding ipv4 or ipv6 data */
     uint32_t tcp;   /*!< devp2p port */
     uint32_t udp;   /*!< p2p port */
 } rlpx_discovery_endpoint;
@@ -97,7 +97,7 @@ int rlpx_discovery_table_add_node_rlp(rlpx_discovery_table* table,
  * @return
  */
 int rlpx_discovery_table_add_node(rlpx_discovery_table* table,
-                                  uint8_t ip,
+                                  uint8_t* ip,
                                   uint32_t iplen,
                                   uint32_t tcp,
                                   uint32_t udp,
@@ -105,8 +105,7 @@ int rlpx_discovery_table_add_node(rlpx_discovery_table* table,
                                   urlp* meta);
 
 int rlpx_discovery_recv(rlpx_discovery_table* t, const uint8_t* b, uint32_t l);
-int rlpx_discovery_parse(rlpx_discovery_table* t,
-                         const uint8_t* b,
+int rlpx_discovery_parse(const uint8_t* b,
                          uint32_t l,
                          uecc_public_key* node_id,
                          int* type,

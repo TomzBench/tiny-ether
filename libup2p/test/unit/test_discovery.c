@@ -133,8 +133,7 @@ test_disc_read()
                                                      check_neighbours };
 
     for (int i = 0; i < 5; i++) {
-        err = rlpx_discovery_parse(
-            &table, reads[i], reads_sz[i], &nodeid, &type, &rlp);
+        err = rlpx_discovery_parse(reads[i], reads_sz[i], &nodeid, &type, &rlp);
         if (!err) {
             err = check_fn[i](&table, type, rlp);
             urlp_free(&rlp);

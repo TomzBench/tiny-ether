@@ -37,7 +37,7 @@ int
 rlpx_discovery_table_add_node_rlp(rlpx_discovery_table* table, const urlp* rlp)
 {
     int err = 0;
-    uint32_t n = urlp_children(rlp), udp, ip, tcp, publen = 64, iplen = 16;
+    uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, iplen = 16;
     uint8_t ipbuf[iplen];
     uint8_t pub[publen + 1];
     uecc_public_key q;
@@ -50,20 +50,15 @@ rlpx_discovery_table_add_node_rlp(rlpx_discovery_table* table, const urlp* rlp)
         (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
-        // TODO assuming ipv4 for now
-        if (iplen == 4) {
-            urlp_idx_to_u32(rlp, 0, &ip);
-        } else {
-            urlp_idx_to_u32(rlp, 0, &ip);
-        }
-        err = rlpx_discovery_table_add_node(table, ip, 4, udp, tcp, &q, NULL);
+        err = rlpx_discovery_table_add_node(
+            table, ipbuf, iplen, udp, tcp, &q, NULL);
     }
     return err;
 }
 
 int
 rlpx_discovery_table_add_node(rlpx_discovery_table* table,
-                              uint8_t ip,
+                              uint8_t* ip,
                               uint32_t iplen,
                               uint32_t tcp,
                               uint32_t udp,
@@ -79,10 +74,11 @@ rlpx_discovery_table_add_node(rlpx_discovery_table* table,
     for (i = 0; i < c; i++) {
         if ((n->useful == RLPX_USEFUL_FALSE) ||
             (n->useful == RLPX_USEFUL_FREE)) {
-            table->nodes[0].ep.ip[0] = 0; // TODO
-            table->nodes[0].ep.udp = udp;
-            table->nodes[0].ep.tcp = tcp;
-            table->nodes[0].nodeid = *id;
+            memset(n->ep.ip, 0, 16);
+            memcpy(n->ep.ip, ip, iplen);
+            n->ep.udp = udp;
+            n->ep.tcp = tcp;
+            n->nodeid = *id;
 
             // Need devp2p hello to figure out if we like this node
             // This will probably change with introduction of topics in the
@@ -110,7 +106,7 @@ rlpx_discovery_recv(rlpx_discovery_table* t, const uint8_t* b, uint32_t l)
     const urlp* crlp;
 
     // Parse (rlp is allocated on success - must free)
-    if ((err = rlpx_discovery_parse(t, b, l, &pub, (int*)&type, &rlp))) {
+    if ((err = rlpx_discovery_parse(b, l, &pub, (int*)&type, &rlp))) {
         return err;
     }
 
@@ -134,8 +130,7 @@ rlpx_discovery_recv(rlpx_discovery_table* t, const uint8_t* b, uint32_t l)
 
 // h256:32 + Signature:65 + type + RLP
 int
-rlpx_discovery_parse(rlpx_discovery_table* t,
-                     const uint8_t* b,
+rlpx_discovery_parse(const uint8_t* b,
                      uint32_t l,
                      uecc_public_key* node_id,
                      int* type,
@@ -179,7 +174,8 @@ rlpx_discovery_parse_pong(usys_sockaddr* addr, const urlp** rlp)
 int
 rlpx_discovery_parse_find(usys_sockaddr* addr, const urlp** rlp)
 {
-    // TODO - send neighbours
+    // We send empty neighbours since we are not kademlia
+    // We are leach looking for light clients
     return 0;
 }
 
