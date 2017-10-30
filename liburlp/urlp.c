@@ -209,34 +209,52 @@ urlp_list()
 }
 
 urlp*
-urlp_item_u64(const uint64_t* b, uint32_t sz)
+urlp_item_u64(const uint64_t val)
+{
+    return urlp_item_u64_arr(&val, 1);
+}
+
+urlp*
+urlp_item_u32(const uint32_t val)
+{
+    return urlp_item_u32_arr(&val, 1);
+}
+
+urlp*
+urlp_item_u16(const uint16_t val)
+{
+    return urlp_item_u16_arr(&val, 1);
+}
+// urlp* urlp_item_u8(const uint8_t);
+urlp*
+urlp_item_u64_arr(const uint64_t* b, uint32_t sz)
 {
     uint32_t blen = sz * sizeof(uint64_t); // worstcase
     uint8_t bytes[blen];
     uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint64_t));
-    return urlp_item_u8(bytes, len);
+    return urlp_item_u8_arr(bytes, len);
 }
 
 urlp*
-urlp_item_u32(const uint32_t* b, uint32_t sz)
+urlp_item_u32_arr(const uint32_t* b, uint32_t sz)
 {
     uint32_t blen = sz * sizeof(uint32_t); // worstcase
     uint8_t bytes[blen];
     uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint32_t));
-    return urlp_item_u8(bytes, len);
+    return urlp_item_u8_arr(bytes, len);
 }
 
 urlp*
-urlp_item_u16(const uint16_t* b, uint32_t sz)
+urlp_item_u16_arr(const uint16_t* b, uint32_t sz)
 {
     uint32_t blen = sz * sizeof(uint16_t); // worstcase
     uint8_t bytes[blen];
     uint32_t len = urlp_write_n_big_endian(bytes, b, sz, sizeof(uint16_t));
-    return urlp_item_u8(bytes, len);
+    return urlp_item_u8_arr(bytes, len);
 }
 
 urlp*
-urlp_item_u8(const uint8_t* b, uint32_t sz)
+urlp_item_u8_arr(const uint8_t* b, uint32_t sz)
 {
     urlp* rlp = NULL;
     uint32_t size;
@@ -267,9 +285,135 @@ urlp_item_u8(const uint8_t* b, uint32_t sz)
 }
 
 urlp*
-urlp_item_str(const char* b, uint32_t sz)
+urlp_item_str(const char* b)
 {
-    return urlp_item_u8((uint8_t*)b, sz);
+    return urlp_item_mem((const uint8_t*)b, strlen(b));
+}
+
+urlp*
+urlp_item_mem(const uint8_t* b, uint32_t sz)
+{
+    return urlp_item_u8_arr((uint8_t*)b, sz);
+}
+
+int
+urlp_idx_to_u64(const urlp* rlp, uint32_t idx, uint64_t* val)
+{
+    rlp = urlp_at(rlp, idx);
+    if (rlp) {
+        *val = urlp_as_u64(rlp);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int
+urlp_idx_to_u32(const urlp* rlp, uint32_t idx, uint32_t* val)
+{
+    rlp = urlp_at(rlp, idx);
+    if (rlp) {
+        *val = urlp_as_u32(rlp);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int
+urlp_idx_to_u16(const urlp* rlp, uint32_t idx, uint16_t* val)
+{
+    rlp = urlp_at(rlp, idx);
+    if (rlp) {
+        *val = urlp_as_u16(rlp);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int
+urlp_idx_to_u8(const urlp* rlp, uint32_t idx, uint8_t* val)
+{
+    rlp = urlp_at(rlp, idx);
+    if (rlp) {
+        *val = urlp_as_u8(rlp);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int
+urlp_idx_to_mem(const urlp* rlp, uint32_t idx, uint8_t* mem, uint32_t* l)
+{
+    rlp = urlp_at(rlp, idx);
+    const uint8_t* ref;
+    uint32_t len;
+    if (rlp) {
+        ref = urlp_as_mem(rlp, &len);
+        if (len <= *l) {
+            memcpy(mem, ref, len);
+            *l = len;
+            return 0;
+        } else {
+            *l = len;
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+}
+
+int
+urlp_idx_to_str(const urlp* rlp, uint32_t idx, char* str)
+{
+    rlp = urlp_at(rlp, idx);
+    const uint8_t* ref;
+    uint32_t len;
+    if (rlp) {
+        ref = urlp_as_mem(rlp, &len);
+        memcpy(str, ref, len);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+uint64_t
+urlp_unsafe_idx_as_u64(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_u64(urlp_at(rlp, idx));
+}
+
+uint32_t
+urlp_unsafe_idx_as_u32(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_u32(urlp_at(rlp, idx));
+}
+
+uint16_t
+urlp_unsafe_idx_as_u16(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_u16(urlp_at(rlp, idx));
+}
+
+uint8_t
+urlp_unsafe_idx_as_u8(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_u8(urlp_at(rlp, idx));
+}
+
+const uint8_t*
+urlp_unsafe_idx_as_mem(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_mem(urlp_at(rlp, idx), NULL);
+}
+
+const char*
+urlp_unsafe_idx_as_str(const urlp* rlp, uint32_t idx)
+{
+    return urlp_as_str(urlp_at(rlp, idx));
 }
 
 uint64_t
@@ -301,13 +445,13 @@ urlp_as_u8(const urlp* rlp)
 }
 
 const char*
-urlp_str(const urlp* rlp)
+urlp_as_str(const urlp* rlp)
 {
     return (const char*)urlp_ref(rlp, NULL);
 }
 
 const uint8_t*
-urlp_mem(const urlp* rlp, uint32_t* sz)
+urlp_as_mem(const urlp* rlp, uint32_t* sz)
 {
     return urlp_ref(rlp, sz);
 }
@@ -512,7 +656,7 @@ urlp_parse(const uint8_t* b, uint32_t l)
         // Handle case where this is a single item and not a list
         uint32_t sz;
         b += urlp_read_sz(b, &sz);
-        rlp = urlp_item_u8(b, sz);
+        rlp = urlp_item_u8_arr(b, sz);
     } else {
         if (*b > 0xc0) {
             // regular list
@@ -548,7 +692,7 @@ urlp_parse_walk(const uint8_t* b, uint32_t l)
         } else {
             // This is an item.
             b += urlp_read_sz(b, &sz);
-            rlp = urlp_push(rlp, urlp_item_u8(b, sz));
+            rlp = urlp_push(rlp, urlp_item_u8_arr(b, sz));
             b += sz;
         }
     }

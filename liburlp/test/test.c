@@ -86,6 +86,7 @@ uint8_t rlp_random[] = {
 uint8_t rlp_wat[] = { '\xc7', '\xc0', '\xc1', '\xc0',
                       '\xc3', '\xc0', '\xc1', '\xc0' };
 
+int test_conversions();
 int test_foreach();
 int test_copy();
 int test_u8();
@@ -109,13 +110,36 @@ main(int argc, char* argv[])
 }
 
 int
+test_conversions()
+{
+    uint32_t memlen = 3;
+    uint8_t mem[memlen];
+    uint64_t tu64;
+    uint32_t tu32;
+    uint16_t tu16;
+    uint8_t tu8;
+    const uint8_t* cmem;
+    const uint64_t ctu64;
+    const uint32_t ctu32;
+    const uint16_t ctu16;
+    const uint8_t ctu8;
+    urlp* rlp = urlp_list();
+    urlp_push(rlp, urlp_item_mem((uint8_t*)"\x03\x02\x01", 3));
+    urlp_push(rlp, urlp_item_str("hello world"));
+    // TODO - need to test conversion
+    // urlp_idx_to_..
+    // urlp_unsafe_idx_as_...
+    return 0;
+}
+
+int
 test_foreach()
 {
     uint32_t mask = 0;
     urlp* rlp = urlp_list();
-    urlp_push(rlp, urlp_item_str("zero", 4));
-    urlp_push(rlp, urlp_item_str("one", 3));
-    urlp_push(rlp, urlp_item_str("two", 3));
+    urlp_push(rlp, urlp_item_str("zero"));
+    urlp_push(rlp, urlp_item_str("one"));
+    urlp_push(rlp, urlp_item_str("two"));
     urlp_foreach(rlp, &mask, test_walk_fn);
     urlp_free(&rlp);
     return mask == (0b111) ? 0 : -1;
@@ -155,17 +179,17 @@ test_u8()
     urlp* rlp;
 
     // ""
-    rlp = urlp_item("", 0);
+    rlp = urlp_item("");
     err |= test_item(rlp_null, sizeof(rlp_null), &rlp);
 
     // ["",""]
     rlp = urlp_list();
-    urlp_push(rlp, urlp_item("", 0));
-    urlp_push(rlp, urlp_item("", 0));
+    urlp_push(rlp, urlp_item(""));
+    urlp_push(rlp, urlp_item(""));
     err |= test_item(rlp_null2, sizeof(rlp_null2), &rlp);
 
     // 0x0f
-    rlp = urlp_item("\x0f", 1);
+    rlp = urlp_item_mem((uint8_t*)"\x0f", 1);
     err |= urlp_as_u8(rlp) == 15 ? 0 : -1;
     err |= urlp_as_u16(rlp) == 15 ? 0 : -1;
     err |= urlp_as_u32(rlp) == 15 ? 0 : -1;
@@ -173,23 +197,23 @@ test_u8()
     err |= test_item(rlp_15, sizeof(rlp_15), &rlp);
 
     // 0x400x00
-    rlp = urlp_item("\x04\x00", 2);
+    rlp = urlp_item_mem((uint8_t*)"\x04\x00", 2);
     err |= urlp_as_u16(rlp) == 1024 ? 0 : -1;
     err |= urlp_as_u32(rlp) == 1024 ? 0 : -1;
     err |= urlp_as_u64(rlp) == 1024 ? 0 : -1;
     err |= test_item(rlp_1024, sizeof(rlp_1024), &rlp);
 
     // "cat"
-    rlp = urlp_item("cat", 3);
-    err |= memcmp(urlp_str(rlp), "cat", 3) ? -1 : 0;
+    rlp = urlp_item("cat");
+    err |= memcmp(urlp_as_str(rlp), "cat", 3) ? -1 : 0;
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
 
     // "dog"
-    rlp = urlp_item("dog", 3);
+    rlp = urlp_item("dog");
     err |= test_item(rlp_dog, sizeof(rlp_dog), &rlp);
 
     // "lorem...
-    rlp = urlp_item(lorem, 56);
+    rlp = urlp_item(lorem);
     err |= test_item(rlp_lorem, sizeof(rlp_lorem), &rlp);
 
     // []
@@ -218,32 +242,32 @@ test_u8()
     err |= test_item(rlp_wat, sizeof(rlp_wat), &rlp);
 
     // ["cat","dog"]
-    rlp = urlp_push(urlp_item("cat", 3), urlp_item("dog", 3));
+    rlp = urlp_push(urlp_item("cat"), urlp_item("dog"));
     err |= test_item(rlp_catdog, sizeof(rlp_catdog), &rlp);
 
     // ["cat","dog","pig"]
-    rlp = urlp_item("cat", 3);
-    rlp = urlp_push(rlp, urlp_item("dog", 3));
-    rlp = urlp_push(rlp, urlp_item("pig", 3));
-    err |= memcmp(urlp_str(urlp_at(rlp, 0)), "cat", 3) ? -1 : 0;
-    err |= memcmp(urlp_str(urlp_at(rlp, 1)), "dog", 3) ? -1 : 0;
-    err |= memcmp(urlp_str(urlp_at(rlp, 2)), "pig", 3) ? -1 : 0;
+    rlp = urlp_item("cat");
+    rlp = urlp_push(rlp, urlp_item("dog"));
+    rlp = urlp_push(rlp, urlp_item("pig"));
+    err |= memcmp(urlp_as_str(urlp_at(rlp, 0)), "cat", 3) ? -1 : 0;
+    err |= memcmp(urlp_as_str(urlp_at(rlp, 1)), "dog", 3) ? -1 : 0;
+    err |= memcmp(urlp_as_str(urlp_at(rlp, 2)), "pig", 3) ? -1 : 0;
     err |= test_item(rlp_catdogpig, sizeof(rlp_catdogpig), &rlp);
 
     // [["cat","dog"],["pig","cow"]]
     rlp = urlp_list();
-    urlp_push(rlp, urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
-    urlp_push(rlp, urlp_push(urlp_item("pig", 3), urlp_item("cow", 3)));
+    urlp_push(rlp, urlp_push(urlp_item("cat"), urlp_item("dog")));
+    urlp_push(rlp, urlp_push(urlp_item("pig"), urlp_item("cow")));
     err |= test_item(rlp_catdogpigcow, sizeof(rlp_catdogpigcow), &rlp);
 
     // ["cat",["cat","dog"],"horse",[[]],"pig",[""],"sheep"]
-    rlp = urlp_item("cat", 3);
-    rlp = urlp_push(rlp, urlp_push(urlp_item("cat", 3), urlp_item("dog", 3)));
-    urlp_push(rlp, urlp_item("horse", 5));
+    rlp = urlp_item("cat");
+    rlp = urlp_push(rlp, urlp_push(urlp_item("cat"), urlp_item("dog")));
+    urlp_push(rlp, urlp_item("horse"));
     urlp_push(rlp, urlp_push(NULL, urlp_list()));
-    urlp_push(rlp, urlp_item("pig", 3));
-    urlp_push(rlp, urlp_push(NULL, urlp_item("", 0)));
-    urlp_push(rlp, urlp_item("sheep", 5));
+    urlp_push(rlp, urlp_item("pig"));
+    urlp_push(rlp, urlp_push(NULL, urlp_item("")));
+    urlp_push(rlp, urlp_item("sheep"));
     err |= test_item(rlp_random, sizeof(rlp_random), &rlp);
 
     return err;
@@ -259,19 +283,19 @@ test_u16()
     uint16_t onefive[] = { 0x000f };
     urlp* rlp;
 
-    rlp = urlp_item_u16(cat, 3);
+    rlp = urlp_item_u16_arr(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
 
-    rlp = urlp_item_u16(max, 1);
+    rlp = urlp_item_u16_arr(max, 1);
     err |= test_item(rlp_max16, sizeof(rlp_max16), &rlp);
 
-    rlp = urlp_item_u16(half, 1);
+    rlp = urlp_item_u16_arr(half, 1);
     err |= test_item(rlp_half16, sizeof(rlp_half16), &rlp);
 
-    rlp = urlp_item_u16(NULL, 0);
+    rlp = urlp_item_u16_arr(NULL, 0);
     err |= test_item(rlp_null, sizeof(rlp_null), &rlp);
 
-    rlp = urlp_item_u16(onefive, 1);
+    rlp = urlp_item_u16_arr(onefive, 1);
     err |= test_item(rlp_15, sizeof(rlp_15), &rlp);
 
     return err;
@@ -287,19 +311,19 @@ test_u32()
     uint32_t onefive[] = { 0x00000f };
     urlp* rlp;
 
-    rlp = urlp_item_u32(cat, 3);
+    rlp = urlp_item_u32_arr(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
 
-    rlp = urlp_item_u32(max, 1);
+    rlp = urlp_item_u32_arr(max, 1);
     err |= test_item(rlp_max32, sizeof(rlp_max32), &rlp);
 
-    rlp = urlp_item_u32(half, 1);
+    rlp = urlp_item_u32_arr(half, 1);
     err |= test_item(rlp_half32, sizeof(rlp_half32), &rlp);
 
-    rlp = urlp_item_u32(NULL, 0);
+    rlp = urlp_item_u32_arr(NULL, 0);
     err |= test_item(rlp_null, sizeof(rlp_null), &rlp);
 
-    rlp = urlp_item_u32(onefive, 1);
+    rlp = urlp_item_u32_arr(onefive, 1);
     err |= test_item(rlp_15, sizeof(rlp_15), &rlp);
 
     return err;
@@ -315,19 +339,19 @@ test_u64()
     uint64_t onefive[] = { 0x0000000f };
     urlp* rlp;
 
-    rlp = urlp_item_u64(cat, 3);
+    rlp = urlp_item_u64_arr(cat, 3);
     err |= test_item(rlp_cat, sizeof(rlp_cat), &rlp);
 
-    rlp = urlp_item_u64(max, 1);
+    rlp = urlp_item_u64_arr(max, 1);
     err |= test_item(rlp_max64, sizeof(rlp_max64), &rlp);
 
-    rlp = urlp_item_u64(half, 1);
+    rlp = urlp_item_u64_arr(half, 1);
     err |= test_item(rlp_half64, sizeof(rlp_half64), &rlp);
 
-    rlp = urlp_item_u64(NULL, 0);
+    rlp = urlp_item_u64_arr(NULL, 0);
     err |= test_item(rlp_null, sizeof(rlp_null), &rlp);
 
-    rlp = urlp_item_u64(onefive, 1);
+    rlp = urlp_item_u64_arr(onefive, 1);
     err |= test_item(rlp_15, sizeof(rlp_15), &rlp);
 
     return err;

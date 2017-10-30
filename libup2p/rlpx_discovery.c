@@ -24,29 +24,144 @@
 
 void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
 
+void
+rlpx_discovery_table_init(rlpx_discovery_table* table)
+{
+    memset(table, 0, sizeof(rlpx_discovery_table));
+}
+
 int
-rlpx_discovery_recv(usys_sockaddr* ep, const uint8_t* b, uint32_t l)
+rlpx_discovery_table_find_node(rlpx_discovery_table* table,
+                               uecc_public_key* target,
+                               rlpx_discovery_node* node)
+{
+    uint32_t i = 0, c = sizeof(table->nodes) - sizeof(rlpx_discovery_node);
+    for (i = 0; i < c; i++) {
+        if (memcmp(table->nodes[i].nodeid.data,
+                   target->data,
+                   sizeof(target->data))) {
+            node = &table->nodes[i];
+            return 0;
+        }
+    }
+    return -1;
+}
+
+void
+rlpx_discovery_table_update_recent(rlpx_discovery_table* table,
+                                   rlpx_discovery_node* node)
+{
+    table->recents[2] = table->recents[1];
+    table->recents[1] = table->recents[0];
+    table->recents[0] = node;
+}
+
+int
+rlpx_discovery_table_add_node_rlp(rlpx_discovery_table* table, const urlp* rlp)
+{
+    int err = 0;
+    uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, iplen = 16;
+    uint8_t ipbuf[iplen];
+    uint8_t pub[65] = { 0x04 };
+    uecc_public_key q;
+    if (n < 4) return -1; /*!< invalid rlp */
+
+    // short circuit bail. Arrive inside no errors
+    if ((!(err = urlp_idx_to_mem(rlp, 0, ipbuf, &iplen))) &&
+        (!(err = urlp_idx_to_u32(rlp, 1, &udp))) &&
+        (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
+        (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
+        (!(err = uecc_btoq(pub, publen + 1, &q)))) {
+        err = rlpx_discovery_table_add_node(
+            table, ipbuf, iplen, udp, tcp, &q, NULL);
+    }
+    return err;
+}
+
+int
+rlpx_discovery_table_add_node(rlpx_discovery_table* table,
+                              uint8_t* ip,
+                              uint32_t iplen,
+                              uint32_t tcp,
+                              uint32_t udp,
+                              uecc_public_key* id,
+                              urlp* meta)
+{
+    rlpx_discovery_node* n = &table->nodes[0];
+    uint32_t i = 0, c = sizeof(table->nodes) - sizeof(rlpx_discovery_node);
+
+    ((void)meta); // potential use in future
+
+    // Seek a free slot in our table and populate
+    for (i = 0; i < c; i++) {
+        if ((n->useful == RLPX_USEFUL_FALSE) ||
+            (n->useful == RLPX_USEFUL_FREE)) {
+            memset(n->ep.ip, 0, 16);
+            memcpy(n->ep.ip, ip, iplen);
+            n->ep.udp = udp;
+            n->ep.tcp = tcp;
+            n->nodeid = *id;
+
+            // Need devp2p hello to figure out if we like this node
+            // This will probably change with introduction of topics in the
+            // udp discovery protocol.
+            //
+            // The rlpx_discovery driver will mark this node as useless if
+            // it doesn't like it - it will then be overwritten with other
+            // nodes when usefulness is set to false.
+            //
+            // Not investing much effort here.
+            n->useful = RLPX_USEFUL_PENDING;
+            break;
+        }
+    }
+    return 0;
+}
+
+int
+rlpx_discovery_recv(rlpx_discovery_table* t, const uint8_t* b, uint32_t l)
 {
     uecc_public_key pub;
     RLPX_DISCOVERY type;
+    rlpx_discovery_node* node = NULL;
+    rlpx_discovery_endpoint from, to;
+    uecc_public_key target;
+    uint32_t timestamp;
+    uint8_t buff32[32];
     int err = -1;
     urlp* rlp;
     const urlp* crlp;
 
     // Parse (rlp is allocated on success - must free)
-    if ((err = rlpx_discovery_parse(ep, b, l, &pub, (int*)&type, &rlp))) {
+    if ((err = rlpx_discovery_parse(b, l, &pub, (int*)&type, &rlp))) {
         return err;
+    }
+
+    // Update recently seen if this node is in our table
+    if (rlpx_discovery_table_find_node(t, &pub, node)) {
+        rlpx_discovery_table_update_recent(t, node);
     }
 
     crlp = rlp;
     if (type == RLPX_DISCOVERY_PING) {
-        err = rlpx_discovery_parse_ping(ep, &crlp);
+
+        // Received a ping packet
+        // send a pong on device io...
+        err = rlpx_discovery_parse_ping(&crlp, buff32, &from, &to, &timestamp);
     } else if (type == RLPX_DISCOVERY_PING) {
-        err = rlpx_discovery_parse_pong(ep, &crlp);
+
+        // Received a pong packet
+        err = rlpx_discovery_parse_pong(&crlp, &to, buff32, &timestamp);
     } else if (type == RLPX_DISCOVERY_FIND) {
-        err = rlpx_discovery_parse_find(ep, &crlp);
+
+        // Received request for our neighbours.
+        // We send empty neighbours since we are not kademlia
+        // We are leech looking for light clients servers
+        err = rlpx_discovery_parse_find(&crlp, &target, &timestamp);
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
-        err = rlpx_discovery_parse_neighbours(ep, &crlp);
+
+        // Received some neighbours
+        err = rlpx_discovery_parse_neighbours(t, &crlp);
     } else {
         // error
     }
@@ -58,8 +173,7 @@ rlpx_discovery_recv(usys_sockaddr* ep, const uint8_t* b, uint32_t l)
 
 // h256:32 + Signature:65 + type + RLP
 int
-rlpx_discovery_parse(usys_sockaddr* addr,
-                     const uint8_t* b,
+rlpx_discovery_parse(const uint8_t* b,
                      uint32_t l,
                      uecc_public_key* node_id,
                      int* type,
@@ -87,36 +201,90 @@ rlpx_discovery_parse(usys_sockaddr* addr,
 }
 
 int
-rlpx_discovery_parse_ping(usys_sockaddr* addr, const urlp** rlp)
+rlpx_discovery_parse_endpoint(const urlp* rlp, rlpx_discovery_endpoint* ep)
 {
-    // TODO
-    return 0;
+    int err;
+    uint32_t n = urlp_children(rlp);
+    if (n < 3) return -1;
+    ep->iplen = sizeof(ep->ip);
+    if ((!(err = urlp_idx_to_mem(rlp, 0, ep->ip, &ep->iplen))) &&
+        (!(err = urlp_idx_to_u32(rlp, 1, &ep->udp))) &&
+        (!(err = urlp_idx_to_u32(rlp, 2, &ep->tcp)))) {
+        return err;
+    }
+    return err;
 }
 
 int
-rlpx_discovery_parse_pong(usys_sockaddr* addr, const urlp** rlp)
+rlpx_discovery_parse_ping(const urlp** rlp,
+                          uint8_t* version32,
+                          rlpx_discovery_endpoint* from,
+                          rlpx_discovery_endpoint* to,
+                          uint32_t* timestamp)
 {
-    // TODO
-    return 0;
+    int err;
+    uint32_t sz = 32, n = urlp_children(*rlp);
+    if (n < 4) return -1;
+    if ((!(err = urlp_idx_to_mem(*rlp, 0, version32, &sz))) && //
+        (!(err = rlpx_discovery_parse_endpoint(urlp_at(*rlp, 1), from))) &&
+        (!(err = rlpx_discovery_parse_endpoint(urlp_at(*rlp, 2), to))) &&
+        (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
+        return err;
+    }
+    return err;
 }
 
 int
-rlpx_discovery_parse_find(usys_sockaddr* addr, const urlp** rlp)
+rlpx_discovery_parse_pong(const urlp** rlp,
+                          rlpx_discovery_endpoint* to,
+                          uint8_t* echo32,
+                          uint32_t* timestamp)
 {
-    // TODO - send neighbours
-    return 0;
+    int err;
+    uint32_t sz = 32, n = urlp_children(*rlp);
+    if (n < 4) return -1;
+    if ((!(err = rlpx_discovery_parse_endpoint(urlp_at(*rlp, 0), to))) &&
+        (!(err = urlp_idx_to_mem(*rlp, 1, echo32, &sz))) &&
+        (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
+        return err;
+    }
+    return err;
 }
 
 int
-rlpx_discovery_parse_neighbours(usys_sockaddr* addr, const urlp** rlp)
+rlpx_discovery_parse_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
 {
-    // rlp.list(rlp.list(neighbours),timestamp)
-    // rlp.list(rlp.list(neighbours),timestamp,a,b,c,d)
-    // where neighbours = [ipv4|6,udp,tcp,nodeid]
-    const urlp *n = urlp_at(*rlp, 0),            // get list of neighbours
-        *ts = urlp_at(*rlp, 1);                  // get timestamp
-    ((void)ts);                                  // TODO
-    urlp_foreach(n, addr, rlpx_walk_neighbours); // loop and add to table
+    int err = -1;
+    uint32_t publen = 64, n = urlp_children(*rlp);
+    uint8_t pub[65] = { 0x04 };
+    if (n < 2) return err;
+    if ((!(err = urlp_idx_to_mem(*rlp, 0, &pub[1], &publen))) &&
+        (!(err = uecc_btoq(pub, publen + 1, q))) &&
+        (!(err = urlp_idx_to_u32(*rlp, 1, ts)))) {
+        return err;
+    }
+    return err;
+}
+
+/**
+ * @brief
+ *
+ * rlp.list(rlp.list(neighbours),timestamp)
+ * rlp.list(rlp.list(neighbours),timestamp,a,b,c,d)
+ * where neighbours = [ipv4|6,udp,tcp,nodeid]
+ *
+ * @param t
+ * @param rlp
+ *
+ * @return
+ */
+int
+rlpx_discovery_parse_neighbours(rlpx_discovery_table* t, const urlp** rlp)
+{
+    const urlp *n = urlp_at(*rlp, 0),         // get list of neighbours
+        *ts = urlp_at(*rlp, 1);               // get timestamp
+    ((void)ts);                               // TODO
+    urlp_foreach(n, t, rlpx_walk_neighbours); // loop and add to table
     return 0;
 }
 
@@ -124,5 +292,7 @@ void
 rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
 {
     // rlp.list(ipv(4|6),udp,tcp,nodeid)
-    ((void)ctx);
+    ((void)idx);
+    rlpx_discovery_table* table = (rlpx_discovery_table*)ctx;
+    rlpx_discovery_table_add_node_rlp(table, rlp);
 }
