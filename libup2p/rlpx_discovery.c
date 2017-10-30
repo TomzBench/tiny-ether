@@ -114,7 +114,7 @@ rlpx_discovery_parse_neighbours(usys_sockaddr* addr, const urlp** rlp)
     // rlp.list(rlp.list(neighbours),timestamp,a,b,c,d)
     // where neighbours = [ipv4|6,udp,tcp,nodeid]
     const urlp *n = urlp_at(*rlp, 0),            // get list of neighbours
-        ts = urlp_at(*rlp, 1);                   // get timestamp
+        *ts = urlp_at(*rlp, 1);                  // get timestamp
     ((void)ts);                                  // TODO
     urlp_foreach(n, addr, rlpx_walk_neighbours); // loop and add to table
     return 0;
