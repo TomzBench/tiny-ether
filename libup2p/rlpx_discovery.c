@@ -37,24 +37,26 @@ int
 rlpx_discovery_table_add_node_rlp(rlpx_discovery_table* table, const urlp* rlp)
 {
     int err = 0;
-    uint32_t n = urlp_siblings(rlp), udp, ip, tcp, publen = 64, iplen = 16;
+    uint32_t n = urlp_children(rlp), udp, ip, tcp, publen = 64, iplen = 16;
     uint8_t ipbuf[iplen];
     uint8_t pub[publen + 1];
     uecc_public_key q;
+    pub[0] = 0x04;
     if (n < 4) return -1; /*!< invalid rlp */
 
-    err |= urlp_idx_to_mem(rlp, 0, ipbuf, &iplen);
-    err |= urlp_idx_to_u32(rlp, 0, &ip); // TODO ipv4 support only atm
-    err |= urlp_idx_to_u32(rlp, 1, &udp);
-    err |= urlp_idx_to_u32(rlp, 2, &tcp);
-    err |= urlp_idx_to_mem(rlp, 3, &pub[1], &publen);
-    if ((!err)) {
-        pub[0] = 0x04;
-        err = uecc_btoq(pub, publen + 1, &q);
-        if (!err) {
-            err =
-                rlpx_discovery_table_add_node(table, ip, 4, udp, tcp, &q, NULL);
+    // short circuit bail. Arrive inside no errors
+    if ((!(err = urlp_idx_to_mem(rlp, 0, ipbuf, &iplen))) &&
+        (!(err = urlp_idx_to_u32(rlp, 1, &udp))) &&
+        (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
+        (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
+        (!(err = uecc_btoq(pub, publen + 1, &q)))) {
+        // TODO assuming ipv4 for now
+        if (iplen == 4) {
+            urlp_idx_to_u32(rlp, 0, &ip);
+        } else {
+            urlp_idx_to_u32(rlp, 0, &ip);
         }
+        err = rlpx_discovery_table_add_node(table, ip, 4, udp, tcp, &q, NULL);
     }
     return err;
 }
