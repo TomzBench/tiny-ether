@@ -48,12 +48,13 @@ uaes_crypt_reset(uaes_ctx* ctx)
 }
 
 int
-uaes_crypt_ctr(int keysz,
-               uint8_t* key,
-               uint8_t* iv,
-               const uint8_t* in,
-               size_t inlen,
-               uint8_t* out)
+uaes_crypt_ctr(
+    int keysz,
+    uint8_t* key,
+    uint8_t* iv,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out)
 {
 
     int err = 0;
@@ -67,20 +68,22 @@ uaes_crypt_ctr(int keysz,
 }
 
 int
-uaes_crypt_ctr_update(uaes_ctx* ctx,
-                      const uint8_t* in,
-                      size_t inlen,
-                      uint8_t* out)
+uaes_crypt_ctr_update(
+    uaes_ctx* ctx,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out)
 {
     return uaes_crypt_ctr_op(ctx, ctx->iv, in, inlen, out);
 }
 
 int
-uaes_crypt_ctr_op(uaes_ctx* ctx,
-                  uint8_t* iv,
-                  const uint8_t* in,
-                  size_t inlen,
-                  uint8_t* out)
+uaes_crypt_ctr_op(
+    uaes_ctx* ctx,
+    uint8_t* iv,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out)
 {
     int err = 0;
     uint8_t block[16];

@@ -25,11 +25,12 @@ int rlpx_node_hex_to_bin(const char*, uint32_t, uint8_t*, uint32_t*);
 int rlpx_node_bin_to_hex(const uint8_t*, uint32_t, char*, uint32_t*);
 
 int
-rlpx_node_init(rlpx_node* self,
-               const uecc_public_key* id,
-               const char* host,
-               uint32_t tcp,
-               uint32_t udp)
+rlpx_node_init(
+    rlpx_node* self,
+    const uecc_public_key* id,
+    const char* host,
+    uint32_t tcp,
+    uint32_t udp)
 {
     memset(self, 0, sizeof(rlpx_node));
     snprintf(self->ip_v4, sizeof(self->ip_v4), "%s", host);
@@ -68,10 +69,11 @@ rlpx_node_deinit(rlpx_node* self)
 }
 
 int
-rlpx_node_hex_to_bin(const char* in,
-                     uint32_t inlen,
-                     uint8_t* out,
-                     uint32_t* outlen)
+rlpx_node_hex_to_bin(
+    const char* in,
+    uint32_t inlen,
+    uint8_t* out,
+    uint32_t* outlen)
 {
 
     uint32_t s = inlen ? inlen / 2 : strlen(in) / 2;
@@ -97,10 +99,11 @@ rlpx_node_hex_to_bin(const char* in,
 }
 
 int
-rlpx_node_bin_to_hex(const uint8_t* in,
-                     uint32_t inlen,
-                     char* out,
-                     uint32_t* outlen)
+rlpx_node_bin_to_hex(
+    const uint8_t* in,
+    uint32_t inlen,
+    char* out,
+    uint32_t* outlen)
 {
     uint32_t s = (inlen * 2) + 1;
     const char* hex = "0123456789abcdef";

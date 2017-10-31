@@ -40,10 +40,11 @@ rlpx_protocol_free(rlpx_protocol** self_p)
 }
 
 void
-rlpx_protocol_init(rlpx_protocol* self,
-                   uint32_t type,
-                   const char* name,
-                   void* ctx)
+rlpx_protocol_init(
+    rlpx_protocol* self,
+    uint32_t type,
+    const char* name,
+    void* ctx)
 {
     memset(self, 0, sizeof(rlpx_protocol));
     self->type = type;

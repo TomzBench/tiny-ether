@@ -24,12 +24,13 @@
 #include <string.h>
 
 int
-uecies_encrypt(const uecc_public_key* p,
-               const uint8_t* shared_mac,
-               size_t shared_mac_len,
-               const uint8_t* in,
-               size_t inlen,
-               uint8_t* out)
+uecies_encrypt(
+    const uecc_public_key* p,
+    const uint8_t* shared_mac,
+    size_t shared_mac_len,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out)
 {
     int err = 0;
     uint8_t key[32], mkey[32];
@@ -41,8 +42,8 @@ uecies_encrypt(const uecc_public_key* p,
     uaes_iv* iv_dst = (uaes_iv*)&out[65];
 
     uecc_key_init_new(&ecc);
-    secp256k1_ec_pubkey_serialize(ecc.grp, &out[0], &tmp, &ecc.Q,
-                                  SECP256K1_EC_UNCOMPRESSED);
+    secp256k1_ec_pubkey_serialize(
+        ecc.grp, &out[0], &tmp, &ecc.Q, SECP256K1_EC_UNCOMPRESSED);
     if (!(tmp == 65)) goto EXIT;
     err = uecc_agree(&ecc, p);
     if (err) goto EXIT;

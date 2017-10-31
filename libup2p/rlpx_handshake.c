@@ -41,14 +41,16 @@
 int rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t*, size_t* l);
 uint32_t rlpx_decrypt(uecc_ctx* ctx, const uint8_t*, size_t l, urlp** rlp);
 
-int rlpx_handshake_auth_recv_legacy(rlpx_handshake* hs,
-                                    const uint8_t* b,
-                                    size_t l,
-                                    urlp** rlp_p);
-int rlpx_handshake_ack_recv_legacy(rlpx_handshake* hs,
-                                   const uint8_t* b,
-                                   size_t l,
-                                   urlp** rlp_p);
+int rlpx_handshake_auth_recv_legacy(
+    rlpx_handshake* hs,
+    const uint8_t* b,
+    size_t l,
+    urlp** rlp_p);
+int rlpx_handshake_ack_recv_legacy(
+    rlpx_handshake* hs,
+    const uint8_t* b,
+    size_t l,
+    urlp** rlp_p);
 int
 rlpx_encrypt(urlp* rlp, const uecc_public_key* q, uint8_t* p, size_t* l)
 {
@@ -101,11 +103,12 @@ rlpx_decrypt(uecc_ctx* ecc, const uint8_t* c, size_t l, urlp** rlp_p)
 }
 
 rlpx_handshake*
-rlpx_handshake_alloc(int orig,
-                     uecc_ctx* skey,
-                     uecc_ctx* ekey,
-                     h256* nonce,
-                     const uecc_public_key* to)
+rlpx_handshake_alloc(
+    int orig,
+    uecc_ctx* skey,
+    uecc_ctx* ekey,
+    h256* nonce,
+    const uecc_public_key* to)
 {
     rlpx_handshake* hs = rlpx_malloc(sizeof(rlpx_handshake));
     if (hs) {
@@ -134,13 +137,14 @@ rlpx_handshake_free(rlpx_handshake** hs_p)
 }
 
 int
-rlpx_handshake_secrets(rlpx_handshake* hs,
-                       int orig,
-                       ukeccak256_ctx* emac,
-                       ukeccak256_ctx* imac,
-                       uaes_ctx* aes_enc,
-                       uaes_ctx* aes_dec,
-                       uaes_ctx* aes_mac)
+rlpx_handshake_secrets(
+    rlpx_handshake* hs,
+    int orig,
+    ukeccak256_ctx* emac,
+    ukeccak256_ctx* imac,
+    uaes_ctx* aes_enc,
+    uaes_ctx* aes_dec,
+    uaes_ctx* aes_mac)
 {
     int err;
     uint8_t *sent = hs->cipher, *recv = hs->cipher_remote;
@@ -260,10 +264,11 @@ rlpx_handshake_auth_install(rlpx_handshake* hs, urlp** rlp_p)
 }
 
 int
-rlpx_handshake_auth_recv(rlpx_handshake* hs,
-                         const uint8_t* b,
-                         size_t l,
-                         urlp** rlp_p)
+rlpx_handshake_auth_recv(
+    rlpx_handshake* hs,
+    const uint8_t* b,
+    size_t l,
+    urlp** rlp_p)
 {
     hs->cipher_remote_len = rlpx_decrypt(hs->skey, b, l, rlp_p);
     if (hs->cipher_remote_len) {
@@ -275,10 +280,11 @@ rlpx_handshake_auth_recv(rlpx_handshake* hs,
 }
 
 int
-rlpx_handshake_auth_recv_legacy(rlpx_handshake* hs,
-                                const uint8_t* auth,
-                                size_t l,
-                                urlp** rlp_p)
+rlpx_handshake_auth_recv_legacy(
+    rlpx_handshake* hs,
+    const uint8_t* auth,
+    size_t l,
+    urlp** rlp_p)
 {
     int err = -1;
     uint8_t b[194];
@@ -314,10 +320,11 @@ rlpx_handshake_ack_install(rlpx_handshake* hs, urlp** rlp_p)
 }
 
 int
-rlpx_handshake_ack_recv(rlpx_handshake* hs,
-                        const uint8_t* ack,
-                        size_t l,
-                        urlp** rlp_p)
+rlpx_handshake_ack_recv(
+    rlpx_handshake* hs,
+    const uint8_t* ack,
+    size_t l,
+    urlp** rlp_p)
 {
     hs->cipher_remote_len = rlpx_decrypt(hs->skey, ack, l, rlp_p);
     if (hs->cipher_remote_len) {
@@ -329,10 +336,11 @@ rlpx_handshake_ack_recv(rlpx_handshake* hs,
 }
 
 int
-rlpx_handshake_ack_recv_legacy(rlpx_handshake* hs,
-                               const uint8_t* ack,
-                               size_t l,
-                               urlp** rlp_p)
+rlpx_handshake_ack_recv_legacy(
+    rlpx_handshake* hs,
+    const uint8_t* ack,
+    size_t l,
+    urlp** rlp_p)
 {
     int err = -1;
     uint8_t b[194];

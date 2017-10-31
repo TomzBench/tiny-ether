@@ -125,10 +125,11 @@ usys_send_fd(usys_socket_fd sockfd, const byte* b, uint32_t len)
 }
 
 int
-usys_send_to_fd(usys_socket_fd sockfd,
-                const byte* b,
-                uint32_t len,
-                usys_sockaddr* addr)
+usys_send_to_fd(
+    usys_socket_fd sockfd,
+    const byte* b,
+    uint32_t len,
+    usys_sockaddr* addr)
 {
     ssize_t bytes = 0;
     struct sockaddr_in dest;
@@ -164,13 +165,14 @@ usys_close_fd(usys_socket_fd s)
 }
 
 uint32_t
-usys_select(uint32_t* rmask,
-            uint32_t* wmask,
-            int time,
-            int* reads,
-            int nreads,
-            int* writes,
-            int nwrites)
+usys_select(
+    uint32_t* rmask,
+    uint32_t* wmask,
+    int time,
+    int* reads,
+    int nreads,
+    int* writes,
+    int nwrites)
 {
     int *sock_p, max_fd, err;
     fd_set readfds, writefds;

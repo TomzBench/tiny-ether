@@ -51,15 +51,14 @@ int usys_file_close(usys_file_fd* fd);
 
 // Networking sys call abstraction layer
 typedef int (*usys_io_send_fn)(usys_socket_fd*, const byte*, uint32_t);
-typedef int (*usys_io_send_to_fn)(usys_socket_fd*,
-                                  const byte*,
-                                  uint32_t,
-                                  usys_sockaddr*);
+typedef int (*usys_io_send_to_fn)(
+    usys_socket_fd*,
+    const byte*,
+    uint32_t,
+    usys_sockaddr*);
 typedef int (*usys_io_recv_fn)(usys_socket_fd*, byte*, uint32_t);
-typedef int (*usys_io_recv_from_fn)(usys_socket_fd*,
-                                    byte*,
-                                    uint32_t,
-                                    usys_sockaddr*);
+typedef int (
+    *usys_io_recv_from_fn)(usys_socket_fd*, byte*, uint32_t, usys_sockaddr*);
 typedef int (*usys_io_connect_fn)(usys_socket_fd*, const char*, int);
 typedef int (*usys_io_ready_fn)(usys_socket_fd*);
 typedef void (*usys_io_close_fn)(usys_socket_fd*);
@@ -73,13 +72,14 @@ void usys_close(usys_socket_fd* fd);
 void usys_close_fd(usys_socket_fd s);
 int usys_sock_error(usys_socket_fd* fd);
 int usys_sock_ready(usys_socket_fd* fd);
-uint32_t usys_select(uint32_t* rmask,
-                     uint32_t* wmask,
-                     int time,
-                     int* reads,
-                     int nreads,
-                     int* writes,
-                     int nwrites);
+uint32_t usys_select(
+    uint32_t* rmask,
+    uint32_t* wmask,
+    int time,
+    int* reads,
+    int nreads,
+    int* writes,
+    int nwrites);
 static inline int
 usys_send(usys_socket_fd* fd, const byte* b, uint32_t len)
 {
@@ -93,10 +93,11 @@ usys_recv(usys_socket_fd* fd, byte* b, uint32_t len)
 }
 
 static inline int
-usys_send_to(usys_socket_fd* fd,
-             const byte* b,
-             uint32_t len,
-             usys_sockaddr* addr)
+usys_send_to(
+    usys_socket_fd* fd,
+    const byte* b,
+    uint32_t len,
+    usys_sockaddr* addr)
 {
     return usys_send_to_fd(*(usys_socket_fd*)fd, b, len, addr);
 }

@@ -28,12 +28,13 @@
 // *                        ||-----------hmac-----------||
 
 int
-uecies_decrypt(uecc_ctx* ctx,
-               const uint8_t* shared_mac,
-               size_t shared_mac_len,
-               const uint8_t* cipher,
-               size_t len,
-               uint8_t* plain)
+uecies_decrypt(
+    uecc_ctx* ctx,
+    const uint8_t* shared_mac,
+    size_t shared_mac_len,
+    const uint8_t* cipher,
+    size_t len,
+    uint8_t* plain)
 {
     int sz;
     uint8_t key[32];  // kdf(ecdh_agree(secret,ecies-pubkey));

@@ -9,16 +9,14 @@ extern "C" {
 #include <stdint.h>
 
 // TODO this is copyied, need to share header
-typedef struct
-{
-    union
-    {
-        uint8_t b[200];
-        uint64_t q[25];
-    } st;
-    size_t offset;
-    size_t rate;
-    uint8_t delim;
+typedef struct {
+  union {
+    uint8_t b[200];
+    uint64_t q[25];
+  } st;
+  size_t offset;
+  size_t rate;
+  uint8_t delim;
 } ukeccak256_ctx;
 
 int ukeccak256(uint8_t* in, size_t inlen, uint8_t* out, size_t outlen);

@@ -106,8 +106,9 @@ int uecc_agree_bin(uecc_ctx* ctx, const byte* bytes, size_t blen);
  */
 int uecc_sign(uecc_ctx* ctx, const byte* b, size_t sz, uecc_signature*);
 
-int uecc_z_cmp(const uecc_shared_secret_w_header* a,
-               const uecc_shared_secret_w_header* b);
+int uecc_z_cmp(
+    const uecc_shared_secret_w_header* a,
+    const uecc_shared_secret_w_header* b);
 
 int uecc_z_cmp_str(const uecc_shared_secret_w_header* a, const char* b);
 
@@ -121,10 +122,11 @@ int uecc_z_cmp_str(const uecc_shared_secret_w_header* a, const char* b);
  *
  * @return
  */
-int uecc_verify(const uecc_public_key* q,
-                const byte* b,
-                size_t sz,
-                uecc_signature*);
+int uecc_verify(
+    const uecc_public_key* q,
+    const byte* b,
+    size_t sz,
+    uecc_signature*);
 
 /**
  * @brief
