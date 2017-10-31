@@ -94,6 +94,15 @@ async_io_connect(async_io* self, const char* ip, uint32_t p)
     return ret;
 }
 
+int
+async_io_accept(async_io* self)
+{
+    // TODO - stub
+    if (ASYNC_IO_SOCK(self)) self->settings.close(&self->sock);
+    self->state |= ASYNC_IO_STATE_RECV | ASYNC_IO_STATE_READY;
+    return 0;
+}
+
 void
 async_io_close(async_io* self)
 {
@@ -140,7 +149,7 @@ async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
 int
 async_io_send(async_io* self)
 {
-    if ((!(ASYNC_IO_SEND(self->state))) && ASYNC_IO_SOCK(self)) {
+    if (/*(!(ASYNC_IO_SEND(self->state))) &&*/ ASYNC_IO_SOCK(self)) {
         // If we are already not in send state and have a socket
         ASYNC_IO_SET_SEND(self);
         return 0;
@@ -207,6 +216,7 @@ async_io_poll(async_io* self)
                 if (ret + (int)self->c == end) {
                     self->settings.on_send(self->ctx, 0, self->b, self->len);
                     ASYNC_IO_SET_RECV(self); // Send complete, put into listen
+                    ret = 0;                 // OK, send complete
                     break;
                 } else if (ret == 0) {
                     ret = 0; // OK, but maybe more to send

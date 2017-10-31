@@ -116,6 +116,7 @@ void async_io_init_udp(async_io*, void*, const async_io_settings*);
 void async_io_init(async_io*, void*, const async_io_settings*);
 void async_io_deinit(async_io* self);
 int async_io_connect(async_io* async, const char* ip, uint32_t p);
+int async_io_accept(async_io* async);
 void async_io_close(async_io* self);
 void* async_io_mem(async_io* self, uint32_t idx);
 void async_io_len_set(async_io* self, uint32_t len);

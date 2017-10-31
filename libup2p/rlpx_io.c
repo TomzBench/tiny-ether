@@ -163,9 +163,10 @@ rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from)
     ch->node.id = *from;
     ch->hs = rlpx_handshake_alloc(0, ch->skey, &ch->ekey, &ch->nonce, from);
     if (ch->hs) {
-        ch->io.sock = 3;
+        async_io_accept(&ch->io); // stub
+        ch->io.sock = 3;          // stub
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
-        return async_io_send(&ch->io);
+        return rlpx_io_send(&ch->io);
     } else {
         return -1;
     }
@@ -182,7 +183,7 @@ rlpx_io_send_auth(rlpx_io* ch)
         usys_log("[OUT] (auth) size: %d", ch->hs->cipher_len);
         async_io_set_cb_recv(&ch->io, rlpx_io_on_recv_ack);
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
-        return async_io_send(&ch->io);
+        return rlpx_io_send(&ch->io);
     } else {
         return -1;
     }
@@ -198,7 +199,7 @@ rlpx_io_send_hello(rlpx_io* ch)
         &ch->x, *ch->listen_port, &ch->node_id[1], ch->io.b, &ch->io.len);
     if (!err) {
         usys_log("[OUT] (hello) size: %d", ch->io.len);
-        return async_io_send(&ch->io);
+        return rlpx_io_send(&ch->io);
     } else {
         return err;
     }
@@ -214,7 +215,7 @@ rlpx_io_send_disconnect(rlpx_io* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
     if (!err) {
         usys_log("[OUT] (disconnect) size: %d", ch->io.len);
         async_io_set_cb_send(&ch->io, rlpx_io_on_send_shutdown);
-        return async_io_send(&ch->io);
+        return rlpx_io_send(&ch->io);
     } else {
         return err;
     }
@@ -229,7 +230,7 @@ rlpx_io_send_ping(rlpx_io* ch)
     if (!err) {
         ch->devp2p.ping = usys_now();
         usys_log("[OUT] (ping) size: %d", ch->io.len);
-        return async_io_send(&ch->io);
+        return rlpx_io_send(&ch->io);
     } else {
         return err;
     }
@@ -243,10 +244,19 @@ rlpx_io_send_pong(rlpx_io* ch)
     err = rlpx_devp2p_protocol_write_pong(&ch->x, ch->io.b, &ch->io.len);
     if (!err) {
         usys_log("[OUT] (pong) size: %d", ch->io.len);
-        return async_io_send(&ch->io);
+        return rlpx_io_send(&ch->io);
     } else {
         return err;
     }
+}
+
+int
+rlpx_io_send(async_io* io)
+{
+    int err = async_io_send(io);
+    // TODO - breaks test (flushing io resets len)
+    // if (!err) err = async_io_poll(io);
+    return err;
 }
 
 int

@@ -78,6 +78,7 @@ int rlpx_io_send_hello(rlpx_io* ch);
 int rlpx_io_send_disconnect(rlpx_io* ch, RLPX_DEVP2P_DISCONNECT_REASON);
 int rlpx_io_send_ping(rlpx_io* ch);
 int rlpx_io_send_pong(rlpx_io* ch);
+int rlpx_io_send(async_io* io);
 int rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l);
 int rlpx_io_recv_auth(rlpx_io*, const uint8_t*, size_t l);
 int rlpx_io_recv_ack(rlpx_io* ch, const uint8_t*, size_t l);
