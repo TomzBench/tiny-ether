@@ -21,23 +21,23 @@
 
 #include "test.h"
 
-uint32_t g_disc_ping_v4_len;
-uint32_t g_disc_ping_v555_len;
-uint32_t g_disc_pong_len;
-uint32_t g_disc_find_node_len;
-uint32_t g_disc_neighbours_len;
+uint32_t g_ping_v4_len;
+uint32_t g_ping_v555_len;
+uint32_t g_pong_len;
+uint32_t g_find_node_len;
+uint32_t g_neighbours_len;
 
-const char* g_disc_ping_v4 = DISCOVERY_PING_V4;
-const char* g_disc_ping_v555 = DISCOVERY_PING_V555;
-const char* g_disc_pong = DISCOVERY_PONG;
-const char* g_disc_find_node = DISCOVERY_FIND_NODE;
-const char* g_disc_neighbours = DISCOVERY_NEIGHBOURS;
+const char* g_ping_v4 = DISCOVERY_PING_V4;
+const char* g_ping_v555 = DISCOVERY_PING_V555;
+const char* g_pong = DISCOVERY_PONG;
+const char* g_find_node = DISCOVERY_FIND_NODE;
+const char* g_neighbours = DISCOVERY_NEIGHBOURS;
 
-uint8_t* g_disc_ping_v4_bin = NULL;
-uint8_t* g_disc_ping_v555_bin = NULL;
-uint8_t* g_disc_pong_bin = NULL;
-uint8_t* g_disc_find_node_bin = NULL;
-uint8_t* g_disc_neighbours_bin = NULL;
+uint8_t* g_ping_v4_bin = NULL;
+uint8_t* g_ping_v555_bin = NULL;
+uint8_t* g_pong_bin = NULL;
+uint8_t* g_find_node_bin = NULL;
+uint8_t* g_neighbours_bin = NULL;
 
 // Encrypt a udp packet
 int test_disc_write();
@@ -61,40 +61,32 @@ test_discovery()
     int err = 0;
 
     // Init test vectors.
-    g_disc_ping_v4_len = strlen(g_disc_ping_v4) / 2;
-    g_disc_ping_v555_len = strlen(g_disc_ping_v555) / 2;
-    g_disc_pong_len = strlen(g_disc_pong) / 2;
-    g_disc_find_node_len = strlen(g_disc_find_node) / 2;
-    g_disc_neighbours_len = strlen(g_disc_neighbours) / 2;
-    g_disc_ping_v4_bin = rlpx_malloc(g_disc_ping_v4_len);
-    g_disc_ping_v555_bin = rlpx_malloc(g_disc_ping_v555_len);
-    g_disc_pong_bin = rlpx_malloc(g_disc_pong_len);
-    g_disc_find_node_bin = rlpx_malloc(g_disc_find_node_len);
-    g_disc_neighbours_bin = rlpx_malloc(g_disc_neighbours_len);
-    memcpy(g_disc_ping_v4_bin, //
-           makebin(g_disc_ping_v4, NULL),
-           g_disc_ping_v4_len);
-    memcpy(g_disc_ping_v555_bin,
-           makebin(g_disc_ping_v555, NULL),
-           g_disc_ping_v555_len);
-    memcpy(g_disc_pong_bin, makebin(g_disc_pong, NULL), g_disc_pong_len);
-    memcpy(g_disc_find_node_bin,
-           makebin(g_disc_find_node, NULL),
-           g_disc_find_node_len);
-    memcpy(g_disc_neighbours_bin,
-           makebin(g_disc_neighbours, NULL),
-           g_disc_neighbours_len);
+    g_ping_v4_len = strlen(g_ping_v4) / 2;
+    g_ping_v555_len = strlen(g_ping_v555) / 2;
+    g_pong_len = strlen(g_pong) / 2;
+    g_find_node_len = strlen(g_find_node) / 2;
+    g_neighbours_len = strlen(g_neighbours) / 2;
+    g_ping_v4_bin = rlpx_malloc(g_ping_v4_len);
+    g_ping_v555_bin = rlpx_malloc(g_ping_v555_len);
+    g_pong_bin = rlpx_malloc(g_pong_len);
+    g_find_node_bin = rlpx_malloc(g_find_node_len);
+    g_neighbours_bin = rlpx_malloc(g_neighbours_len);
+    memcpy(g_ping_v4_bin, makebin(g_ping_v4, NULL), g_ping_v4_len);
+    memcpy(g_ping_v555_bin, makebin(g_ping_v555, NULL), g_ping_v555_len);
+    memcpy(g_pong_bin, makebin(g_pong, NULL), g_pong_len);
+    memcpy(g_find_node_bin, makebin(g_find_node, NULL), g_find_node_len);
+    memcpy(g_neighbours_bin, makebin(g_neighbours, NULL), g_neighbours_len);
 
     err |= test_disc_read();
     err |= test_disc_write();
     err |= test_disc_protocol();
 
     // Free test vectors
-    rlpx_free(g_disc_ping_v4_bin);
-    rlpx_free(g_disc_ping_v555_bin);
-    rlpx_free(g_disc_pong_bin);
-    rlpx_free(g_disc_find_node_bin);
-    rlpx_free(g_disc_neighbours_bin);
+    rlpx_free(g_ping_v4_bin);
+    rlpx_free(g_ping_v555_bin);
+    rlpx_free(g_pong_bin);
+    rlpx_free(g_find_node_bin);
+    rlpx_free(g_neighbours_bin);
     return err;
 }
 
@@ -115,16 +107,16 @@ test_disc_read()
     rlpx_discovery_table_init(&table);
 
     // Construct test vector arrays for loop
-    const uint8_t* reads[5] = { g_disc_ping_v4_bin,
-                                g_disc_ping_v555_bin,
-                                g_disc_pong_bin,
-                                g_disc_find_node_bin,
-                                g_disc_neighbours_bin };
-    uint32_t reads_sz[5] = { g_disc_ping_v4_len,
-                             g_disc_ping_v555_len,
-                             g_disc_pong_len,
-                             g_disc_find_node_len,
-                             g_disc_neighbours_len };
+    const uint8_t* reads[5] = { g_ping_v4_bin,
+                                g_ping_v555_bin,
+                                g_pong_bin,
+                                g_find_node_bin,
+                                g_neighbours_bin };
+    uint32_t reads_sz[5] = { g_ping_v4_len,
+                             g_ping_v555_len,
+                             g_pong_len,
+                             g_find_node_len,
+                             g_neighbours_len };
     int (*check_fn[5])(
         rlpx_discovery_table*, int, const urlp*) = { check_ping_v4,
                                                      check_ping_v555,
