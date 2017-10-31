@@ -140,10 +140,12 @@ async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
 int
 async_io_send(async_io* self)
 {
-    if (ASYNC_IO_SOCK(self)) {
+    if ((!(ASYNC_IO_SEND(self->state))) && ASYNC_IO_SOCK(self)) {
+        // If we are already not in send state and have a socket
         ASYNC_IO_SET_SEND(self);
         return 0;
     } else {
+        // We are busy sending already or not connected
         return -1;
     }
 }
