@@ -24,8 +24,9 @@
 int rlpx_devp2p_protocol_recv(rlpx_protocol*, const urlp* rlp);
 
 rlpx_devp2p_protocol*
-rlpx_devp2p_protocol_alloc(const rlpx_devp2p_protocol_settings* settings,
-                           void* ctx)
+rlpx_devp2p_protocol_alloc(
+    const rlpx_devp2p_protocol_settings* settings,
+    void* ctx)
 {
     rlpx_devp2p_protocol* self = rlpx_malloc(sizeof(rlpx_devp2p_protocol));
     if (self) {
@@ -44,9 +45,10 @@ rlpx_devp2p_protocol_free(rlpx_devp2p_protocol** self_p)
 }
 
 void
-rlpx_devp2p_protocol_init(rlpx_devp2p_protocol* self,
-                          const rlpx_devp2p_protocol_settings* settings,
-                          void* ctx)
+rlpx_devp2p_protocol_init(
+    rlpx_devp2p_protocol* self,
+    const rlpx_devp2p_protocol_settings* settings,
+    void* ctx)
 {
     // Iniitlize base class.
     rlpx_protocol_init(&self->base, 0, "p2p", ctx);
@@ -91,11 +93,12 @@ rlpx_devp2p_protocol_recv(rlpx_protocol* base, const urlp* rlp)
 }
 
 int
-rlpx_devp2p_protocol_write(rlpx_coder* x,
-                           RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type,
-                           urlp* rlp,
-                           uint8_t* out,
-                           uint32_t* outlen)
+rlpx_devp2p_protocol_write(
+    rlpx_coder* x,
+    RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type,
+    urlp* rlp,
+    uint8_t* out,
+    uint32_t* outlen)
 {
     int err = 0;
     uint32_t tmp = *outlen - 1;
@@ -112,11 +115,12 @@ rlpx_devp2p_protocol_write(rlpx_coder* x,
 }
 
 int
-rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
-                                 uint32_t port,
-                                 const uint8_t* id,
-                                 uint8_t* out,
-                                 uint32_t* l)
+rlpx_devp2p_protocol_write_hello(
+    rlpx_coder* x,
+    uint32_t port,
+    const uint8_t* id,
+    uint8_t* out,
+    uint32_t* l)
 {
     int err = -1;
     urlp *body = urlp_list(), *caps = urlp_list();
@@ -138,10 +142,11 @@ rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
 }
 
 int
-rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,
-                                      RLPX_DEVP2P_DISCONNECT_REASON reason,
-                                      uint8_t* out,
-                                      uint32_t* l)
+rlpx_devp2p_protocol_write_disconnect(
+    rlpx_coder* x,
+    RLPX_DEVP2P_DISCONNECT_REASON reason,
+    uint8_t* out,
+    uint32_t* l)
 {
     int err;
     urlp* rlp = urlp_list();

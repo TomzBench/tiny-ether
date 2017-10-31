@@ -59,17 +59,16 @@ typedef struct
     uaes_ctx aes_mac;    /*!< aes ecb of egress/ingress mac updates */
 } rlpx_coder;
 
-int rlpx_frame_write(rlpx_coder* x,
-                     uint32_t type,
-                     uint32_t context_id,
-                     uint8_t* data,
-                     size_t datalen,
-                     uint8_t* out,
-                     uint32_t* l);
-uint32_t rlpx_frame_parse(rlpx_coder* x,
-                          const uint8_t* frame,
-                          size_t l,
-                          urlp**);
+int rlpx_frame_write(
+    rlpx_coder* x,
+    uint32_t type,
+    uint32_t context_id,
+    uint8_t* data,
+    size_t datalen,
+    uint8_t* out,
+    uint32_t* l);
+uint32_t
+rlpx_frame_parse(rlpx_coder* x, const uint8_t* frame, size_t l, urlp**);
 
 #ifdef __cplusplus
 }

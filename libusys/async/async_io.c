@@ -196,10 +196,11 @@ async_io_poll(async_io* self)
         }
     } else if (ASYNC_IO_SEND(self->state)) {
         for (c = 0; c < 2; c++) {
-            ret = self->settings.tx(&self->sock,
-                                    &self->b[self->c],
-                                    self->len - self->c,
-                                    self->addr_ptr);
+            ret = self->settings.tx(
+                &self->sock,
+                &self->b[self->c],
+                self->len - self->c,
+                self->addr_ptr);
             if (ret >= 0) {
                 if (ret + (int)self->c == end) {
                     self->settings.on_send(self->ctx, 0, self->b, self->len);
@@ -219,10 +220,11 @@ async_io_poll(async_io* self)
         }
     } else if (ASYNC_IO_RECV(self->state)) {
         for (c = 0; c < 2; c++) {
-            ret = self->settings.rx(&self->sock,
-                                    &self->b[self->c],
-                                    self->len - self->c,
-                                    self->addr_ptr);
+            ret = self->settings.rx(
+                &self->sock,
+                &self->b[self->c],
+                self->len - self->c,
+                self->addr_ptr);
             if (ret >= 0) {
                 if (ret + (int)self->c == end) {
                     self->settings.on_recv(self->ctx, -1, 0, 0);

@@ -76,25 +76,29 @@ rlpx_devp2p_protocol* rlpx_devp2p_protocol_alloc(
 void rlpx_devp2p_protocol_free(rlpx_devp2p_protocol** self_p);
 
 // Initializers/Deinitializers
-void rlpx_devp2p_protocol_init(rlpx_devp2p_protocol* self,
-                               const rlpx_devp2p_protocol_settings* settings,
-                               void* ctx);
+void rlpx_devp2p_protocol_init(
+    rlpx_devp2p_protocol* self,
+    const rlpx_devp2p_protocol_settings* settings,
+    void* ctx);
 void rlpx_devp2p_protocol_deinit(rlpx_devp2p_protocol* self);
 
-int rlpx_devp2p_protocol_write(rlpx_coder* x,
-                               RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type,
-                               urlp* rlp,
-                               uint8_t* out,
-                               uint32_t* outlen);
-int rlpx_devp2p_protocol_write_hello(rlpx_coder* x,
-                                     uint32_t port,
-                                     const uint8_t* id,
-                                     uint8_t* out,
-                                     uint32_t* l);
-int rlpx_devp2p_protocol_write_disconnect(rlpx_coder* x,
-                                          RLPX_DEVP2P_DISCONNECT_REASON reason,
-                                          uint8_t* out,
-                                          uint32_t* l);
+int rlpx_devp2p_protocol_write(
+    rlpx_coder* x,
+    RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type,
+    urlp* rlp,
+    uint8_t* out,
+    uint32_t* outlen);
+int rlpx_devp2p_protocol_write_hello(
+    rlpx_coder* x,
+    uint32_t port,
+    const uint8_t* id,
+    uint8_t* out,
+    uint32_t* l);
+int rlpx_devp2p_protocol_write_disconnect(
+    rlpx_coder* x,
+    RLPX_DEVP2P_DISCONNECT_REASON reason,
+    uint8_t* out,
+    uint32_t* l);
 int rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, uint32_t* l);
 int rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l);
 

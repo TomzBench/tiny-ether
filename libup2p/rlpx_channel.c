@@ -123,10 +123,11 @@ rlpx_ch_poll(rlpx_channel** ch, uint32_t count, uint32_t ms)
 }
 
 int
-rlpx_ch_connect(rlpx_channel* ch,
-                const uecc_public_key* to,
-                const char* host,
-                uint32_t tcp)
+rlpx_ch_connect(
+    rlpx_channel* ch,
+    const uecc_public_key* to,
+    const char* host,
+    uint32_t tcp)
 {
     rlpx_node n;
     if (!rlpx_node_init(&n, to, host, tcp, 0)) {
@@ -286,13 +287,14 @@ rlpx_ch_recv_auth(rlpx_channel* ch, const uint8_t* b, size_t l)
 
     // Process the Decrypted RLP data
     if (!(err = rlpx_handshake_auth_install(ch->hs, &rlp))) {
-        err = rlpx_handshake_secrets(ch->hs,
-                                     0,
-                                     &ch->x.emac,
-                                     &ch->x.imac,
-                                     &ch->x.aes_enc,
-                                     &ch->x.aes_dec,
-                                     &ch->x.aes_mac);
+        err = rlpx_handshake_secrets(
+            ch->hs,
+            0,
+            &ch->x.emac,
+            &ch->x.imac,
+            &ch->x.aes_enc,
+            &ch->x.aes_dec,
+            &ch->x.aes_mac);
     }
 
     // Free rlp and return
@@ -311,13 +313,14 @@ rlpx_ch_recv_ack(rlpx_channel* ch, const uint8_t* ack, size_t l)
 
     // Process the Decrypted RLP data
     if (!(err = rlpx_handshake_ack_install(ch->hs, &rlp))) {
-        err = rlpx_handshake_secrets(ch->hs,
-                                     1,
-                                     &ch->x.emac,
-                                     &ch->x.imac,
-                                     &ch->x.aes_enc,
-                                     &ch->x.aes_dec,
-                                     &ch->x.aes_mac);
+        err = rlpx_handshake_secrets(
+            ch->hs,
+            1,
+            &ch->x.emac,
+            &ch->x.imac,
+            &ch->x.aes_enc,
+            &ch->x.aes_dec,
+            &ch->x.aes_mac);
     }
 
     // Free rlp and return
@@ -436,9 +439,10 @@ rlpx_ch_on_hello(void* ctx, const urlp* rlp)
 
     // Copy client string.
     rlpx_devp2p_protocol_client_id(rlp, &memptr, &l);
-    memcpy(ch->devp2p.client,
-           memptr,
-           l < RLPX_CLIENT_MAX_LEN ? l : RLPX_CLIENT_MAX_LEN);
+    memcpy(
+        ch->devp2p.client,
+        memptr,
+        l < RLPX_CLIENT_MAX_LEN ? l : RLPX_CLIENT_MAX_LEN);
 
     // Copy listening port.
     rlpx_devp2p_protocol_listen_port(rlp, &ch->devp2p.listen_port);

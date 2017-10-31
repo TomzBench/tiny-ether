@@ -43,21 +43,24 @@ typedef struct
 int uaes_init(uaes_ctx* ctx, int keysz, uint8_t* key);
 void uaes_deinit(uaes_ctx** ctx);
 void uaes_crypt_reset(uaes_ctx* ctx);
-int uaes_crypt_ctr(int keysz,
-                   uint8_t* key,
-                   uint8_t* iv,
-                   const uint8_t* in,
-                   size_t inlen,
-                   uint8_t* out);
-int uaes_crypt_ctr_update(uaes_ctx* ctx,
-                          const uint8_t* in,
-                          size_t inlen,
-                          uint8_t* out);
-int uaes_crypt_ctr_op(uaes_ctx* ctx,
-                      uint8_t* iv,
-                      const uint8_t* in,
-                      size_t inlen,
-                      uint8_t* out);
+int uaes_crypt_ctr(
+    int keysz,
+    uint8_t* key,
+    uint8_t* iv,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out);
+int uaes_crypt_ctr_update(
+    uaes_ctx* ctx,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out);
+int uaes_crypt_ctr_op(
+    uaes_ctx* ctx,
+    uint8_t* iv,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out);
 
 /**
  * @brief Inline aliaes api wrapper
@@ -82,21 +85,23 @@ uaes_init_256(uaes_ctx* ctx, uint8_t* key)
 }
 
 static inline int
-uaes_crypt_ctr_128(uaes_ctr_128_key* key,
-                   uaes_iv* iv,
-                   const uint8_t* in,
-                   size_t inlen,
-                   uint8_t* out)
+uaes_crypt_ctr_128(
+    uaes_ctr_128_key* key,
+    uaes_iv* iv,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out)
 {
     return uaes_crypt_ctr(128, key->b, iv->b, in, inlen, out);
 }
 
 static inline int
-uaes_crypt_ctr_256(uaes_ctr_128_key* key,
-                   uaes_iv* iv,
-                   const uint8_t* in,
-                   size_t inlen,
-                   uint8_t* out)
+uaes_crypt_ctr_256(
+    uaes_ctr_128_key* key,
+    uaes_iv* iv,
+    const uint8_t* in,
+    size_t inlen,
+    uint8_t* out)
 {
     return uaes_crypt_ctr(256, key->b, iv->b, in, inlen, out);
 }

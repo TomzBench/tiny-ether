@@ -34,10 +34,11 @@
  *
  * @return 0 OK -1 error
  */
-int frame_parse_header(rlpx_coder* x,
-                       const uint8_t* header,
-                       urlp** header_urlp,
-                       uint32_t* body_len);
+int frame_parse_header(
+    rlpx_coder* x,
+    const uint8_t* header,
+    urlp** header_urlp,
+    uint32_t* body_len);
 
 /**
  * @brief Authenticate and decrypt a body frame
@@ -49,10 +50,11 @@ int frame_parse_header(rlpx_coder* x,
  *
  * @return
  */
-int frame_parse_body(rlpx_coder* x,
-                     const uint8_t* body,
-                     uint32_t body_len,
-                     urlp** rlp);
+int frame_parse_body(
+    rlpx_coder* x,
+    const uint8_t* body,
+    uint32_t body_len,
+    urlp** rlp);
 
 /**
  * @brief Update MAC state, convert plaintext to cipher text with MAC
@@ -65,11 +67,12 @@ int frame_parse_body(rlpx_coder* x,
  *
  * @return 0 OK -1 error
  */
-int frame_egress(rlpx_coder*,
-                 const uint8_t* x,
-                 size_t xlen,
-                 uint8_t* out,
-                 uint8_t* mac);
+int frame_egress(
+    rlpx_coder*,
+    const uint8_t* x,
+    size_t xlen,
+    uint8_t* out,
+    uint8_t* mac);
 
 /**
  * @brief
@@ -82,21 +85,23 @@ int frame_egress(rlpx_coder*,
  *
  * @return
  */
-int frame_ingress(rlpx_coder*,
-                  const uint8_t* x,
-                  size_t xlen,
-                  const uint8_t* expect,
-                  uint8_t* out);
+int frame_ingress(
+    rlpx_coder*,
+    const uint8_t* x,
+    size_t xlen,
+    const uint8_t* expect,
+    uint8_t* out);
 
 // public
 int
-rlpx_frame_write(rlpx_coder* x,
-                 uint32_t type,
-                 uint32_t id,
-                 uint8_t* data,
-                 size_t datalen,
-                 uint8_t* out,
-                 uint32_t* l)
+rlpx_frame_write(
+    rlpx_coder* x,
+    uint32_t type,
+    uint32_t id,
+    uint8_t* data,
+    size_t datalen,
+    uint8_t* out,
+    uint32_t* l)
 {
     size_t len = AES_LEN(datalen);
     uint8_t head[32], body[len];
@@ -160,10 +165,11 @@ rlpx_frame_parse(rlpx_coder* x, const uint8_t* frame, size_t l, urlp** rlp_p)
 }
 
 int
-frame_parse_header(rlpx_coder* x,
-                   const uint8_t* hdr,
-                   urlp** header_urlp,
-                   uint32_t* body_len)
+frame_parse_header(
+    rlpx_coder* x,
+    const uint8_t* hdr,
+    urlp** header_urlp,
+    uint32_t* body_len)
 {
     int err = -1;
     uint8_t tmp[32];
@@ -204,11 +210,12 @@ frame_parse_body(rlpx_coder* x, const uint8_t* frame, uint32_t l, urlp** rlp)
 }
 
 int
-frame_egress(rlpx_coder* x,
-             const uint8_t* plain,
-             size_t xlen,
-             uint8_t* out,
-             uint8_t* mac)
+frame_egress(
+    rlpx_coder* x,
+    const uint8_t* plain,
+    size_t xlen,
+    uint8_t* out,
+    uint8_t* mac)
 {
     // encrypt
     // HEADER:
@@ -239,11 +246,12 @@ frame_egress(rlpx_coder* x,
 }
 
 int
-frame_ingress(rlpx_coder* x,
-              const uint8_t* cipher,
-              size_t xlen,
-              const uint8_t* expect,
-              uint8_t* out)
+frame_ingress(
+    rlpx_coder* x,
+    const uint8_t* cipher,
+    size_t xlen,
+    const uint8_t* expect,
+    uint8_t* out)
 {
     // Check mac and decrypt
     // HEADER:

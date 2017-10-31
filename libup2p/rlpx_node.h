@@ -43,11 +43,12 @@ typedef struct
     uint32_t port_udp;
 } rlpx_node;
 
-int rlpx_node_init(rlpx_node* self,
-                   const uecc_public_key* id,
-                   const char* host,
-                   uint32_t tcp,
-                   uint32_t udp);
+int rlpx_node_init(
+    rlpx_node* self,
+    const uecc_public_key* id,
+    const char* host,
+    uint32_t tcp,
+    uint32_t udp);
 
 /**
  * @brief Create a node from an enode string.
