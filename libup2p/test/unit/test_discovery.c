@@ -50,6 +50,7 @@ int test_disc_read();
 int test_disc_protocol();
 
 // check functions
+typedef int (*check_fn)(rlpx_discovery_table*, int, const urlp*);
 int check_ping_v4(rlpx_discovery_table* t, int type, const urlp* rlp);
 int check_ping_v555(rlpx_discovery_table* t, int type, const urlp* rlp);
 int check_pong(rlpx_discovery_table* t, int type, const urlp* rlp);
@@ -110,13 +111,6 @@ test_disc_write()
     rlpx_discovery_endpoint_v4_init(&from, 33342, 123, 456);
     rlpx_discovery_endpoint_v4_init(&to, 33342, 123, 456);
     uecc_key_init_new(&skey);
-
-    // l = sizeof(b);
-    // rlp = urlp_list();
-    // urlp_push(rlp, urlp_item_u32(234));
-    // urlp_push(rlp, rlpx_discovery_rlp_endpoint(&from));
-    // rlpx_discovery_write(&skey, RLPX_DISCOVERY_PING, rlp, b, &l);
-    // urlp_free(&rlp);
 
     // Check ping v4
     l = sizeof(b);
@@ -180,17 +174,15 @@ test_disc_read()
                              g_pong_len,
                              g_find_node_len,
                              g_neighbours_len };
-    int (*check_fn[5])(
-        rlpx_discovery_table*, int, const urlp*) = { check_ping_v4,
-                                                     check_ping_v555,
-                                                     check_pong,
-                                                     check_find_node,
-                                                     check_neighbours };
-
+    check_fn check[5] = { check_ping_v4,
+                          check_ping_v555,
+                          check_pong,
+                          check_find_node,
+                          check_neighbours };
     for (int i = 0; i < 5; i++) {
         err = rlpx_discovery_parse(reads[i], reads_sz[i], &nodeid, &type, &rlp);
         if (!err) {
-            err = check_fn[i](&table, type, rlp);
+            err = check[i](&table, type, rlp);
             urlp_free(&rlp);
         }
     }
