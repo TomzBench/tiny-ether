@@ -22,21 +22,24 @@
 #include "rlpx_io.h"
 
 rlpx_io*
-rlpx_io_mock_alloc(async_io_settings* s, uecc_ctx* skey, const uint32_t* listen)
+rlpx_io_mock_devp2p_alloc(
+    async_io_settings* s,
+    uecc_ctx* skey,
+    const uint32_t* listen)
 {
     rlpx_io* ch = rlpx_malloc(sizeof(rlpx_io));
-    if (ch) rlpx_io_mock_init(ch, s, skey, listen);
+    if (ch) rlpx_io_mock_devp2p_init(ch, s, skey, listen);
     return ch;
 }
 
 int
-rlpx_io_mock_init(
+rlpx_io_mock_devp2p_init(
     rlpx_io* ch,
     async_io_settings* settings,
     uecc_ctx* skey,
     const uint32_t* listen)
 {
-    rlpx_io_init(ch, skey, listen);
+    rlpx_io_init_devp2p(ch, skey, listen);
     // Override io
     if (settings->connect) ch->io.settings.connect = settings->connect;
     if (settings->ready) ch->io.settings.ready = settings->ready;

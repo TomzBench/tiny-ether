@@ -24,24 +24,37 @@
 #include "usys_log.h"
 #include "usys_time.h"
 
-// Private io callbacks
+// Private io callbacks (devp2p)
 int rlpx_io_on_accept(void* ctx);
 int rlpx_io_on_connect(void* ctx);
 int rlpx_io_on_erro(void* ctx);
 int rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
-int rlpx_io_on_send_shutdown(void* ctx, int err, const uint8_t* b, uint32_t l);
 int rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
-int rlpx_io_on_recv_auth(void* ctx, int err, uint8_t* b, uint32_t l);
-int rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l);
+
+// Private io callbacks (discv4)
+int rlpx_io_on_erro_from(void* ctx);
+int rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l);
+int rlpx_io_on_recv_from(void* ctx, int err, uint8_t* b, uint32_t l);
 
 // Private protocol callbacks
 int rlpx_io_on_hello(void* ctx, const urlp* rlp);
 int rlpx_io_on_disconnect(void* ctx, const urlp* rlp);
 int rlpx_io_on_ping(void* ctx, const urlp* rlp);
 int rlpx_io_on_pong(void* ctx, const urlp* rlp);
+int rlpx_io_on_send_shutdown(void* ctx, int err, const uint8_t* b, uint32_t l);
+int rlpx_io_on_recv_auth(void* ctx, int err, uint8_t* b, uint32_t l);
+int rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l);
+
+async_io_settings g_rlpx_disc_settings = {
+    .on_accept = NULL,               //
+    .on_connect = NULL,              //
+    .on_erro = rlpx_io_on_erro_from, //
+    .on_send = rlpx_io_on_send_to,   //
+    .on_recv = rlpx_io_on_recv_from, //
+};
 
 // IO callback handlers
-async_io_settings g_rlpx_io_io_settings = { //
+async_io_settings g_rlpx_io_settings = { //
     .on_accept = rlpx_io_on_accept,
     .on_connect = rlpx_io_on_connect,
     .on_erro = rlpx_io_on_erro,
@@ -77,27 +90,41 @@ rlpx_io_free(rlpx_io** ch_p)
 }
 
 int
-rlpx_io_init(rlpx_io* ch, uecc_ctx* s, const uint32_t* listen)
+rlpx_io_init_discv4(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
+{
+    rlpx_io_init(io, s, listen);
+    async_io_init(&io->io, io, &g_rlpx_disc_settings);
+    rlpx_io_listen(io);
+    return 0;
+}
+
+int
+rlpx_io_init_devp2p(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
+{
+    rlpx_io_init(io, s, listen);
+    async_io_init(&io->io, io, &g_rlpx_io_settings);
+    return 0;
+}
+
+int
+rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
 {
     // clean mem
-    memset(ch, 0, sizeof(rlpx_io));
+    memset(io, 0, sizeof(rlpx_io));
 
     // Our static identity
-    ch->skey = s;
+    io->skey = s;
 
     // Create random epheremeral key
-    uecc_key_init_new(&ch->ekey);
-
-    // Install network io handler
-    async_io_init(&ch->io, ch, &g_rlpx_io_io_settings);
+    uecc_key_init_new(&io->ekey);
 
     // update info
-    ch->listen_port = listen;
-    uecc_qtob(&ch->skey->Q, ch->node_id, 65);
+    io->listen_port = listen;
+    uecc_qtob(&io->skey->Q, io->node_id, 65);
 
     // Install protocols
-    rlpx_devp2p_protocol_init(&ch->devp2p, &g_devp2p_settings, ch);
-    ch->protocols[0] = (rlpx_protocol*)&ch->devp2p;
+    rlpx_devp2p_protocol_init(&io->devp2p, &g_devp2p_settings, io);
+    io->protocols[0] = (rlpx_protocol*)&io->devp2p;
 
     return 0;
 }
@@ -120,6 +147,12 @@ int
 rlpx_io_poll(rlpx_io** ch, uint32_t count, uint32_t ms)
 {
     return async_io_poll_n((async_io**)ch, count, ms);
+}
+
+int
+rlpx_io_listen(rlpx_io* io)
+{
+    return usys_listen_udp(&io->io.sock, *io->listen_port);
 }
 
 int
@@ -358,6 +391,37 @@ rlpx_io_on_erro(void* ctx)
 {
     rlpx_io* ch = (rlpx_io*)ctx;
     usys_log_err("[ERR] %d", ch->io.sock);
+    return 0;
+}
+
+int
+rlpx_io_on_erro_from(void* ctx)
+{
+    ((void)ctx);
+    usys_log("[ IN] [UDP] error");
+    return 0;
+}
+
+int
+rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l)
+{
+    ((void)ctx);
+    ((void)err);
+    ((void)b);
+    ((void)l);
+    usys_log("[ IN] [UDP] send");
+    return 0;
+}
+
+int
+rlpx_io_on_recv_from(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+    rlpx_io* io = (rlpx_io*)ctx;
+    ((void)io);
+    ((void)err);
+    ((void)b);
+    ((void)l);
+    usys_log("[ IN] [UDP] hit");
     return 0;
 }
 

@@ -23,21 +23,10 @@
 #include "usys_log.h"
 #include "usys_time.h"
 
-int ueth_poll_tcp(ueth_context* ctx);
-int ueth_poll_udp(ueth_context* ctx);
-int ueth_on_accept(void* ctx);
-int ueth_on_connect(void* ctx);
+int ueth_poll_internal(ueth_context* ctx);
 int ueth_on_erro(void* ctx);
 int ueth_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
 int ueth_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
-
-async_io_settings g_ueth_io_settings = {
-    .on_accept = NULL,       //
-    .on_connect = NULL,      //
-    .on_erro = ueth_on_erro, //
-    .on_send = ueth_on_send, //
-    .on_recv = ueth_on_recv, //
-};
 
 int
 ueth_init(ueth_context* ctx, ueth_config* config)
@@ -47,14 +36,8 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     // Copy config.
     ctx->config = *config;
 
-    // Setup udp listener
-    if (ctx->config.udp) {
-        async_io_init_udp(&ctx->io, ctx, &g_ueth_io_settings);
-        usys_listen_udp(&ctx->io.sock, ctx->config.udp);
-    }
-
     // Polling mode (p2p enable, etc)
-    ctx->poll = config->p2p_enable ? ueth_poll_udp : ueth_poll_tcp;
+    ctx->poll = ueth_poll_internal;
 
     if (config->p2p_private_key) {
         rlpx_node_hex_to_bin(config->p2p_private_key, 0, key.b, NULL);
@@ -68,8 +51,13 @@ ueth_init(ueth_context* ctx, ueth_config* config)
 
     // Init peer pipes
     for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_io_init(&ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
+        rlpx_io_init_devp2p(
+            &ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
     }
+
+    // Setup udp listener
+    rlpx_io_init_discv4(
+        &ctx->discovery, &ctx->p2p_static_key, &ctx->config.udp);
 
     char hex[129];
     uint8_t q[65];
@@ -127,10 +115,10 @@ ueth_stop(ueth_context* ctx)
 }
 
 int
-ueth_poll_tcp(ueth_context* ctx)
+ueth_poll_internal(ueth_context* ctx)
 {
     uint32_t i, b = 0;
-    rlpx_io* ch[ctx->n];
+    rlpx_io* ch[ctx->n + 1];
     for (i = 0; i < ctx->n; i++) {
         // If this channel has peer
         if (ctx->ch[i].node.port_tcp) {
@@ -142,51 +130,9 @@ ueth_poll_tcp(ueth_context* ctx)
             }
         }
     }
+    // Add our listener to poll
+    ch[b++] = &ctx->discovery;
     rlpx_io_poll(ch, b, 100);
-    return 0;
-}
-
-int
-ueth_poll_udp(ueth_context* ctx)
-{
-    async_io* io = &ctx->io;
-    int err;
-
-    // Poll tcp
-    err = ueth_poll_tcp(ctx);
-
-    // TODO - poll udp ports
-    async_io_poll_n(&io, 1, 100);
-    return 0;
-}
-
-int
-ueth_on_erro(void* ctx)
-{
-    ((void)ctx);
-    usys_log("[ IN] [UDP] error");
-    return 0;
-}
-
-int
-ueth_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
-{
-    ((void)ctx);
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    usys_log("[ IN] [UDP] send");
-    return 0;
-}
-
-int
-ueth_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
-{
-    ueth_context* eth = (ueth_context*)ctx;
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    usys_log("[ IN] [UDP] hit");
     return 0;
 }
 

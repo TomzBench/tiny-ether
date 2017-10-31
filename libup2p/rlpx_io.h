@@ -56,15 +56,25 @@ typedef struct
 
 // constructors
 rlpx_io* rlpx_io_alloc(uecc_ctx* skey, const uint32_t*);
-rlpx_io* rlpx_io_mock_alloc(async_io_settings*, uecc_ctx*, const uint32_t*);
+rlpx_io* rlpx_io_mock_devp2p_alloc(
+    async_io_settings* io,
+    uecc_ctx* s,
+    const uint32_t* udp);
 void rlpx_io_free(rlpx_io** ch_p);
-int rlpx_io_init(rlpx_io*, uecc_ctx*, const uint32_t*);
-int rlpx_io_mock_init(rlpx_io*, async_io_settings*, uecc_ctx*, const uint32_t*);
+int rlpx_io_init_discv4(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
+int rlpx_io_init_devp2p(rlpx_io*, uecc_ctx*, const uint32_t*);
+int rlpx_io_init(rlpx_io* io, uecc_ctx*, const uint32_t*);
+int rlpx_io_mock_devp2p_init(
+    rlpx_io*,
+    async_io_settings*,
+    uecc_ctx*,
+    const uint32_t*);
 void rlpx_io_deinit(rlpx_io* session);
 
 // methods
 void rlpx_io_nonce(rlpx_io* ch);
 int rlpx_io_poll(rlpx_io** ch, uint32_t count, uint32_t ms);
+int rlpx_io_listen(rlpx_io* io);
 int rlpx_io_connect(
     rlpx_io* ch,
     const uecc_public_key* to,

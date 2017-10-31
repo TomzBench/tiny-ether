@@ -134,8 +134,10 @@ test_session_init(test_session* s, int vec)
     uecc_key_init_binary(&s->skey_b, &bob_s);
     uecc_key_init_binary(&ekey_a, &alice_e);
     uecc_key_init_binary(&ekey_b, &bob_e);
-    s->alice = rlpx_io_mock_alloc(&g_io_mock_settings, &s->skey_a, &s->udp[0]);
-    s->bob = rlpx_io_mock_alloc(&g_io_mock_settings, &s->skey_b, &s->udp[1]);
+    s->alice =
+        rlpx_io_mock_devp2p_alloc(&g_io_mock_settings, &s->skey_a, &s->udp[0]);
+    s->bob =
+        rlpx_io_mock_devp2p_alloc(&g_io_mock_settings, &s->skey_b, &s->udp[1]);
 
     // Install mock ekeys
     rlpx_test_ekey_set(s->alice, &ekey_a);
