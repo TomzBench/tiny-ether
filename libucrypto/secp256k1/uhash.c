@@ -81,11 +81,12 @@ uhmac_sha256_free(uhmac_sha256_ctx* ctx)
 }
 
 void
-uhmac_sha256(const uint8_t* key,
-             size_t keylen,
-             const uint8_t* msg,
-             size_t msglen,
-             uint8_t* hmac)
+uhmac_sha256(
+    const uint8_t* key,
+    size_t keylen,
+    const uint8_t* msg,
+    size_t msglen,
+    uint8_t* hmac)
 {
     uhmac_sha256_ctx ctx;
     uhmac_sha256_init(&ctx, key, keylen);

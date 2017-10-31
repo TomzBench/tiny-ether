@@ -44,10 +44,11 @@ typedef int (*rlpx_protocol_recv_fn)(rlpx_protocol*, const urlp*);
 // Constructurs
 rlpx_protocol* rlpx_protocol_alloc(uint32_t type, const char* cap, void* ctx);
 void rlpx_protocol_free(rlpx_protocol** self_p);
-void rlpx_protocol_init(rlpx_protocol* proto,
-                        uint32_t type,
-                        const char* cap,
-                        void* ctx);
+void rlpx_protocol_init(
+    rlpx_protocol* proto,
+    uint32_t type,
+    const char* cap,
+    void* ctx);
 void rlpx_protocol_deinit(rlpx_protocol*);
 
 // parseing helpers

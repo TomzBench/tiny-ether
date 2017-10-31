@@ -28,18 +28,12 @@ char* g_lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
 int io_mock_ready(usys_socket_fd*);
 int io_mock_connect(usys_socket_fd* fd, const char* host, int port);
 void io_mock_close(usys_socket_fd* fd);
-int io_mock_send_all(usys_socket_fd* fd,
-                     const byte* b,
-                     uint32_t l,
-                     usys_sockaddr*);
-int io_mock_send_one(usys_socket_fd* fd,
-                     const byte* b,
-                     uint32_t l,
-                     usys_sockaddr*);
-int io_mock_send_min(usys_socket_fd* fd,
-                     const byte* b,
-                     uint32_t l,
-                     usys_sockaddr*);
+int
+io_mock_send_all(usys_socket_fd* fd, const byte* b, uint32_t l, usys_sockaddr*);
+int
+io_mock_send_one(usys_socket_fd* fd, const byte* b, uint32_t l, usys_sockaddr*);
+int
+io_mock_send_min(usys_socket_fd* fd, const byte* b, uint32_t l, usys_sockaddr*);
 int io_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr*);
 
 // Callbacks from IO
@@ -148,10 +142,11 @@ io_mock_close(usys_socket_fd* fd)
 }
 
 int
-io_mock_send_all(usys_socket_fd* fd,
-                 const byte* b,
-                 uint32_t l,
-                 usys_sockaddr* addr)
+io_mock_send_all(
+    usys_socket_fd* fd,
+    const byte* b,
+    uint32_t l,
+    usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);
@@ -160,10 +155,11 @@ io_mock_send_all(usys_socket_fd* fd,
 }
 
 int
-io_mock_send_one(usys_socket_fd* fd,
-                 const byte* b,
-                 uint32_t l,
-                 usys_sockaddr* addr)
+io_mock_send_one(
+    usys_socket_fd* fd,
+    const byte* b,
+    uint32_t l,
+    usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);
@@ -172,10 +168,11 @@ io_mock_send_one(usys_socket_fd* fd,
 }
 
 int
-io_mock_send_min(usys_socket_fd* fd,
-                 const byte* b,
-                 uint32_t l,
-                 usys_sockaddr* addr)
+io_mock_send_min(
+    usys_socket_fd* fd,
+    const byte* b,
+    uint32_t l,
+    usys_sockaddr* addr)
 {
     ((void)fd);
     ((void)b);

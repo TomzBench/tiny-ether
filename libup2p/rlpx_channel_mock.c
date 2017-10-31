@@ -30,10 +30,11 @@ rlpx_ch_mock_alloc(async_io_settings* s, uecc_ctx* skey, const uint32_t* listen)
 }
 
 int
-rlpx_ch_mock_init(rlpx_channel* ch,
-                  async_io_settings* settings,
-                  uecc_ctx* skey,
-                  const uint32_t* listen)
+rlpx_ch_mock_init(
+    rlpx_channel* ch,
+    async_io_settings* settings,
+    uecc_ctx* skey,
+    const uint32_t* listen)
 {
     rlpx_ch_init(ch, skey, listen);
     // Override io
