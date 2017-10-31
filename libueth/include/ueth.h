@@ -28,7 +28,7 @@ extern "C" {
 
 #include "ueth_config.h"
 
-#include "rlpx_channel.h"
+#include "rlpx_io.h"
 
 typedef struct
 {

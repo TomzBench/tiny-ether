@@ -44,39 +44,39 @@ test_protocol()
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
     rlpx_test_mock_devp2p(&g_test_devp2p_settings);
 
-    rlpx_ch_nonce(s.alice);
-    rlpx_ch_nonce(s.bob);
-    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
+    rlpx_io_nonce(s.alice);
+    rlpx_io_nonce(s.bob);
+    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(s.bob, &s.alice->skey->Q);
 
     // Recv keys
-    IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Read/Write HELLO
-    IF_ERR_EXIT(rlpx_ch_send_hello(s.alice));
-    IF_ERR_EXIT(rlpx_ch_send_hello(s.bob));
-    IF_ERR_EXIT(rlpx_ch_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_ch_recv(s.bob, s.alice->io.b, s.alice->io.len));
+    IF_ERR_EXIT(rlpx_io_send_hello(s.alice));
+    IF_ERR_EXIT(rlpx_io_send_hello(s.bob));
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Read/Write DISCONNECT
     IF_ERR_EXIT(
-        rlpx_ch_send_disconnect(s.alice, DEVP2P_DISCONNECT_BAD_VERSION));
-    IF_ERR_EXIT(rlpx_ch_send_disconnect(s.bob, DEVP2P_DISCONNECT_BAD_VERSION));
-    IF_ERR_EXIT(rlpx_ch_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_ch_recv(s.bob, s.alice->io.b, s.alice->io.len));
+        rlpx_io_send_disconnect(s.alice, DEVP2P_DISCONNECT_BAD_VERSION));
+    IF_ERR_EXIT(rlpx_io_send_disconnect(s.bob, DEVP2P_DISCONNECT_BAD_VERSION));
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Read/Write PING
-    IF_ERR_EXIT(rlpx_ch_send_ping(s.alice));
-    IF_ERR_EXIT(rlpx_ch_send_ping(s.bob));
-    IF_ERR_EXIT(rlpx_ch_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_ch_recv(s.bob, s.alice->io.b, s.alice->io.len));
+    IF_ERR_EXIT(rlpx_io_send_ping(s.alice));
+    IF_ERR_EXIT(rlpx_io_send_ping(s.bob));
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Read/Write PONG
-    IF_ERR_EXIT(rlpx_ch_send_pong(s.alice));
-    IF_ERR_EXIT(rlpx_ch_send_pong(s.bob));
-    IF_ERR_EXIT(rlpx_ch_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_ch_recv(s.bob, s.alice->io.b, s.alice->io.len));
+    IF_ERR_EXIT(rlpx_io_send_pong(s.alice));
+    IF_ERR_EXIT(rlpx_io_send_pong(s.bob));
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Confirm all callbacks readback
     IF_ERR_EXIT((g_test_mask == 0x0f) ? 0 : -1);

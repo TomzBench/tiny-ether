@@ -68,7 +68,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
 
     // Init peer pipes
     for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_ch_init(&ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
+        rlpx_io_init(&ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
     }
 
     char hex[129];
@@ -84,7 +84,7 @@ void
 ueth_deinit(ueth_context* ctx)
 {
     // Shutdown any open connections..
-    for (uint32_t i = 0; i < ctx->n; i++) rlpx_ch_deinit(&ctx->ch[i]);
+    for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_deinit(&ctx->ch[i]);
 
     // Free static key
     uecc_key_deinit(&ctx->p2p_static_key);
@@ -98,7 +98,7 @@ ueth_start(ueth_context* ctx, int n, ...)
     const char* enode;
     for (uint32_t i = 0; i < (uint32_t)n; i++) {
         enode = va_arg(l, const char*);
-        rlpx_ch_connect_enode(&ctx->ch[i], enode);
+        rlpx_io_connect_enode(&ctx->ch[i], enode);
     }
     va_end(l);
     return 0;
@@ -110,17 +110,17 @@ ueth_stop(ueth_context* ctx)
     uint32_t mask = 0, i, c = 0, b = 0;
     rlpx_channel* ch[ctx->n];
     for (i = 0; i < ctx->n; i++) {
-        if (rlpx_ch_is_connected(&ctx->ch[i])) {
+        if (rlpx_io_is_connected(&ctx->ch[i])) {
             mask |= (1 << i);
             ch[b++] = &ctx->ch[i];
-            rlpx_ch_send_disconnect(&ctx->ch[i], DEVP2P_DISCONNECT_QUITTING);
+            rlpx_io_send_disconnect(&ctx->ch[i], DEVP2P_DISCONNECT_QUITTING);
         }
     }
     while (mask && ++c < 50) {
         usys_msleep(100);
-        rlpx_ch_poll(ch, b, 100);
+        rlpx_io_poll(ch, b, 100);
         for (i = 0; i < ctx->n; i++) {
-            if (rlpx_ch_is_shutdown(&ctx->ch[i])) mask &= (~(1 << i));
+            if (rlpx_io_is_shutdown(&ctx->ch[i])) mask &= (~(1 << i));
         }
     }
     return 0;
@@ -136,13 +136,13 @@ ueth_poll_tcp(ueth_context* ctx)
         if (ctx->ch[i].node.port_tcp) {
             ch[b++] = &ctx->ch[i];
             // If this channel is not connected
-            if (!rlpx_ch_is_connected(&ctx->ch[i])) {
-                rlpx_ch_nonce(&ctx->ch[i]);
-                rlpx_ch_connect_node(&ctx->ch[i], &ctx->ch[i].node);
+            if (!rlpx_io_is_connected(&ctx->ch[i])) {
+                rlpx_io_nonce(&ctx->ch[i]);
+                rlpx_io_connect_node(&ctx->ch[i], &ctx->ch[i].node);
             }
         }
     }
-    rlpx_ch_poll(ch, b, 100);
+    rlpx_io_poll(ch, b, 100);
     return 0;
 }
 

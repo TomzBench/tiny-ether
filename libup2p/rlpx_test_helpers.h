@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-#include "rlpx_channel.h"
+#include "rlpx_io.h"
 #include "uaes.h"
 #include "uecc.h"
 #include "ukeccak256.h"

@@ -134,8 +134,8 @@ test_session_init(test_session* s, int vec)
     uecc_key_init_binary(&s->skey_b, &bob_s);
     uecc_key_init_binary(&ekey_a, &alice_e);
     uecc_key_init_binary(&ekey_b, &bob_e);
-    s->alice = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_a, &s->udp[0]);
-    s->bob = rlpx_ch_mock_alloc(&g_io_mock_settings, &s->skey_b, &s->udp[1]);
+    s->alice = rlpx_io_mock_alloc(&g_io_mock_settings, &s->skey_a, &s->udp[0]);
+    s->bob = rlpx_io_mock_alloc(&g_io_mock_settings, &s->skey_b, &s->udp[1]);
 
     // Install mock ekeys
     rlpx_test_ekey_set(s->alice, &ekey_a);
@@ -152,8 +152,8 @@ test_session_init(test_session* s, int vec)
 void
 test_session_deinit(test_session* s)
 {
-    rlpx_ch_free(&s->alice);
-    rlpx_ch_free(&s->bob);
+    rlpx_io_free(&s->alice);
+    rlpx_io_free(&s->bob);
     uecc_key_deinit(&s->skey_a);
     uecc_key_deinit(&s->skey_b);
 }

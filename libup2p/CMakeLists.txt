@@ -1,7 +1,7 @@
 #libup2p sources
 set(sources
-	rlpx_channel.c
-	rlpx_channel_mock.c
+	rlpx_io.c
+	rlpx_io_mock.c
 	rlpx_devp2p.c
 	rlpx_discovery.c
 	rlpx_frame.c
@@ -12,7 +12,7 @@ set(sources
 	rlpx_test_helpers.c)
 set(headers
 	kademlia/ktable.h
-	rlpx_channel.h
+	rlpx_io.h
 	rlpx_config.h
 	rlpx_config_unix.h
 	rlpx_devp2p.h

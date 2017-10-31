@@ -54,12 +54,12 @@ test_read()
     int i = 0;
     while (tv->auth) {
         test_session_init(&s, i);
-        rlpx_ch_nonce(s.alice);
-        rlpx_ch_nonce(s.bob);
-        rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-        rlpx_ch_accept(s.bob, &s.alice->skey->Q);
-        if (rlpx_ch_recv_auth(s.bob, s.auth, s.authlen)) break;
-        if (rlpx_ch_recv_ack(s.alice, s.ack, s.acklen)) break;
+        rlpx_io_nonce(s.alice);
+        rlpx_io_nonce(s.bob);
+        rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+        rlpx_io_accept(s.bob, &s.alice->skey->Q);
+        if (rlpx_io_recv_auth(s.bob, s.auth, s.authlen)) break;
+        if (rlpx_io_recv_ack(s.alice, s.ack, s.acklen)) break;
         if (!(s.bob->hs->version_remote == tv->authver)) break;
         if (!(s.alice->hs->version_remote == tv->ackver)) break;
         if ((cmp_q(&s.bob->hs->ekey_remote, &s.alice->ekey.Q))) break;
@@ -80,12 +80,12 @@ test_write()
     test_session_init(&s, 1);
 
     // Trade keys
-    rlpx_ch_nonce(s.alice);
-    rlpx_ch_nonce(s.bob);
-    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
-    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
-    IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
+    rlpx_io_nonce(s.alice);
+    rlpx_io_nonce(s.bob);
+    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(s.bob, &s.alice->skey->Q);
+    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
 
     IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
     IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
@@ -110,14 +110,16 @@ test_secrets()
     rlpx_test_nonce_set(s.bob, &s.bob_n);
     rlpx_test_nonce_set(s.alice, &s.alice_n);
 
-    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
-    rlpx_ch_recv_auth(s.bob, s.auth, s.authlen);
-    rlpx_ch_recv_ack(s.alice, s.ack, s.acklen);
-    IF_ERR_EXIT(rlpx_test_expect_secrets(
-        s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, foo));
-    IF_ERR_EXIT(rlpx_test_expect_secrets(
-        s.alice, 1, s.auth, s.authlen, s.ack, s.acklen, aes, mac, foo));
+    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(s.bob, &s.alice->skey->Q);
+    rlpx_io_recv_auth(s.bob, s.auth, s.authlen);
+    rlpx_io_recv_ack(s.alice, s.ack, s.acklen);
+    IF_ERR_EXIT(
+        rlpx_test_expect_secrets(
+            s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, foo));
+    IF_ERR_EXIT(
+        rlpx_test_expect_secrets(
+            s.alice, 1, s.auth, s.authlen, s.ack, s.acklen, aes, mac, foo));
 EXIT:
     test_session_deinit(&s);
     return err;

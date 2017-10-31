@@ -19,7 +19,7 @@
  * @date 2017
  */
 
-#include "rlpx_channel.h"
+#include "rlpx_io.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
 #include "rlpx_helper_macros.h"

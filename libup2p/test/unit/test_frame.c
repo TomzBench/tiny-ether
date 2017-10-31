@@ -59,15 +59,17 @@ test_frame_read()
     rlpx_test_nonce_set(s.alice, &s.alice_n);
 
     // Update our secrets
-    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
-    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.auth, s.authlen));
-    IF_ERR_EXIT(rlpx_test_expect_secrets(
-        s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, NULL));
-    if (!rlpx_frame_parse(&s.bob->x,
-                          makebin(g_hello_packet, NULL),
-                          strlen(g_hello_packet) / 2,
-                          &frame)) {
+    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(s.bob, &s.alice->skey->Q);
+    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.auth, s.authlen));
+    IF_ERR_EXIT(
+        rlpx_test_expect_secrets(
+            s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, NULL));
+    if (!rlpx_frame_parse(
+            &s.bob->x,
+            makebin(g_hello_packet, NULL),
+            strlen(g_hello_packet) / 2,
+            &frame)) {
         goto EXIT;
     }
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
@@ -95,22 +97,22 @@ test_frame_write()
     uint32_t numa, numb;
 
     // Send keys
-    rlpx_ch_nonce(s.alice);
-    rlpx_ch_nonce(s.bob);
-    rlpx_ch_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_ch_accept(s.bob, &s.alice->skey->Q);
+    rlpx_io_nonce(s.alice);
+    rlpx_io_nonce(s.bob);
+    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(s.bob, &s.alice->skey->Q);
 
     // Recv keys
-    IF_ERR_EXIT(rlpx_ch_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_ch_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Check key exchange
     IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
     IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
 
     // Write some packets
-    IF_ERR_EXIT(rlpx_ch_send_hello(s.alice));
-    IF_ERR_EXIT(rlpx_ch_send_hello(s.bob));
+    IF_ERR_EXIT(rlpx_io_send_hello(s.alice));
+    IF_ERR_EXIT(rlpx_io_send_hello(s.bob));
     if (!rlpx_frame_parse(&s.alice->x, s.bob->io.b, s.bob->io.len, &rlpb)) {
         goto EXIT;
     }
