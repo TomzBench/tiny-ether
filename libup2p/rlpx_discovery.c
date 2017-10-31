@@ -30,6 +30,34 @@ rlpx_discovery_table_init(rlpx_discovery_table* table)
     memset(table, 0, sizeof(rlpx_discovery_table));
 }
 
+void
+rlpx_discovery_endpoint_v4_init(
+    rlpx_discovery_endpoint* ep,
+    uint32_t ip,
+    uint32_t udp,
+    uint32_t tcp)
+{
+    memset(ep, 0, sizeof(rlpx_discovery_endpoint));
+    *((uint32_t*)ep->ip) = ip;
+    ep->iplen = 4;
+    ep->udp = udp;
+    ep->tcp = tcp;
+}
+
+void
+rlpx_discovery_endpoint_v6_init(
+    rlpx_discovery_endpoint* ep,
+    uint8_t* ipv6,
+    uint32_t udp,
+    uint32_t tcp)
+{
+    memset(ep, 0, sizeof(rlpx_discovery_endpoint));
+    memcpy(ep->ip, ipv6, 16);
+    ep->iplen = 16;
+    ep->udp = udp;
+    ep->tcp = tcp;
+}
+
 int
 rlpx_discovery_table_find_node(
     rlpx_discovery_table* table,
@@ -206,6 +234,39 @@ rlpx_discovery_parse(
 }
 
 int
+rlpx_discovery_write(
+    uecc_ctx* key,
+    RLPX_DISCOVERY type,
+    const urlp* rlp,
+    uint8_t* b,
+    uint32_t* l)
+{
+    int err = -1;
+    uecc_signature sig;
+    h256 shash;
+    uint32_t sz = *l - (32 + 65 + 1);
+
+    // || packet-data
+    err = urlp_print(rlp, &b[32 + 65 + 1], &sz);
+    if (!err) {
+
+        // || packet-type || packet-data
+        b[32 + 65] = type;
+
+        // sign(sha3(packet-type || packet-data)) || packet-type || packet-data
+        ukeccak256((uint8_t*)&b[32 + 65], sz + 1, shash.b, 32);
+        uecc_sign(key, shash.b, 32, &sig);
+        uecc_sig_to_bin(&sig, &b[32]);
+
+        // hash || sig || packet-type || packet-data
+        ukeccak256((uint8_t*)&b[32], sz + 1 + 65, b, 32);
+
+        *l = 32 + 65 + 1 + sz;
+    }
+    return err;
+}
+
+int
 rlpx_discovery_parse_endpoint(const urlp* rlp, rlpx_discovery_endpoint* ep)
 {
     int err;
@@ -218,6 +279,18 @@ rlpx_discovery_parse_endpoint(const urlp* rlp, rlpx_discovery_endpoint* ep)
         return err;
     }
     return err;
+}
+urlp*
+rlpx_discovery_rlp_endpoint(const rlpx_discovery_endpoint* ep)
+{
+    urlp* rlp = urlp_list();
+    if (rlp) {
+        urlp_push(rlp, urlp_item_u8_arr(ep->ip, ep->iplen));
+        urlp_push(rlp, urlp_item_u32(ep->udp));
+        urlp_push(rlp, urlp_item_u32(ep->tcp));
+        if (!(urlp_children(rlp) == 3)) urlp_free(&rlp);
+    }
+    return rlp;
 }
 
 int
@@ -252,7 +325,7 @@ rlpx_discovery_parse_pong(
     if (n < 4) return -1;
     if ((!(err = rlpx_discovery_parse_endpoint(urlp_at(*rlp, 0), to))) &&
         (!(err = urlp_idx_to_mem(*rlp, 1, echo32, &sz))) &&
-        (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
+        (!(err = urlp_idx_to_u32(*rlp, 2, timestamp)))) {
         return err;
     }
     return err;
@@ -302,4 +375,89 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
     ((void)idx);
     rlpx_discovery_table* table = (rlpx_discovery_table*)ctx;
     rlpx_discovery_table_add_node_rlp(table, rlp);
+}
+
+int
+rlpx_discovery_write_ping(
+    uecc_ctx* skey,
+    uint32_t ver,
+    const rlpx_discovery_endpoint* ep_src,
+    const rlpx_discovery_endpoint* ep_dst,
+    uint32_t timestamp,
+    uint8_t* dst,
+    uint32_t* l)
+{
+    int err = -1;
+    urlp* rlp = urlp_list();
+    if (rlp) {
+        urlp_push(rlp, urlp_item_u32(ver));
+        urlp_push(rlp, rlpx_discovery_rlp_endpoint(ep_src));
+        urlp_push(rlp, rlpx_discovery_rlp_endpoint(ep_dst));
+        urlp_push(rlp, urlp_item_u32(timestamp));
+        err = rlpx_discovery_write(skey, RLPX_DISCOVERY_PING, rlp, dst, l);
+        urlp_free(&rlp);
+    }
+    return err;
+}
+
+int
+rlpx_discovery_write_pong(
+    uecc_ctx* skey,
+    const rlpx_discovery_endpoint* ep_to,
+    h256* echo,
+    uint32_t timestamp,
+    uint8_t* dst,
+    uint32_t* l)
+{
+    int err = -1;
+    urlp* rlp = urlp_list();
+    if (rlp) {
+        urlp_push(rlp, rlpx_discovery_rlp_endpoint(ep_to));
+        urlp_push(rlp, urlp_item_u8_arr(echo->b, 32));
+        urlp_push(rlp, urlp_item_u32(timestamp));
+        err = rlpx_discovery_write(skey, RLPX_DISCOVERY_PONG, rlp, dst, l);
+        urlp_free(&rlp);
+    }
+    return err;
+}
+
+int
+rlpx_discovery_write_find(
+    uecc_ctx* skey,
+    uecc_public_key* nodeid,
+    uint32_t timestamp,
+    uint8_t* b,
+    uint32_t* l)
+{
+    int err = -1;
+    urlp* rlp = urlp_list();
+    uint8_t pub[65];
+    uecc_qtob(nodeid, pub, sizeof(pub));
+    if (rlp) {
+        urlp_push(rlp, urlp_item_u8_arr(&pub[1], 64));
+        urlp_push(rlp, urlp_item_u32(timestamp));
+        err = rlpx_discovery_write(skey, RLPX_DISCOVERY_FIND, rlp, b, l);
+        urlp_free(&rlp);
+    }
+    return err;
+}
+
+int
+rlpx_discovery_write_neighbours(
+    uecc_ctx* skey,
+    rlpx_discovery_table* table,
+    uint32_t timestamp,
+    uint8_t* b,
+    uint32_t* l)
+{
+    ((void)table); // we don't send anything
+    int err = -1;
+    urlp* rlp = urlp_list();
+    if (rlp) {
+        urlp_push(rlp, urlp_list()); // empty neighbours!
+        urlp_push(rlp, urlp_item_u32(timestamp));
+        err = rlpx_discovery_write(skey, RLPX_DISCOVERY_NEIGHBOURS, rlp, b, l);
+        urlp_free(&rlp);
+    }
+    return err;
 }

@@ -72,7 +72,16 @@ typedef struct
  * @param table
  */
 void rlpx_discovery_table_init(rlpx_discovery_table* table);
-
+void rlpx_discovery_endpoint_v4_init(
+    rlpx_discovery_endpoint* ep,
+    uint32_t ip,
+    uint32_t udp,
+    uint32_t tcp);
+void rlpx_discovery_endpoint_v6_init(
+    rlpx_discovery_endpoint* ep,
+    uint8_t* ipv6,
+    uint32_t udp,
+    uint32_t tcp);
 int rlpx_discovery_table_find_node(
     rlpx_discovery_table* table,
     uecc_public_key* target,
@@ -122,42 +131,55 @@ int rlpx_discovery_parse(
     uecc_public_key* node_id,
     int* type,
     urlp** rlp);
-
+int rlpx_discovery_write(
+    uecc_ctx* key,
+    RLPX_DISCOVERY type,
+    const urlp* rlp,
+    uint8_t* b,
+    uint32_t* l);
 int rlpx_discovery_parse_endpoint(const urlp*, rlpx_discovery_endpoint* ep);
-
+urlp* rlpx_discovery_rlp_endpoint(const rlpx_discovery_endpoint* ep);
 int rlpx_discovery_parse_ping(
     const urlp**,
     uint8_t* version32,
     rlpx_discovery_endpoint* from,
     rlpx_discovery_endpoint* to,
     uint32_t* timestamp);
-int rlpx_discovery_print_ping(
+int rlpx_discovery_parse_pong(
+    const urlp** rlp,
+    rlpx_discovery_endpoint* to,
+    uint8_t* echo32,
+    uint32_t* timestamp);
+int
+rlpx_discovery_parse_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts);
+int rlpx_discovery_parse_neighbours(rlpx_discovery_table* t, const urlp** rlp);
+int rlpx_discovery_write_ping(
+    uecc_ctx* skey,
     uint32_t ver,
     const rlpx_discovery_endpoint* ep_src,
     const rlpx_discovery_endpoint* ep_dst,
     uint32_t timestamp,
     uint8_t* dst,
     uint32_t* l);
-int rlpx_discovery_parse_pong(
-    const urlp** rlp,
-    rlpx_discovery_endpoint* to,
-    uint8_t* echo32,
-    uint32_t* timestamp);
-int rlpx_discovery_print_pong(
-    uint32_t timestamp,
-    h256* echo,
+int rlpx_discovery_write_pong(
+    uecc_ctx* skey,
     const rlpx_discovery_endpoint* ep_to,
+    h256* echo,
+    uint32_t timestamp,
     uint8_t* d,
     uint32_t* l);
-int
-rlpx_discovery_parse_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts);
-int rlpx_discovery_print_find(
-    uint8_t* nodeid,
+int rlpx_discovery_write_find(
+    uecc_ctx* skey,
+    uecc_public_key* nodeid,
     uint32_t timestamp,
     uint8_t* b,
     uint32_t* l);
-int rlpx_discovery_parse_neighbours(rlpx_discovery_table* t, const urlp** rlp);
-//  rlpx_discovery_print_neighbours( ....TODO
+int rlpx_discovery_write_neighbours(
+    uecc_ctx* skey,
+    rlpx_discovery_table* t,
+    uint32_t timestamp,
+    uint8_t* d,
+    uint32_t* l);
 
 #ifdef __cplusplus
 }

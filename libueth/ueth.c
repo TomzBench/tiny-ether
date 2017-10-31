@@ -74,6 +74,9 @@ ueth_deinit(ueth_context* ctx)
     // Shutdown any open connections..
     for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_deinit(&ctx->ch[i]);
 
+    // Shutdown udp
+    rlpx_io_deinit(&ctx->discovery);
+
     // Free static key
     uecc_key_deinit(&ctx->p2p_static_key);
 }

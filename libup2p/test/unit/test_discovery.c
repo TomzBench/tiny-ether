@@ -20,6 +20,7 @@
  */
 
 #include "test.h"
+#include "urand.h"
 
 uint32_t g_ping_v4_len;
 uint32_t g_ping_v555_len;
@@ -93,7 +94,70 @@ test_discovery()
 int
 test_disc_write()
 {
-    return 0;
+    // Stack
+    int err = -1, type;
+    uint32_t l;
+    uint8_t b[1000];
+    h256 tmp;
+    urlp* rlp = NULL;
+    uecc_ctx skey;
+    uecc_public_key q;
+    rlpx_discovery_table table;
+    rlpx_discovery_endpoint from, to;
+
+    // setup test
+    rlpx_discovery_table_init(&table);
+    rlpx_discovery_endpoint_v4_init(&from, 33342, 123, 456);
+    rlpx_discovery_endpoint_v4_init(&to, 33342, 123, 456);
+    uecc_key_init_new(&skey);
+
+    // l = sizeof(b);
+    // rlp = urlp_list();
+    // urlp_push(rlp, urlp_item_u32(234));
+    // urlp_push(rlp, rlpx_discovery_rlp_endpoint(&from));
+    // rlpx_discovery_write(&skey, RLPX_DISCOVERY_PING, rlp, b, &l);
+    // urlp_free(&rlp);
+
+    // Check ping v4
+    l = sizeof(b);
+    rlpx_discovery_write_ping(&skey, 4, &from, &to, 1234, b, &l);
+    IF_ERR_EXIT(rlpx_discovery_parse(b, l, &q, &type, &rlp));
+    IF_ERR_EXIT(check_ping_v4(&table, type, rlp));
+    urlp_free(&rlp);
+
+    // Check ping v5
+    l = sizeof(b);
+    rlpx_discovery_write_ping(&skey, 555, &from, &to, 1234, b, &l);
+    IF_ERR_EXIT(rlpx_discovery_parse(b, l, &q, &type, &rlp));
+    IF_ERR_EXIT(check_ping_v555(&table, type, rlp));
+    urlp_free(&rlp);
+
+    // Check pong
+    l = sizeof(b);
+    urand(tmp.b, 32);
+    rlpx_discovery_write_pong(&skey, &to, &tmp, 1234, b, &l);
+    IF_ERR_EXIT(rlpx_discovery_parse(b, l, &q, &type, &rlp));
+    IF_ERR_EXIT(check_pong(&table, type, rlp));
+    urlp_free(&rlp);
+
+    // Check find node
+    l = sizeof(b);
+    rlpx_discovery_write_find(&skey, &skey.Q, 1234, b, &l);
+    IF_ERR_EXIT(rlpx_discovery_parse(b, l, &q, &type, &rlp));
+    IF_ERR_EXIT(check_find_node(&table, type, rlp));
+    urlp_free(&rlp);
+
+    // check neighbours
+    l = sizeof(b);
+    rlpx_discovery_write_neighbours(&skey, &table, 1234, b, &l);
+    IF_ERR_EXIT(rlpx_discovery_parse(b, l, &q, &type, &rlp));
+    IF_ERR_EXIT(check_neighbours(&table, type, rlp));
+    urlp_free(&rlp);
+
+EXIT:
+    uecc_key_deinit(&skey);
+    if (rlp) urlp_free(&rlp);
+    return err;
 }
 
 int
@@ -103,7 +167,6 @@ test_disc_read()
     rlpx_discovery_table table;
     uecc_public_key nodeid;
     int type, err;
-    // usys_sockaddr sock_addr;
     rlpx_discovery_table_init(&table);
 
     // Construct test vector arrays for loop
