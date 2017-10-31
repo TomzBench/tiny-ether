@@ -45,7 +45,7 @@ main(int argc, char* arg[])
     uint32_t udp = 33433;
     uecc_ctx static_key;
     uecc_key_init_new(&static_key);
-    rlpx_channel* alice = rlpx_io_alloc(&static_key, &udp);
+    rlpx_io* alice = rlpx_io_alloc(&static_key, &udp);
 
     // Install interrupt control
     usys_install_signal_handlers();

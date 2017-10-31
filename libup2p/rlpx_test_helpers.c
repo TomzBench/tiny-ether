@@ -19,10 +19,10 @@
  * @date 2017
  */
 
-#include "rlpx_io.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
 #include "rlpx_helper_macros.h"
+#include "rlpx_io.h"
 #include "ukeccak256.h"
 extern rlpx_devp2p_protocol_settings g_devp2p_settings;
 /*
@@ -30,63 +30,63 @@ extern rlpx_devp2p_protocol_settings g_devp2p_settings;
  */
 
 uecc_ctx*
-rlpx_test_skey(rlpx_channel* ch)
+rlpx_test_skey(rlpx_io* ch)
 {
     return ch->skey;
 }
 
 uecc_ctx*
-rlpx_test_ekey(rlpx_channel* ch)
+rlpx_test_ekey(rlpx_io* ch)
 {
     return &ch->ekey;
 }
 
 void
-rlpx_test_nonce_set(rlpx_channel* s, h256* nonce)
+rlpx_test_nonce_set(rlpx_io* s, h256* nonce)
 {
     memcpy(s->nonce.b, nonce->b, 32);
 }
 
 void
-rlpx_test_ekey_set(rlpx_channel* s, uecc_ctx* ekey)
+rlpx_test_ekey_set(rlpx_io* s, uecc_ctx* ekey)
 {
     uecc_key_deinit(&s->ekey);
     s->ekey = *ekey;
 }
 
 ukeccak256_ctx*
-rlpx_test_ingress(rlpx_channel* ch)
+rlpx_test_ingress(rlpx_io* ch)
 {
     return &ch->x.imac;
 }
 
 ukeccak256_ctx*
-rlpx_test_egress(rlpx_channel* ch)
+rlpx_test_egress(rlpx_io* ch)
 {
     return &ch->x.emac;
 }
 
 uaes_ctx*
-rlpx_test_aes_mac(rlpx_channel* ch)
+rlpx_test_aes_mac(rlpx_io* ch)
 {
     return &ch->x.aes_mac;
 }
 
 uaes_ctx*
-rlpx_test_aes_enc(rlpx_channel* ch)
+rlpx_test_aes_enc(rlpx_io* ch)
 {
     return &ch->x.aes_enc;
 }
 
 uaes_ctx*
-rlpx_test_aes_dec(rlpx_channel* ch)
+rlpx_test_aes_dec(rlpx_io* ch)
 {
     return &ch->x.aes_dec;
 }
 
 int
 rlpx_test_expect_secrets(
-    rlpx_channel* s,
+    rlpx_io* s,
     int orig,
     uint8_t* sent,
     uint32_t slen,

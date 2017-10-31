@@ -92,7 +92,7 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
     int err = 0;
     const char* mem;
     uint32_t num;
-    rlpx_channel* ch = ctx;
+    rlpx_io* ch = ctx;
     uint8_t remote_id[65];
     uecc_qtob(&ch->node.id, remote_id, 65);
 

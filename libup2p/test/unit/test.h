@@ -23,9 +23,9 @@
 #define TEST_H_
 
 #include "kademlia/ktable.h"
-#include "rlpx_io.h"
 #include "rlpx_devp2p.h"
 #include "rlpx_discovery.h"
+#include "rlpx_io.h"
 #include "rlpx_test_helpers.h"
 #include "test_vectors.h"
 #include "unonce.h"
@@ -61,7 +61,7 @@ typedef struct
 {
     uecc_ctx skey_a, skey_b;     /*!< static keys */
     uint32_t udp[2];             /*!< */
-    rlpx_channel *alice, *bob;   /*!< rlpx context */
+    rlpx_io *alice, *bob;        /*!< rlpx context */
     size_t authlen, acklen;      /*!< size of cipher */
     uint8_t auth[800], ack[800]; /*!< cipher test buffers */
     h256 alice_n, bob_n;         /*!< nonces used sometimes */

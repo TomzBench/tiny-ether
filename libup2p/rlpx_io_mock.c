@@ -21,17 +21,17 @@
 
 #include "rlpx_io.h"
 
-rlpx_channel*
+rlpx_io*
 rlpx_io_mock_alloc(async_io_settings* s, uecc_ctx* skey, const uint32_t* listen)
 {
-    rlpx_channel* ch = rlpx_malloc(sizeof(rlpx_channel));
+    rlpx_io* ch = rlpx_malloc(sizeof(rlpx_io));
     if (ch) rlpx_io_mock_init(ch, s, skey, listen);
     return ch;
 }
 
 int
 rlpx_io_mock_init(
-    rlpx_channel* ch,
+    rlpx_io* ch,
     async_io_settings* settings,
     uecc_ctx* skey,
     const uint32_t* listen)

@@ -64,7 +64,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     }
 
     // init constants
-    ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_channel));
+    ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io));
 
     // Init peer pipes
     for (uint32_t i = 0; i < ctx->n; i++) {
@@ -108,7 +108,7 @@ int
 ueth_stop(ueth_context* ctx)
 {
     uint32_t mask = 0, i, c = 0, b = 0;
-    rlpx_channel* ch[ctx->n];
+    rlpx_io* ch[ctx->n];
     for (i = 0; i < ctx->n; i++) {
         if (rlpx_io_is_connected(&ctx->ch[i])) {
             mask |= (1 << i);
@@ -130,7 +130,7 @@ int
 ueth_poll_tcp(ueth_context* ctx)
 {
     uint32_t i, b = 0;
-    rlpx_channel* ch[ctx->n];
+    rlpx_io* ch[ctx->n];
     for (i = 0; i < ctx->n; i++) {
         // If this channel has peer
         if (ctx->ch[i].node.port_tcp) {
