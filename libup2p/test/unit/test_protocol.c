@@ -28,7 +28,7 @@ int test_devp2p_on_ping(void* ctx, const urlp* rlp);
 int test_devp2p_on_pong(void* ctx, const urlp* rlp);
 int test_devp2p_on_disconnect(void* ctx, const urlp* rlp);
 
-rlpx_devp2p_protocol_settings g_test_devp2p_settings = {
+rlpx_io_devp2p_settings g_test_devp2p_settings = {
     .on_hello = test_devp2p_on_hello,
     .on_disconnect = test_devp2p_on_disconnect,
     .on_ping = test_devp2p_on_ping,
@@ -97,24 +97,24 @@ test_devp2p_on_hello(void* ctx, const urlp* rlp)
     uecc_qtob(&ch->node.id, remote_id, 65);
 
     // Verify p2p ver
-    rlpx_devp2p_protocol_p2p_version(rlp, &num);
+    rlpx_io_devp2p_p2p_version(rlp, &num);
     IF_ERR_EXIT((num == RLPX_VERSION_P2P) ? 0 : -1);
 
     // Verify client id
-    rlpx_devp2p_protocol_client_id(rlp, &mem, &num);
+    rlpx_io_devp2p_client_id(rlp, &mem, &num);
     IF_ERR_EXIT((num == RLPX_CLIENT_ID_LEN) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mem, RLPX_CLIENT_ID_STR, num) ? -1 : 0);
 
     // Verify caps
-    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "p2p", 4));
-    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "p2p", 4));
+    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(rlp, "p2p", 4));
+    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(rlp, "p2p", 4));
 
     // Verify listen port
-    rlpx_devp2p_protocol_listen_port(rlp, &num);
+    rlpx_io_devp2p_listen_port(rlp, &num);
     if (!((num == UDP_TEST_PORT) || (num == UDP_TEST_PORT + 1))) goto EXIT;
 
     // verify node_id
-    rlpx_devp2p_protocol_node_id(rlp, &mem, &num);
+    rlpx_io_devp2p_node_id(rlp, &mem, &num);
     IF_ERR_EXIT((num == 64) ? 0 : -1);
     IF_ERR_EXIT(memcmp(mem, &remote_id[1], 64) ? -1 : 0);
 

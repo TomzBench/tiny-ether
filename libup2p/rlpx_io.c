@@ -63,7 +63,7 @@ async_io_settings g_rlpx_io_settings = { //
 };
 
 // Protocol callback handlers
-rlpx_devp2p_protocol_settings g_devp2p_settings = { //
+rlpx_io_devp2p_settings g_devp2p_settings = { //
     .on_hello = rlpx_io_on_hello,
     .on_disconnect = rlpx_io_on_disconnect,
     .on_ping = rlpx_io_on_ping,
@@ -123,7 +123,7 @@ rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
     uecc_qtob(&io->skey->Q, io->node_id, 65);
 
     // Install protocols
-    rlpx_devp2p_protocol_init(&io->devp2p, &g_devp2p_settings, io);
+    rlpx_io_devp2p_init(&io->devp2p, &g_devp2p_settings, io);
 
     return 0;
 }
@@ -132,7 +132,7 @@ void
 rlpx_io_deinit(rlpx_io* ch)
 {
     uecc_key_deinit(&ch->ekey);
-    rlpx_devp2p_protocol_deinit(&ch->devp2p);
+    rlpx_io_devp2p_deinit(&ch->devp2p);
     if (ch->hs) rlpx_handshake_free(&ch->hs);
 }
 
@@ -227,7 +227,7 @@ rlpx_io_send_hello(rlpx_io* ch)
     int err;
     async_io_set_cb_recv(&ch->io, rlpx_io_on_recv);
     ch->io.len = sizeof(ch->io.b);
-    err = rlpx_devp2p_protocol_write_hello(
+    err = rlpx_io_devp2p_write_hello(
         &ch->x, *ch->listen_port, &ch->node_id[1], ch->io.b, &ch->io.len);
     if (!err) {
         usys_log("[OUT] (hello) size: %d", ch->io.len);
@@ -242,8 +242,8 @@ rlpx_io_send_disconnect(rlpx_io* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
 {
     int err;
     ch->io.len = sizeof(ch->io.b);
-    err = rlpx_devp2p_protocol_write_disconnect(
-        &ch->x, reason, ch->io.b, &ch->io.len);
+    err =
+        rlpx_io_devp2p_write_disconnect(&ch->x, reason, ch->io.b, &ch->io.len);
     if (!err) {
         usys_log("[OUT] (disconnect) size: %d", ch->io.len);
         async_io_set_cb_send(&ch->io, rlpx_io_on_send_shutdown);
@@ -258,7 +258,7 @@ rlpx_io_send_ping(rlpx_io* ch)
 {
     int err;
     ch->io.len = sizeof(ch->io.b);
-    err = rlpx_devp2p_protocol_write_ping(&ch->x, ch->io.b, &ch->io.len);
+    err = rlpx_io_devp2p_write_ping(&ch->x, ch->io.b, &ch->io.len);
     if (!err) {
         ch->devp2p.ping = usys_now();
         usys_log("[OUT] (ping) size: %d", ch->io.len);
@@ -273,7 +273,7 @@ rlpx_io_send_pong(rlpx_io* ch)
 {
     int err;
     ch->io.len = sizeof(ch->io.b);
-    err = rlpx_devp2p_protocol_write_pong(&ch->x, ch->io.b, &ch->io.len);
+    err = rlpx_io_devp2p_write_pong(&ch->x, ch->io.b, &ch->io.len);
     if (!err) {
         usys_log("[OUT] (pong) size: %d", ch->io.len);
         return rlpx_io_send(&ch->io);
@@ -514,14 +514,14 @@ rlpx_io_on_hello(void* ctx, const urlp* rlp)
     usys_log("[ IN] (hello)");
 
     // Copy client string.
-    rlpx_devp2p_protocol_client_id(rlp, &memptr, &l);
+    rlpx_io_devp2p_client_id(rlp, &memptr, &l);
     memcpy(
         ch->devp2p.client,
         memptr,
         l < RLPX_CLIENT_MAX_LEN ? l : RLPX_CLIENT_MAX_LEN);
 
     // Copy listening port.
-    rlpx_devp2p_protocol_listen_port(rlp, &ch->devp2p.listen_port);
+    rlpx_io_devp2p_listen_port(rlp, &ch->devp2p.listen_port);
 
     // TODO - Check caps
 

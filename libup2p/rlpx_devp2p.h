@@ -60,60 +60,60 @@ typedef struct
     rlpx_protocol_cb on_ping;
     rlpx_protocol_cb on_pong;
     rlpx_protocol_cb on_disconnect;
-} rlpx_devp2p_protocol_settings;
+} rlpx_io_devp2p_settings;
 
 typedef struct rlpx_devp2p_protocol
 {
     void* ctx;
     int (*recv)(struct rlpx_devp2p_protocol*, const urlp*);
-    const rlpx_devp2p_protocol_settings* settings; /*!< user callbacks */
-    char client[RLPX_CLIENT_MAX_LEN];              /*!< Hello packet client*/
-    uint32_t listen_port;                          /*!< */
-    int64_t ping;                                  /*!< ping now() */
-    uint32_t latency;                              /*!< now() - ping */
+    const rlpx_io_devp2p_settings* settings; /*!< user callbacks */
+    char client[RLPX_CLIENT_MAX_LEN];        /*!< Hello packet client*/
+    uint32_t listen_port;                    /*!< */
+    int64_t ping;                            /*!< ping now() */
+    uint32_t latency;                        /*!< now() - ping */
 } rlpx_devp2p_protocol;
 
 // Heap constructors
-rlpx_devp2p_protocol* rlpx_devp2p_protocol_alloc(
-    const rlpx_devp2p_protocol_settings* settings,
+rlpx_devp2p_protocol* rlpx_io_devp2p_alloc(
+    const rlpx_io_devp2p_settings* settings,
     void* ctx);
-void rlpx_devp2p_protocol_free(rlpx_devp2p_protocol** self_p);
+void rlpx_io_devp2p_free(rlpx_devp2p_protocol** self_p);
 
 // Initializers/Deinitializers
-void rlpx_devp2p_protocol_init(
+void rlpx_io_devp2p_init(
     rlpx_devp2p_protocol* self,
-    const rlpx_devp2p_protocol_settings* settings,
+    const rlpx_io_devp2p_settings* settings,
     void* ctx);
-void rlpx_devp2p_protocol_deinit(rlpx_devp2p_protocol* self);
+void rlpx_io_devp2p_deinit(rlpx_devp2p_protocol* self);
 
-int rlpx_devp2p_protocol_write(
+int rlpx_io_devp2p_write(
     rlpx_coder* x,
     RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type,
     urlp* rlp,
     uint8_t* out,
     uint32_t* outlen);
-int rlpx_devp2p_protocol_write_hello(
+int rlpx_io_devp2p_write_hello(
     rlpx_coder* x,
     uint32_t port,
     const uint8_t* id,
     uint8_t* out,
     uint32_t* l);
-int rlpx_devp2p_protocol_write_disconnect(
+int rlpx_io_devp2p_write_disconnect(
     rlpx_coder* x,
     RLPX_DEVP2P_DISCONNECT_REASON reason,
     uint8_t* out,
     uint32_t* l);
-int rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, uint32_t* l);
-int rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l);
+int rlpx_io_devp2p_write_ping(rlpx_coder* x, uint8_t* out, uint32_t* l);
+int rlpx_io_devp2p_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l);
 
 static inline int
-rlpx_devp2p_protocol_p2p_version(const urlp* rlp, uint32_t* out)
+rlpx_io_devp2p_p2p_version(const urlp* rlp, uint32_t* out)
 {
     return urlp_idx_to_u32(rlp, 0, out);
 }
 
 static inline int
-rlpx_devp2p_protocol_client_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
+rlpx_io_devp2p_client_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 {
     rlp = urlp_at(rlp, 1);
     if (rlp) {
@@ -124,7 +124,7 @@ rlpx_devp2p_protocol_client_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 }
 
 static inline int
-rlpx_devp2p_protocol_capabilities(const urlp* rlp, const char* cap, uint32_t v)
+rlpx_io_devp2p_capabilities(const urlp* rlp, const char* cap, uint32_t v)
 {
     const urlp *seek, *caps = urlp_at(rlp, 2);
     uint32_t ver, sz, len = strlen(cap), n = caps ? urlp_siblings(caps) : 0;
@@ -145,13 +145,13 @@ rlpx_devp2p_protocol_capabilities(const urlp* rlp, const char* cap, uint32_t v)
 }
 
 static inline int
-rlpx_devp2p_protocol_listen_port(const urlp* rlp, uint32_t* port)
+rlpx_io_devp2p_listen_port(const urlp* rlp, uint32_t* port)
 {
     return urlp_idx_to_u32(rlp, 3, port);
 }
 
 static inline int
-rlpx_devp2p_protocol_node_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
+rlpx_io_devp2p_node_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 {
     rlp = urlp_at(rlp, 4);
     if (rlp) {

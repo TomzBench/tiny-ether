@@ -52,7 +52,7 @@ int rlpx_test_expect_secrets(
     uint8_t* aes,
     uint8_t* mac,
     uint8_t* foo);
-void rlpx_test_mock_devp2p(rlpx_devp2p_protocol_settings* settings);
+void rlpx_test_mock_devp2p(rlpx_io_devp2p_settings* settings);
 #ifdef __cplusplus
 }
 #endif

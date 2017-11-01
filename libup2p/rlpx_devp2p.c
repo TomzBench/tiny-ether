@@ -21,46 +21,44 @@
 
 #include "rlpx_devp2p.h"
 
-int rlpx_devp2p_protocol_recv(rlpx_devp2p_protocol*, const urlp* rlp);
+int rlpx_io_devp2p_recv(rlpx_devp2p_protocol*, const urlp* rlp);
 
 rlpx_devp2p_protocol*
-rlpx_devp2p_protocol_alloc(
-    const rlpx_devp2p_protocol_settings* settings,
-    void* ctx)
+rlpx_io_devp2p_alloc(const rlpx_io_devp2p_settings* settings, void* ctx)
 {
     rlpx_devp2p_protocol* self = rlpx_malloc(sizeof(rlpx_devp2p_protocol));
     if (self) {
-        rlpx_devp2p_protocol_init(self, settings, ctx);
+        rlpx_io_devp2p_init(self, settings, ctx);
     }
     return self;
 }
 
 void
-rlpx_devp2p_protocol_free(rlpx_devp2p_protocol** self_p)
+rlpx_io_devp2p_free(rlpx_devp2p_protocol** self_p)
 {
     rlpx_devp2p_protocol* self = *self_p;
     *self_p = NULL;
-    rlpx_devp2p_protocol_deinit(self);
+    rlpx_io_devp2p_deinit(self);
     rlpx_free(self);
 }
 
 void
-rlpx_devp2p_protocol_init(
+rlpx_io_devp2p_init(
     rlpx_devp2p_protocol* self,
-    const rlpx_devp2p_protocol_settings* settings,
+    const rlpx_io_devp2p_settings* settings,
     void* ctx)
 {
     self->ctx = ctx;
 
     // Override recv method.
-    self->recv = rlpx_devp2p_protocol_recv;
+    self->recv = rlpx_io_devp2p_recv;
 
     // Install protocol specific handlers.
     self->settings = settings;
 }
 
 void
-rlpx_devp2p_protocol_deinit(rlpx_devp2p_protocol* self)
+rlpx_io_devp2p_deinit(rlpx_devp2p_protocol* self)
 {
     ((void)self);
     // Deinitialize base class
@@ -68,7 +66,7 @@ rlpx_devp2p_protocol_deinit(rlpx_devp2p_protocol* self)
 }
 
 int
-rlpx_devp2p_protocol_recv(rlpx_devp2p_protocol* base, const urlp* rlp)
+rlpx_io_devp2p_recv(rlpx_devp2p_protocol* base, const urlp* rlp)
 {
     int err = -1;
     const urlp *type = NULL, *body = NULL;
@@ -93,7 +91,7 @@ rlpx_devp2p_protocol_recv(rlpx_devp2p_protocol* base, const urlp* rlp)
 }
 
 int
-rlpx_devp2p_protocol_write(
+rlpx_io_devp2p_write(
     rlpx_coder* x,
     RLPX_DEVP2P_PROTOCOL_PACKET_TYPE type,
     urlp* rlp,
@@ -115,7 +113,7 @@ rlpx_devp2p_protocol_write(
 }
 
 int
-rlpx_devp2p_protocol_write_hello(
+rlpx_io_devp2p_write_hello(
     rlpx_coder* x,
     uint32_t port,
     const uint8_t* id,
@@ -136,13 +134,13 @@ rlpx_devp2p_protocol_write_hello(
     urlp_push(body, urlp_item_u8_arr(id, 64));
 
     // Encode
-    err = rlpx_devp2p_protocol_write(x, DEVP2P_HELLO, body, out, l);
+    err = rlpx_io_devp2p_write(x, DEVP2P_HELLO, body, out, l);
     urlp_free(&body);
     return err;
 }
 
 int
-rlpx_devp2p_protocol_write_disconnect(
+rlpx_io_devp2p_write_disconnect(
     rlpx_coder* x,
     RLPX_DEVP2P_DISCONNECT_REASON reason,
     uint8_t* out,
@@ -152,29 +150,29 @@ rlpx_devp2p_protocol_write_disconnect(
     urlp* rlp = urlp_list();
     if (!rlp) return -1;
     urlp_push(rlp, urlp_item_u32((uint32_t)reason));
-    err = rlpx_devp2p_protocol_write(x, DEVP2P_DISCONNECT, rlp, out, l);
+    err = rlpx_io_devp2p_write(x, DEVP2P_DISCONNECT, rlp, out, l);
     urlp_free(&rlp);
     return err;
 }
 
 int
-rlpx_devp2p_protocol_write_ping(rlpx_coder* x, uint8_t* out, uint32_t* l)
+rlpx_io_devp2p_write_ping(rlpx_coder* x, uint8_t* out, uint32_t* l)
 {
     int err;
     urlp* rlp = urlp_list();
     if (!rlp) return -1;
-    err = rlpx_devp2p_protocol_write(x, DEVP2P_PING, rlp, out, l);
+    err = rlpx_io_devp2p_write(x, DEVP2P_PING, rlp, out, l);
     urlp_free(&rlp);
     return err;
 }
 
 int
-rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l)
+rlpx_io_devp2p_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l)
 {
     int err;
     urlp* rlp = urlp_list();
     if (!rlp) return -1;
-    err = rlpx_devp2p_protocol_write(x, DEVP2P_PONG, rlp, out, l);
+    err = rlpx_io_devp2p_write(x, DEVP2P_PONG, rlp, out, l);
     urlp_free(&rlp);
     return err;
 }
