@@ -19,7 +19,7 @@
  * @date 2017
  */
 
-#include "rlpx_devp2p.h"
+#include "rlpx_io_devp2p.h"
 
 int rlpx_io_devp2p_recv(rlpx_devp2p_protocol*, const urlp* rlp);
 

@@ -2,7 +2,7 @@
 set(sources
 	rlpx_io.c
 	rlpx_io_mock.c
-	rlpx_devp2p.c
+	rlpx_io_devp2p.c
 	rlpx_discovery.c
 	rlpx_frame.c
 	rlpx_handshake.c
@@ -14,7 +14,7 @@ set(headers
 	rlpx_io.h
 	rlpx_config.h
 	rlpx_config_unix.h
-	rlpx_devp2p.h
+	rlpx_io_devp2p.h
 	rlpx_discovery.h
 	rlpx_frame.h
 	rlpx_handshake.h

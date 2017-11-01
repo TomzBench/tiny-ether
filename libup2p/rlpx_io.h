@@ -33,8 +33,8 @@ extern "C" {
 
 #include "async_io.h"
 #include "rlpx_config.h"
-#include "rlpx_devp2p.h"
 #include "rlpx_handshake.h"
+#include "rlpx_io_devp2p.h"
 #include "rlpx_node.h"
 
 typedef struct

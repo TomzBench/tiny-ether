@@ -23,7 +23,7 @@
 #define TEST_H_
 
 #include "kademlia/ktable.h"
-#include "rlpx_devp2p.h"
+#include "rlpx_io_devp2p.h"
 #include "rlpx_discovery.h"
 #include "rlpx_io.h"
 #include "rlpx_test_helpers.h"
