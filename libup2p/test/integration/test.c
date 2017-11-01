@@ -46,7 +46,7 @@ main(int argc, char* arg[])
     uecc_ctx static_key;
     uecc_key_init_new(&static_key);
     rlpx_io_devp2p alice;
-    rlpx_io* alice_io = (rlpx_io*)&alice;
+    rlpx_io* alice_io = (rlpx_io*)&alice; // down cast
     rlpx_io_devp2p_init(&alice, &static_key, &udp, NULL, NULL);
 
     // Install interrupt control

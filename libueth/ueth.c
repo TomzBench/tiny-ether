@@ -47,7 +47,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     }
 
     // init constants
-    ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io));
+    ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io_devp2p));
 
     // Init peer pipes
     for (uint32_t i = 0; i < ctx->n; i++) {
