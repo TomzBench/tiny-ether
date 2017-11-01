@@ -50,8 +50,6 @@ rlpx_devp2p_protocol_init(
     const rlpx_devp2p_protocol_settings* settings,
     void* ctx)
 {
-    // Iniitlize base class.
-    // rlpx_protocol_init(&self->base, 0, "p2p", ctx);
     self->ctx = ctx;
 
     // Override recv method.

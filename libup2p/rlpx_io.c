@@ -124,7 +124,6 @@ rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
 
     // Install protocols
     rlpx_devp2p_protocol_init(&io->devp2p, &g_devp2p_settings, io);
-    // io->protocols[0] = (rlpx_protocol*)&io->devp2p;
 
     return 0;
 }
@@ -308,8 +307,6 @@ rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l)
                     if (type == 0) {
                         ch->devp2p.recv(&ch->devp2p, urlp_at(rlp, 1));
                     }
-                    // p = (type >= 0 && type < 2) ? ch->protocols[type] : NULL;
-                    // err = p ? p->recv(p, urlp_at(rlp, 1)) : -1;
                 }
                 d += sz;
                 l -= sz;
