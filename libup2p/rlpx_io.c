@@ -295,7 +295,8 @@ rlpx_io_send(async_io* io)
 int
 rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l)
 {
-    int err = 0, type;
+    int err = 0;
+    uint16_t type;
     uint32_t sz;
     urlp* rlp = NULL;
     rlpx_protocol* p;
@@ -303,9 +304,10 @@ rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l)
         sz = rlpx_frame_parse(&ch->x, d, l, &rlp);
         if (sz > 0) {
             if (sz <= l) {
-                type = rlpx_frame_header_type(rlp);
-                p = (type >= 0 && type < 2) ? ch->protocols[type] : NULL;
-                err = p ? p->recv(p, rlpx_frame_body(rlp)) : -1;
+                if (!urlp_idx_to_u16(rlp, 0, &type)) {
+                    p = (type >= 0 && type < 2) ? ch->protocols[type] : NULL;
+                    err = p ? p->recv(p, urlp_at(rlp, 1)) : -1;
+                }
                 d += sz;
                 l -= sz;
             } else {

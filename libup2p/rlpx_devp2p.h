@@ -105,13 +105,18 @@ int rlpx_devp2p_protocol_write_pong(rlpx_coder* x, uint8_t* out, uint32_t* l);
 static inline int
 rlpx_devp2p_protocol_p2p_version(const urlp* rlp, uint32_t* out)
 {
-    return rlpx_rlp_to_u32(rlp, 0, out);
+    return urlp_idx_to_u32(rlp, 0, out);
 }
 
 static inline int
 rlpx_devp2p_protocol_client_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 {
-    return rlpx_rlp_to_mem(rlp, 1, ptr_p, l);
+    rlp = urlp_at(rlp, 1);
+    if (rlp) {
+        *ptr_p = urlp_ref(rlp, l);
+        return 0;
+    }
+    return -1;
 }
 
 static inline int
@@ -122,10 +127,13 @@ rlpx_devp2p_protocol_capabilities(const urlp* rlp, const char* cap, uint32_t v)
     const char* mem;
     for (uint32_t i = 0; i < n; i++) {
         if (!(seek = urlp_at(caps, i))) continue;
-        rlpx_rlp_to_mem(seek, 0, &mem, &sz);
-        if ((sz == len) && (!(memcmp(mem, cap, len)))) {
-            rlpx_rlp_to_u32(seek, 1, &ver);
-            return (ver >= v) ? 0 : -1;
+        rlp = urlp_at(seek, 0);
+        if (rlp) {
+            mem = urlp_ref(rlp, &sz);
+            if ((sz == len) && (!(memcmp(mem, cap, len)))) {
+                urlp_idx_to_u32(seek, 1, &ver);
+                return (ver >= v) ? 0 : -1;
+            }
         }
     }
 
@@ -135,13 +143,18 @@ rlpx_devp2p_protocol_capabilities(const urlp* rlp, const char* cap, uint32_t v)
 static inline int
 rlpx_devp2p_protocol_listen_port(const urlp* rlp, uint32_t* port)
 {
-    return rlpx_rlp_to_u32(rlp, 3, port);
+    return urlp_idx_to_u32(rlp, 3, port);
 }
 
 static inline int
 rlpx_devp2p_protocol_node_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 {
-    return rlpx_rlp_to_mem(rlp, 4, ptr_p, l);
+    rlp = urlp_at(rlp, 4);
+    if (rlp) {
+        *ptr_p = urlp_ref(rlp, l);
+        return 0;
+    }
+    return -1;
 }
 
 #ifdef __cplusplus
