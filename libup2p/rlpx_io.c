@@ -98,8 +98,8 @@ rlpx_io_init(
 
     // "virtual function - want override"
     for (int32_t i = 0; i < RLPX_IO_MAX_PROTOCOL; i++) {
-        io->protocols[i].on_ready = rlpx_io_default_on_ready;
-        io->protocols[i].on_recv = rlpx_io_default_on_recv;
+        io->protocols[i].ready = rlpx_io_default_on_ready;
+        io->protocols[i].recv = rlpx_io_default_on_recv;
     }
 
     return 0;
@@ -221,7 +221,7 @@ rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l)
                 if (!urlp_idx_to_u16(rlp, 0, &type)) {
                     p = type < RLPX_IO_MAX_PROTOCOL ? &ch->protocols[type]
                                                     : NULL;
-                    err = p ? p->on_recv(ch, urlp_at(rlp, 1)) : -1;
+                    err = p ? p->recv(ch, urlp_at(rlp, 1)) : -1;
                 }
                 d += sz;
                 l -= sz;
@@ -395,7 +395,7 @@ rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
                 }
             }
             async_io_set_cb_recv(&ch->io, rlpx_io_on_recv);
-            return ch->protocols[0].on_ready(ctx);
+            return ch->protocols[0].ready(ctx);
         } else {
             usys_log_err("[ERR] socket %d (ack)", ch->io.sock);
             return -1;

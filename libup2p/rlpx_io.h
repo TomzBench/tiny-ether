@@ -39,11 +39,14 @@ extern "C" {
 
 typedef int (*rlpx_io_ready_fn)(void*);
 typedef int (*rlpx_io_recv_fn)(void*, const urlp*);
+typedef void (*rlpx_io_uninstall_fn)(void**);
 
 typedef struct
 {
-    rlpx_io_ready_fn on_ready;
-    rlpx_io_recv_fn on_recv;
+    void* context;
+    rlpx_io_ready_fn ready;
+    rlpx_io_recv_fn recv;
+    rlpx_io_uninstall_fn uninstall;
 } rlpx_io_protocol;
 
 typedef struct

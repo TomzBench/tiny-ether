@@ -68,14 +68,42 @@ rlpx_io_devp2p_init(
     self->ctx = ctx;
 
     // Override recv method.
-    self->base.protocols[0].on_recv = rlpx_io_devp2p_recv;
-    self->base.protocols[0].on_ready = rlpx_io_devp2p_ready;
+    self->base.protocols[0].recv = rlpx_io_devp2p_recv;
+    self->base.protocols[0].ready = rlpx_io_devp2p_ready;
 }
 
 void
 rlpx_io_devp2p_deinit(rlpx_io_devp2p* self)
 {
     rlpx_io_deinit(&self->base);
+}
+
+int
+rlpx_io_devp2p_install(rlpx_io* base)
+{
+    rlpx_io_devp2p* ctx;
+
+    // Check if somebody installed on our slot
+    if (base->protocols[0].context) return -1;
+
+    // Protocol specific context
+    ctx = rlpx_malloc(sizeof(rlpx_io_devp2p));
+    if (ctx) {
+        // TODO rlpx_io_devp2p_init(...
+        base->protocols[0].context = ctx;
+        base->protocols[0].ready = rlpx_io_devp2p_ready;
+        base->protocols[0].recv = rlpx_io_devp2p_recv;
+        base->protocols[0].uninstall = rlpx_io_devp2p_uninstall;
+    }
+    return -1;
+}
+
+void
+rlpx_io_devp2p_uninstall(void** ptr_p)
+{
+    rlpx_io_devp2p* ptr = *ptr_p;
+    *ptr_p = NULL;
+    rlpx_free(ptr);
 }
 
 int

@@ -78,6 +78,8 @@ void rlpx_io_devp2p_init(
     async_io_settings* settings,
     void* ctx);
 void rlpx_io_devp2p_deinit(rlpx_io_devp2p* self);
+int rlpx_io_devp2p_install(rlpx_io* base);
+void rlpx_io_devp2p_uninstall(void** ptr_p);
 
 int rlpx_io_devp2p_write(
     rlpx_coder* x,
