@@ -28,7 +28,7 @@ rlpx_io_mock_devp2p_alloc(
     const uint32_t* listen)
 {
     rlpx_io* ch = rlpx_malloc(sizeof(rlpx_io));
-    if (ch) rlpx_io_mock_devp2p_init(ch, s, skey, listen);
+    // if (ch) rlpx_io_mock_devp2p_init(ch, s, skey, listen);
     return ch;
 }
 
@@ -39,7 +39,7 @@ rlpx_io_mock_devp2p_init(
     uecc_ctx* skey,
     const uint32_t* listen)
 {
-    rlpx_io_init_devp2p(ch, skey, listen);
+    // rlpx_io_init_devp2p(ch, skey, listen);
     // Override io
     if (settings->connect) ch->io.settings.connect = settings->connect;
     if (settings->ready) ch->io.settings.ready = settings->ready;

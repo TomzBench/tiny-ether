@@ -50,14 +50,14 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io));
 
     // Init peer pipes
-    for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_io_init_devp2p(
-            &ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
-    }
+    // for (uint32_t i = 0; i < ctx->n; i++) {
+    //    rlpx_io_init_devp2p(
+    //        &ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
+    //}
 
-    // Setup udp listener
-    rlpx_io_init_discv4(
-        &ctx->discovery, &ctx->p2p_static_key, &ctx->config.udp);
+    //// Setup udp listener
+    // rlpx_io_init_discv4(
+    //    &ctx->discovery, &ctx->p2p_static_key, &ctx->config.udp);
 
     char hex[129];
     uint8_t q[65];
@@ -104,7 +104,7 @@ ueth_stop(ueth_context* ctx)
         if (rlpx_io_is_connected(&ctx->ch[i])) {
             mask |= (1 << i);
             ch[b++] = &ctx->ch[i];
-            rlpx_io_send_disconnect(&ctx->ch[i], DEVP2P_DISCONNECT_QUITTING);
+            // rlpx_io_send_disconnect(&ctx->ch[i], DEVP2P_DISCONNECT_QUITTING);
         }
     }
     while (mask && ++c < 50) {

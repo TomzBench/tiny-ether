@@ -41,7 +41,6 @@ int rlpx_io_on_hello(void* ctx, const urlp* rlp);
 int rlpx_io_on_disconnect(void* ctx, const urlp* rlp);
 int rlpx_io_on_ping(void* ctx, const urlp* rlp);
 int rlpx_io_on_pong(void* ctx, const urlp* rlp);
-int rlpx_io_on_send_shutdown(void* ctx, int err, const uint8_t* b, uint32_t l);
 int rlpx_io_on_recv_auth(void* ctx, int err, uint8_t* b, uint32_t l);
 int rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l);
 
@@ -62,20 +61,15 @@ async_io_settings g_rlpx_io_settings = { //
     .on_recv = rlpx_io_on_recv
 };
 
-// Protocol callback handlers
-rlpx_io_devp2p_settings g_devp2p_settings = { //
-    .on_hello = rlpx_io_on_hello,
-    .on_disconnect = rlpx_io_on_disconnect,
-    .on_ping = rlpx_io_on_ping,
-    .on_pong = rlpx_io_on_pong
-};
-
 rlpx_io*
-rlpx_io_alloc(uecc_ctx* skey, const uint32_t* listen)
+rlpx_io_alloc(
+    uecc_ctx* skey,
+    const uint32_t* listen,
+    async_io_settings* settings)
 {
     rlpx_io* ch = rlpx_malloc(sizeof(rlpx_io));
     if (ch) {
-        rlpx_io_init(ch, skey, listen);
+        rlpx_io_init(ch, skey, listen, settings);
     }
     return ch;
 }
@@ -90,28 +84,12 @@ rlpx_io_free(rlpx_io** ch_p)
 }
 
 int
-rlpx_io_init_discv4(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
+rlpx_io_init(
+    rlpx_io* io,
+    uecc_ctx* s,
+    const uint32_t* listen,
+    async_io_settings* settings)
 {
-    rlpx_io_init(io, s, listen);
-    async_io_init(&io->io, io, &g_rlpx_disc_settings);
-    rlpx_io_listen(io);
-    return 0;
-}
-
-int
-rlpx_io_init_devp2p(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
-{
-    rlpx_io_init(io, s, listen);
-    async_io_init(&io->io, io, &g_rlpx_io_settings);
-    return 0;
-}
-
-int
-rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
-{
-    // clean mem
-    memset(io, 0, sizeof(rlpx_io));
-
     // Our static identity
     io->skey = s;
 
@@ -122,8 +100,11 @@ rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
     io->listen_port = listen;
     uecc_qtob(&io->skey->Q, io->node_id, 65);
 
-    // Install protocols
-    rlpx_io_devp2p_init(&io->devp2p, &g_devp2p_settings, io);
+    // io driver
+    async_io_init(&io->io, io, settings ? settings : &g_rlpx_io_settings);
+
+    // "virtual function - want override"
+    io->on_ready = rlpx_io_default_on_ready;
 
     return 0;
 }
@@ -132,7 +113,6 @@ void
 rlpx_io_deinit(rlpx_io* ch)
 {
     uecc_key_deinit(&ch->ekey);
-    rlpx_io_devp2p_deinit(&ch->devp2p);
     if (ch->hs) rlpx_handshake_free(&ch->hs);
 }
 
@@ -222,67 +202,6 @@ rlpx_io_send_auth(rlpx_io* ch)
 }
 
 int
-rlpx_io_send_hello(rlpx_io* ch)
-{
-    int err;
-    async_io_set_cb_recv(&ch->io, rlpx_io_on_recv);
-    ch->io.len = sizeof(ch->io.b);
-    err = rlpx_io_devp2p_write_hello(
-        &ch->x, *ch->listen_port, &ch->node_id[1], ch->io.b, &ch->io.len);
-    if (!err) {
-        usys_log("[OUT] (hello) size: %d", ch->io.len);
-        return rlpx_io_send(&ch->io);
-    } else {
-        return err;
-    }
-}
-
-int
-rlpx_io_send_disconnect(rlpx_io* ch, RLPX_DEVP2P_DISCONNECT_REASON reason)
-{
-    int err;
-    ch->io.len = sizeof(ch->io.b);
-    err =
-        rlpx_io_devp2p_write_disconnect(&ch->x, reason, ch->io.b, &ch->io.len);
-    if (!err) {
-        usys_log("[OUT] (disconnect) size: %d", ch->io.len);
-        async_io_set_cb_send(&ch->io, rlpx_io_on_send_shutdown);
-        return rlpx_io_send(&ch->io);
-    } else {
-        return err;
-    }
-}
-
-int
-rlpx_io_send_ping(rlpx_io* ch)
-{
-    int err;
-    ch->io.len = sizeof(ch->io.b);
-    err = rlpx_io_devp2p_write_ping(&ch->x, ch->io.b, &ch->io.len);
-    if (!err) {
-        ch->devp2p.ping = usys_now();
-        usys_log("[OUT] (ping) size: %d", ch->io.len);
-        return rlpx_io_send(&ch->io);
-    } else {
-        return err;
-    }
-}
-
-int
-rlpx_io_send_pong(rlpx_io* ch)
-{
-    int err;
-    ch->io.len = sizeof(ch->io.b);
-    err = rlpx_io_devp2p_write_pong(&ch->x, ch->io.b, &ch->io.len);
-    if (!err) {
-        usys_log("[OUT] (pong) size: %d", ch->io.len);
-        return rlpx_io_send(&ch->io);
-    } else {
-        return err;
-    }
-}
-
-int
 rlpx_io_send(async_io* io)
 {
     int err = async_io_send(io);
@@ -298,15 +217,13 @@ rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l)
     uint16_t type;
     uint32_t sz;
     urlp* rlp = NULL;
-    // rlpx_devp2p_protocol* p;
     while ((l) && (!err)) {
         sz = rlpx_frame_parse(&ch->x, d, l, &rlp);
         if (sz > 0) {
             if (sz <= l) {
                 if (!urlp_idx_to_u16(rlp, 0, &type)) {
-                    if (type == 0) {
-                        ch->devp2p.recv(&ch->devp2p, urlp_at(rlp, 1));
-                    }
+                    // TODO this method should call map of recvs
+                    if (type == 0) err = ch->on_recv(ch, urlp_at(rlp, 1));
                 }
                 d += sz;
                 l -= sz;
@@ -442,17 +359,6 @@ rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
 }
 
 int
-rlpx_io_on_send_shutdown(void* ctx, int err, const uint8_t* b, uint32_t l)
-{
-    rlpx_io* ch = (rlpx_io*)ctx;
-    ((void)b);
-    ((void)l);
-    ch->shutdown = 1;
-    async_io_close(&ch->io);
-    return err;
-}
-
-int
 rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
 {
     rlpx_io* ch = (rlpx_io*)ctx;
@@ -491,7 +397,7 @@ rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
                 }
             }
             async_io_set_cb_recv(&ch->io, rlpx_io_on_recv);
-            return rlpx_io_send_hello(ch);
+            return ch->on_ready(ctx);
         } else {
             usys_log_err("[ERR] socket %d (ack)", ch->io.sock);
             return -1;
@@ -500,75 +406,6 @@ rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
         usys_log_err("[ERR] socket %d (ack)", ch->io.sock);
         return err;
     }
-}
-
-int
-rlpx_io_on_hello(void* ctx, const urlp* rlp)
-{
-    const char* memptr;
-    const uint8_t* pub;
-    uint8_t pub_expect[65];
-    uint32_t l;
-    rlpx_io* ch = ctx;
-
-    usys_log("[ IN] (hello)");
-
-    // Copy client string.
-    rlpx_io_devp2p_client_id(rlp, &memptr, &l);
-    memcpy(
-        ch->devp2p.client,
-        memptr,
-        l < RLPX_CLIENT_MAX_LEN ? l : RLPX_CLIENT_MAX_LEN);
-
-    // Copy listening port.
-    rlpx_io_devp2p_listen_port(rlp, &ch->devp2p.listen_port);
-
-    // TODO - Check caps
-
-    if ((rlp = urlp_at(rlp, 4)) &&                    //
-        (pub = urlp_ref(rlp, &l)) &&                  //
-        (l == 64) &&                                  //
-        (!uecc_qtob(&ch->node.id, pub_expect, 65)) && //
-        (!(memcmp(pub, &pub_expect[1], 64)))) {
-        ch->ready = 1;
-    } else {
-        // Bad public key...
-        usys_log_err("[ERR] Invalid \"hello\" - bad public key");
-        ch->shutdown = 1;
-        async_io_close(&ch->io);
-    }
-
-    return 0;
-}
-
-int
-rlpx_io_on_disconnect(void* ctx, const urlp* rlp)
-{
-    rlpx_io* ch = ctx;
-    ((void)ch);
-    ((void)rlp); // TODO
-    usys_log("[ IN] (disconnect)");
-    return 0;
-}
-
-int
-rlpx_io_on_ping(void* ctx, const urlp* rlp)
-{
-    ((void)rlp);
-    rlpx_io* ch = ctx;
-    usys_log("[ IN] (ping)");
-    rlpx_io_send_pong(ch);
-    return 0;
-}
-
-int
-rlpx_io_on_pong(void* ctx, const urlp* rlp)
-{
-    ((void)rlp);
-    rlpx_io* ch = ctx;
-    usys_log("[ IN] (pong)");
-    ch->devp2p.latency = usys_now() - ch->devp2p.ping;
-    return 0;
 }
 
 //

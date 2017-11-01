@@ -24,7 +24,7 @@
 #include "rlpx_helper_macros.h"
 #include "rlpx_io.h"
 #include "ukeccak256.h"
-extern rlpx_io_devp2p_settings g_devp2p_settings;
+// extern rlpx_io_devp2p_settings g_devp2p_settings;
 /*
  * This "test" feature is only to export data from normally opaque structures.
  */
@@ -140,11 +140,11 @@ rlpx_test_expect_secrets(
     return err;
 }
 
-void
-rlpx_test_mock_devp2p(rlpx_io_devp2p_settings* settings)
-{
-    g_devp2p_settings = *settings;
-}
+// void
+// rlpx_test_mock_devp2p(rlpx_io_devp2p_settings* settings)
+//{
+//    g_devp2p_settings = *settings;
+//}
 //
 //
 //

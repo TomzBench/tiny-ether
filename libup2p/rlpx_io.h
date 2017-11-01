@@ -33,15 +33,16 @@ extern "C" {
 
 #include "async_io.h"
 #include "rlpx_config.h"
+#include "rlpx_frame.h"
 #include "rlpx_handshake.h"
-#include "rlpx_io_devp2p.h"
 #include "rlpx_node.h"
+
+typedef int (*rlpx_io_ready_fn)(void*);
+typedef int (*rlpx_io_recv_fn)(void*, const urlp*);
 
 typedef struct
 {
     async_io io;                 /*!< io context for network sys calls */
-    rlpx_devp2p_protocol devp2p; /*!< hello/disconnect/ping/pong */
-    // rlpx_protocol* protocols[2]; /*!< protocol handlers */
     uecc_ctx* skey;              /*!< TODO make const - our static key ref*/
     uecc_ctx ekey;               /*!< our epheremal key */
     rlpx_coder x;                /*!< igress/ingress */
@@ -52,23 +53,19 @@ typedef struct
     int shutdown;                /*!< shutting down */
     uint8_t node_id[65];         /*!< node id */
     const uint32_t* listen_port; /*!< our listen port */
+    rlpx_io_ready_fn on_ready;   /*!< callback when ready */
+    rlpx_io_recv_fn on_recv;     /*!< callback when receive protocol */
 } rlpx_io;
 
 // constructors
-rlpx_io* rlpx_io_alloc(uecc_ctx* skey, const uint32_t*);
-rlpx_io* rlpx_io_mock_devp2p_alloc(
-    async_io_settings* io,
-    uecc_ctx* s,
-    const uint32_t* udp);
+rlpx_io* rlpx_io_alloc(uecc_ctx* skey, const uint32_t*, async_io_settings*);
 void rlpx_io_free(rlpx_io** ch_p);
-int rlpx_io_init_discv4(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
-int rlpx_io_init_devp2p(rlpx_io*, uecc_ctx*, const uint32_t*);
-int rlpx_io_init(rlpx_io* io, uecc_ctx*, const uint32_t*);
-int rlpx_io_mock_devp2p_init(
-    rlpx_io*,
-    async_io_settings*,
-    uecc_ctx*,
-    const uint32_t*);
+int rlpx_io_init(
+    rlpx_io* io,
+    uecc_ctx* s,
+    const uint32_t* listen,
+    async_io_settings*);
+int rlpx_io_init_mock(rlpx_io*, uecc_ctx*, const uint32_t*, async_io_settings*);
 void rlpx_io_deinit(rlpx_io* session);
 
 // methods
@@ -84,10 +81,6 @@ int rlpx_io_connect_enode(rlpx_io* ch, const char* enode);
 int rlpx_io_connect_node(rlpx_io* ch, const rlpx_node* node);
 int rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from);
 int rlpx_io_send_auth(rlpx_io* ch);
-int rlpx_io_send_hello(rlpx_io* ch);
-int rlpx_io_send_disconnect(rlpx_io* ch, RLPX_DEVP2P_DISCONNECT_REASON);
-int rlpx_io_send_ping(rlpx_io* ch);
-int rlpx_io_send_pong(rlpx_io* ch);
 int rlpx_io_send(async_io* io);
 int rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l);
 int rlpx_io_recv_auth(rlpx_io*, const uint8_t*, size_t l);
@@ -103,6 +96,12 @@ static inline int
 rlpx_io_is_ready(rlpx_io* ch)
 {
     return ch->ready;
+}
+
+static inline int
+rlpx_io_default_on_ready(void* io)
+{
+    return -1;
 }
 
 static inline int
