@@ -30,6 +30,27 @@ int rlpx_io_devp2p_on_send_shutdown(
     const uint8_t* b,
     uint32_t l);
 
+rlpx_io_devp2p*
+rlpx_io_devp2p_alloc(
+    uecc_ctx* skey,
+    const uint32_t* listen,
+    async_io_settings* settings,
+    void* ctx)
+{
+    rlpx_io_devp2p* self = rlpx_malloc(sizeof(rlpx_io_devp2p));
+    if (self) rlpx_io_devp2p_init(self, skey, listen, settings, ctx);
+    return self;
+}
+
+void
+rlpx_io_devp2p_free(rlpx_io_devp2p** p)
+{
+    rlpx_io_devp2p* self = *p;
+    *p = NULL;
+    rlpx_io_devp2p_deinit(self);
+    rlpx_free(self);
+}
+
 void
 rlpx_io_devp2p_init(
     rlpx_io_devp2p* self,
@@ -71,11 +92,11 @@ rlpx_io_devp2p_recv(void* base, const urlp* rlp)
         if (DEVP2P_HELLO == package_type) {
             err = rlpx_io_devp2p_recv_hello(self, body);
         } else if (DEVP2P_DISCONNECT == package_type) {
-            err = rlpx_io_devp2p_recv_disconnect(self->ctx, body);
+            err = rlpx_io_devp2p_recv_disconnect(self, body);
         } else if (DEVP2P_PING == package_type) {
-            err = rlpx_io_devp2p_recv_ping(self->ctx, body);
+            err = rlpx_io_devp2p_recv_ping(self, body);
         } else if (DEVP2P_PONG == package_type) {
-            err = rlpx_io_devp2p_recv_pong(self->ctx, body);
+            err = rlpx_io_devp2p_recv_pong(self, body);
         }
     }
 

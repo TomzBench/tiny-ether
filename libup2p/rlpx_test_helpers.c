@@ -22,7 +22,7 @@
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
 #include "rlpx_helper_macros.h"
-#include "rlpx_io.h"
+#include "rlpx_io_devp2p.h"
 #include "ukeccak256.h"
 // extern rlpx_io_devp2p_settings g_devp2p_settings;
 /*
@@ -30,63 +30,63 @@
  */
 
 uecc_ctx*
-rlpx_test_skey(rlpx_io* ch)
+rlpx_test_skey(rlpx_io_devp2p* ch)
 {
-    return ch->skey;
+    return ch->base.skey;
 }
 
 uecc_ctx*
-rlpx_test_ekey(rlpx_io* ch)
+rlpx_test_ekey(rlpx_io_devp2p* ch)
 {
-    return &ch->ekey;
+    return &ch->base.ekey;
 }
 
 void
-rlpx_test_nonce_set(rlpx_io* s, h256* nonce)
+rlpx_test_nonce_set(rlpx_io_devp2p* s, h256* nonce)
 {
-    memcpy(s->nonce.b, nonce->b, 32);
+    memcpy(s->base.nonce.b, nonce->b, 32);
 }
 
 void
-rlpx_test_ekey_set(rlpx_io* s, uecc_ctx* ekey)
+rlpx_test_ekey_set(rlpx_io_devp2p* s, uecc_ctx* ekey)
 {
-    uecc_key_deinit(&s->ekey);
-    s->ekey = *ekey;
+    uecc_key_deinit(&s->base.ekey);
+    s->base.ekey = *ekey;
 }
 
 ukeccak256_ctx*
-rlpx_test_ingress(rlpx_io* ch)
+rlpx_test_ingress(rlpx_io_devp2p* ch)
 {
-    return &ch->x.imac;
+    return &ch->base.x.imac;
 }
 
 ukeccak256_ctx*
-rlpx_test_egress(rlpx_io* ch)
+rlpx_test_egress(rlpx_io_devp2p* ch)
 {
-    return &ch->x.emac;
+    return &ch->base.x.emac;
 }
 
 uaes_ctx*
-rlpx_test_aes_mac(rlpx_io* ch)
+rlpx_test_aes_mac(rlpx_io_devp2p* ch)
 {
-    return &ch->x.aes_mac;
+    return &ch->base.x.aes_mac;
 }
 
 uaes_ctx*
-rlpx_test_aes_enc(rlpx_io* ch)
+rlpx_test_aes_enc(rlpx_io_devp2p* ch)
 {
-    return &ch->x.aes_enc;
+    return &ch->base.x.aes_enc;
 }
 
 uaes_ctx*
-rlpx_test_aes_dec(rlpx_io* ch)
+rlpx_test_aes_dec(rlpx_io_devp2p* ch)
 {
-    return &ch->x.aes_dec;
+    return &ch->base.x.aes_dec;
 }
 
 int
 rlpx_test_expect_secrets(
-    rlpx_io* s,
+    rlpx_io_devp2p* io,
     int orig,
     uint8_t* sent,
     uint32_t slen,
@@ -98,6 +98,7 @@ rlpx_test_expect_secrets(
 {
     int err;
     uint8_t buf[32 + ((slen > rlen) ? slen : rlen)], *out = &buf[32];
+    rlpx_io* s = (rlpx_io*)io;
     if ((err = uecc_agree(&s->ekey, &s->hs->ekey_remote))) return err;
     memcpy(buf, orig ? s->hs->nonce_remote.b : s->nonce.b, 32);
     memcpy(out, orig ? s->nonce.b : s->hs->nonce_remote.b, 32);

@@ -68,6 +68,13 @@ int rlpx_io_init(
 int rlpx_io_init_mock(rlpx_io*, uecc_ctx*, const uint32_t*, async_io_settings*);
 void rlpx_io_deinit(rlpx_io* session);
 
+// Private io callbacks (we expose this methods for test)
+int rlpx_io_on_accept(void* ctx);
+int rlpx_io_on_connect(void* ctx);
+int rlpx_io_on_erro(void* ctx);
+int rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
+int rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
+
 // methods
 void rlpx_io_nonce(rlpx_io* ch);
 int rlpx_io_poll(rlpx_io** ch, uint32_t count, uint32_t ms);

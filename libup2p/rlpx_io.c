@@ -24,13 +24,6 @@
 #include "usys_log.h"
 #include "usys_time.h"
 
-// Private io callbacks (devp2p)
-int rlpx_io_on_accept(void* ctx);
-int rlpx_io_on_connect(void* ctx);
-int rlpx_io_on_erro(void* ctx);
-int rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
-int rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
-
 // Private io callbacks (discv4)
 int rlpx_io_on_erro_from(void* ctx);
 int rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l);

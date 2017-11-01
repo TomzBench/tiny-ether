@@ -26,24 +26,24 @@
 extern "C" {
 #endif
 
-#include "rlpx_io.h"
+#include "rlpx_io_devp2p.h"
 #include "uaes.h"
 #include "uecc.h"
 #include "ukeccak256.h"
 #include "urlp.h"
 
 /*!< setters/getters for internal state (for test purposes) */
-uecc_ctx* rlpx_test_skey(rlpx_io* ch);
-uecc_ctx* rlpx_test_ekey(rlpx_io* ch);
-void rlpx_test_nonce_set(rlpx_io* s, h256* nonce);
-void rlpx_test_ekey_set(rlpx_io* s, uecc_ctx* ekey);
-ukeccak256_ctx* rlpx_test_ingress(rlpx_io* ch);
-ukeccak256_ctx* rlpx_test_egress(rlpx_io* ch);
-uaes_ctx* rlpx_test_aes_mac(rlpx_io* ch);
-uaes_ctx* rlpx_test_aes_enc(rlpx_io* ch);
-uaes_ctx* rlpx_test_aes_dec(rlpx_io* ch);
+uecc_ctx* rlpx_test_skey(rlpx_io_devp2p* ch);
+uecc_ctx* rlpx_test_ekey(rlpx_io_devp2p* ch);
+void rlpx_test_nonce_set(rlpx_io_devp2p* s, h256* nonce);
+void rlpx_test_ekey_set(rlpx_io_devp2p* s, uecc_ctx* ekey);
+ukeccak256_ctx* rlpx_test_ingress(rlpx_io_devp2p* ch);
+ukeccak256_ctx* rlpx_test_egress(rlpx_io_devp2p* ch);
+uaes_ctx* rlpx_test_aes_mac(rlpx_io_devp2p* ch);
+uaes_ctx* rlpx_test_aes_enc(rlpx_io_devp2p* ch);
+uaes_ctx* rlpx_test_aes_dec(rlpx_io_devp2p* ch);
 int rlpx_test_expect_secrets(
-    rlpx_io* s,
+    rlpx_io_devp2p* s,
     int orig,
     uint8_t* sent,
     uint32_t sentlen,
@@ -52,7 +52,7 @@ int rlpx_test_expect_secrets(
     uint8_t* aes,
     uint8_t* mac,
     uint8_t* foo);
-void rlpx_test_mock_devp2p(rlpx_io_devp2p_settings* settings);
+// void rlpx_test_mock_devp2p(rlpx_io_devp2p_settings* settings);
 #ifdef __cplusplus
 }
 #endif

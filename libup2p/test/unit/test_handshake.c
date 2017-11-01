@@ -50,20 +50,23 @@ test_read()
     int err;
     test_session s;
     test_vector* tv = g_test_vectors;
+    rlpx_io *a, *b;
 
     int i = 0;
     while (tv->auth) {
         test_session_init(&s, i);
-        rlpx_io_nonce(s.alice);
-        rlpx_io_nonce(s.bob);
-        rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-        rlpx_io_accept(s.bob, &s.alice->skey->Q);
-        if (rlpx_io_recv_auth(s.bob, s.auth, s.authlen)) break;
-        if (rlpx_io_recv_ack(s.alice, s.ack, s.acklen)) break;
-        if (!(s.bob->hs->version_remote == tv->authver)) break;
-        if (!(s.alice->hs->version_remote == tv->ackver)) break;
-        if ((cmp_q(&s.bob->hs->ekey_remote, &s.alice->ekey.Q))) break;
-        if ((cmp_q(&s.alice->hs->ekey_remote, &s.bob->ekey.Q))) break;
+        a = (rlpx_io*)s.alice;
+        b = (rlpx_io*)s.bob;
+        rlpx_io_nonce(a);
+        rlpx_io_nonce(b);
+        rlpx_io_connect(a, &b->skey->Q, "1.1.1.1", 33);
+        rlpx_io_accept(b, &a->skey->Q);
+        if (rlpx_io_recv_auth(b, s.auth, s.authlen)) break;
+        if (rlpx_io_recv_ack(a, s.ack, s.acklen)) break;
+        if (!(b->hs->version_remote == tv->authver)) break;
+        if (!(a->hs->version_remote == tv->ackver)) break;
+        if ((cmp_q(&b->hs->ekey_remote, &a->ekey.Q))) break;
+        if ((cmp_q(&a->hs->ekey_remote, &b->ekey.Q))) break;
         test_session_deinit(&s);
         i++;
         tv++;
@@ -78,17 +81,18 @@ test_write()
     int err;
     test_session s;
     test_session_init(&s, 1);
+    rlpx_io *a = (rlpx_io *)s.alice, *b = (rlpx_io *)s.bob;
 
     // Trade keys
-    rlpx_io_nonce(s.alice);
-    rlpx_io_nonce(s.bob);
-    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(s.bob, &s.alice->skey->Q);
-    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
-    IF_ERR_EXIT(rlpx_io_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
+    rlpx_io_nonce(a);
+    rlpx_io_nonce(b);
+    rlpx_io_connect(a, &b->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(b, &a->skey->Q);
+    IF_ERR_EXIT(rlpx_io_recv_auth(b, a->io.b, a->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_ack(a, b->io.b, b->io.len));
 
-    IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
-    IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
+    IF_ERR_EXIT(check_q(&a->hs->ekey_remote, g_bob_epub));
+    IF_ERR_EXIT(check_q(&b->hs->ekey_remote, g_alice_epub));
 EXIT:
     test_session_deinit(&s);
     return err;
@@ -100,8 +104,11 @@ test_secrets()
     int err;
     uint8_t aes[32], mac[32], foo[32];
     test_session s;
+    rlpx_io *a, *b;
 
     test_session_init(&s, 1);
+    a = (rlpx_io*)s.alice;
+    b = (rlpx_io*)s.bob;
     memcpy(aes, makebin(g_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_mac_secret, NULL), 32);
     memcpy(foo, makebin(g_foo, NULL), 32);
@@ -110,10 +117,10 @@ test_secrets()
     rlpx_test_nonce_set(s.bob, &s.bob_n);
     rlpx_test_nonce_set(s.alice, &s.alice_n);
 
-    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(s.bob, &s.alice->skey->Q);
-    rlpx_io_recv_auth(s.bob, s.auth, s.authlen);
-    rlpx_io_recv_ack(s.alice, s.ack, s.acklen);
+    rlpx_io_connect(a, &b->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(b, &a->skey->Q);
+    rlpx_io_recv_auth(b, s.auth, s.authlen);
+    rlpx_io_recv_ack(a, s.ack, s.acklen);
     IF_ERR_EXIT(
         rlpx_test_expect_secrets(
             s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, foo));

@@ -65,6 +65,12 @@ typedef struct rlpx_io_devp2p
 } rlpx_io_devp2p;
 
 // Initializers/Deinitializers
+rlpx_io_devp2p* rlpx_io_devp2p_alloc(
+    uecc_ctx* skey,
+    const uint32_t* listen,
+    async_io_settings* settings,
+    void* ctx);
+void rlpx_io_devp2p_free(rlpx_io_devp2p** p);
 void rlpx_io_devp2p_init(
     rlpx_io_devp2p* self,
     uecc_ctx* skey,

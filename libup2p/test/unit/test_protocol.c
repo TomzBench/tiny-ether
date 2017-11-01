@@ -23,6 +23,14 @@
 
 uint32_t g_test_mask = 0;
 
+// STUB
+int
+test_protocol()
+{
+    return 0;
+}
+
+/*
 int test_devp2p_on_hello(void* ctx, const urlp* rlp);
 int test_devp2p_on_ping(void* ctx, const urlp* rlp);
 int test_devp2p_on_pong(void* ctx, const urlp* rlp);
@@ -152,3 +160,4 @@ test_devp2p_on_pong(void* ctx, const urlp* rlp)
     g_test_mask |= (0x01 << 3);
     return err;
 }
+*/

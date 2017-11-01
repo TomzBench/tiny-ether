@@ -134,28 +134,34 @@ test_session_init(test_session* s, int vec)
     uecc_key_init_binary(&s->skey_b, &bob_s);
     uecc_key_init_binary(&ekey_a, &alice_e);
     uecc_key_init_binary(&ekey_b, &bob_e);
-    s->alice =
-        rlpx_io_mock_devp2p_alloc(&g_io_mock_settings, &s->skey_a, &s->udp[0]);
-    s->bob =
-        rlpx_io_mock_devp2p_alloc(&g_io_mock_settings, &s->skey_b, &s->udp[1]);
+    // s->alice =
+    //    rlpx_io_mock_devp2p_alloc(&g_io_mock_settings, &s->skey_a,
+    //    &s->udp[0]);
+    // s->bob =
+    //    rlpx_io_mock_devp2p_alloc(&g_io_mock_settings, &s->skey_b,
+    //    &s->udp[1]);
+    s->alice = rlpx_io_devp2p_alloc(
+        &s->skey_a, &s->udp[0], &g_io_mock_settings, s->alice);
+    s->bob = rlpx_io_devp2p_alloc(
+        &s->skey_b, &s->udp[1], &g_io_mock_settings, s->bob);
 
     // Install mock ekeys
     rlpx_test_ekey_set(s->alice, &ekey_a);
     rlpx_test_ekey_set(s->bob, &ekey_b);
 
     // sanity check
-    if ((check_q(&s->alice->ekey.Q, g_alice_epub))) return -1;
-    if ((check_q(&s->bob->ekey.Q, g_bob_epub))) return -1;
-    if ((check_q(&s->alice->skey->Q, g_alice_spub))) return -1;
-    if ((check_q(&s->bob->skey->Q, g_bob_spub))) return -1;
+    if ((check_q(&s->alice->base.ekey.Q, g_alice_epub))) return -1;
+    if ((check_q(&s->bob->base.ekey.Q, g_bob_epub))) return -1;
+    if ((check_q(&s->alice->base.skey->Q, g_alice_spub))) return -1;
+    if ((check_q(&s->bob->base.skey->Q, g_bob_spub))) return -1;
     return 0;
 }
 
 void
 test_session_deinit(test_session* s)
 {
-    rlpx_io_free(&s->alice);
-    rlpx_io_free(&s->bob);
+    rlpx_io_devp2p_free(&s->alice);
+    rlpx_io_devp2p_free(&s->bob);
     uecc_key_deinit(&s->skey_a);
     uecc_key_deinit(&s->skey_b);
 }
