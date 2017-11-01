@@ -45,7 +45,7 @@ typedef struct ueth_context
     int (*poll)(struct ueth_context*);
     uint32_t n;
     rlpx_io discovery;
-    rlpx_io_devp2p ch[UETH_CONFIG_NUM_CHANNELS];
+    rlpx_io ch[UETH_CONFIG_NUM_CHANNELS];
 } ueth_context;
 
 int ueth_init(ueth_context* ctx, ueth_config* config);

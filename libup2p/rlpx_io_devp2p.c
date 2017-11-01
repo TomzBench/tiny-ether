@@ -30,52 +30,43 @@ int rlpx_io_devp2p_on_send_shutdown(
     const uint8_t* b,
     uint32_t l);
 
-rlpx_io_devp2p*
-rlpx_io_devp2p_alloc(
-    uecc_ctx* skey,
-    const uint32_t* listen,
-    async_io_settings* settings,
-    void* ctx)
-{
-    rlpx_io_devp2p* self = rlpx_malloc(sizeof(rlpx_io_devp2p));
-    if (self) rlpx_io_devp2p_init(self, skey, listen, settings, ctx);
-    return self;
-}
+// rlpx_io_devp2p*
+// rlpx_io_devp2p_alloc(
+//    uecc_ctx* skey,
+//    const uint32_t* listen,
+//    async_io_settings* settings,
+//    void* ctx)
+//{
+//    rlpx_io_devp2p* self = rlpx_malloc(sizeof(rlpx_io_devp2p));
+//    if (self) rlpx_io_devp2p_init(self, skey, listen, settings, ctx);
+//    return self;
+//}
+//
+// void
+// rlpx_io_devp2p_free(rlpx_io_devp2p** p)
+//{
+//    rlpx_io_devp2p* self = *p;
+//    *p = NULL;
+//    rlpx_io_devp2p_deinit(self);
+//    rlpx_free(self);
+//}
 
 void
-rlpx_io_devp2p_free(rlpx_io_devp2p** p)
-{
-    rlpx_io_devp2p* self = *p;
-    *p = NULL;
-    rlpx_io_devp2p_deinit(self);
-    rlpx_free(self);
-}
-
-void
-rlpx_io_devp2p_init(
-    rlpx_io_devp2p* self,
-    uecc_ctx* skey,
-    const uint32_t* listen,
-    async_io_settings* settings,
-    void* ctx)
+rlpx_io_devp2p_init(rlpx_io_devp2p* self, rlpx_io* base)
 {
     // erase
     memset(self, 0, sizeof(rlpx_io_devp2p));
-
-    // Init base class
-    rlpx_io_init(&self->base, skey, listen, settings);
-
-    self->ctx = ctx;
-
-    // Override recv method.
-    self->base.protocols[0].recv = rlpx_io_devp2p_recv;
-    self->base.protocols[0].ready = rlpx_io_devp2p_ready;
+    self->base = base;
+    base->protocols[0].context = self;
+    base->protocols[0].ready = rlpx_io_devp2p_ready;
+    base->protocols[0].recv = rlpx_io_devp2p_recv;
+    base->protocols[0].uninstall = rlpx_io_devp2p_uninstall;
 }
 
 void
 rlpx_io_devp2p_deinit(rlpx_io_devp2p* self)
 {
-    rlpx_io_deinit(&self->base);
+    rlpx_io_deinit(self->base);
 }
 
 int
@@ -89,11 +80,8 @@ rlpx_io_devp2p_install(rlpx_io* base)
     // Protocol specific context
     ctx = rlpx_malloc(sizeof(rlpx_io_devp2p));
     if (ctx) {
-        // TODO rlpx_io_devp2p_init(...
-        base->protocols[0].context = ctx;
-        base->protocols[0].ready = rlpx_io_devp2p_ready;
-        base->protocols[0].recv = rlpx_io_devp2p_recv;
-        base->protocols[0].uninstall = rlpx_io_devp2p_uninstall;
+        rlpx_io_devp2p_init(ctx, base);
+        return 0;
     }
     return -1;
 }
@@ -111,7 +99,7 @@ rlpx_io_devp2p_recv(void* base, const urlp* rlp)
 {
     int err = -1;
     const urlp *type = NULL, *body = NULL;
-    rlpx_io_devp2p* self = (rlpx_io_devp2p*)base;
+    rlpx_io_devp2p* self = ((rlpx_io*)base)->protocols[0].context;
     RLPX_DEVP2P_PROTOCOL_PACKET_TYPE package_type = DEVP2P_ERRO;
     if ((type = urlp_at(rlp, 0)) && (body = urlp_at(rlp, 1))) {
 
@@ -252,18 +240,18 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
 
     // TODO - Check caps
 
-    if ((rlp = urlp_at(rlp, 4)) &&                         //
-        (pub = urlp_ref(rlp, &l)) &&                       //
-        (l == 64) &&                                       //
-        (!uecc_qtob(&ch->base.node.id, pub_expect, 65)) && //
+    if ((rlp = urlp_at(rlp, 4)) &&                          //
+        (pub = urlp_ref(rlp, &l)) &&                        //
+        (l == 64) &&                                        //
+        (!uecc_qtob(&ch->base->node.id, pub_expect, 65)) && //
         (!(memcmp(pub, &pub_expect[1], 64)))) {
-        ch->base.ready = 1;
+        ch->base->ready = 1;
         return 0;
     } else {
         // Bad public key...
         usys_log_err("[ERR] Invalid \"hello\" - bad public key");
-        ch->base.shutdown = 1;
-        async_io_close(&ch->base.io);
+        ch->base->shutdown = 1;
+        async_io_close(&ch->base->io);
         return -1;
     }
 }
@@ -302,16 +290,16 @@ int
 rlpx_io_send_hello(rlpx_io_devp2p* ch)
 {
     int err;
-    ch->base.io.len = sizeof(ch->base.io.b);
+    ch->base->io.len = sizeof(ch->base->io.b);
     err = rlpx_io_devp2p_write_hello(
-        &ch->base.x,
-        *ch->base.listen_port,
-        &ch->base.node_id[1],
-        ch->base.io.b,
-        &ch->base.io.len);
+        &ch->base->x,
+        *ch->base->listen_port,
+        &ch->base->node_id[1],
+        ch->base->io.b,
+        &ch->base->io.len);
     if (!err) {
-        usys_log("[OUT] (hello) size: %d", ch->base.io.len);
-        return rlpx_io_send(&ch->base.io);
+        usys_log("[OUT] (hello) size: %d", ch->base->io.len);
+        return rlpx_io_send(&ch->base->io);
     } else {
         return err;
     }
@@ -323,13 +311,13 @@ rlpx_io_send_disconnect(
     RLPX_DEVP2P_DISCONNECT_REASON reason)
 {
     int err;
-    ch->base.io.len = sizeof(ch->base.io.b);
+    ch->base->io.len = sizeof(ch->base->io.b);
     err = rlpx_io_devp2p_write_disconnect(
-        &ch->base.x, reason, ch->base.io.b, &ch->base.io.len);
+        &ch->base->x, reason, ch->base->io.b, &ch->base->io.len);
     if (!err) {
-        usys_log("[OUT] (disconnect) size: %d", ch->base.io.len);
-        async_io_set_cb_send(&ch->base.io, rlpx_io_devp2p_on_send_shutdown);
-        return rlpx_io_send(&ch->base.io);
+        usys_log("[OUT] (disconnect) size: %d", ch->base->io.len);
+        async_io_set_cb_send(&ch->base->io, rlpx_io_devp2p_on_send_shutdown);
+        return rlpx_io_send(&ch->base->io);
     } else {
         return err;
     }
@@ -339,13 +327,13 @@ int
 rlpx_io_send_ping(rlpx_io_devp2p* ch)
 {
     int err;
-    ch->base.io.len = sizeof(ch->base.io.b);
-    err =
-        rlpx_io_devp2p_write_ping(&ch->base.x, ch->base.io.b, &ch->base.io.len);
+    ch->base->io.len = sizeof(ch->base->io.b);
+    err = rlpx_io_devp2p_write_ping(
+        &ch->base->x, ch->base->io.b, &ch->base->io.len);
     if (!err) {
         ch->ping = usys_now();
-        usys_log("[OUT] (ping) size: %d", ch->base.io.len);
-        return rlpx_io_send(&ch->base.io);
+        usys_log("[OUT] (ping) size: %d", ch->base->io.len);
+        return rlpx_io_send(&ch->base->io);
     } else {
         return err;
     }
@@ -355,12 +343,12 @@ int
 rlpx_io_send_pong(rlpx_io_devp2p* ch)
 {
     int err;
-    ch->base.io.len = sizeof(ch->base.io.b);
-    err =
-        rlpx_io_devp2p_write_pong(&ch->base.x, ch->base.io.b, &ch->base.io.len);
+    ch->base->io.len = sizeof(ch->base->io.b);
+    err = rlpx_io_devp2p_write_pong(
+        &ch->base->x, ch->base->io.b, &ch->base->io.len);
     if (!err) {
-        usys_log("[OUT] (pong) size: %d", ch->base.io.len);
-        return rlpx_io_send(&ch->base.io);
+        usys_log("[OUT] (pong) size: %d", ch->base->io.len);
+        return rlpx_io_send(&ch->base->io);
     } else {
         return err;
     }

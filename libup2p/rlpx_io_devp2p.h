@@ -56,7 +56,7 @@ typedef enum {
 
 typedef struct rlpx_io_devp2p
 {
-    rlpx_io base;                     /*!< base class */
+    rlpx_io* base;                    /*!< base class */
     void* ctx;                        /*!< callback context */
     char client[RLPX_CLIENT_MAX_LEN]; /*!< Hello packet client*/
     uint32_t listen_port;             /*!< */
@@ -65,18 +65,9 @@ typedef struct rlpx_io_devp2p
 } rlpx_io_devp2p;
 
 // Initializers/Deinitializers
-rlpx_io_devp2p* rlpx_io_devp2p_alloc(
-    uecc_ctx* skey,
-    const uint32_t* listen,
-    async_io_settings* settings,
-    void* ctx);
-void rlpx_io_devp2p_free(rlpx_io_devp2p** p);
-void rlpx_io_devp2p_init(
-    rlpx_io_devp2p* self,
-    uecc_ctx* skey,
-    const uint32_t* listen,
-    async_io_settings* settings,
-    void* ctx);
+// rlpx_io_devp2p* rlpx_io_devp2p_alloc(rlpx_io_base*);
+// void rlpx_io_devp2p_free(rlpx_io_devp2p** p);
+void rlpx_io_devp2p_init(rlpx_io_devp2p*, rlpx_io*);
 void rlpx_io_devp2p_deinit(rlpx_io_devp2p* self);
 int rlpx_io_devp2p_install(rlpx_io* base);
 void rlpx_io_devp2p_uninstall(void** ptr_p);

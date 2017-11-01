@@ -83,6 +83,9 @@ rlpx_io_init(
     const uint32_t* listen,
     async_io_settings* settings)
 {
+    // clear
+    memset(io, 0, sizeof(rlpx_io));
+
     // Our static identity
     io->skey = s;
 
@@ -96,7 +99,7 @@ rlpx_io_init(
     // io driver
     async_io_init(&io->io, io, settings ? settings : &g_rlpx_io_settings);
 
-    // "virtual function - want override"
+    // "virtual functions - want install"
     for (int32_t i = 0; i < RLPX_IO_MAX_PROTOCOL; i++) {
         io->protocols[i].ready = rlpx_io_default_on_ready;
         io->protocols[i].recv = rlpx_io_default_on_recv;
@@ -109,6 +112,11 @@ void
 rlpx_io_deinit(rlpx_io* ch)
 {
     uecc_key_deinit(&ch->ekey);
+    for (uint32_t i = 0; i < RLPX_IO_MAX_PROTOCOL; i++) {
+        if (ch->protocols[i].context) {
+            ch->protocols[i].uninstall(&ch->protocols[i].context);
+        }
+    }
     if (ch->hs) rlpx_handshake_free(&ch->hs);
 }
 
@@ -395,7 +403,7 @@ rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
                 }
             }
             async_io_set_cb_recv(&ch->io, rlpx_io_on_recv);
-            return ch->protocols[0].ready(ctx);
+            return ch->protocols[0].ready(ch->protocols[0].context);
         } else {
             usys_log_err("[ERR] socket %d (ack)", ch->io.sock);
             return -1;

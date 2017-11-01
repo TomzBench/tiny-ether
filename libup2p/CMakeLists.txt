@@ -47,10 +47,10 @@ target_link_libraries(up2p usys ucrypto urlp)
 target_include_directories(up2p PUBLIC ./)
 
 #unit test for libup2p
-add_executable(up2p_unit_test 
-	${sources-unit-test}
-	${headers-unit-test})
-target_link_libraries(up2p_unit_test up2p)
+##add_executable(up2p_unit_test 
+##	${sources-unit-test}
+##	${headers-unit-test})
+##target_link_libraries(up2p_unit_test up2p)
 
 #integration test for libup2p
 add_executable(up2p_integration_test 
@@ -59,7 +59,7 @@ add_executable(up2p_integration_test
 target_link_libraries(up2p_integration_test up2p)
 
 # install unit test
-install(TARGETS up2p_integration_test up2p_unit_test
+install(TARGETS up2p_integration_test
 	DESTINATION ${UETH_INSTALL_ROOT}/bin)
 
 #

@@ -24,4 +24,4 @@ add_subdirectory(liburlp)
 add_subdirectory(libusys)
 
 # some apps
-add_subdirectory(apps/pingpong)
+##add_subdirectory(apps/pingpong)
