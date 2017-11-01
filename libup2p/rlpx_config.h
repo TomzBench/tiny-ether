@@ -37,4 +37,7 @@
 // DEVP2P client string max size (from "hello" packet)
 #define RLPX_CLIENT_MAX_LEN 80
 
+// Every protocol type has a number that is mapped to handler in array
+#define RLPX_IO_MAX_PROTOCOL 8
+
 #endif

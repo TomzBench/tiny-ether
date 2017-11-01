@@ -1,7 +1,6 @@
 #libup2p sources
 set(sources
 	rlpx_io.c
-	rlpx_io_mock.c
 	rlpx_io_devp2p.c
 	rlpx_discovery.c
 	rlpx_frame.c

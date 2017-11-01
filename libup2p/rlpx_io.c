@@ -97,7 +97,10 @@ rlpx_io_init(
     async_io_init(&io->io, io, settings ? settings : &g_rlpx_io_settings);
 
     // "virtual function - want override"
-    io->on_ready = rlpx_io_default_on_ready;
+    for (int32_t i = 0; i < RLPX_IO_MAX_PROTOCOL; i++) {
+        io->protocols[i].on_ready = rlpx_io_default_on_ready;
+        io->protocols[i].on_recv = rlpx_io_default_on_recv;
+    }
 
     return 0;
 }
@@ -209,14 +212,16 @@ rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l)
     int err = 0;
     uint16_t type;
     uint32_t sz;
+    rlpx_io_protocol* p = NULL;
     urlp* rlp = NULL;
     while ((l) && (!err)) {
         sz = rlpx_frame_parse(&ch->x, d, l, &rlp);
         if (sz > 0) {
             if (sz <= l) {
                 if (!urlp_idx_to_u16(rlp, 0, &type)) {
-                    // TODO this method should call map of recvs
-                    if (type == 0) err = ch->on_recv(ch, urlp_at(rlp, 1));
+                    p = type < RLPX_IO_MAX_PROTOCOL ? &ch->protocols[type]
+                                                    : NULL;
+                    err = p ? p->on_recv(ch, urlp_at(rlp, 1)) : -1;
                 }
                 d += sz;
                 l -= sz;
@@ -390,7 +395,7 @@ rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
                 }
             }
             async_io_set_cb_recv(&ch->io, rlpx_io_on_recv);
-            return ch->on_ready(ctx);
+            return ch->protocols[0].on_ready(ctx);
         } else {
             usys_log_err("[ERR] socket %d (ack)", ch->io.sock);
             return -1;

@@ -68,8 +68,8 @@ rlpx_io_devp2p_init(
     self->ctx = ctx;
 
     // Override recv method.
-    self->base.on_recv = rlpx_io_devp2p_recv;
-    self->base.on_ready = rlpx_io_devp2p_ready;
+    self->base.protocols[0].on_recv = rlpx_io_devp2p_recv;
+    self->base.protocols[0].on_ready = rlpx_io_devp2p_ready;
 }
 
 void

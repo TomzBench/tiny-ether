@@ -42,6 +42,12 @@ typedef int (*rlpx_io_recv_fn)(void*, const urlp*);
 
 typedef struct
 {
+    rlpx_io_ready_fn on_ready;
+    rlpx_io_recv_fn on_recv;
+} rlpx_io_protocol;
+
+typedef struct
+{
     async_io io;                 /*!< io context for network sys calls */
     uecc_ctx* skey;              /*!< TODO make const - our static key ref*/
     uecc_ctx ekey;               /*!< our epheremal key */
@@ -53,8 +59,7 @@ typedef struct
     int shutdown;                /*!< shutting down */
     uint8_t node_id[65];         /*!< node id */
     const uint32_t* listen_port; /*!< our listen port */
-    rlpx_io_ready_fn on_ready;   /*!< callback when ready */
-    rlpx_io_recv_fn on_recv;     /*!< callback when receive protocol */
+    rlpx_io_protocol protocols[RLPX_IO_MAX_PROTOCOL]; /*!< map */
 } rlpx_io;
 
 // constructors
@@ -65,7 +70,6 @@ int rlpx_io_init(
     uecc_ctx* s,
     const uint32_t* listen,
     async_io_settings*);
-int rlpx_io_init_mock(rlpx_io*, uecc_ctx*, const uint32_t*, async_io_settings*);
 void rlpx_io_deinit(rlpx_io* session);
 
 // Private io callbacks (we expose this methods for test)
@@ -107,6 +111,11 @@ rlpx_io_is_ready(rlpx_io* ch)
 
 static inline int
 rlpx_io_default_on_ready(void* io)
+{
+    return -1;
+}
+static inline int
+rlpx_io_default_on_recv(void* io, const urlp* rlp)
 {
     return -1;
 }
