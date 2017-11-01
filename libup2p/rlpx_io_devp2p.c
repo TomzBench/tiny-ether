@@ -30,6 +30,7 @@ int rlpx_io_devp2p_on_send_shutdown(
     const uint8_t* b,
     uint32_t l);
 
+// TODO move these to rlpx_io and then compile unit tests.
 // rlpx_io_devp2p*
 // rlpx_io_devp2p_alloc(
 //    uecc_ctx* skey,

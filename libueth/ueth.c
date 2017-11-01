@@ -98,6 +98,7 @@ ueth_start(ueth_context* ctx, int n, ...)
 int
 ueth_stop(ueth_context* ctx)
 {
+    // TODO this is broke when we refactor-io
     uint32_t mask = 0, i, c = 0, b = 0;
     rlpx_io* ch[ctx->n];
     rlpx_io_devp2p* devp2p;
