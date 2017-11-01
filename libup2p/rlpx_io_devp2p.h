@@ -56,7 +56,7 @@ typedef enum {
 
 typedef struct rlpx_io_devp2p
 {
-    rlpx_io io;                       /*!< base class */
+    rlpx_io base;                     /*!< base class */
     void* ctx;                        /*!< callback context */
     char client[RLPX_CLIENT_MAX_LEN]; /*!< Hello packet client*/
     uint32_t listen_port;             /*!< */

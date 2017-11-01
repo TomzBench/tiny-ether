@@ -42,19 +42,19 @@ rlpx_io_devp2p_init(
     memset(self, 0, sizeof(rlpx_io_devp2p));
 
     // Init base class
-    rlpx_io_init(&self->io, skey, listen, settings);
+    rlpx_io_init(&self->base, skey, listen, settings);
 
     self->ctx = ctx;
 
     // Override recv method.
-    self->io.on_recv = rlpx_io_devp2p_recv;
-    self->io.on_ready = rlpx_io_devp2p_ready;
+    self->base.on_recv = rlpx_io_devp2p_recv;
+    self->base.on_ready = rlpx_io_devp2p_ready;
 }
 
 void
 rlpx_io_devp2p_deinit(rlpx_io_devp2p* self)
 {
-    rlpx_io_deinit(&self->io);
+    rlpx_io_deinit(&self->base);
 }
 
 int
@@ -203,18 +203,18 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
 
     // TODO - Check caps
 
-    if ((rlp = urlp_at(rlp, 4)) &&                       //
-        (pub = urlp_ref(rlp, &l)) &&                     //
-        (l == 64) &&                                     //
-        (!uecc_qtob(&ch->io.node.id, pub_expect, 65)) && //
+    if ((rlp = urlp_at(rlp, 4)) &&                         //
+        (pub = urlp_ref(rlp, &l)) &&                       //
+        (l == 64) &&                                       //
+        (!uecc_qtob(&ch->base.node.id, pub_expect, 65)) && //
         (!(memcmp(pub, &pub_expect[1], 64)))) {
-        ch->io.ready = 1;
+        ch->base.ready = 1;
         return 0;
     } else {
         // Bad public key...
         usys_log_err("[ERR] Invalid \"hello\" - bad public key");
-        ch->io.shutdown = 1;
-        async_io_close(&ch->io.io);
+        ch->base.shutdown = 1;
+        async_io_close(&ch->base.io);
         return -1;
     }
 }
@@ -253,16 +253,16 @@ int
 rlpx_io_send_hello(rlpx_io_devp2p* ch)
 {
     int err;
-    ch->io.io.len = sizeof(ch->io.io.b);
+    ch->base.io.len = sizeof(ch->base.io.b);
     err = rlpx_io_devp2p_write_hello(
-        &ch->io.x,
-        *ch->io.listen_port,
-        &ch->io.node_id[1],
-        ch->io.io.b,
-        &ch->io.io.len);
+        &ch->base.x,
+        *ch->base.listen_port,
+        &ch->base.node_id[1],
+        ch->base.io.b,
+        &ch->base.io.len);
     if (!err) {
-        usys_log("[OUT] (hello) size: %d", ch->io.io.len);
-        return rlpx_io_send(&ch->io.io);
+        usys_log("[OUT] (hello) size: %d", ch->base.io.len);
+        return rlpx_io_send(&ch->base.io);
     } else {
         return err;
     }
@@ -274,13 +274,13 @@ rlpx_io_send_disconnect(
     RLPX_DEVP2P_DISCONNECT_REASON reason)
 {
     int err;
-    ch->io.io.len = sizeof(ch->io.io.b);
+    ch->base.io.len = sizeof(ch->base.io.b);
     err = rlpx_io_devp2p_write_disconnect(
-        &ch->io.x, reason, ch->io.io.b, &ch->io.io.len);
+        &ch->base.x, reason, ch->base.io.b, &ch->base.io.len);
     if (!err) {
-        usys_log("[OUT] (disconnect) size: %d", ch->io.io.len);
-        async_io_set_cb_send(&ch->io.io, rlpx_io_devp2p_on_send_shutdown);
-        return rlpx_io_send(&ch->io.io);
+        usys_log("[OUT] (disconnect) size: %d", ch->base.io.len);
+        async_io_set_cb_send(&ch->base.io, rlpx_io_devp2p_on_send_shutdown);
+        return rlpx_io_send(&ch->base.io);
     } else {
         return err;
     }
@@ -290,12 +290,13 @@ int
 rlpx_io_send_ping(rlpx_io_devp2p* ch)
 {
     int err;
-    ch->io.io.len = sizeof(ch->io.io.b);
-    err = rlpx_io_devp2p_write_ping(&ch->io.x, ch->io.io.b, &ch->io.io.len);
+    ch->base.io.len = sizeof(ch->base.io.b);
+    err =
+        rlpx_io_devp2p_write_ping(&ch->base.x, ch->base.io.b, &ch->base.io.len);
     if (!err) {
         ch->ping = usys_now();
-        usys_log("[OUT] (ping) size: %d", ch->io.io.len);
-        return rlpx_io_send(&ch->io.io);
+        usys_log("[OUT] (ping) size: %d", ch->base.io.len);
+        return rlpx_io_send(&ch->base.io);
     } else {
         return err;
     }
@@ -305,11 +306,12 @@ int
 rlpx_io_send_pong(rlpx_io_devp2p* ch)
 {
     int err;
-    ch->io.io.len = sizeof(ch->io.io.b);
-    err = rlpx_io_devp2p_write_pong(&ch->io.x, ch->io.io.b, &ch->io.io.len);
+    ch->base.io.len = sizeof(ch->base.io.b);
+    err =
+        rlpx_io_devp2p_write_pong(&ch->base.x, ch->base.io.b, &ch->base.io.len);
     if (!err) {
-        usys_log("[OUT] (pong) size: %d", ch->io.io.len);
-        return rlpx_io_send(&ch->io.io);
+        usys_log("[OUT] (pong) size: %d", ch->base.io.len);
+        return rlpx_io_send(&ch->base.io);
     } else {
         return err;
     }
