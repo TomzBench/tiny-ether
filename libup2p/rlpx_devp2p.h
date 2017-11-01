@@ -25,7 +25,9 @@
 extern "C" {
 #endif
 
-#include "rlpx_protocol.h"
+#include "rlpx_config.h"
+#include "rlpx_frame.h"
+#include "urlp.h"
 
 typedef enum {
     DEVP2P_ERRO = -0x01,
@@ -51,6 +53,7 @@ typedef enum {
     DEVP2P_DISCONNECT_OTHER = 0x10
 } RLPX_DEVP2P_DISCONNECT_REASON;
 
+typedef int (*rlpx_protocol_cb)(void* ctx, const urlp* rlp);
 typedef struct
 {
     rlpx_protocol_cb on_hello;
@@ -59,9 +62,10 @@ typedef struct
     rlpx_protocol_cb on_disconnect;
 } rlpx_devp2p_protocol_settings;
 
-typedef struct
+typedef struct rlpx_devp2p_protocol
 {
-    rlpx_protocol base;
+    void* ctx;
+    int (*recv)(struct rlpx_devp2p_protocol*, const urlp*);
     const rlpx_devp2p_protocol_settings* settings; /*!< user callbacks */
     char client[RLPX_CLIENT_MAX_LEN];              /*!< Hello packet client*/
     uint32_t listen_port;                          /*!< */

@@ -21,7 +21,7 @@
 
 #include "rlpx_devp2p.h"
 
-int rlpx_devp2p_protocol_recv(rlpx_protocol*, const urlp* rlp);
+int rlpx_devp2p_protocol_recv(rlpx_devp2p_protocol*, const urlp* rlp);
 
 rlpx_devp2p_protocol*
 rlpx_devp2p_protocol_alloc(
@@ -51,10 +51,11 @@ rlpx_devp2p_protocol_init(
     void* ctx)
 {
     // Iniitlize base class.
-    rlpx_protocol_init(&self->base, 0, "p2p", ctx);
+    // rlpx_protocol_init(&self->base, 0, "p2p", ctx);
+    self->ctx = ctx;
 
     // Override recv method.
-    self->base.recv = rlpx_devp2p_protocol_recv;
+    self->recv = rlpx_devp2p_protocol_recv;
 
     // Install protocol specific handlers.
     self->settings = settings;
@@ -63,12 +64,13 @@ rlpx_devp2p_protocol_init(
 void
 rlpx_devp2p_protocol_deinit(rlpx_devp2p_protocol* self)
 {
+    ((void)self);
     // Deinitialize base class
-    rlpx_protocol_deinit(&self->base);
+    // rlpx_protocol_deinit(&self->base);
 }
 
 int
-rlpx_devp2p_protocol_recv(rlpx_protocol* base, const urlp* rlp)
+rlpx_devp2p_protocol_recv(rlpx_devp2p_protocol* base, const urlp* rlp)
 {
     int err = -1;
     const urlp *type = NULL, *body = NULL;
@@ -79,13 +81,13 @@ rlpx_devp2p_protocol_recv(rlpx_protocol* base, const urlp* rlp)
         package_type = urlp_as_u32(type);
 
         if (DEVP2P_HELLO == package_type) {
-            err = self->settings->on_hello(self->base.ctx, body);
+            err = self->settings->on_hello(self->ctx, body);
         } else if (DEVP2P_DISCONNECT == package_type) {
-            err = self->settings->on_disconnect(self->base.ctx, body);
+            err = self->settings->on_disconnect(self->ctx, body);
         } else if (DEVP2P_PING == package_type) {
-            err = self->settings->on_ping(self->base.ctx, body);
+            err = self->settings->on_ping(self->ctx, body);
         } else if (DEVP2P_PONG == package_type) {
-            err = self->settings->on_pong(self->base.ctx, body);
+            err = self->settings->on_pong(self->ctx, body);
         }
     }
 

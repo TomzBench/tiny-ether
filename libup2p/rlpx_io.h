@@ -41,7 +41,7 @@ typedef struct
 {
     async_io io;                 /*!< io context for network sys calls */
     rlpx_devp2p_protocol devp2p; /*!< hello/disconnect/ping/pong */
-    rlpx_protocol* protocols[2]; /*!< protocol handlers */
+    // rlpx_protocol* protocols[2]; /*!< protocol handlers */
     uecc_ctx* skey;              /*!< TODO make const - our static key ref*/
     uecc_ctx ekey;               /*!< our epheremal key */
     rlpx_coder x;                /*!< igress/ingress */

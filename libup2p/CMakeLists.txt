@@ -8,7 +8,6 @@ set(sources
 	rlpx_handshake.c
 	kademlia/ktable.c
 	rlpx_node.c
-	rlpx_protocol.c
 	rlpx_test_helpers.c)
 set(headers
 	kademlia/ktable.h
@@ -21,7 +20,6 @@ set(headers
 	rlpx_handshake.h
 	rlpx_helper_macros.h
 	rlpx_node.h
-	rlpx_protocol.h
 	rlpx_test_helpers.h
 	rlpx_types.h)
 
