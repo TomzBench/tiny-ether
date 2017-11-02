@@ -184,21 +184,21 @@ rlpx_io_discovery_recv(rlpx_io_discovery_table* t, const uint8_t* b, uint32_t l)
         // Received a ping packet
         // send a pong on device io...
         err =
-            rlpx_io_discovery_parse_ping(&crlp, buff32, &from, &to, &timestamp);
+            rlpx_io_discovery_recv_ping(&crlp, buff32, &from, &to, &timestamp);
     } else if (type == RLPX_DISCOVERY_PING) {
 
         // Received a pong packet
-        err = rlpx_io_discovery_parse_pong(&crlp, &to, buff32, &timestamp);
+        err = rlpx_io_discovery_recv_pong(&crlp, &to, buff32, &timestamp);
     } else if (type == RLPX_DISCOVERY_FIND) {
 
         // Received request for our neighbours.
         // We send empty neighbours since we are not kademlia
         // We are leech looking for light clients servers
-        err = rlpx_io_discovery_parse_find(&crlp, &target, &timestamp);
+        err = rlpx_io_discovery_recv_find(&crlp, &target, &timestamp);
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
 
         // Received some neighbours
-        err = rlpx_io_discovery_parse_neighbours(t, &crlp);
+        err = rlpx_io_discovery_recv_neighbours(t, &crlp);
     } else {
         // error
     }
@@ -272,9 +272,7 @@ rlpx_io_discovery_write(
 }
 
 int
-rlpx_io_discovery_parse_endpoint(
-    const urlp* rlp,
-    rlpx_io_discovery_endpoint* ep)
+rlpx_io_discovery_recv_endpoint(const urlp* rlp, rlpx_io_discovery_endpoint* ep)
 {
     int err;
     uint32_t n = urlp_children(rlp);
@@ -301,7 +299,7 @@ rlpx_io_discovery_rlp_endpoint(const rlpx_io_discovery_endpoint* ep)
 }
 
 int
-rlpx_io_discovery_parse_ping(
+rlpx_io_discovery_recv_ping(
     const urlp** rlp,
     uint8_t* version32,
     rlpx_io_discovery_endpoint* from,
@@ -312,8 +310,8 @@ rlpx_io_discovery_parse_ping(
     uint32_t sz = 32, n = urlp_children(*rlp);
     if (n < 4) return -1;
     if ((!(err = urlp_idx_to_mem(*rlp, 0, version32, &sz))) && //
-        (!(err = rlpx_io_discovery_parse_endpoint(urlp_at(*rlp, 1), from))) &&
-        (!(err = rlpx_io_discovery_parse_endpoint(urlp_at(*rlp, 2), to))) &&
+        (!(err = rlpx_io_discovery_recv_endpoint(urlp_at(*rlp, 1), from))) &&
+        (!(err = rlpx_io_discovery_recv_endpoint(urlp_at(*rlp, 2), to))) &&
         (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
         return err;
     }
@@ -321,7 +319,7 @@ rlpx_io_discovery_parse_ping(
 }
 
 int
-rlpx_io_discovery_parse_pong(
+rlpx_io_discovery_recv_pong(
     const urlp** rlp,
     rlpx_io_discovery_endpoint* to,
     uint8_t* echo32,
@@ -330,7 +328,7 @@ rlpx_io_discovery_parse_pong(
     int err;
     uint32_t sz = 32, n = urlp_children(*rlp);
     if (n < 4) return -1;
-    if ((!(err = rlpx_io_discovery_parse_endpoint(urlp_at(*rlp, 0), to))) &&
+    if ((!(err = rlpx_io_discovery_recv_endpoint(urlp_at(*rlp, 0), to))) &&
         (!(err = urlp_idx_to_mem(*rlp, 1, echo32, &sz))) &&
         (!(err = urlp_idx_to_u32(*rlp, 2, timestamp)))) {
         return err;
@@ -339,7 +337,7 @@ rlpx_io_discovery_parse_pong(
 }
 
 int
-rlpx_io_discovery_parse_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
+rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
 {
     int err = -1;
     uint32_t publen = 64, n = urlp_children(*rlp);
@@ -366,7 +364,7 @@ rlpx_io_discovery_parse_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
  * @return
  */
 int
-rlpx_io_discovery_parse_neighbours(rlpx_io_discovery_table* t, const urlp** rlp)
+rlpx_io_discovery_recv_neighbours(rlpx_io_discovery_table* t, const urlp** rlp)
 {
     const urlp *n = urlp_at(*rlp, 0),         // get list of neighbours
         *ts = urlp_at(*rlp, 1);               // get timestamp

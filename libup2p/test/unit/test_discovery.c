@@ -212,7 +212,7 @@ check_ping_v4(rlpx_io_discovery_table* t, int type, const urlp* rlp)
     rlpx_io_discovery_endpoint from, to;
     if (type != 1) return err;
     if (!(ver == 4)) return err;
-    err = rlpx_io_discovery_parse_ping(&rlp, version, &from, &to, &timestamp);
+    err = rlpx_io_discovery_recv_ping(&rlp, version, &from, &to, &timestamp);
     return err;
 }
 
@@ -227,7 +227,7 @@ check_ping_v5(rlpx_io_discovery_table* t, int type, const urlp* rlp)
     rlpx_io_discovery_endpoint from, to;
     if (type != 1) return err;
     if (!(ver == 555)) return err;
-    err = rlpx_io_discovery_parse_ping(&rlp, version, &from, &to, &timestamp);
+    err = rlpx_io_discovery_recv_ping(&rlp, version, &from, &to, &timestamp);
     return err;
 }
 
@@ -240,7 +240,7 @@ check_pong(rlpx_io_discovery_table* t, int type, const urlp* rlp)
     uint8_t echo[32];
     rlpx_io_discovery_endpoint to;
     if (type != 2) return err;
-    err = rlpx_io_discovery_parse_pong(&rlp, &to, echo, &timestamp);
+    err = rlpx_io_discovery_recv_pong(&rlp, &to, echo, &timestamp);
     return err;
 }
 
@@ -252,7 +252,7 @@ check_find_node(rlpx_io_discovery_table* t, int type, const urlp* rlp)
     if (type != 3) return err;
     uint32_t ts;
     uecc_public_key q;
-    err = rlpx_io_discovery_parse_find(&rlp, &q, &ts);
+    err = rlpx_io_discovery_recv_find(&rlp, &q, &ts);
     return err;
 }
 
@@ -261,6 +261,6 @@ check_neighbours(rlpx_io_discovery_table* t, int type, const urlp* rlp)
 {
     int err = -1;
     if (type != 4) return err;
-    err = rlpx_io_discovery_parse_neighbours(t, &rlp);
+    err = rlpx_io_discovery_recv_neighbours(t, &rlp);
     return err;
 }

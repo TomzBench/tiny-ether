@@ -186,40 +186,137 @@ int rlpx_io_discovery_recv(
     rlpx_io_discovery_table* t,
     const uint8_t* b,
     uint32_t l);
+
+/**
+ * @brief parse a signed UDP packet
+ *
+ * @param b
+ * @param l
+ * @param node_id
+ * @param type
+ * @param rlp
+ *
+ * @return
+ */
 int rlpx_io_discovery_parse(
     const uint8_t* b,
     uint32_t l,
     uecc_public_key* node_id,
     int* type,
     urlp** rlp);
+
+/**
+ * @brief sign a discovery packet provided RLP and a packet type
+ *
+ * @param key
+ * @param type
+ * @param rlp
+ * @param b
+ * @param l
+ *
+ * @return
+ */
 int rlpx_io_discovery_write(
     uecc_ctx* key,
     RLPX_DISCOVERY type,
     const urlp* rlp,
     uint8_t* b,
     uint32_t* l);
-int rlpx_io_discovery_parse_endpoint(
+
+/**
+ * @brief Convert RLP endpoint data into end point struct
+ * (rename rlpx_io_discovery_rlp_to_ep)?
+ *
+ * @param urlp
+ * @param ep
+ *
+ * @return
+ */
+int rlpx_io_discovery_recv_endpoint(
     const urlp*,
     rlpx_io_discovery_endpoint* ep);
+
+/**
+ * @brief Return RLP from an endpoint struct
+ * (rename rlpx_io_discovery_ep_to_rlp)?
+ *
+ * @param ep
+ *
+ * @return
+ */
 urlp* rlpx_io_discovery_rlp_endpoint(const rlpx_io_discovery_endpoint* ep);
-int rlpx_io_discovery_parse_ping(
+
+/**
+ * @brief Parse a signed rlp ping packet
+ *
+ * @param
+ * @param version32
+ * @param from
+ * @param to
+ * @param timestamp
+ *
+ * @return
+ */
+int rlpx_io_discovery_recv_ping(
     const urlp**,
     uint8_t* version32,
     rlpx_io_discovery_endpoint* from,
     rlpx_io_discovery_endpoint* to,
     uint32_t* timestamp);
-int rlpx_io_discovery_parse_pong(
+
+/**
+ * @brief Parse a signed rlp pong packet
+ *
+ * @param rlp
+ * @param to
+ * @param echo32
+ * @param timestamp
+ *
+ * @return
+ */
+int rlpx_io_discovery_recv_pong(
     const urlp** rlp,
     rlpx_io_discovery_endpoint* to,
     uint8_t* echo32,
     uint32_t* timestamp);
-int rlpx_io_discovery_parse_find(
-    const urlp** rlp,
-    uecc_public_key* q,
-    uint32_t* ts);
-int rlpx_io_discovery_parse_neighbours(
+
+/**
+ * @brief Parse a signed rlp find packet
+ *
+ * @param rlp
+ * @param q
+ * @param ts
+ *
+ * @return
+ */
+int
+rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts);
+
+/**
+ * @brief Parse a signed rlp neighbours packet
+ *
+ * @param t
+ * @param rlp
+ *
+ * @return
+ */
+int rlpx_io_discovery_recv_neighbours(
     rlpx_io_discovery_table* t,
     const urlp** rlp);
+
+/**
+ * @brief Populate output buffer with signed ping packet
+ *
+ * @param skey
+ * @param ver
+ * @param ep_src
+ * @param ep_dst
+ * @param timestamp
+ * @param dst
+ * @param l
+ *
+ * @return
+ */
 int rlpx_io_discovery_write_ping(
     uecc_ctx* skey,
     uint32_t ver,
@@ -228,6 +325,19 @@ int rlpx_io_discovery_write_ping(
     uint32_t timestamp,
     uint8_t* dst,
     uint32_t* l);
+
+/**
+ * @brief Populate output buffer with signed pong packet
+ *
+ * @param skey
+ * @param ep_to
+ * @param echo
+ * @param timestamp
+ * @param d
+ * @param l
+ *
+ * @return
+ */
 int rlpx_io_discovery_write_pong(
     uecc_ctx* skey,
     const rlpx_io_discovery_endpoint* ep_to,
@@ -235,12 +345,38 @@ int rlpx_io_discovery_write_pong(
     uint32_t timestamp,
     uint8_t* d,
     uint32_t* l);
+
+/**
+ * @brief Populate output buffer with signed find packet
+ *
+ * @param skey
+ * @param nodeid
+ * @param timestamp
+ * @param b
+ * @param l
+ *
+ * @return
+ */
 int rlpx_io_discovery_write_find(
     uecc_ctx* skey,
     uecc_public_key* nodeid,
     uint32_t timestamp,
     uint8_t* b,
     uint32_t* l);
+
+/**
+ * @brief Populate output with signed neighbours packet.
+ *
+ * (Always sends empty neighbours for now.)
+ *
+ * @param skey
+ * @param t
+ * @param timestamp
+ * @param d
+ * @param l
+ *
+ * @return
+ */
 int rlpx_io_discovery_write_neighbours(
     uecc_ctx* skey,
     rlpx_io_discovery_table* t,
