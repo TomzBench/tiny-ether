@@ -101,11 +101,8 @@ test_secrets()
     int err;
     uint8_t aes[32], mac[32], foo[32];
     test_session s;
-    rlpx_io *a, *b;
 
     test_session_init(&s, 1);
-    a = (rlpx_io*)s.alice;
-    b = (rlpx_io*)s.bob;
     memcpy(aes, makebin(g_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_mac_secret, NULL), 32);
     memcpy(foo, makebin(g_foo, NULL), 32);
@@ -114,10 +111,10 @@ test_secrets()
     rlpx_test_nonce_set(s.bob, &s.bob_n);
     rlpx_test_nonce_set(s.alice, &s.alice_n);
 
-    rlpx_io_connect(a, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(b, &s.alice->skey->Q);
-    rlpx_io_recv_auth(b, s.auth, s.authlen);
-    rlpx_io_recv_ack(a, s.ack, s.acklen);
+    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(s.bob, &s.alice->skey->Q);
+    rlpx_io_recv_auth(s.bob, s.auth, s.authlen);
+    rlpx_io_recv_ack(s.alice, s.ack, s.acklen);
     IF_ERR_EXIT(
         rlpx_test_expect_secrets(
             s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, foo));

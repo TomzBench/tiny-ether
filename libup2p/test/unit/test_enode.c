@@ -39,20 +39,17 @@ test_hex()
     int err = 0;
     uint8_t raw[64], rawa[65], rawb[65];
     char mem[129], mema[129], memb[129];
-    rlpx_io *alice, *bob;
     test_session s;
     test_session_init(&s, 1);
-    alice = (rlpx_io*)s.alice; // downcast
-    bob = (rlpx_io*)s.bob;     // downcast
     IF_ERR_EXIT(rlpx_node_hex_to_bin(BOB_EPUB, 0, raw, NULL));
     IF_ERR_EXIT(rlpx_node_bin_to_hex(raw, 64, mem, NULL));
     IF_ERR_EXIT(memcmp(mem, BOB_EPUB, 128) ? -1 : 0);
-    IF_ERR_EXIT(uecc_qtob(&alice->skey->Q, rawa, 65));
-    IF_ERR_EXIT(uecc_qtob(&bob->skey->Q, rawb, 65));
+    IF_ERR_EXIT(uecc_qtob(&s.alice->skey->Q, rawa, 65));
+    IF_ERR_EXIT(uecc_qtob(&s.bob->skey->Q, rawb, 65));
     IF_ERR_EXIT(rlpx_node_bin_to_hex(&rawa[1], 64, mema, NULL));
     IF_ERR_EXIT(rlpx_node_bin_to_hex(&rawb[1], 64, memb, NULL));
-    IF_ERR_EXIT(check_q(&alice->skey->Q, mema));
-    IF_ERR_EXIT(check_q(&bob->skey->Q, memb));
+    IF_ERR_EXIT(check_q(&s.alice->skey->Q, mema));
+    IF_ERR_EXIT(check_q(&s.bob->skey->Q, memb));
 EXIT:
     test_session_deinit(&s);
     return err;
@@ -67,12 +64,9 @@ test_node()
     char* failsz = "enode://" ALICE_SPUB "x@111.111.111.111:65535.65535";
     char* failfmt = "enode://" ALICE_SPUB " 111.111.111.111@65535.65535";
     rlpx_node node_alice, node_maxok, node_failsz, node_failfmt;
-    // rlpx_io *alice, *bob;
     test_session s;
 
     test_session_init(&s, 1);
-    // alice = (rlpx_io*)s.alice; // Down cast
-    // bob = (rlpx_io*)s.bob;     // Down cast
 
     IF_ERR_EXIT(rlpx_node_init_enode(&node_alice, alice_pub));
     IF_ERR_EXIT(rlpx_node_init_enode(&node_maxok, maxok));

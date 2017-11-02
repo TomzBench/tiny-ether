@@ -46,7 +46,6 @@ test_frame_read()
 {
     int err;
     test_session s;
-    rlpx_io *alice, *bob;
     uint8_t aes[32], mac[32];
     urlp* frame = NULL;
     const urlp* seek;
@@ -55,22 +54,20 @@ test_frame_read()
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
     memcpy(aes, makebin(g_go_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_go_mac_secret, NULL), 32);
-    alice = (rlpx_io*)s.alice; // Down cast
-    bob = (rlpx_io*)s.bob;     // Down cast
 
     // Set some phoney nonces
     rlpx_test_nonce_set(s.bob, &s.bob_n);
     rlpx_test_nonce_set(s.alice, &s.alice_n);
 
     // Update our secrets
-    rlpx_io_connect(alice, &bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(bob, &alice->skey->Q);
-    IF_ERR_EXIT(rlpx_io_recv_auth(bob, s.auth, s.authlen));
+    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(s.bob, &s.alice->skey->Q);
+    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.auth, s.authlen));
     IF_ERR_EXIT(
         rlpx_test_expect_secrets(
             s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, NULL));
     if (!rlpx_frame_parse(
-            &bob->x,
+            &s.bob->x,
             makebin(g_hello_packet, NULL),
             strlen(g_hello_packet) / 2,
             &frame)) {

@@ -59,7 +59,7 @@ add_executable(up2p_integration_test
 target_link_libraries(up2p_integration_test up2p)
 
 # install unit test
-install(TARGETS up2p_integration_test
+install(TARGETS up2p_integration_test up2p_unit_test
 	DESTINATION ${UETH_INSTALL_ROOT}/bin)
 
 #
