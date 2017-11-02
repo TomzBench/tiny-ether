@@ -54,26 +54,25 @@ async_io_settings g_rlpx_io_settings = { //
     .on_recv = rlpx_io_on_recv
 };
 
+// TODO move these to rlpx_io and then compile unit tests.
 rlpx_io*
 rlpx_io_alloc(
     uecc_ctx* skey,
     const uint32_t* listen,
     async_io_settings* settings)
 {
-    rlpx_io* ch = rlpx_malloc(sizeof(rlpx_io));
-    if (ch) {
-        rlpx_io_init(ch, skey, listen, settings);
-    }
-    return ch;
+    rlpx_io* self = rlpx_malloc(sizeof(rlpx_io));
+    if (self) rlpx_io_init(self, skey, listen, settings);
+    return self;
 }
 
 void
-rlpx_io_free(rlpx_io** ch_p)
+rlpx_io_free(rlpx_io** p)
 {
-    rlpx_io* ch = *ch_p;
-    *ch_p = NULL;
-    rlpx_io_deinit(ch);
-    rlpx_free(ch);
+    rlpx_io* self = *p;
+    *p = NULL;
+    rlpx_io_deinit(self);
+    rlpx_free(self);
 }
 
 int

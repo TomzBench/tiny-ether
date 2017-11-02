@@ -66,7 +66,10 @@ typedef struct
 } rlpx_io;
 
 // constructors
-rlpx_io* rlpx_io_alloc(uecc_ctx* skey, const uint32_t*, async_io_settings*);
+rlpx_io* rlpx_io_alloc(
+    uecc_ctx* skey,
+    const uint32_t* listen,
+    async_io_settings* settings);
 void rlpx_io_free(rlpx_io** ch_p);
 int rlpx_io_init(
     rlpx_io* io,

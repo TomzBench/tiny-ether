@@ -93,33 +93,32 @@ test_frame_write()
     int err = 0;
     test_session s;
     test_session_init(&s, 1);
-    rlpx_io *a = (rlpx_io *)s.alice, *b = (rlpx_io *)s.bob;
     urlp *rlpa = NULL, *rlpb = NULL;
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
     uint32_t numa, numb;
 
     // Send keys
-    rlpx_io_nonce(a);
-    rlpx_io_nonce(b);
-    rlpx_io_connect(a, &b->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(b, &a->skey->Q);
+    rlpx_io_nonce(s.alice);
+    rlpx_io_nonce(s.bob);
+    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
+    rlpx_io_accept(s.bob, &s.alice->skey->Q);
 
     // Recv keys
-    IF_ERR_EXIT(rlpx_io_recv_ack(a, b->io.b, b->io.len));
-    IF_ERR_EXIT(rlpx_io_recv_auth(b, a->io.b, a->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
 
     // Check key exchange
-    IF_ERR_EXIT(check_q(&a->hs->ekey_remote, g_bob_epub));
-    IF_ERR_EXIT(check_q(&b->hs->ekey_remote, g_alice_epub));
+    IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
+    IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
 
     // Write some packets
-    IF_ERR_EXIT(rlpx_io_send_hello(s.alice));
-    IF_ERR_EXIT(rlpx_io_send_hello(s.bob));
-    if (!rlpx_frame_parse(&a->x, b->io.b, b->io.len, &rlpb)) {
+    IF_ERR_EXIT(rlpx_io_send_hello(s.alice->protocols[0].context));
+    IF_ERR_EXIT(rlpx_io_send_hello(s.bob->protocols[0].context));
+    if (!rlpx_frame_parse(&s.alice->x, s.bob->io.b, s.bob->io.len, &rlpb)) {
         goto EXIT;
     }
-    if (!rlpx_frame_parse(&b->x, a->io.b, a->io.len, &rlpa)) {
+    if (!rlpx_frame_parse(&s.bob->x, s.alice->io.b, s.alice->io.len, &rlpa)) {
         goto EXIT;
     }
 
@@ -147,16 +146,16 @@ test_frame_write()
     // verify listen port
     rlpx_io_devp2p_listen_port(bodya, &numa);
     rlpx_io_devp2p_listen_port(bodyb, &numb);
-    IF_ERR_EXIT((numa == *a->listen_port) ? 0 : -1);
-    IF_ERR_EXIT((numb == *b->listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numa == *s.alice->listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numb == *s.bob->listen_port) ? 0 : -1);
 
     // verify node_id
     rlpx_io_devp2p_node_id(bodya, &mema, &numa);
     rlpx_io_devp2p_node_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == 64) ? 0 : -1);
     IF_ERR_EXIT((numb == 64) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mema, &a->node_id[1], numa) ? -1 : 0);
-    IF_ERR_EXIT(memcmp(memb, &b->node_id[1], numb) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(mema, &s.alice->node_id[1], numa) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(memb, &s.bob->node_id[1], numb) ? -1 : 0);
 
 EXIT:
     // clean

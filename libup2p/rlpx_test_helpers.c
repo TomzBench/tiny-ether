@@ -22,71 +22,71 @@
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
 #include "rlpx_helper_macros.h"
-#include "rlpx_io_devp2p.h"
+#include "rlpx_io.h"
 #include "ukeccak256.h"
-// extern rlpx_io_devp2p_settings g_devp2p_settings;
+// extern rlpx_io_settings g_settings;
 /*
  * This "test" feature is only to export data from normally opaque structures.
  */
 
 uecc_ctx*
-rlpx_test_skey(rlpx_io_devp2p* ch)
+rlpx_test_skey(rlpx_io* ch)
 {
-    return ch->base->skey;
+    return ch->skey;
 }
 
 uecc_ctx*
-rlpx_test_ekey(rlpx_io_devp2p* ch)
+rlpx_test_ekey(rlpx_io* ch)
 {
-    return &ch->base->ekey;
+    return &ch->ekey;
 }
 
 void
-rlpx_test_nonce_set(rlpx_io_devp2p* s, h256* nonce)
+rlpx_test_nonce_set(rlpx_io* s, h256* nonce)
 {
-    memcpy(s->base->nonce.b, nonce->b, 32);
+    memcpy(s->nonce.b, nonce->b, 32);
 }
 
 void
-rlpx_test_ekey_set(rlpx_io_devp2p* s, uecc_ctx* ekey)
+rlpx_test_ekey_set(rlpx_io* s, uecc_ctx* ekey)
 {
-    uecc_key_deinit(&s->base->ekey);
-    s->base->ekey = *ekey;
+    uecc_key_deinit(&s->ekey);
+    s->ekey = *ekey;
 }
 
 ukeccak256_ctx*
-rlpx_test_ingress(rlpx_io_devp2p* ch)
+rlpx_test_ingress(rlpx_io* ch)
 {
-    return &ch->base->x.imac;
+    return &ch->x.imac;
 }
 
 ukeccak256_ctx*
-rlpx_test_egress(rlpx_io_devp2p* ch)
+rlpx_test_egress(rlpx_io* ch)
 {
-    return &ch->base->x.emac;
+    return &ch->x.emac;
 }
 
 uaes_ctx*
-rlpx_test_aes_mac(rlpx_io_devp2p* ch)
+rlpx_test_aes_mac(rlpx_io* ch)
 {
-    return &ch->base->x.aes_mac;
+    return &ch->x.aes_mac;
 }
 
 uaes_ctx*
-rlpx_test_aes_enc(rlpx_io_devp2p* ch)
+rlpx_test_aes_enc(rlpx_io* ch)
 {
-    return &ch->base->x.aes_enc;
+    return &ch->x.aes_enc;
 }
 
 uaes_ctx*
-rlpx_test_aes_dec(rlpx_io_devp2p* ch)
+rlpx_test_aes_dec(rlpx_io* ch)
 {
-    return &ch->base->x.aes_dec;
+    return &ch->x.aes_dec;
 }
 
 int
 rlpx_test_expect_secrets(
-    rlpx_io_devp2p* io,
+    rlpx_io* s,
     int orig,
     uint8_t* sent,
     uint32_t slen,
@@ -98,7 +98,6 @@ rlpx_test_expect_secrets(
 {
     int err;
     uint8_t buf[32 + ((slen > rlen) ? slen : rlen)], *out = &buf[32];
-    rlpx_io* s = (rlpx_io*)io;
     if ((err = uecc_agree(&s->ekey, &s->hs->ekey_remote))) return err;
     memcpy(buf, orig ? s->hs->nonce_remote.b : s->nonce.b, 32);
     memcpy(out, orig ? s->nonce.b : s->hs->nonce_remote.b, 32);
@@ -142,9 +141,9 @@ rlpx_test_expect_secrets(
 }
 
 // void
-// rlpx_test_mock_devp2p(rlpx_io_devp2p_settings* settings)
+// rlpx_test_mock(rlpx_io_settings* settings)
 //{
-//    g_devp2p_settings = *settings;
+//    g_settings = *settings;
 //}
 //
 //
