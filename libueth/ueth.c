@@ -59,12 +59,6 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     // rlpx_io_init_discv4(
     //    &ctx->discovery, &ctx->p2p_static_key, &ctx->config.udp);
 
-    char hex[129];
-    uint8_t q[65];
-    uecc_qtob(&ctx->p2p_static_key.Q, q, 65);
-    rlpx_node_bin_to_hex(&q[1], 64, hex, NULL);
-    usys_log_info("enode://%s:%d", hex, ctx->config.udp);
-
     return 0;
 }
 
@@ -103,10 +97,10 @@ ueth_stop(ueth_context* ctx)
     rlpx_io* ch[ctx->n];
     rlpx_io_devp2p* devp2p;
     for (i = 0; i < ctx->n; i++) {
-        devp2p = ctx->ch[i].protocols[0].context;
-        if (rlpx_io_is_connected(devp2p->base)) {
+        if (rlpx_io_is_connected(&ctx->ch[i])) {
             mask |= (1 << i);
-            ch[b++] = devp2p->base;
+            ch[b++] = &ctx->ch[i];
+            devp2p = ctx->ch[i].protocols[0].context;
             rlpx_io_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
         }
     }
