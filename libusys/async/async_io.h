@@ -61,7 +61,6 @@ extern "C" {
         (x)->state = 0;                                                        \
         (x)->c = 0;                                                            \
         (x)->len = 0;                                                          \
-        if (ASYNC_IO_SOCK((x))) usys_close(&(x)->sock);                        \
     } while (0)
 
 #define ASYNC_IO_SET_READY(x)                                                  \
@@ -151,7 +150,8 @@ static inline int
 
 async_io_default_on_erro(void* ctx)
 {
-    ((void)ctx);
+    async_io* io = ctx;
+    usys_close(&io->sock);
     return 0;
 }
 

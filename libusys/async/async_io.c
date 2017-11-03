@@ -255,6 +255,12 @@ async_io_poll(async_io* self)
                 } else {
                     self->c += ret;
                     ret = 0; // OK maybe more data
+                    if (self->addr_ptr) {
+                        // TODO WORK ARROUND (udp/tcp) behavior not understood
+                        // here.  recvfrom acting like MSG_PEEK
+                        self->settings.on_recv(self->ctx, 0, self->b, self->c);
+                        return ret;
+                    }
                 }
             } else {
                 self->settings.on_recv(self->ctx, -1, 0, 0); // IO error

@@ -368,7 +368,7 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
         uint32_t l = 133;
         char hex[l];
         rlpx_node_bin_to_hex(pub, 65, hex, &l);
-        usys_log("[ IN] [UDP] recv timestamp %d find %s", *ts, hex);
+        usys_log("[ IN] [UDP] recv find %s", hex);
         q = NULL;
         err = 0;
     }
@@ -558,6 +558,9 @@ rlpx_io_discovery_send_neighbours(
     uint32_t timestamp)
 {
     int err;
+    // TODO populate destination in all rlpx_io_discovery_send_...
+    // self->base->io.addr.port = htons(33433);
+    // inet_pton(AF_INET, "127.0.0.1", &self->base->io.addr.ip);
     self->base->io.len = sizeof(self->base->io.b);
     err = rlpx_io_discovery_write_neighbours(
         self->base->skey,

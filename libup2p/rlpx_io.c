@@ -444,6 +444,7 @@ int
 rlpx_io_on_erro(void* ctx)
 {
     rlpx_io* ch = (rlpx_io*)ctx;
+    async_io_close((async_io*)ch);
     usys_log_err("[ERR] %d", ch->io.sock);
     return 0;
 }
@@ -478,7 +479,7 @@ int
 rlpx_io_on_erro_from(void* ctx)
 {
     ((void)ctx);
-    usys_log("[ IN] [UDP] error");
+    usys_log("[ IN] [UDP] error %d", ((async_io*)ctx)->sock);
     return 0;
 }
 
