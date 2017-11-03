@@ -361,9 +361,14 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
     if ((!(err = urlp_idx_to_mem(*rlp, 0, &pub[1], &publen))) &&
         //(!(err = uecc_btoq(pub, publen + 1, q))) && // TODO weird vals here
         (!(err = urlp_idx_to_u32(*rlp, 1, ts)))) {
-        return err;
+        // TODO io errors
+        uint32_t l = 133;
+        char hex[l];
+        rlpx_node_bin_to_hex(pub, 65, hex, &l);
+        usys_log("[ IN] [UDP] recv timestamp %d find %s", *ts, hex);
+        q = NULL;
+        err = 0;
     }
-    q = NULL; // TODO
     return err;
 }
 
