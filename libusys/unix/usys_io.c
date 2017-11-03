@@ -136,6 +136,7 @@ usys_send_to_fd(
     socklen_t dlen = sizeof(dest);
 
     if (addr) {
+        dest.sin_family = AF_INET;
         dest.sin_addr.s_addr = addr->ip;
         dest.sin_port = addr->port;
         bytes = sendto(sockfd, (char*)b, len, 0, (struct sockaddr*)&dest, dlen);

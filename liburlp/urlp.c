@@ -481,7 +481,7 @@ urlp_read_int(const urlp* rlp, void* mem, uint32_t szof)
     const uint8_t* b = urlp_ref(rlp, &n);
     if (!(b && n <= szof)) return -1;
     urlp_read_big_endian(mem, n < szof ? n : szof, b);
-    return 1;
+    return 1; // TODO needs fix
     return 0;
 }
 

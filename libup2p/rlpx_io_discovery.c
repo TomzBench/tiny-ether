@@ -199,21 +199,27 @@ int
 rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 {
     rlpx_io_discovery* self = ctx;
-    uecc_public_key pub;
-    RLPX_DISCOVERY type;
-    rlpx_io_discovery_endpoint_node* node = NULL;
+    // uecc_public_key pub;
+    RLPX_DISCOVERY type = -1;
+    uint16_t t;
+    // rlpx_io_discovery_endpoint_node* node = NULL;
     rlpx_io_discovery_endpoint from, to;
     uecc_public_key target;
     uint32_t ts; // timestamp
     uint8_t buff32[32];
     int err = -1;
     const urlp* crlp = urlp_at(rlp, 1);
-    if (!(crlp && !urlp_idx_to_u16(rlp, 0, (uint16_t*)&type))) return err;
+    if (!crlp) return -1;
+    if (urlp_idx_to_u16(rlp, 0, &t)) return -1;
+    type = (RLPX_DISCOVERY)t;
+
+    memset(&from, 0, sizeof(rlpx_io_discovery_endpoint));
+    memset(&to, 0, sizeof(rlpx_io_discovery_endpoint));
 
     // Update recently seen if this node is in our table
-    if (rlpx_io_discovery_table_find_node(&self->table, &pub, node)) {
-        rlpx_io_discovery_table_update_recent(&self->table, node);
-    }
+    // if (rlpx_io_discovery_table_find_node(&self->table, &pub, node)) {
+    //    rlpx_io_discovery_table_update_recent(&self->table, node);
+    //}
 
     if (type == RLPX_DISCOVERY_PING) {
 
