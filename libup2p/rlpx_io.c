@@ -306,7 +306,7 @@ rlpx_io_recv_udp(rlpx_io* ch, const uint8_t* b, size_t l)
             urlp_push(list, urlp_item_u16(type));
             urlp_push(list, rlp);
             err = p->recv(p->context, list);
-            urlp_free(&list);  
+            urlp_free(&list);
         } else {
             urlp_free(&rlp);
         }
@@ -469,7 +469,7 @@ rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l)
     ((void)err);
     ((void)b);
     ((void)l);
-    usys_log("[ IN] [UDP] send");
+    usys_log("[ IN] [UDP] %s", err ? "send (error)" : "send");
     return 0;
 }
 

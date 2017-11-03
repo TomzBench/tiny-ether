@@ -402,6 +402,27 @@ int rlpx_io_discovery_write_neighbours(
     uint8_t* d,
     uint32_t* l);
 
+int rlpx_io_discovery_send_ping(
+    rlpx_io_discovery* self,
+    const rlpx_io_discovery_endpoint* ep_src,
+    const rlpx_io_discovery_endpoint* ep_dst,
+    uint32_t timestamp);
+
+int rlpx_io_discovery_send_pong(
+    rlpx_io_discovery* self,
+    const rlpx_io_discovery_endpoint* ep_to,
+    h256* echo,
+    uint32_t timestamp);
+
+int rlpx_io_discovery_send_find(
+    rlpx_io_discovery* self,
+    uecc_public_key* nodeid,
+    uint32_t timestamp);
+
+int rlpx_io_discovery_send_neighbours(
+    rlpx_io_discovery* self,
+    rlpx_io_discovery_table* table,
+    uint32_t timestamp);
 #ifdef __cplusplus
 }
 #endif
