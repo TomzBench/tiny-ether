@@ -235,10 +235,15 @@ rlpx_io_send(async_io* io)
 int
 rlpx_io_send_sync(async_io* io)
 {
-    int err;
+    int err = -1;
+    if (!(ASYNC_IO_SOCK(io))) return err;
+    while (ASYNC_IO_SEND(io->state)) {
+        usys_msleep(20);
+        async_io_poll(io);
+    }
     err = async_io_send(io);
     if (!err) {
-        while (!ASYNC_IO_SEND(io->state)) {
+        while (ASYNC_IO_SEND(io->state)) {
             usys_msleep(20);
             async_io_poll(io);
         }
