@@ -362,6 +362,9 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
         //(!(err = uecc_btoq(pub, publen + 1, q))) && // TODO weird vals here
         (!(err = urlp_idx_to_u32(*rlp, 1, ts)))) {
         // TODO io errors
+        // write tests to mimick send/recv
+        // make all io writes sync or use queue
+        // Trace mem bug
         uint32_t l = 133;
         char hex[l];
         rlpx_node_bin_to_hex(pub, 65, hex, &l);

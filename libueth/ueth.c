@@ -93,6 +93,7 @@ int
 ueth_stop(ueth_context* ctx)
 {
     // TODO this is broke when we refactor-io
+    // When shuts down and middle of auth
     uint32_t mask = 0, i, c = 0, b = 0;
     rlpx_io* ch[ctx->n];
     rlpx_io_devp2p* devp2p;
@@ -130,6 +131,7 @@ ueth_poll_internal(ueth_context* ctx)
             }
         }
     }
+
     // Add our listener to poll
     // TODO - io driver shuts down socket on error, need to fix that.
     if (ctx->discovery.io.sock < 0) rlpx_io_listen(&ctx->discovery);
