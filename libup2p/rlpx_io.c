@@ -199,7 +199,7 @@ rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from)
         async_io_accept(&ch->io); // stub
         ch->io.sock = 3;          // stub
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
-        return rlpx_io_send(&ch->io);
+        return rlpx_io_send_sync(&ch->io);
     } else {
         return -1;
     }
@@ -216,7 +216,7 @@ rlpx_io_send_auth(rlpx_io* ch)
         usys_log("[OUT] (auth) size: %d", ch->hs->cipher_len);
         async_io_set_cb_recv(&ch->io, rlpx_io_on_recv_ack);
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
-        return rlpx_io_send(&ch->io);
+        return rlpx_io_send_sync(&ch->io);
     } else {
         return -1;
     }

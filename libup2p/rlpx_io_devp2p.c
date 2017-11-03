@@ -266,7 +266,7 @@ rlpx_io_devp2p_send_hello(rlpx_io_devp2p* ch)
         &ch->base->io.len);
     if (!err) {
         usys_log("[OUT] (hello) size: %d", ch->base->io.len);
-        return rlpx_io_send(&ch->base->io);
+        return rlpx_io_send_sync(&ch->base->io);
     } else {
         return err;
     }
@@ -284,7 +284,7 @@ rlpx_io_devp2p_send_disconnect(
     if (!err) {
         usys_log("[OUT] (disconnect) size: %d", ch->base->io.len);
         async_io_set_cb_send(&ch->base->io, rlpx_io_devp2p_on_send_shutdown);
-        return rlpx_io_send(&ch->base->io);
+        return rlpx_io_send_sync(&ch->base->io);
     } else {
         return err;
     }
@@ -300,7 +300,7 @@ rlpx_io_devp2p_send_ping(rlpx_io_devp2p* ch)
     if (!err) {
         ch->ping = usys_now();
         usys_log("[OUT] (ping) size: %d", ch->base->io.len);
-        return rlpx_io_send(&ch->base->io);
+        return rlpx_io_send_sync(&ch->base->io);
     } else {
         return err;
     }
@@ -315,7 +315,7 @@ rlpx_io_devp2p_send_pong(rlpx_io_devp2p* ch)
         &ch->base->x, ch->base->io.b, &ch->base->io.len);
     if (!err) {
         usys_log("[OUT] (pong) size: %d", ch->base->io.len);
-        return rlpx_io_send(&ch->base->io);
+        return rlpx_io_send_sync(&ch->base->io);
     } else {
         return err;
     }
