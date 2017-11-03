@@ -105,6 +105,7 @@ int rlpx_io_connect_node(rlpx_io* ch, const rlpx_node* node);
 int rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from);
 int rlpx_io_send_auth(rlpx_io* ch);
 int rlpx_io_send(async_io* io);
+int rlpx_io_send_sync(async_io* io);
 int rlpx_io_parse_udp(
     const uint8_t* b,
     uint32_t l,

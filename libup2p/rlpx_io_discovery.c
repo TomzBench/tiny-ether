@@ -495,7 +495,7 @@ rlpx_io_discovery_send_ping(
         timestamp ? timestamp : usys_now(),
         self->base->io.b,
         &self->base->io.len);
-    if (!err) err = rlpx_io_send(&self->base->io);
+    if (!err) err = rlpx_io_send_sync(&self->base->io);
     return err;
 }
 
@@ -515,7 +515,7 @@ rlpx_io_discovery_send_pong(
         timestamp ? timestamp : usys_now(),
         self->base->io.b,
         &self->base->io.len);
-    if (!err) err = rlpx_io_send(&self->base->io);
+    if (!err) err = rlpx_io_send_sync(&self->base->io);
     return err;
 }
 
@@ -533,7 +533,7 @@ rlpx_io_discovery_send_find(
         timestamp ? timestamp : usys_now(),
         self->base->io.b,
         &self->base->io.len);
-    if (!err) err = rlpx_io_send(&self->base->io);
+    if (!err) err = rlpx_io_send_sync(&self->base->io);
     return err;
 }
 
@@ -551,6 +551,6 @@ rlpx_io_discovery_send_neighbours(
         timestamp ? timestamp : usys_now(),
         self->base->io.b,
         &self->base->io.len);
-    if (!err) err = rlpx_io_send(&self->base->io);
+    if (!err) err = rlpx_io_send_sync(&self->base->io);
     return err;
 }

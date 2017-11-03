@@ -226,8 +226,23 @@ int
 rlpx_io_send(async_io* io)
 {
     int err = async_io_send(io);
+    // Need queue for async
     // TODO - breaks test (flushing io resets len)
     // if (!err) err = async_io_poll(io);
+    return err;
+}
+
+int
+rlpx_io_send_sync(async_io* io)
+{
+    int err;
+    err = async_io_send(io);
+    if (!err) {
+        while (!ASYNC_IO_SEND(io->state)) {
+            usys_msleep(20);
+            async_io_poll(io);
+        }
+    }
     return err;
 }
 

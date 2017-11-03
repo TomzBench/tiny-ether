@@ -131,6 +131,8 @@ ueth_poll_internal(ueth_context* ctx)
         }
     }
     // Add our listener to poll
+    // TODO - io driver shuts down socket on error, need to fix that.
+    if (ctx->discovery.io.sock < 0) rlpx_io_listen(&ctx->discovery);
     ch[b++] = &ctx->discovery;
     rlpx_io_poll(ch, b, 100);
     return 0;
