@@ -492,6 +492,7 @@ rlpx_io_discovery_write_neighbours(
     return err;
 }
 
+#include <arpa/inet.h> // TODO
 int
 rlpx_io_discovery_send_ping(
     rlpx_io_discovery* self,
@@ -500,6 +501,8 @@ rlpx_io_discovery_send_ping(
     uint32_t timestamp)
 {
     int err;
+    self->base->io.addr.port = htons(30303);
+    inet_pton(AF_INET, "0.0.0.0", &self->base->io.addr.ip);
     self->base->io.len = sizeof(self->base->io.b);
     err = rlpx_io_discovery_write_ping(
         self->base->skey,
@@ -558,9 +561,8 @@ rlpx_io_discovery_send_neighbours(
     uint32_t timestamp)
 {
     int err;
-    // TODO populate destination in all rlpx_io_discovery_send_...
-    // self->base->io.addr.port = htons(33433);
-    // inet_pton(AF_INET, "127.0.0.1", &self->base->io.addr.ip);
+    self->base->io.addr.port = htons(30303);
+    inet_pton(AF_INET, "127.0.0.1", &self->base->io.addr.ip);
     self->base->io.len = sizeof(self->base->io.b);
     err = rlpx_io_discovery_write_neighbours(
         self->base->skey,
