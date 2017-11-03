@@ -78,6 +78,7 @@ rlpx_io_devp2p_recv(void* base, const urlp* rlp)
             err = rlpx_io_devp2p_recv_disconnect(self, body);
         } else if (DEVP2P_PING == package_type) {
             err = rlpx_io_devp2p_recv_ping(self, body);
+            if (!err) rlpx_io_devp2p_send_pong(self);
         } else if (DEVP2P_PONG == package_type) {
             err = rlpx_io_devp2p_recv_pong(self, body);
         }
@@ -237,9 +238,8 @@ int
 rlpx_io_devp2p_recv_ping(void* ctx, const urlp* rlp)
 {
     ((void)rlp);
-    rlpx_io_devp2p* ch = ctx;
+    ((void)ctx);
     usys_log("[ IN] (ping)");
-    rlpx_io_devp2p_send_pong(ch);
     return 0;
 }
 

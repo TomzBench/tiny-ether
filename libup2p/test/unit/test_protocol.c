@@ -57,13 +57,15 @@ test_protocol()
 
     // PING/PONG
     IF_ERR_EXIT(rlpx_io_devp2p_send_ping(s.alice->protocols[0].context));
-    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
+    IF_ERR_EXIT(rlpx_io_devp2p_send_ping(s.bob->protocols[0].context));
     IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len)); // pong
+    //IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
 
     // PING/PONG
-    IF_ERR_EXIT(rlpx_io_devp2p_send_ping(s.bob->protocols[0].context));
+    IF_ERR_EXIT(rlpx_io_devp2p_send_pong(s.alice->protocols[0].context));
+    IF_ERR_EXIT(rlpx_io_devp2p_send_pong(s.bob->protocols[0].context));
     IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len)); // pong
+    //IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len)); // pong
 
 EXIT:
     test_session_deinit(&s);
