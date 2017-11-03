@@ -500,7 +500,7 @@ rlpx_io_on_recv_from(void* ctx, int err, uint8_t* b, uint32_t l)
     if (!err) {
         err = rlpx_io_recv_udp(self, b, l);
     }
-    usys_log("[ IN] [UDP] %S", err ? "recv (error)" : "recv");
+    usys_log("[ IN] [UDP] %s", err ? "recv (error)" : "recv");
     return err;
 }
 
