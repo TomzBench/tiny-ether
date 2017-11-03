@@ -62,7 +62,7 @@ rlpx_io_alloc(
     async_io_settings* settings)
 {
     rlpx_io* self = rlpx_malloc(sizeof(rlpx_io));
-    if (self) rlpx_io_init(self, skey, listen, settings);
+    if (self) rlpx_io_init_tcp(self, skey, listen, settings);
     return self;
 }
 
@@ -75,12 +75,8 @@ rlpx_io_free(rlpx_io** p)
     rlpx_free(self);
 }
 
-int
-rlpx_io_init(
-    rlpx_io* io,
-    uecc_ctx* s,
-    const uint32_t* listen,
-    async_io_settings* settings)
+void
+rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
 {
     // clear
     memset(io, 0, sizeof(rlpx_io));
@@ -95,16 +91,37 @@ rlpx_io_init(
     io->listen_port = listen;
     uecc_qtob(&io->skey->Q, io->node_id, 65);
 
-    // io driver
-    async_io_init(&io->io, io, settings ? settings : &g_rlpx_io_settings);
-
     // "virtual functions - want install"
     for (int32_t i = 0; i < RLPX_IO_MAX_PROTOCOL; i++) {
         io->protocols[i].ready = rlpx_io_default_on_ready;
         io->protocols[i].recv = rlpx_io_default_on_recv;
     }
+}
 
-    return 0;
+void
+rlpx_io_init_udp(
+    rlpx_io* io,
+    uecc_ctx* s,
+    const uint32_t* listen,
+    async_io_settings* settings)
+{
+    // init base
+    rlpx_io_init(io, s, listen);
+    // init io driver
+    async_io_init_udp(&io->io, io, settings ? settings : &g_rlpx_disc_settings);
+}
+
+void
+rlpx_io_init_tcp(
+    rlpx_io* io,
+    uecc_ctx* s,
+    const uint32_t* listen,
+    async_io_settings* settings)
+{
+    // Init base
+    rlpx_io_init(io, s, listen);
+    // io driver
+    async_io_init(&io->io, io, settings ? settings : &g_rlpx_io_settings);
 }
 
 void

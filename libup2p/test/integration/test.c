@@ -48,7 +48,7 @@ main(int argc, char* arg[])
     uecc_key_init_new(&static_key);
     rlpx_io_devp2p* devp2p;
     rlpx_io alice, *ptr = &alice;
-    rlpx_io_init(&alice, &static_key, &udp, NULL);
+    rlpx_io_init_tcp(&alice, &static_key, &udp, NULL);
     rlpx_io_devp2p_install(&alice);
     devp2p = alice.protocols[0].context;
 
@@ -84,7 +84,8 @@ main(int argc, char* arg[])
             // Received a pong? send disconnect
             if (devp2p->latency) {
                 err = 0;
-                rlpx_io_devp2p_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
+                rlpx_io_devp2p_send_disconnect(
+                    devp2p, DEVP2P_DISCONNECT_QUITTING);
             }
         }
 

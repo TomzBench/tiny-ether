@@ -71,11 +71,17 @@ rlpx_io* rlpx_io_alloc(
     const uint32_t* listen,
     async_io_settings* settings);
 void rlpx_io_free(rlpx_io** ch_p);
-int rlpx_io_init(
+void rlpx_io_init_udp(
     rlpx_io* io,
     uecc_ctx* s,
     const uint32_t* listen,
     async_io_settings*);
+void rlpx_io_init_tcp(
+    rlpx_io* io,
+    uecc_ctx* s,
+    const uint32_t* listen,
+    async_io_settings*);
+void rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
 void rlpx_io_deinit(rlpx_io* session);
 
 // Private io callbacks (we expose this methods for test)

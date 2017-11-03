@@ -51,7 +51,8 @@ ueth_init(ueth_context* ctx, ueth_config* config)
 
     // Init peer pipes
     for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_io_init(&ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp, NULL);
+        rlpx_io_init_tcp(
+            &ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp, NULL);
         rlpx_io_devp2p_install(&ctx->ch[i]);
     }
 
