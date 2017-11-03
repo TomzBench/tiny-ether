@@ -92,13 +92,11 @@ ueth_start(ueth_context* ctx, int n, ...)
 int
 ueth_stop(ueth_context* ctx)
 {
-    // TODO this is broke when we refactor-io
-    // When shuts down and middle of auth
     uint32_t mask = 0, i, c = 0, b = 0;
     rlpx_io* ch[ctx->n];
     rlpx_io_devp2p* devp2p;
     for (i = 0; i < ctx->n; i++) {
-        if (rlpx_io_is_connected(&ctx->ch[i])) {
+        if (rlpx_io_is_ready(&ctx->ch[i])) {
             mask |= (1 << i);
             ch[b++] = &ctx->ch[i];
             devp2p = ctx->ch[i].protocols[0].context;
