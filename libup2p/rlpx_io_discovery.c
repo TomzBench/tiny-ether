@@ -26,6 +26,38 @@
 void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
 
 void
+rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base)
+{
+    memset(self, 0, sizeof(rlpx_io_discovery));
+    self->base = base;
+    base->protocols[0].context = self;
+    base->protocols[0].ready = rlpx_io_discovery_ready;
+    base->protocols[0].recv = rlpx_io_discovery_recv;
+    base->protocols[0].uninstall = rlpx_io_discovery_uninstall;
+}
+
+int
+rlpx_io_discovery_install(rlpx_io* base)
+{
+    rlpx_io_discovery* self = base->protocols[0].context
+                                  ? NULL
+                                  : rlpx_malloc(sizeof(rlpx_io_discovery));
+    if (self) {
+        rlpx_io_discovery_init(self, base);
+        return 0;
+    }
+    return -1;
+}
+
+void
+rlpx_io_discovery_uninstall(void** ptr_p)
+{
+    rlpx_io_discovery* ptr = *ptr_p;
+    *ptr_p = NULL;
+    rlpx_free(ptr);
+}
+
+void
 rlpx_io_discovery_table_init(rlpx_io_discovery_table* table)
 {
     memset(table, 0, sizeof(rlpx_io_discovery_table));
@@ -156,27 +188,30 @@ rlpx_io_discovery_table_add_node(
 }
 
 int
-rlpx_io_discovery_recv(rlpx_io_discovery_table* t, const uint8_t* b, uint32_t l)
+rlpx_io_discovery_ready(void* self)
 {
+    ((void)self);
+    return 0;
+}
+
+int
+rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
+{
+    rlpx_io_discovery* self = ctx;
     uecc_public_key pub;
     RLPX_DISCOVERY type;
     rlpx_io_discovery_endpoint_node* node = NULL;
     rlpx_io_discovery_endpoint from, to;
     uecc_public_key target;
-    uint32_t timestamp;
+    uint32_t ts; // timestamp
     uint8_t buff32[32];
     int err = -1;
-    urlp* rlp;
-    const urlp* crlp;
-
-    // Parse (rlp is allocated on success - must free)
-    if ((err = rlpx_io_discovery_parse(b, l, &pub, (int*)&type, &rlp))) {
-        return err;
-    }
+    const urlp* crlp = urlp_at(rlp, 1);
+    if (!(crlp && !urlp_idx_to_u16(rlp, 0, (uint16_t*)&type))) return err;
 
     // Update recently seen if this node is in our table
-    if (rlpx_io_discovery_table_find_node(t, &pub, node)) {
-        rlpx_io_discovery_table_update_recent(t, node);
+    if (rlpx_io_discovery_table_find_node(&self->table, &pub, node)) {
+        rlpx_io_discovery_table_update_recent(&self->table, node);
     }
 
     crlp = rlp;
@@ -184,59 +219,26 @@ rlpx_io_discovery_recv(rlpx_io_discovery_table* t, const uint8_t* b, uint32_t l)
 
         // Received a ping packet
         // send a pong on device io...
-        err =
-            rlpx_io_discovery_recv_ping(&crlp, buff32, &from, &to, &timestamp);
+        err = rlpx_io_discovery_recv_ping(&crlp, buff32, &from, &to, &ts);
     } else if (type == RLPX_DISCOVERY_PING) {
 
         // Received a pong packet
-        err = rlpx_io_discovery_recv_pong(&crlp, &to, buff32, &timestamp);
+        err = rlpx_io_discovery_recv_pong(&crlp, &to, buff32, &ts);
     } else if (type == RLPX_DISCOVERY_FIND) {
 
         // Received request for our neighbours.
         // We send empty neighbours since we are not kademlia
         // We are leech looking for light clients servers
-        err = rlpx_io_discovery_recv_find(&crlp, &target, &timestamp);
+        err = rlpx_io_discovery_recv_find(&crlp, &target, &ts);
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
 
         // Received some neighbours
-        err = rlpx_io_discovery_recv_neighbours(t, &crlp);
+        err = rlpx_io_discovery_recv_neighbours(&self->table, &crlp);
     } else {
         // error
     }
 
-    // Free and return
-    urlp_free(&rlp);
     return err;
-}
-
-// h256:32 + Signature:65 + type + RLP
-int
-rlpx_io_discovery_parse(
-    const uint8_t* b,
-    uint32_t l,
-    uecc_public_key* node_id,
-    int* type,
-    urlp** rlp)
-{
-    // Stack
-    h256 hash, shash;
-    int err;
-
-    // Check len before parsing around
-    if (l < (sizeof(h256) + 65 + 3)) return -1;
-
-    // Check hash  hash = sha3(sig, type, rlp)
-    ukeccak256((uint8_t*)&b[32], l - 32, hash.b, 32);
-    if (memcmp(hash.b, b, 32)) return -1;
-
-    // Recover signature from signed hash of type+rlp
-    ukeccak256((uint8_t*)&b[32 + 65], l - (32 + 65), shash.b, 32);
-    err = uecc_recover_bin(&b[32], shash.b, node_id);
-
-    // Return OK
-    *type = b[32 + 65];
-    *rlp = urlp_parse(&b[32 + 65 + 1], l - (32 + 65 + 1));
-    return 0;
 }
 
 int
@@ -468,5 +470,3 @@ rlpx_io_discovery_write_neighbours(
     }
     return err;
 }
-
-

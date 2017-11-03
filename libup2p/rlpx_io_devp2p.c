@@ -23,7 +23,6 @@
 #include "usys_log.h"
 #include "usys_time.h"
 
-int rlpx_io_devp2p_recv(void*, const urlp* rlp);
 int rlpx_io_devp2p_on_send_shutdown(
     void* ctx,
     int err,
@@ -42,24 +41,13 @@ rlpx_io_devp2p_init(rlpx_io_devp2p* self, rlpx_io* base)
     base->protocols[0].uninstall = rlpx_io_devp2p_uninstall;
 }
 
-void
-rlpx_io_devp2p_deinit(rlpx_io_devp2p* self)
-{
-    rlpx_io_deinit(self->base);
-}
-
 int
 rlpx_io_devp2p_install(rlpx_io* base)
 {
-    rlpx_io_devp2p* ctx;
-
-    // Check if somebody installed on our slot
-    if (base->protocols[0].context) return -1;
-
-    // Protocol specific context
-    ctx = rlpx_malloc(sizeof(rlpx_io_devp2p));
-    if (ctx) {
-        rlpx_io_devp2p_init(ctx, base);
+    rlpx_io_devp2p* self =
+        base->protocols[0].context ? NULL : rlpx_malloc(sizeof(rlpx_io_devp2p));
+    if (self) {
+        rlpx_io_devp2p_init(self, base);
         return 0;
     }
     return -1;

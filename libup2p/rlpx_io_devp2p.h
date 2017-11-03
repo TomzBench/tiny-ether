@@ -68,7 +68,6 @@ typedef struct rlpx_io_devp2p
 // rlpx_io_devp2p* rlpx_io_devp2p_alloc(rlpx_io_base*);
 // void rlpx_io_devp2p_free(rlpx_io_devp2p** p);
 void rlpx_io_devp2p_init(rlpx_io_devp2p*, rlpx_io*);
-void rlpx_io_devp2p_deinit(rlpx_io_devp2p* self);
 int rlpx_io_devp2p_install(rlpx_io* base);
 void rlpx_io_devp2p_uninstall(void** ptr_p);
 
@@ -148,6 +147,7 @@ rlpx_io_devp2p_node_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
 }
 
 int rlpx_io_devp2p_ready(void*);
+int rlpx_io_devp2p_recv(void*, const urlp* rlp);
 int rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp);
 int rlpx_io_devp2p_recv_disconnect(void* ctx, const urlp* rlp);
 int rlpx_io_devp2p_recv_ping(void* ctx, const urlp* rlp);

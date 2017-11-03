@@ -109,6 +109,7 @@ rlpx_io_init_udp(
     rlpx_io_init(io, s, listen);
     // init io driver
     async_io_init_udp(&io->io, io, settings ? settings : &g_rlpx_disc_settings);
+    rlpx_io_listen(io);
 }
 
 void
@@ -256,6 +257,60 @@ rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l)
         } else {
             err = -1;
         }
+    }
+    return err;
+}
+
+int
+rlpx_io_parse_udp(
+    const uint8_t* b,
+    uint32_t l,
+    uecc_public_key* node_id,
+    int* type,
+    urlp** rlp)
+{
+    // Stack
+    h256 hash, shash;
+    int err;
+
+    // Check len before parsing around
+    if (l < (sizeof(h256) + 65 + 3)) return -1;
+
+    // Check hash  hash = sha3(sig, type, rlp)
+    ukeccak256((uint8_t*)&b[32], l - 32, hash.b, 32);
+    if (memcmp(hash.b, b, 32)) return -1;
+
+    // Recover signature from signed hash of type+rlp
+    ukeccak256((uint8_t*)&b[32 + 65], l - (32 + 65), shash.b, 32);
+    err = uecc_recover_bin(&b[32], shash.b, node_id);
+
+    // Return OK
+    *type = b[32 + 65];
+    *rlp = urlp_parse(&b[32 + 65 + 1], l - (32 + 65 + 1));
+    return 0;
+}
+
+// h256:32 + Signature:65 + type + RLP
+int
+rlpx_io_recv_udp(rlpx_io* ch, const uint8_t* b, size_t l)
+{
+    int type, err;
+    urlp *rlp, *list;
+    rlpx_io_protocol* p = &ch->protocols[0];
+    if (!(err = rlpx_io_parse_udp(b, l, &ch->node.id, &type, &rlp))) {
+        // We wrap the packet type and body into a list
+        // type,[body]  -- per wire specification
+        // [type,[body]] - per our implementation after wire for unified handler
+        list = urlp_list();
+        if (list) {
+            urlp_push(list, urlp_item_u16(type));
+            urlp_push(list, rlp);
+            err = p->recv(p->context, list);
+            urlp_free(&list);  
+        } else {
+            urlp_free(&rlp);
+        }
+        return err;
     }
     return err;
 }
@@ -421,13 +476,12 @@ rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l)
 int
 rlpx_io_on_recv_from(void* ctx, int err, uint8_t* b, uint32_t l)
 {
-    rlpx_io* io = (rlpx_io*)ctx;
-    ((void)io);
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    usys_log("[ IN] [UDP] hit");
-    return 0;
+    rlpx_io* self = ctx;
+    if (!err) {
+        err = rlpx_io_recv_udp(self, b, l);
+    }
+    usys_log("[ IN] [UDP] %S", err ? "recv (error)" : "recv");
+    return err;
 }
 
 //

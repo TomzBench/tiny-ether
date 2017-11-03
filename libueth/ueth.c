@@ -41,24 +41,23 @@ ueth_init(ueth_context* ctx, ueth_config* config)
 
     if (config->p2p_private_key) {
         rlpx_node_hex_to_bin(config->p2p_private_key, 0, key.b, NULL);
-        uecc_key_init_binary(&ctx->p2p_static_key, &key);
+        uecc_key_init_binary(&ctx->id, &key);
     } else {
-        uecc_key_init_new(&ctx->p2p_static_key);
+        uecc_key_init_new(&ctx->id);
     }
 
     // init constants
     ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io));
 
-    // Init peer pipes
+    // Init peer pipes (tcp)
     for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_io_init_tcp(
-            &ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp, NULL);
+        rlpx_io_init_tcp(&ctx->ch[i], &ctx->id, &ctx->config.udp, NULL);
         rlpx_io_devp2p_install(&ctx->ch[i]);
     }
 
-    //// Setup udp listener
-    // rlpx_io_init_discv4(
-    //    &ctx->discovery, &ctx->p2p_static_key, &ctx->config.udp);
+    // Init discovery pipe
+    rlpx_io_init_udp(&ctx->discovery, &ctx->id, &ctx->config.udp, NULL);
+    rlpx_io_discovery_install(&ctx->discovery);
 
     return 0;
 }
@@ -70,10 +69,10 @@ ueth_deinit(ueth_context* ctx)
     for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_deinit(&ctx->ch[i]);
 
     // Shutdown udp
-    // rlpx_io_deinit(&ctx->discovery);
+    rlpx_io_deinit(&ctx->discovery);
 
     // Free static key
-    uecc_key_deinit(&ctx->p2p_static_key);
+    uecc_key_deinit(&ctx->id);
 }
 
 int
@@ -132,7 +131,7 @@ ueth_poll_internal(ueth_context* ctx)
         }
     }
     // Add our listener to poll
-    // ch[b++] = ctx->discovery;
+    ch[b++] = &ctx->discovery;
     rlpx_io_poll(ch, b, 100);
     return 0;
 }

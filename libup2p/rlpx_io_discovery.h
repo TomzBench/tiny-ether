@@ -81,6 +81,40 @@ typedef struct
 } rlpx_io_discovery_table;
 
 /**
+ * @brief base class
+ */
+typedef struct
+{
+    rlpx_io* base;
+    void* ctx;
+    rlpx_io_discovery_table table;
+} rlpx_io_discovery;
+
+/**
+ * @brief
+ *
+ * @param self
+ * @param base
+ */
+void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base);
+
+/**
+ * @brief
+ *
+ * @param base
+ *
+ * @return
+ */
+int rlpx_io_discovery_install(rlpx_io* base);
+
+/**
+ * @brief
+ *
+ * @param ptr_p
+ */
+void rlpx_io_discovery_uninstall(void** ptr_p);
+
+/**
  * @brief Initialize a rlpx_io_discovery_table context
  *
  * @param table Adress of table
@@ -174,36 +208,20 @@ int rlpx_io_discovery_table_add_node(
     urlp* meta);
 
 /**
- * @brief The protocol recv function.
- *
- * @param t
- * @param b
- * @param l
+ * @brief Dummy function to populate a callback not used during udp for now.
  *
  * @return
  */
-int rlpx_io_discovery_recv(
-    rlpx_io_discovery_table* t,
-    const uint8_t* b,
-    uint32_t l);
+int rlpx_io_discovery_ready(void*);
 
 /**
- * @brief parse a signed UDP packet
+ * @brief Callback when receive
  *
- * @param b
- * @param l
- * @param node_id
- * @param type
  * @param rlp
  *
  * @return
  */
-int rlpx_io_discovery_parse(
-    const uint8_t* b,
-    uint32_t l,
-    uecc_public_key* node_id,
-    int* type,
-    urlp** rlp);
+int rlpx_io_discovery_recv(void*, const urlp* rlp);
 
 /**
  * @brief sign a discovery packet provided RLP and a packet type
