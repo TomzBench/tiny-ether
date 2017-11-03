@@ -21,6 +21,7 @@
 
 #include "rlpx_io_discovery.h"
 #include "ukeccak256.h"
+#include "usys_log.h"
 
 void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
 
@@ -467,3 +468,5 @@ rlpx_io_discovery_write_neighbours(
     }
     return err;
 }
+
+

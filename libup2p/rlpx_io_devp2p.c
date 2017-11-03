@@ -189,7 +189,7 @@ int
 rlpx_io_devp2p_ready(void* ctx)
 {
     rlpx_io_devp2p* io = ctx;
-    return rlpx_io_send_hello(io);
+    return rlpx_io_devp2p_send_hello(io);
 }
 
 int
@@ -251,7 +251,7 @@ rlpx_io_devp2p_recv_ping(void* ctx, const urlp* rlp)
     ((void)rlp);
     rlpx_io_devp2p* ch = ctx;
     usys_log("[ IN] (ping)");
-    rlpx_io_send_pong(ch);
+    rlpx_io_devp2p_send_pong(ch);
     return 0;
 }
 
@@ -266,7 +266,7 @@ rlpx_io_devp2p_recv_pong(void* ctx, const urlp* rlp)
 }
 
 int
-rlpx_io_send_hello(rlpx_io_devp2p* ch)
+rlpx_io_devp2p_send_hello(rlpx_io_devp2p* ch)
 {
     int err;
     ch->base->io.len = sizeof(ch->base->io.b);
@@ -285,7 +285,7 @@ rlpx_io_send_hello(rlpx_io_devp2p* ch)
 }
 
 int
-rlpx_io_send_disconnect(
+rlpx_io_devp2p_send_disconnect(
     rlpx_io_devp2p* ch,
     RLPX_DEVP2P_DISCONNECT_REASON reason)
 {
@@ -303,7 +303,7 @@ rlpx_io_send_disconnect(
 }
 
 int
-rlpx_io_send_ping(rlpx_io_devp2p* ch)
+rlpx_io_devp2p_send_ping(rlpx_io_devp2p* ch)
 {
     int err;
     ch->base->io.len = sizeof(ch->base->io.b);
@@ -319,7 +319,7 @@ rlpx_io_send_ping(rlpx_io_devp2p* ch)
 }
 
 int
-rlpx_io_send_pong(rlpx_io_devp2p* ch)
+rlpx_io_devp2p_send_pong(rlpx_io_devp2p* ch)
 {
     int err;
     ch->base->io.len = sizeof(ch->base->io.b);

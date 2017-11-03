@@ -101,7 +101,7 @@ ueth_stop(ueth_context* ctx)
             mask |= (1 << i);
             ch[b++] = &ctx->ch[i];
             devp2p = ctx->ch[i].protocols[0].context;
-            rlpx_io_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
+            rlpx_io_devp2p_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
         }
     }
     while (mask && ++c < 50) {

@@ -110,8 +110,8 @@ test_frame_write()
     IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
 
     // Write some packets
-    IF_ERR_EXIT(rlpx_io_send_hello(s.alice->protocols[0].context));
-    IF_ERR_EXIT(rlpx_io_send_hello(s.bob->protocols[0].context));
+    IF_ERR_EXIT(rlpx_io_devp2p_send_hello(s.alice->protocols[0].context));
+    IF_ERR_EXIT(rlpx_io_devp2p_send_hello(s.bob->protocols[0].context));
     if (!rlpx_frame_parse(&s.alice->x, s.bob->io.b, s.bob->io.len, &rlpb)) {
         goto EXIT;
     }

@@ -152,10 +152,12 @@ int rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp);
 int rlpx_io_devp2p_recv_disconnect(void* ctx, const urlp* rlp);
 int rlpx_io_devp2p_recv_ping(void* ctx, const urlp* rlp);
 int rlpx_io_devp2p_recv_pong(void* ctx, const urlp* rlp);
-int rlpx_io_send_hello(rlpx_io_devp2p* ch);
-int rlpx_io_send_disconnect(rlpx_io_devp2p* ch, RLPX_DEVP2P_DISCONNECT_REASON);
-int rlpx_io_send_ping(rlpx_io_devp2p* ch);
-int rlpx_io_send_pong(rlpx_io_devp2p* ch);
+int rlpx_io_devp2p_send_hello(rlpx_io_devp2p* ch);
+int rlpx_io_devp2p_send_disconnect(
+    rlpx_io_devp2p* ch,
+    RLPX_DEVP2P_DISCONNECT_REASON);
+int rlpx_io_devp2p_send_ping(rlpx_io_devp2p* ch);
+int rlpx_io_devp2p_send_pong(rlpx_io_devp2p* ch);
 
 #ifdef __cplusplus
 }

@@ -77,14 +77,14 @@ main(int argc, char* arg[])
             has_connected = rlpx_io_is_ready(&alice) ? 1 : 0;
             // send ping every 2s
             if (rlpx_io_is_ready(&alice) && (++c >= 10)) {
-                rlpx_io_send_ping(devp2p);
+                rlpx_io_devp2p_send_ping(devp2p);
                 c = 0;
             }
 
             // Received a pong? send disconnect
             if (devp2p->latency) {
                 err = 0;
-                rlpx_io_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
+                rlpx_io_devp2p_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
             }
         }
 

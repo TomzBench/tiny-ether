@@ -296,86 +296,6 @@ rlpx_io_recv_ack(rlpx_io* ch, const uint8_t* ack, size_t l)
 }
 
 int
-rlpx_io_on_accept(void* ctx)
-{
-    rlpx_io* ch = (rlpx_io*)ctx;
-    usys_log("p2p.accept %d", ch->io.sock);
-    return 0;
-}
-
-int
-rlpx_io_on_connect(void* ctx)
-{
-    rlpx_io* ch = (rlpx_io*)ctx;
-    return rlpx_io_send_auth(ch);
-}
-
-int
-rlpx_io_on_erro(void* ctx)
-{
-    rlpx_io* ch = (rlpx_io*)ctx;
-    usys_log_err("[ERR] %d", ch->io.sock);
-    return 0;
-}
-
-int
-rlpx_io_on_erro_from(void* ctx)
-{
-    ((void)ctx);
-    usys_log("[ IN] [UDP] error");
-    return 0;
-}
-
-int
-rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l)
-{
-    ((void)ctx);
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    usys_log("[ IN] [UDP] send");
-    return 0;
-}
-
-int
-rlpx_io_on_recv_from(void* ctx, int err, uint8_t* b, uint32_t l)
-{
-    rlpx_io* io = (rlpx_io*)ctx;
-    ((void)io);
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    usys_log("[ IN] [UDP] hit");
-    return 0;
-}
-
-int
-rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
-{
-    rlpx_io* ch = (rlpx_io*)ctx;
-    ((void)b);
-    ((void)l);
-    if (!err) {
-        return 0;
-    } else {
-        usys_log_err("[ERR] socket: %d", ch->io.sock);
-        return -1;
-    }
-}
-
-int
-rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
-{
-    rlpx_io* ch = (rlpx_io*)ctx;
-    if (!err) {
-        return rlpx_io_recv(ch, b, l);
-    } else {
-        usys_log_err("[ERR] socket: %d", ch->io.sock);
-        return -1;
-    }
-}
-
-int
 rlpx_io_on_recv_auth(void* ctx, int err, uint8_t* b, uint32_t l)
 {
     rlpx_io* ch = (rlpx_io*)ctx;
@@ -411,6 +331,86 @@ rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
         usys_log_err("[ERR] socket %d (ack)", ch->io.sock);
         return err;
     }
+}
+
+int
+rlpx_io_on_accept(void* ctx)
+{
+    rlpx_io* ch = (rlpx_io*)ctx;
+    usys_log("p2p.accept %d", ch->io.sock);
+    return 0;
+}
+
+int
+rlpx_io_on_connect(void* ctx)
+{
+    rlpx_io* ch = (rlpx_io*)ctx;
+    return rlpx_io_send_auth(ch);
+}
+
+int
+rlpx_io_on_erro(void* ctx)
+{
+    rlpx_io* ch = (rlpx_io*)ctx;
+    usys_log_err("[ERR] %d", ch->io.sock);
+    return 0;
+}
+
+int
+rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
+{
+    rlpx_io* ch = (rlpx_io*)ctx;
+    ((void)b);
+    ((void)l);
+    if (!err) {
+        return 0;
+    } else {
+        usys_log_err("[ERR] socket: %d", ch->io.sock);
+        return -1;
+    }
+}
+
+int
+rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+    rlpx_io* ch = (rlpx_io*)ctx;
+    if (!err) {
+        return rlpx_io_recv(ch, b, l);
+    } else {
+        usys_log_err("[ERR] socket: %d", ch->io.sock);
+        return -1;
+    }
+}
+
+int
+rlpx_io_on_erro_from(void* ctx)
+{
+    ((void)ctx);
+    usys_log("[ IN] [UDP] error");
+    return 0;
+}
+
+int
+rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l)
+{
+    ((void)ctx);
+    ((void)err);
+    ((void)b);
+    ((void)l);
+    usys_log("[ IN] [UDP] send");
+    return 0;
+}
+
+int
+rlpx_io_on_recv_from(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+    rlpx_io* io = (rlpx_io*)ctx;
+    ((void)io);
+    ((void)err);
+    ((void)b);
+    ((void)l);
+    usys_log("[ IN] [UDP] hit");
+    return 0;
 }
 
 //
