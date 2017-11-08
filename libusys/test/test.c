@@ -54,15 +54,18 @@ async_io_tcp_settings g_io_tcp_settings = {.on_connect = io_on_connect,
 async_io_tcp_mock_settings g_io_settings_all = {.ready = io_mock_ready,
                                                 .connect = io_mock_connect,
                                                 .tx = io_mock_send_all,
-                                                .rx = io_mock_recv };
+                                                .rx = io_mock_recv,
+                                                .close = io_mock_close };
 async_io_tcp_mock_settings g_io_settings_one = {.ready = io_mock_ready,
                                                 .connect = io_mock_connect,
                                                 .tx = io_mock_send_one,
-                                                .rx = io_mock_recv };
+                                                .rx = io_mock_recv,
+                                                .close = io_mock_close };
 async_io_tcp_mock_settings g_io_settings_min = {.ready = io_mock_ready,
                                                 .connect = io_mock_connect,
                                                 .tx = io_mock_send_min,
-                                                .rx = io_mock_recv };
+                                                .rx = io_mock_recv,
+                                                .close = io_mock_close };
 
 int test_send(void);
 

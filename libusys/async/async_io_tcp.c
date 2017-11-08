@@ -47,6 +47,7 @@ async_io_tcp_install_mock(async_io_tcp* tcp, async_io_tcp_mock_settings* mock)
     tcp->rx = mock->rx;
     tcp->ready = mock->ready;
     tcp->connect = mock->connect;
+    tcp->base.close = mock->close;
 }
 
 int

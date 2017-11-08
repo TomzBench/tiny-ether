@@ -25,6 +25,8 @@ void
 async_io_init(async_io* io, void* ctx)
 {
     io->ctx = ctx;
+    io->sock = -1;
+    io->close = usys_close;
 }
 
 void

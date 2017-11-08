@@ -45,6 +45,7 @@ typedef struct async_io
     uint32_t state, c, len;
     uint8_t b[1200];
     void* ctx;
+    usys_io_close_fn close;
     int (*poll)(struct async_io*);
     int (*erro)(struct async_io*);
 } async_io;
@@ -67,7 +68,7 @@ async_io_has_sock(async_io* io)
 static inline void
 async_io_close(async_io* io)
 {
-    usys_close(&io->sock);
+    io->close(&io->sock);
     io->state = io->len = io->c;
 }
 
