@@ -4,8 +4,12 @@ if (${UETH_USE_UNIX})
 endif()
 
 # Common files
-set(sources ./async/async_io.c)
-set(headers ./async/async_io.h)
+set(sources 
+	./async/async_io.c
+	./async/async_io_tcp.c)
+set(headers 
+	./async/async_io.h
+	./async/async_io_tcp.h)
 list(APPEND sources 
 	./${USYS_DIR}/usys_signals.c 
 	./${USYS_DIR}/usys_io.c 
@@ -25,8 +29,8 @@ target_include_directories(usys PUBLIC ./${USYS_DIR})
 target_include_directories(usys PUBLIC ./async)
 
 #unit test for libusys
-add_executable(usys_unit_test test/test.c)
+####add_executable(usys_unit_test test/test.c)
 
 # setup unit test dependencies
-target_link_libraries(usys_unit_test usys)
-add_dependencies(usys_unit_test usys)
+####target_link_libraries(usys_unit_test usys)
+####add_dependencies(usys_unit_test usys)
