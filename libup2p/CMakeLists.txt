@@ -25,13 +25,14 @@ set(headers
 #libup2p unit test sources
 set(sources-unit-test
 	test/unit/test.c
-	test/unit/test_discovery.c
+	#test/unit/test_discovery.c
 	test/unit/test_enode.c
 	test/unit/test_frame.c
-	test/unit/test_handshake.c
+	#test/unit/test_handshake.c
 	test/unit/test_kademlia.c
 	test/unit/test_mock.c
-	test/unit/test_protocol.c)
+	#test/unit/test_protocol.c
+	)
 set(headers-unit-test
 	test/unit/test.h
 	test/unit/test_vectors.h)
@@ -53,13 +54,13 @@ add_executable(up2p_unit_test
 target_link_libraries(up2p_unit_test up2p)
 
 #integration test for libup2p
-add_executable(up2p_integration_test 
-	${sources-integration-test}
-	${headers-integration-test})
-target_link_libraries(up2p_integration_test up2p)
+####add_executable(up2p_integration_test 
+####	${sources-integration-test}
+####	${headers-integration-test})
+####target_link_libraries(up2p_integration_test up2p)
 
 # install unit test
-install(TARGETS up2p_integration_test up2p_unit_test
+install(TARGETS up2p_unit_test
 	DESTINATION ${UETH_INSTALL_ROOT}/bin)
 
 #

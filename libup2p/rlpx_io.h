@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-#include "async_io.h"
+#include "async_io_tcp.h"
 #include "rlpx_config.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
@@ -51,7 +51,7 @@ typedef struct
 
 typedef struct
 {
-    async_io io;                 /*!< io context for network sys calls */
+    async_io_tcp io;             /*!< io context for network sys calls */
     uecc_ctx* skey;              /*!< TODO make const - our static key ref*/
     uecc_ctx ekey;               /*!< our epheremal key */
     rlpx_coder x;                /*!< igress/ingress */
@@ -66,21 +66,14 @@ typedef struct
 } rlpx_io;
 
 // constructors
-rlpx_io* rlpx_io_alloc(
-    uecc_ctx* skey,
-    const uint32_t* listen,
-    async_io_settings* settings);
+rlpx_io* rlpx_io_alloc(uecc_ctx* skey, const uint32_t* listen);
 void rlpx_io_free(rlpx_io** ch_p);
 void rlpx_io_init_udp(
     rlpx_io* io,
     uecc_ctx* s,
     const uint32_t* listen,
-    async_io_settings*);
-void rlpx_io_init_tcp(
-    rlpx_io* io,
-    uecc_ctx* s,
-    const uint32_t* listen,
-    async_io_settings*);
+    async_io_tcp_settings*);
+void rlpx_io_init_tcp(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
 void rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
 void rlpx_io_deinit(rlpx_io* session);
 
@@ -104,8 +97,8 @@ int rlpx_io_connect_enode(rlpx_io* ch, const char* enode);
 int rlpx_io_connect_node(rlpx_io* ch, const rlpx_node* node);
 int rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from);
 int rlpx_io_send_auth(rlpx_io* ch);
-int rlpx_io_send(async_io* io);
-int rlpx_io_send_sync(async_io* io);
+int rlpx_io_send(async_io_tcp* io);
+int rlpx_io_send_sync(async_io_tcp* io);
 int rlpx_io_parse_udp(
     const uint8_t* b,
     uint32_t l,
@@ -117,10 +110,22 @@ int rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l);
 int rlpx_io_recv_auth(rlpx_io*, const uint8_t*, size_t l);
 int rlpx_io_recv_ack(rlpx_io* ch, const uint8_t*, size_t l);
 
+static inline uint8_t*
+rlpx_io_buffer(rlpx_io* io)
+{
+    return async_io_buffer((async_io*)io);
+}
+
+static inline uint32_t*
+rlpx_io_len_ptr(rlpx_io* io)
+{
+    return async_io_buffer_length_pointer((async_io*)io);
+}
+
 static inline int
 rlpx_io_is_connected(rlpx_io* ch)
 {
-    return async_io_has_sock(&ch->io);
+    return async_io_has_sock(&ch->io.base);
 }
 
 static inline int

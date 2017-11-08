@@ -63,9 +63,17 @@ test_frame_read()
     rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
     rlpx_io_accept(s.bob, &s.alice->skey->Q);
     IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.auth, s.authlen));
-    IF_ERR_EXIT(
-        rlpx_test_expect_secrets(
-            s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, NULL));
+    err = rlpx_test_expect_secrets(
+        s.bob, //
+        0,
+        s.ack,
+        s.acklen,
+        s.auth,
+        s.authlen,
+        aes,
+        mac,
+        NULL);
+    IF_ERR_EXIT(err);
     if (!rlpx_frame_parse(
             &s.bob->x,
             makebin(g_hello_packet, NULL),
@@ -93,34 +101,66 @@ test_frame_write()
     urlp *rlpa = NULL, *rlpb = NULL;
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
-    uint32_t numa, numb;
+    uint32_t numa, numb, lena = 1000, lenb = 1000;
+    uint8_t buffa[lena], buffb[lenb];
 
-    // Send keys
+    // Send keys with mocking a connection
     rlpx_io_nonce(s.alice);
     rlpx_io_nonce(s.bob);
-    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(s.bob, &s.alice->skey->Q);
+    rlpx_node_init(&s.alice->node, &s.bob->skey->Q, "1.1.1.1", 0, 0);
+    rlpx_node_init(&s.bob->node, &s.alice->skey->Q, "1.1.1.1", 0, 0);
+    s.alice->hs = rlpx_handshake_alloc(
+        1, //
+        s.alice->skey,
+        &s.alice->ekey,
+        &s.alice->nonce,
+        &s.alice->node.id);
+    s.bob->hs = rlpx_handshake_alloc(
+        0, //
+        s.bob->skey,
+        &s.bob->ekey,
+        &s.bob->nonce,
+        &s.bob->node.id);
 
-    // Recv keys
-    IF_ERR_EXIT(rlpx_io_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
+    err =
+        rlpx_io_recv_auth(s.bob, s.alice->hs->cipher, s.alice->hs->cipher_len);
+    IF_ERR_EXIT(err);
+    err = rlpx_io_recv_ack(s.alice, s.bob->hs->cipher, s.bob->hs->cipher_len);
+    IF_ERR_EXIT(err);
 
     // Check key exchange
     IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
     IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
 
-    // Write some packets
-    IF_ERR_EXIT(rlpx_io_devp2p_send_hello(s.alice->protocols[0].context));
-    IF_ERR_EXIT(rlpx_io_devp2p_send_hello(s.bob->protocols[0].context));
-    if (!rlpx_frame_parse(&s.alice->x, s.bob->io.b, s.bob->io.len, &rlpb)) {
-        goto EXIT;
-    }
-    if (!rlpx_frame_parse(&s.bob->x, s.alice->io.b, s.alice->io.len, &rlpa)) {
-        goto EXIT;
-    }
+    // Reset length after write
+    lena = sizeof(buffa);
+    lenb = sizeof(buffb);
 
-    bodya = urlp_at(urlp_at(rlpa, 1), 1); // get body frame
-    bodyb = urlp_at(urlp_at(rlpb, 1), 1); // get body frame
+    // alice hello bob
+    err = rlpx_io_devp2p_write_hello(
+        &s.alice->x, //
+        *s.alice->listen_port,
+        &s.alice->node_id[1],
+        buffa,
+        &lena);
+    IF_ERR_EXIT(err);
+
+    // bob hello alice
+    err = rlpx_io_devp2p_write_hello(
+        &s.bob->x, //
+        *s.bob->listen_port,
+        &s.bob->node_id[1],
+        buffb,
+        &lenb);
+    IF_ERR_EXIT(err);
+
+    // Parse hello (parse returns length processed).
+    err = rlpx_frame_parse(&s.bob->x, buffa, lena, &rlpa) ? 0 : -1;
+    err = rlpx_frame_parse(&s.alice->x, buffb, lenb, &rlpb) ? 0 : -1;
+
+    // Read body frame
+    bodya = urlp_at(urlp_at(rlpa, 1), 1); //
+    bodyb = urlp_at(urlp_at(rlpb, 1), 1); //
 
     // Verify p2pver
     rlpx_io_devp2p_p2p_version(bodya, &numa);

@@ -56,8 +56,8 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     }
 
     // Init discovery pipe
-    rlpx_io_init_udp(&ctx->discovery, &ctx->id, &ctx->config.udp, NULL);
-    rlpx_io_discovery_install(&ctx->discovery);
+    // rlpx_io_init_udp(&ctx->discovery, &ctx->id, &ctx->config.udp, NULL);
+    // rlpx_io_discovery_install(&ctx->discovery);
 
     return 0;
 }
@@ -69,7 +69,7 @@ ueth_deinit(ueth_context* ctx)
     for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_deinit(&ctx->ch[i]);
 
     // Shutdown udp
-    rlpx_io_deinit(&ctx->discovery);
+    // rlpx_io_deinit(&ctx->discovery);
 
     // Free static key
     uecc_key_deinit(&ctx->id);
@@ -132,8 +132,8 @@ ueth_poll_internal(ueth_context* ctx)
 
     // Add our listener to poll
     // TODO - io driver shuts down socket on error, need to fix that.
-    if (ctx->discovery.io.sock < 0) rlpx_io_listen(&ctx->discovery);
-    ch[b++] = &ctx->discovery;
+    ////if (ctx->discovery.io.sock < 0) rlpx_io_listen(&ctx->discovery);
+    ////ch[b++] = &ctx->discovery;
     rlpx_io_poll(ch, b, 100);
     return 0;
 }

@@ -53,11 +53,7 @@ typedef struct async_io
 void async_io_init(async_io* io, void* ctx);
 void async_io_deinit(async_io* io);
 
-int async_io_send(async_io* self);
-int async_io_recv(async_io* self);
-
-int async_io_tcp_erro(async_io* io);
-int async_io_tcp_poll_connect(async_io* io);
+int async_io_poll_n(async_io** io, uint32_t n, uint32_t ms);
 
 static inline int
 async_io_has_sock(async_io* io)
@@ -107,6 +103,24 @@ async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
     if (l >= 0) self->len = l;
     va_end(ap);
     return l;
+}
+
+static inline uint8_t*
+async_io_buffer(async_io* io)
+{
+    return ((async_io*)io)->b;
+}
+
+static inline uint32_t*
+async_io_buffer_length_pointer(async_io* io)
+{
+    return &((async_io*)io)->len;
+}
+
+static inline void
+async_io_len_reset(async_io* tcp)
+{
+    ((async_io*)tcp)->len = sizeof((async_io*)tcp)->b;
 }
 
 static inline int

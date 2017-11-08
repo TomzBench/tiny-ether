@@ -85,8 +85,8 @@ test_write()
     rlpx_io_nonce(b);
     rlpx_io_connect(a, &s.bob->skey->Q, "1.1.1.1", 33);
     rlpx_io_accept(b, &s.alice->skey->Q);
-    IF_ERR_EXIT(rlpx_io_recv_auth(b, s.alice->io.b, s.alice->io.len));
-    IF_ERR_EXIT(rlpx_io_recv_ack(a, s.bob->io.b, s.bob->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_auth(b, rlpx_io_buffer(s.alice), s.alice->io.len));
+    IF_ERR_EXIT(rlpx_io_recv_ack(a, rlpx_io_buffer(s.bob), s.bob->io.len));
 
     IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
     IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));

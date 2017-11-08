@@ -81,6 +81,25 @@ int async_io_tcp_recv(async_io_tcp* tcp);
 int async_io_tcp_poll_connect(async_io* io);
 int async_io_tcp_poll_send(async_io* io);
 int async_io_tcp_poll_recv(async_io* io);
+int async_io_tcp_erro(async_io* io);
+
+static inline int
+async_io_tcp_poll(async_io_tcp* tcp)
+{
+    return async_io_poll((async_io*)tcp);
+}
+
+static inline void
+async_io_tcp_set_cb_recv(async_io_tcp* io, async_io_tcp_on_recv_fn fn)
+{
+    io->on_recv = fn;
+}
+
+static inline void
+async_io_tcp_set_cb_send(async_io_tcp* io, async_io_tcp_on_send_fn fn)
+{
+    io->on_send = fn;
+}
 
 static inline void
 async_io_tcp_state_erro_set(async_io_tcp* tcp)

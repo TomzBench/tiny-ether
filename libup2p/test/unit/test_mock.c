@@ -36,15 +36,10 @@ test_mock_socket g_test_sockets[10] = { //
 int test_mock_ready(usys_socket_fd*);
 int test_mock_connect(usys_socket_fd* fd, const char* host, int port);
 void test_mock_close(usys_socket_fd* fd);
-int
-test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l, usys_sockaddr*);
-int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr*);
+int test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l);
+int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l);
 
-async_io_settings g_io_mock_settings = { //
-    .on_connect = rlpx_io_on_connect,
-    .on_accept = rlpx_io_on_accept,
-    .on_erro = rlpx_io_on_erro,
-    .on_send = rlpx_io_on_send,
+async_io_tcp_mock_settings g_io_mock_settings = { //
     .connect = test_mock_connect,
     .ready = test_mock_ready,
     .close = test_mock_close,
@@ -86,13 +81,8 @@ test_mock_close(usys_socket_fd* fd)
 }
 
 int
-test_mock_send(
-    usys_socket_fd* fd,
-    const byte* b,
-    uint32_t l,
-    usys_sockaddr* addr)
+test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l)
 {
-    ((void)addr);
     if (*fd < 10) {
         // TODO - realloc and prepend instead of free
         if (g_test_sockets[*fd].data) {
@@ -111,9 +101,8 @@ test_mock_send(
 }
 
 int
-test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr* addr)
+test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l)
 {
-    ((void)addr);
     if (*fd < 10) {
         if (g_test_sockets[*fd].data) {
             // TODO if buffer not big enough realloc and shrink, return amount
