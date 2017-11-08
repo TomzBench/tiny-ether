@@ -92,9 +92,9 @@ main(int argc, char* argv[])
     ((void)argv);
     int err = 0;
 
-    // IF_ERR_EXIT(test_handshake());
+    IF_ERR_EXIT(test_handshake());
     IF_ERR_EXIT(test_frame());
-    // IF_ERR_EXIT(test_protocol());
+    IF_ERR_EXIT(test_protocol());
     IF_ERR_EXIT(test_enode());
     IF_ERR_EXIT(test_kademlia());
 // IF_ERR_EXIT(test_discovery());
@@ -160,6 +160,42 @@ test_session_deinit(test_session* s)
     rlpx_io_free(&s->bob);
     uecc_key_deinit(&s->skey_a);
     uecc_key_deinit(&s->skey_b);
+}
+
+void
+test_session_connect(test_session* s)
+{
+    // Prepare state to look like connections were made
+
+    // Set nonce
+    rlpx_test_nonce_set(s->alice, &s->alice_n);
+    rlpx_test_nonce_set(s->bob, &s->bob_n);
+
+    // fill remote node info
+    rlpx_node_init(&s->alice->node, &s->bob->skey->Q, "1.1.1.1", 0, 0);
+    rlpx_node_init(&s->bob->node, &s->alice->skey->Q, "1.1.1.1", 0, 0);
+
+    s->alice->hs = rlpx_handshake_alloc(
+        1,
+        s->alice->skey,
+        &s->alice->ekey,
+        &s->alice->nonce,
+        &s->alice->node.id);
+    s->bob->hs = rlpx_handshake_alloc(
+        0, //
+        s->bob->skey,
+        &s->bob->ekey,
+        &s->bob->nonce,
+        &s->bob->node.id);
+}
+
+void
+test_session_handshake(test_session* s)
+{
+    // Do handshakes
+
+    rlpx_io_recv_ack(s->alice, s->bob->hs->cipher, s->bob->hs->cipher_len);
+    rlpx_io_recv_auth(s->bob, s->alice->hs->cipher, s->alice->hs->cipher_len);
 }
 
 int

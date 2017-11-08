@@ -27,45 +27,65 @@ int
 test_protocol()
 {
     int err = 0;
+    uint32_t lena = 10000, lenb = 10000;
+    uint8_t buffa[lena], buffb[lenb];
     test_session s;
+
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
-    rlpx_io_devp2p* a = s.alice->protocols[0].context;
-    rlpx_io_devp2p* b = s.bob->protocols[0].context;
+    test_session_connect(&s);
+    test_session_handshake(&s);
 
-    rlpx_io_nonce(s.alice);
-    rlpx_io_nonce(s.bob);
-    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(s.bob, &s.alice->skey->Q);
+    // Hello
+    err = rlpx_io_devp2p_write_hello(
+        &s.alice->x, //
+        *s.alice->listen_port,
+        &s.alice->node_id[1],
+        buffa,
+        &lena);
+    IF_ERR_EXIT(err);
+    err = rlpx_io_devp2p_write_hello(
+        &s.bob->x, //
+        *s.bob->listen_port,
+        &s.bob->node_id[1],
+        buffb,
+        &lenb);
+    IF_ERR_EXIT(err);
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
-    // Recv keys
-    IF_ERR_EXIT(
-        rlpx_io_recv_ack(s.alice, rlpx_io_buffer(s.bob), s.bob->io.len));
-    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
+    // Disconnect
+    lena = sizeof(buffa);
+    lenb = sizeof(buffb);
+    err = rlpx_io_devp2p_write_disconnect(
+        &s.alice->x, //
+        DEVP2P_DISCONNECT_BAD_VERSION,
+        buffa,
+        &lena);
+    IF_ERR_EXIT(err);
+    err = rlpx_io_devp2p_write_disconnect(
+        &s.bob->x, //
+        DEVP2P_DISCONNECT_BAD_VERSION,
+        buffb,
+        &lenb);
+    IF_ERR_EXIT(err);
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
-// TODO refactor rlpx_io so to better test protocol
-// Read/Write HELLO
-// IF_ERR_EXIT(rlpx_io_devp2p_send_hello(s.alice->protocols[0].context));
-// IF_ERR_EXIT(rlpx_io_devp2p_send_hello(s.bob->protocols[0].context));
-// IF_ERR_EXIT(rlpx_io_recv(s.alice, rlpx_io_buffer(s.bob), s.bob->io.len));
-// IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
+    // Ping
+    lena = sizeof(buffa);
+    lenb = sizeof(buffb);
+    IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.alice->x, buffa, &lena));
+    IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.bob->x, buffb, &lenb));
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
-// Read/Write DISCONNECT
-// IF_ERR_EXIT(
-// rlpx_io_devp2p_send_disconnect(a, DEVP2P_DISCONNECT_BAD_VERSION));
-// IF_ERR_EXIT(
-// rlpx_io_devp2p_send_disconnect(b, DEVP2P_DISCONNECT_BAD_VERSION));
-// IF_ERR_EXIT(rlpx_io_recv(s.alice, rlpx_io_buffer(s.bob), s.bob->io.len));
-// IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
-
-// PING/PONG
-// IF_ERR_EXIT(rlpx_io_devp2p_send_ping(s.alice->protocols[0].context));
-// IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
-// IF_ERR_EXIT(rlpx_io_recv(s.alice, rlpx_io_buffer(s.bob), s.bob->io.len));
-
-// PING/PONG
-// IF_ERR_EXIT(rlpx_io_devp2p_send_ping(s.bob->protocols[0].context));
-// IF_ERR_EXIT(rlpx_io_recv(s.alice, rlpx_io_buffer(s.bob), s.bob->io.len));
-// IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
+    // Pong
+    lena = sizeof(buffa);
+    lenb = sizeof(buffb);
+    IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.alice->x, buffa, &lena));
+    IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.bob->x, buffb, &lenb));
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
 EXIT:
     test_session_deinit(&s);

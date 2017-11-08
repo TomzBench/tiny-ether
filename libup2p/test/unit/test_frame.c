@@ -52,17 +52,11 @@ test_frame_read()
     uint32_t p2pver;
 
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
+    test_session_connect(&s);
+    test_session_handshake(&s);
     memcpy(aes, makebin(g_go_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_go_mac_secret, NULL), 32);
 
-    // Set some phoney nonces
-    rlpx_test_nonce_set(s.bob, &s.bob_n);
-    rlpx_test_nonce_set(s.alice, &s.alice_n);
-
-    // Update our secrets
-    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(s.bob, &s.alice->skey->Q);
-    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.auth, s.authlen));
     err = rlpx_test_expect_secrets(
         s.bob, //
         0,
@@ -97,7 +91,6 @@ test_frame_write()
 {
     int err = 0;
     test_session s;
-    test_session_init(&s, 1);
     urlp *rlpa = NULL, *rlpb = NULL;
     const urlp *bodya, *bodyb;
     const char *mema, *memb;
@@ -105,28 +98,9 @@ test_frame_write()
     uint8_t buffa[lena], buffb[lenb];
 
     // Send keys with mocking a connection
-    rlpx_io_nonce(s.alice);
-    rlpx_io_nonce(s.bob);
-    rlpx_node_init(&s.alice->node, &s.bob->skey->Q, "1.1.1.1", 0, 0);
-    rlpx_node_init(&s.bob->node, &s.alice->skey->Q, "1.1.1.1", 0, 0);
-    s.alice->hs = rlpx_handshake_alloc(
-        1, //
-        s.alice->skey,
-        &s.alice->ekey,
-        &s.alice->nonce,
-        &s.alice->node.id);
-    s.bob->hs = rlpx_handshake_alloc(
-        0, //
-        s.bob->skey,
-        &s.bob->ekey,
-        &s.bob->nonce,
-        &s.bob->node.id);
-
-    err =
-        rlpx_io_recv_auth(s.bob, s.alice->hs->cipher, s.alice->hs->cipher_len);
-    IF_ERR_EXIT(err);
-    err = rlpx_io_recv_ack(s.alice, s.bob->hs->cipher, s.bob->hs->cipher_len);
-    IF_ERR_EXIT(err);
+    test_session_init(&s, 1);
+    test_session_connect(&s);
+    test_session_handshake(&s);
 
     // Check key exchange
     IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));

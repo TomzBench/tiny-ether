@@ -25,6 +25,10 @@ void
 async_io_tcp_init(async_io_tcp* io, async_io_tcp_settings* s, void* ctx)
 {
     async_io_init(&io->base, ctx);
+    io->connect = usys_connect;
+    io->ready = usys_sock_ready;
+    io->tx = usys_send;
+    io->rx = usys_recv;
     io->on_erro = s->on_erro;
     io->on_connect = s->on_connect;
     io->on_accept = s->on_accept;
@@ -54,8 +58,9 @@ int
 async_io_tcp_connect(async_io_tcp* tcp, const char* ip, uint32_t p)
 {
     async_io* io = (async_io*)tcp;
+    int ret;
     if (async_io_has_sock(io)) async_io_close(io);
-    int ret = tcp->connect(&io->sock, ip, p);
+    ret = tcp->connect(&io->sock, ip, p);
     if (ret < 0) {
         async_io_tcp_state_erro_set(tcp);
     } else if (ret == 0) {

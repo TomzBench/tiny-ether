@@ -500,7 +500,7 @@ rlpx_io_discovery_send_ping(
     uint32_t timestamp)
 {
     int err;
-    async_io* io = (async_io*)&self->base->io;
+    async_io* io = (async_io*)self->base;
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_discovery_write_ping(
@@ -523,7 +523,7 @@ rlpx_io_discovery_send_pong(
     uint32_t timestamp)
 {
     int err;
-    async_io* io = (async_io*)&self->base->io;
+    async_io* io = (async_io*)self->base;
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_discovery_write_pong(
@@ -564,7 +564,7 @@ rlpx_io_discovery_send_neighbours(
     uint32_t timestamp)
 {
     int err;
-    async_io* io = (async_io*)&self->base->io;
+    async_io* io = (async_io*)self->base;
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_discovery_write_neighbours(

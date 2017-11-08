@@ -78,7 +78,7 @@ rlpx_io_devp2p_recv(void* base, const urlp* rlp)
             err = rlpx_io_devp2p_recv_disconnect(self, body);
         } else if (DEVP2P_PING == package_type) {
             err = rlpx_io_devp2p_recv_ping(self, body);
-            if (!err) rlpx_io_devp2p_send_pong(self);
+            // if (!err) rlpx_io_devp2p_send_pong(self);
         } else if (DEVP2P_PONG == package_type) {
             err = rlpx_io_devp2p_recv_pong(self, body);
         }
@@ -257,7 +257,7 @@ int
 rlpx_io_devp2p_send_hello(rlpx_io_devp2p* ch)
 {
     int err;
-    async_io* io = (async_io*)&ch->base;
+    async_io* io = (async_io*)ch->base;
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_devp2p_write_hello(
@@ -267,7 +267,7 @@ rlpx_io_devp2p_send_hello(rlpx_io_devp2p* ch)
         async_io_buffer(io),
         len);
     if (!err) {
-        usys_log("[OUT] (hello) size: %d", len);
+        usys_log("[OUT] (hello) size: %d", *len);
         return rlpx_io_send_sync(&ch->base->io);
     } else {
         return err;
@@ -280,13 +280,13 @@ rlpx_io_devp2p_send_disconnect(
     RLPX_DEVP2P_DISCONNECT_REASON reason)
 {
     int err;
-    async_io* io = (async_io*)&ch->base;
+    async_io* io = (async_io*)ch->base;
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_devp2p_write_disconnect(
         &ch->base->x, reason, async_io_buffer(io), len);
     if (!err) {
-        usys_log("[OUT] (disconnect) size: %d", len);
+        usys_log("[OUT] (disconnect) size: %d", *len);
         async_io_tcp_set_cb_send(
             &ch->base->io, rlpx_io_devp2p_on_send_shutdown);
         return rlpx_io_send_sync(&ch->base->io);
@@ -299,13 +299,13 @@ int
 rlpx_io_devp2p_send_ping(rlpx_io_devp2p* ch)
 {
     int err;
-    async_io* io = (async_io*)&ch->base;
+    async_io* io = (async_io*)ch->base;
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_devp2p_write_ping(&ch->base->x, async_io_buffer(io), len);
     if (!err) {
         ch->ping = usys_now();
-        usys_log("[OUT] (ping) size: %d", len);
+        usys_log("[OUT] (ping) size: %d", *len);
         return rlpx_io_send_sync(&ch->base->io);
     } else {
         return err;
@@ -316,12 +316,12 @@ int
 rlpx_io_devp2p_send_pong(rlpx_io_devp2p* ch)
 {
     int err;
-    async_io* io = (async_io*)&ch->base;
+    async_io* io = (async_io*)ch->base;
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_devp2p_write_pong(&ch->base->x, async_io_buffer(io), len);
     if (!err) {
-        usys_log("[OUT] (pong) size: %d", len);
+        usys_log("[OUT] (pong) size: %d", *len);
         return rlpx_io_send_sync(&ch->base->io);
     } else {
         return err;

@@ -64,7 +64,6 @@ typedef struct async_io_tcp
     usys_io_recv_fn rx;
     usys_io_ready_fn ready;
     usys_io_connect_fn connect;
-    usys_io_close_fn close;
 } async_io_tcp;
 
 void async_io_tcp_init(async_io_tcp* io, async_io_tcp_settings* s, void* ctx);
