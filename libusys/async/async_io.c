@@ -30,9 +30,8 @@ async_io_init(async_io* io, void* ctx)
 void
 async_io_deinit(async_io* io)
 {
+    if (async_io_has_sock(io)) async_io_close(io);
     memset(io->b, 0, sizeof(io->b));
-    io->c = io->len = 0;
-    if (async_io_has_sock(io)) async_io_close_sock(io);
 }
 
 int

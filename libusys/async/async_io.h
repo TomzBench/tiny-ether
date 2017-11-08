@@ -52,6 +52,9 @@ typedef struct async_io
 void async_io_init(async_io* io, void* ctx);
 void async_io_deinit(async_io* io);
 
+int async_io_send(async_io* self);
+int async_io_recv(async_io* self);
+
 int async_io_tcp_erro(async_io* io);
 int async_io_tcp_poll_connect(async_io* io);
 
@@ -62,9 +65,47 @@ async_io_has_sock(async_io* io)
 }
 
 static inline void
-async_io_close_sock(async_io* io)
+async_io_close(async_io* io)
 {
     usys_close(&io->sock);
+    io->state = io->len = io->c;
+}
+
+static inline void*
+async_io_mem(async_io* self, uint32_t idx)
+{
+    return &self->b[idx];
+}
+
+static inline void
+async_io_len_set(async_io* self, uint32_t len)
+{
+    self->len = len;
+}
+
+static inline uint32_t
+async_io_len(async_io* self)
+{
+    return self->len;
+}
+
+static inline const void*
+async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l)
+{
+    self->len = idx + l;
+    return memcpy(&self->b[idx], mem, l);
+}
+
+static inline int
+async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
+{
+    int l;
+    va_list ap;
+    va_start(ap, fmt);
+    l = vsnprintf((char*)&self->b[idx], sizeof(self->b) - idx, fmt, ap);
+    if (l >= 0) self->len = l;
+    va_end(ap);
+    return l;
 }
 
 static inline int
@@ -118,8 +159,8 @@ async_io_state_send_set(async_io* io)
 static inline int
 async_io_state_erro_set(async_io* io)
 {
-    if (io->erro(io)) async_io_close_sock(io);
-    io->state = io->len = io->c = 0;
+    io->state |= ASYNC_IO_STATE_ERRO;
+    io->len = io->c = 0;
 }
 
 #ifdef __cplusplus

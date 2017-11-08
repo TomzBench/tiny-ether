@@ -29,8 +29,11 @@ target_include_directories(usys PUBLIC ./${USYS_DIR})
 target_include_directories(usys PUBLIC ./async)
 
 #unit test for libusys
-####add_executable(usys_unit_test test/test.c)
+add_executable(usys_unit_test test/test.c)
 
 # setup unit test dependencies
-####target_link_libraries(usys_unit_test usys)
-####add_dependencies(usys_unit_test usys)
+target_link_libraries(usys_unit_test usys)
+add_dependencies(usys_unit_test usys)
+
+# install unit test
+install(TARGETS usys_unit_test DESTINATION ${UETH_INSTALL_ROOT}/bin)

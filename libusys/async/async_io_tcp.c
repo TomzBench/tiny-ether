@@ -22,9 +22,14 @@
 #include "async_io_tcp.h"
 
 void
-async_io_tcp_init(async_io_tcp* io, void* ctx)
+async_io_tcp_init(async_io_tcp* io, async_io_tcp_settings* s, void* ctx)
 {
     async_io_init(&io->base, ctx);
+    io->on_erro = s->on_erro;
+    io->on_connect = s->on_connect;
+    io->on_accept = s->on_accept;
+    io->on_send = s->on_send;
+    io->on_recv = s->on_recv;
     io->base.poll = async_io_tcp_poll_connect;
     io->base.erro = async_io_tcp_erro;
 }
@@ -35,12 +40,73 @@ async_io_tcp_deinit(async_io_tcp* tcp)
     async_io_deinit(&tcp->base);
 }
 
+void
+async_io_tcp_install_mock(async_io_tcp* tcp, async_io_tcp_mock_settings* mock)
+{
+    tcp->tx = mock->tx;
+    tcp->rx = mock->rx;
+    tcp->ready = mock->ready;
+    tcp->connect = mock->connect;
+}
+
+int
+async_io_tcp_connect(async_io_tcp* tcp, const char* ip, uint32_t p)
+{
+    async_io* io = (async_io*)tcp;
+    if (async_io_has_sock(io)) async_io_close(io);
+    int ret = tcp->connect(&io->sock, ip, p);
+    if (ret < 0) {
+        async_io_tcp_state_erro_set(tcp);
+    } else if (ret == 0) {
+        async_io_tcp_state_send_set(tcp);
+    } else {
+        async_io_tcp_state_ready_set(tcp);
+        tcp->on_connect(io->ctx);
+    }
+    return ret;
+}
+
+int
+async_io_tcp_accept(async_io_tcp* tcp)
+{
+    // TODO - stub
+    async_io* io = (async_io*)tcp;
+    if (async_io_has_sock(io)) async_io_close(io);
+    async_io_tcp_state_recv_set(tcp);
+    return 0;
+}
+
 int
 async_io_tcp_erro(async_io* io)
 {
     async_io_tcp* tcp = (async_io_tcp*)io;
     tcp->base.poll = async_io_tcp_poll_connect;
-    return -1; // close socket
+    tcp->on_erro(io->ctx);
+    return 0;
+}
+
+int
+async_io_tcp_send(async_io_tcp* tcp)
+{
+    if (/*(!(ASYNC_IO_SEND(tcp->state))) &&*/ async_io_has_sock(&tcp->base)) {
+        // If we are already not in send state and have a socket
+        async_io_tcp_state_send_set(tcp);
+        return 0;
+    } else {
+        // We are busy sending already or not connected
+        return -1;
+    }
+}
+
+int
+async_io_tcp_recv(async_io_tcp* tcp)
+{
+    if (async_io_has_sock(&tcp->base)) {
+        async_io_tcp_state_recv_set(tcp);
+        return 0;
+    } else {
+        return -1;
+    }
 }
 
 int
