@@ -64,12 +64,21 @@ async_io_tcp_mock_settings g_io_settings_min = {.ready = io_mock_ready,
                                                 .tx = io_mock_send_min,
                                                 .rx = io_mock_recv };
 
+int test_send(void);
+
 int
 main(int argc, char* argv[])
 {
     ((void)argc);
     ((void)argv);
+    int err = 0;
+    err = test_send();
+    return err;
+}
 
+int
+test_send(void)
+{
     // Stack
     int err = 0, i, c;
     async_io_tcp io;
