@@ -47,7 +47,6 @@ typedef struct async_io
     void* ctx;
     usys_io_close_fn close;
     int (*poll)(struct async_io*);
-    int (*erro)(struct async_io*);
 } async_io;
 
 void async_io_init(async_io* io, void* ctx);

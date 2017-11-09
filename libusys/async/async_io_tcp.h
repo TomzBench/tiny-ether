@@ -80,7 +80,6 @@ int async_io_tcp_recv(async_io_tcp* tcp);
 int async_io_tcp_poll_connect(async_io* io);
 int async_io_tcp_poll_send(async_io* io);
 int async_io_tcp_poll_recv(async_io* io);
-int async_io_tcp_erro(async_io* io);
 
 static inline int
 async_io_tcp_poll(async_io_tcp* tcp)

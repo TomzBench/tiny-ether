@@ -66,8 +66,8 @@ void async_io_udp_install_mock(
 int async_io_udp_send(async_io_udp* udp, uint32_t ip, uint32_t port);
 int async_io_udp_recv(async_io_udp* udp);
 
+int async_io_udp_poll_send(async_io* io);
 int async_io_udp_poll_recv(async_io* io);
-int async_io_udp_erro(async_io* io);
 
 #ifdef __cplusplus
 } /* extern "C" */

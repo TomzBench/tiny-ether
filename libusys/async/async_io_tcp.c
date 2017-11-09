@@ -35,7 +35,6 @@ async_io_tcp_init(async_io_tcp* io, async_io_tcp_settings* s, void* ctx)
     io->on_send = s->on_send;
     io->on_recv = s->on_recv;
     io->base.poll = async_io_tcp_poll_connect;
-    io->base.erro = async_io_tcp_erro;
 }
 
 void
@@ -79,15 +78,6 @@ async_io_tcp_accept(async_io_tcp* tcp)
     async_io* io = (async_io*)tcp;
     if (async_io_has_sock(io)) async_io_close(io);
     async_io_tcp_state_recv_set(tcp);
-    return 0;
-}
-
-int
-async_io_tcp_erro(async_io* io)
-{
-    async_io_tcp* tcp = (async_io_tcp*)io;
-    tcp->base.poll = async_io_tcp_poll_connect;
-    tcp->on_erro(io->ctx);
     return 0;
 }
 

@@ -31,7 +31,6 @@ async_io_udp_init(async_io_udp* io, async_io_udp_settings* s, void* ctx)
     io->on_recv = s->on_recv;
     io->on_send = s->on_send;
     io->base.poll = async_io_udp_poll_recv;
-    io->base.erro = async_io_udp_erro;
 }
 
 void
@@ -56,16 +55,16 @@ async_io_udp_send(async_io_udp* udp, uint32_t ip, uint32_t port)
 }
 
 int
+async_io_udp_poll_send(async_io* io)
+{
+}
+
+int
 async_io_udp_recv(async_io_udp* udp)
 {
 }
 
 int
 async_io_udp_poll_recv(async_io* io)
-{
-}
-
-int
-async_io_udp_erro(async_io* io)
 {
 }
