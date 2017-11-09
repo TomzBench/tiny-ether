@@ -24,9 +24,11 @@
 void
 async_io_init(async_io* io, void* ctx)
 {
-    io->ctx = ctx;
     io->sock = -1;
+    io->ctx = ctx;
     io->close = usys_close;
+    io->c = io->len = io->state = 0;
+    memset(io->b, 0, sizeof(io->b));
 }
 
 void

@@ -20,6 +20,9 @@
  */
 
 #include "async_io_tcp.h"
+#include "async_io_udp.h"
+#include "usys_log.h"
+#include "usys_time.h"
 
 // 56 byte test vector
 char* g_lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
@@ -39,6 +42,9 @@ int io_on_accept(void* ctx);
 int io_on_erro(void* ctx);
 int io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
 int io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
+int io_udp_on_erro(void* ctx);
+int io_udp_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
+int io_udp_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
 
 typedef struct
 {
@@ -46,6 +52,9 @@ typedef struct
     async_io_tcp_mock_settings* settings;
 } io_test_settings;
 
+async_io_udp_settings g_io_udp_settings = {.on_send = io_udp_on_send,
+                                           .on_recv = io_udp_on_recv,
+                                           .on_erro = io_udp_on_erro };
 async_io_tcp_settings g_io_tcp_settings = {.on_connect = io_on_connect,
                                            .on_accept = io_on_accept,
                                            .on_erro = io_on_erro,
@@ -68,6 +77,7 @@ async_io_tcp_mock_settings g_io_settings_min = {.ready = io_mock_ready,
                                                 .close = io_mock_close };
 
 int test_send(void);
+int test_udp(void);
 
 int
 main(int argc, char* argv[])
@@ -75,8 +85,38 @@ main(int argc, char* argv[])
     ((void)argc);
     ((void)argv);
     int err = 0;
-    err = test_send();
+    err |= test_send();
+    err |= test_udp();
+    if (err) {
+        usys_log_err("%s", "[ERR]");
+    } else {
+        usys_log_ok("%s", "[ OK]");
+    }
     return err;
+}
+
+int
+test_udp(void)
+{
+    async_io_udp c, s;
+    uint32_t cport = 12223, sport = 12224;
+    async_io* ptrs[] = { (async_io*)&c, (async_io*)&s };
+    async_io_udp_init(&c, &g_io_udp_settings, NULL);
+    async_io_udp_init(&s, &g_io_udp_settings, NULL);
+    if (async_io_udp_listen(&c, cport)) goto EXIT;
+    if (async_io_udp_listen(&s, sport)) goto EXIT;
+    async_io_print(&c.base, 0, "hello");
+    async_io_print(&s.base, 0, "world");
+    if (async_io_udp_send(&c, 0, sport)) goto EXIT;
+    if (async_io_udp_send(&s, 0, cport)) goto EXIT;
+    for (int i = 0; i < 10; i++) {
+        usys_msleep(10);
+        async_io_poll_n(ptrs, 2, 100);
+    }
+EXIT:
+    async_io_udp_deinit(&c);
+    async_io_udp_deinit(&s);
+    return 0;
 }
 
 int
@@ -209,5 +249,24 @@ io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
     ((void)err);
     ((void)b);
     ((void)l);
+    return 0;
+}
+
+int
+io_udp_on_erro(void* ctx)
+{
+}
+
+int
+io_udp_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
+{
+    usys_log("[OUT] [UDP] size: %d", l);
+    return 0;
+}
+
+int
+io_udp_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
+{
+    usys_log("[ IN] [UDP] size: %d", l);
     return 0;
 }

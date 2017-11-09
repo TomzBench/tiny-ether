@@ -98,8 +98,8 @@ usys_recv_from_fd(int sockfd, byte* b, size_t len, usys_sockaddr* addr)
     socklen_t inlen = sizeof(in);
     if (addr) {
         r = recvfrom(sockfd, (char*)b, len, 0, (struct sockaddr*)&in, &inlen);
-        addr->ip = ((struct sockaddr_in*)&in)->sin_addr.s_addr;
-        addr->port = ((struct sockaddr_in*)&in)->sin_port;
+        addr->ip = ntohl(((struct sockaddr_in*)&in)->sin_addr.s_addr);
+        addr->port = ntohs(((struct sockaddr_in*)&in)->sin_port);
     } else {
         r = recvfrom(sockfd, (char*)b, len, 0, NULL, 0);
     }
@@ -137,8 +137,8 @@ usys_send_to_fd(
 
     if (addr) {
         dest.sin_family = AF_INET;
-        dest.sin_addr.s_addr = addr->ip;
-        dest.sin_port = addr->port;
+        dest.sin_addr.s_addr = htonl(addr->ip);
+        dest.sin_port = htons(addr->port);
         bytes = sendto(sockfd, (char*)b, len, 0, (struct sockaddr*)&dest, dlen);
     } else {
         bytes = sendto(sockfd, (char*)b, len, 0, NULL, 0);

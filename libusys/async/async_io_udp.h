@@ -19,8 +19,8 @@
  * @date 2017
  */
 
-#ifndef ASYNC_ASYNC_IO_TCP_H_
-#define ASYNC_ASYNC_IO_TCP_H_
+#ifndef ASYNC_ASYNC_IO_UDP_H_
+#define ASYNC_ASYNC_IO_UDP_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,6 +64,7 @@ void async_io_udp_install_mock(
     async_io_udp_mock_settings* mock);
 
 int async_io_udp_send(async_io_udp* udp, uint32_t ip, uint32_t port);
+int async_io_udp_listen(async_io_udp* udp, uint32_t port);
 
 int async_io_udp_poll_send(async_io* io);
 int async_io_udp_poll_recv(async_io* io);

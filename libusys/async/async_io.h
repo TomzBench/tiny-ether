@@ -64,7 +64,7 @@ static inline void
 async_io_close(async_io* io)
 {
     io->close(&io->sock);
-    io->state = io->len = io->c;
+    io->state = io->len = io->c = 0;
 }
 
 static inline void*
