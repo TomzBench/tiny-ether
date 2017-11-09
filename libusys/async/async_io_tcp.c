@@ -154,8 +154,9 @@ async_io_tcp_poll_send(async_io* io)
                 ret = 0; // OK, but maybe more to send
             }
         } else {
-            tcp->on_send(io->ctx, -1, 0, 0); // IO error
+            tcp->on_erro(io->ctx); // IO error
             async_io_tcp_state_erro_set(tcp);
+            break;
         }
     }
     return ret;
@@ -171,7 +172,8 @@ async_io_tcp_poll_recv(async_io* io)
         ret = tcp->rx(&io->sock, &io->b[io->c], io->len - io->c);
         if (ret >= 0) {
             if (ret + (int)io->c == end) {
-                tcp->on_recv(io->ctx, -1, 0, 0);
+                // Buffer isn't big enough
+                tcp->on_erro(io->ctx);
                 async_io_tcp_state_erro_set(tcp);
                 break;
             } else if (ret == 0) {
@@ -180,16 +182,19 @@ async_io_tcp_poll_recv(async_io* io)
                     // that means remote has disconnected.
                     async_io_tcp_state_erro_set(tcp);
                 } else {
+                    // Looks like we read every thing.
                     tcp->on_recv(io->ctx, 0, io->b, io->c);
                     ret = 0; // OK no more data
                 }
                 break;
             } else {
+                // Read in some data maybe try and read more (no break)
                 io->c += ret;
-                ret = 0; // OK maybe more data
+                ret = 0;
             }
         } else {
-            tcp->on_recv(io->ctx, -1, 0, 0); // IO error
+            // rx io erro
+            tcp->on_erro(io->ctx); // IO error
             async_io_tcp_state_erro_set(tcp);
         }
     }

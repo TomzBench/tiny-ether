@@ -439,8 +439,8 @@ int
 rlpx_io_on_erro(void* ctx)
 {
     rlpx_io* ch = (rlpx_io*)ctx;
-    async_io_close((async_io*)ch);
     usys_log_err("[ERR] %d", ch->io.base.sock);
+    async_io_close((async_io*)ch);
     return 0;
 }
 
