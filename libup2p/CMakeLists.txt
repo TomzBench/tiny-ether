@@ -25,7 +25,7 @@ set(headers
 #libup2p unit test sources
 set(sources-unit-test
 	test/unit/test.c
-	#test/unit/test_discovery.c
+	test/unit/test_discovery.c
 	test/unit/test_enode.c
 	test/unit/test_frame.c
 	test/unit/test_handshake.c

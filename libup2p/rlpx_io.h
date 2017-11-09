@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 #include "async_io_tcp.h"
+#include "async_io_udp.h"
 #include "rlpx_config.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
