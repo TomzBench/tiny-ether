@@ -84,7 +84,8 @@ async_io_tcp_accept(async_io_tcp* tcp)
 int
 async_io_tcp_send(async_io_tcp* tcp)
 {
-    if (/*(!(ASYNC_IO_SEND(tcp->state))) &&*/ async_io_has_sock(&tcp->base)) {
+    if ((!(ASYNC_IO_IS_SEND(tcp->base.state))) &&
+        async_io_has_sock(&tcp->base)) {
         // If we are already not in send state and have a socket
         async_io_tcp_state_send_set(tcp);
         return 0;
