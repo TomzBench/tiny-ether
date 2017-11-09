@@ -72,17 +72,21 @@ typedef struct
     rlpx_io rlpx;    /*!< rlpx context */
 } rlpx_io_tcp;
 
+typedef struct
+{
+    async_io_udp io; /*!< io context for network sys calls */
+    rlpx_io rlpx;    /*!< rlpx context */
+} rlpx_io_udp;
+
 // constructors
 rlpx_io_tcp* rlpx_io_alloc(uecc_ctx* skey, const uint32_t* listen);
 void rlpx_io_free(rlpx_io_tcp** ch_p);
-void rlpx_io_init_udp(
-    rlpx_io_tcp* io,
-    uecc_ctx* s,
-    const uint32_t* listen,
-    async_io_tcp_settings*);
-void rlpx_io_init_tcp(rlpx_io_tcp* io, uecc_ctx* s, const uint32_t* listen);
-void rlpx_io_init(rlpx_io_tcp* io, uecc_ctx* s, const uint32_t* listen);
-void rlpx_io_deinit(rlpx_io_tcp* session);
+void rlpx_io_udp_init(rlpx_io_udp* io, uecc_ctx* s, const uint32_t* listen);
+void rlpx_io_tcp_init(rlpx_io_tcp* io, uecc_ctx* s, const uint32_t* listen);
+void rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
+void rlpx_io_udp_deinit(rlpx_io_udp* io);
+void rlpx_io_tcp_deinit(rlpx_io_tcp* io);
+void rlpx_io_deinit(rlpx_io* session);
 
 // methods
 int rlpx_io_poll(rlpx_io_tcp** ch, uint32_t count, uint32_t ms);
@@ -98,13 +102,15 @@ int rlpx_io_accept(rlpx_io_tcp* ch, const uecc_public_key* from);
 int rlpx_io_send_auth(rlpx_io_tcp* ch);
 int rlpx_io_send(async_io_tcp* io);
 int rlpx_io_send_sync(async_io_tcp* io);
+int rlpx_io_sendto(async_io_udp* io, uint32_t ip, uint32_t port);
+int rlpx_io_sendto_sync(async_io_udp* udp, uint32_t ip, uint32_t port);
 int rlpx_io_parse_udp(
     const uint8_t* b,
     uint32_t l,
     uecc_public_key* node_id,
     int* type,
     urlp** rlp);
-int rlpx_io_recv_udp(rlpx_io_tcp* ch, const uint8_t* b, size_t l);
+int rlpx_io_recv_udp(rlpx_io_udp* ch, const uint8_t* b, size_t l);
 int rlpx_io_recv(rlpx_io_tcp* ch, const uint8_t* d, size_t l);
 int rlpx_io_recv_auth(rlpx_io_tcp*, const uint8_t*, size_t l);
 int rlpx_io_recv_ack(rlpx_io_tcp* ch, const uint8_t*, size_t l);

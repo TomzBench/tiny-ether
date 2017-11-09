@@ -75,16 +75,12 @@ test_protocol()
     lena = sizeof(buffa);
     lenb = sizeof(buffb);
     IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.alice->rlpx.x, buffa, &lena));
-    IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.bob->rlpx.x, buffb, &lenb));
-    IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
     IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
     // Pong
     lena = sizeof(buffa);
     lenb = sizeof(buffb);
     IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.alice->rlpx.x, buffa, &lena));
-    IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.bob->rlpx.x, buffb, &lenb));
-    IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
     IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
 EXIT:

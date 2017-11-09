@@ -45,7 +45,7 @@ typedef struct ueth_context
     async_io io;
     int (*poll)(struct ueth_context*);
     uint32_t n;
-    rlpx_io discovery;
+    rlpx_io_udp discovery;
     rlpx_io_tcp ch[UETH_CONFIG_NUM_CHANNELS];
 } ueth_context;
 

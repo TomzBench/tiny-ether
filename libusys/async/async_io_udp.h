@@ -69,6 +69,18 @@ int async_io_udp_listen(async_io_udp* udp, uint32_t port);
 int async_io_udp_poll_send(async_io* io);
 int async_io_udp_poll_recv(async_io* io);
 
+static inline uint32_t
+async_io_udp_from_ip(async_io_udp* udp)
+{
+    return udp->addr.ip;
+}
+
+static inline uint32_t
+async_io_udp_from_port(async_io_udp* udp)
+{
+    return udp->addr.port;
+}
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

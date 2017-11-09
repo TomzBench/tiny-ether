@@ -60,6 +60,12 @@ main(int argc, char* argv[])
         // Poll io
         usys_msleep(200);
         ueth_poll(&eth);
+        // rlpx_io_discovery_send_find(
+        //    eth.discovery.rlpx.protocols[0].context, //
+        //    0,
+        //    30303,
+        //    &eth.id.Q,
+        //    usys_now());
     }
 
     // Notify remotes of shutdown and clean

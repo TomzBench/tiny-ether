@@ -85,7 +85,7 @@ typedef struct
  */
 typedef struct
 {
-    rlpx_io_tcp* base;
+    rlpx_io_udp* base;
     void* ctx;
     rlpx_io_discovery_table table;
 } rlpx_io_discovery;
@@ -96,7 +96,7 @@ typedef struct
  * @param self
  * @param base
  */
-void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_tcp* base);
+void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_udp* base);
 
 /**
  * @brief
@@ -105,7 +105,7 @@ void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_tcp* base);
  *
  * @return
  */
-int rlpx_io_discovery_install(rlpx_io_tcp* base);
+int rlpx_io_discovery_install(rlpx_io_udp* base);
 
 /**
  * @brief
@@ -404,23 +404,31 @@ int rlpx_io_discovery_write_neighbours(
 
 int rlpx_io_discovery_send_ping(
     rlpx_io_discovery* self,
+    uint32_t ip,
+    uint32_t port,
     const rlpx_io_discovery_endpoint* ep_src,
     const rlpx_io_discovery_endpoint* ep_dst,
     uint32_t timestamp);
 
 int rlpx_io_discovery_send_pong(
     rlpx_io_discovery* self,
+    uint32_t ip,
+    uint32_t port,
     const rlpx_io_discovery_endpoint* ep_to,
     h256* echo,
     uint32_t timestamp);
 
 int rlpx_io_discovery_send_find(
     rlpx_io_discovery* self,
+    uint32_t ip,
+    uint32_t port,
     uecc_public_key* nodeid,
     uint32_t timestamp);
 
 int rlpx_io_discovery_send_neighbours(
     rlpx_io_discovery* self,
+    uint32_t ip,
+    uint32_t port,
     rlpx_io_discovery_table* table,
     uint32_t timestamp);
 #ifdef __cplusplus

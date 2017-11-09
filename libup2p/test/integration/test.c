@@ -48,7 +48,7 @@ main(int argc, char* arg[])
     uecc_key_init_new(&static_key);
     rlpx_io_devp2p* devp2p;
     rlpx_io_tcp alice, *ptr = &alice;
-    rlpx_io_init_tcp(&alice, &static_key, &udp);
+    rlpx_io_tcp_init(&alice, &static_key, &udp);
     rlpx_io_devp2p_install(&alice);
     devp2p = alice.rlpx.protocols[0].context;
 
@@ -99,7 +99,7 @@ main(int argc, char* arg[])
         usys_log_err("%s", "[ERR]");
     }
 
-    rlpx_io_deinit(&alice);
+    rlpx_io_tcp_deinit(&alice);
     uecc_key_deinit(&static_key);
     return err;
 }

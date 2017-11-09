@@ -25,6 +25,7 @@ void
 async_io_udp_init(async_io_udp* io, async_io_udp_settings* s, void* ctx)
 {
     async_io_init(&io->base, ctx);
+    memset(&io->addr, 0, sizeof(usys_sockaddr));
     io->tx = usys_send_to;
     io->rx = usys_recv_from;
     io->on_erro = s->on_erro;
@@ -56,6 +57,7 @@ async_io_udp_listen(async_io_udp* udp, uint32_t port)
     ret = usys_listen_udp(&io->sock, port);
     if (!ret) {
         async_io_state_ready_set(io);
+        async_io_state_recv_set(io);
         io->poll = async_io_udp_poll_recv;
     } else {
         async_io_state_erro_set(io);

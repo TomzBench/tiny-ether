@@ -51,13 +51,13 @@ ueth_init(ueth_context* ctx, ueth_config* config)
 
     // Init peer pipes (tcp)
     for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_io_init_tcp(&ctx->ch[i], &ctx->id, &ctx->config.udp);
+        rlpx_io_tcp_init(&ctx->ch[i], &ctx->id, &ctx->config.udp);
         rlpx_io_devp2p_install(&ctx->ch[i]);
     }
 
     // Init discovery pipe
-    // rlpx_io_init_udp(&ctx->discovery, &ctx->id, &ctx->config.udp, NULL);
-    // rlpx_io_discovery_install(&ctx->discovery);
+    rlpx_io_udp_init(&ctx->discovery, &ctx->id, &ctx->config.udp);
+    rlpx_io_discovery_install(&ctx->discovery);
 
     return 0;
 }
@@ -66,10 +66,10 @@ void
 ueth_deinit(ueth_context* ctx)
 {
     // Shutdown any open connections..
-    for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_deinit(&ctx->ch[i]);
+    for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_tcp_deinit(&ctx->ch[i]);
 
     // Shutdown udp
-    // rlpx_io_deinit(&ctx->discovery);
+    rlpx_io_udp_deinit(&ctx->discovery);
 
     // Free static key
     uecc_key_deinit(&ctx->id);
@@ -117,11 +117,11 @@ int
 ueth_poll_internal(ueth_context* ctx)
 {
     uint32_t i, b = 0;
-    rlpx_io_tcp* ch[ctx->n + 1];
+    async_io* ch[ctx->n + 1];
     for (i = 0; i < ctx->n; i++) {
         // If this channel has peer
         if (ctx->ch[i].rlpx.node.port_tcp) {
-            ch[b++] = &ctx->ch[i];
+            ch[b++] = (async_io*)&ctx->ch[i];
             // If this channel is not connected
             if (!rlpx_io_is_connected(&ctx->ch[i])) {
                 rlpx_io_nonce(&ctx->ch[i].rlpx);
@@ -131,10 +131,8 @@ ueth_poll_internal(ueth_context* ctx)
     }
 
     // Add our listener to poll
-    // TODO - io driver shuts down socket on error, need to fix that.
-    ////if (ctx->discovery.io.sock < 0) rlpx_io_listen(&ctx->discovery);
-    ////ch[b++] = &ctx->discovery;
-    rlpx_io_poll(ch, b, 100);
+    ch[b++] = (async_io*)&ctx->discovery;
+    async_io_poll_n(ch, b, 100);
     return 0;
 }
 

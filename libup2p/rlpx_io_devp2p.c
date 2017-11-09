@@ -79,7 +79,7 @@ rlpx_io_devp2p_recv(void* base, const urlp* rlp)
             err = rlpx_io_devp2p_recv_disconnect(self, body);
         } else if (DEVP2P_PING == package_type) {
             err = rlpx_io_devp2p_recv_ping(self, body);
-            // if (!err) rlpx_io_devp2p_send_pong(self);
+            if (!err) rlpx_io_devp2p_send_pong(self);
         } else if (DEVP2P_PONG == package_type) {
             err = rlpx_io_devp2p_recv_pong(self, body);
         }

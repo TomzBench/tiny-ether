@@ -27,7 +27,7 @@
 void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
 
 void
-rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_tcp* base)
+rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_udp* base)
 {
     memset(self, 0, sizeof(rlpx_io_discovery));
     self->base = base;
@@ -38,7 +38,7 @@ rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_tcp* base)
 }
 
 int
-rlpx_io_discovery_install(rlpx_io_tcp* base)
+rlpx_io_discovery_install(rlpx_io_udp* base)
 {
     rlpx_io_discovery* self = base->rlpx.protocols[0].context
                                   ? NULL
@@ -227,7 +227,13 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         // send a pong on device io...
         err = rlpx_io_discovery_recv_ping(&crlp, buff32, &from, &to, &ts);
         if (!err) {
-            return rlpx_io_discovery_send_pong(self, &from, (h256*)buff32, ts);
+            return rlpx_io_discovery_send_pong(
+                self,
+                async_io_udp_from_ip(&self->base->io),
+                async_io_udp_from_port(&self->base->io),
+                &from,
+                (h256*)buff32,
+                ts);
         }
     } else if (type == RLPX_DISCOVERY_PONG) {
 
@@ -240,7 +246,12 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         // We are leech looking for light clients servers
         err = rlpx_io_discovery_recv_find(&crlp, &target, &ts);
         if (!err) {
-            return rlpx_io_discovery_send_neighbours(self, &self->table, ts);
+            return rlpx_io_discovery_send_neighbours(
+                self,
+                async_io_udp_from_ip(&self->base->io),
+                async_io_udp_from_port(&self->base->io),
+                &self->table,
+                ts);
         }
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
 
@@ -495,6 +506,8 @@ rlpx_io_discovery_write_neighbours(
 int
 rlpx_io_discovery_send_ping(
     rlpx_io_discovery* self,
+    uint32_t ip,
+    uint32_t port,
     const rlpx_io_discovery_endpoint* ep_src,
     const rlpx_io_discovery_endpoint* ep_dst,
     uint32_t timestamp)
@@ -511,13 +524,15 @@ rlpx_io_discovery_send_ping(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    if (!err) err = rlpx_io_send_sync(&self->base->io);
+    if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
 
 int
 rlpx_io_discovery_send_pong(
     rlpx_io_discovery* self,
+    uint32_t ip,
+    uint32_t port,
     const rlpx_io_discovery_endpoint* ep_to,
     h256* echo,
     uint32_t timestamp)
@@ -533,13 +548,15 @@ rlpx_io_discovery_send_pong(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    if (!err) err = rlpx_io_send_sync(&self->base->io);
+    if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
 
 int
 rlpx_io_discovery_send_find(
     rlpx_io_discovery* self,
+    uint32_t ip,
+    uint32_t port,
     uecc_public_key* nodeid,
     uint32_t timestamp)
 {
@@ -553,13 +570,15 @@ rlpx_io_discovery_send_find(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    if (!err) err = rlpx_io_send_sync(&self->base->io);
+    if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
 
 int
 rlpx_io_discovery_send_neighbours(
     rlpx_io_discovery* self,
+    uint32_t ip,
+    uint32_t port,
     rlpx_io_discovery_table* table,
     uint32_t timestamp)
 {
@@ -573,6 +592,6 @@ rlpx_io_discovery_send_neighbours(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    if (!err) err = rlpx_io_send_sync(&self->base->io);
+    if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
