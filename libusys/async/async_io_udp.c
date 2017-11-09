@@ -65,9 +65,66 @@ async_io_udp_send(async_io_udp* udp, uint32_t ip, uint32_t port)
 int
 async_io_udp_poll_send(async_io* io)
 {
+    int c, ret = -1, end = io->len;
+    async_io_udp* udp = (async_io_udp*)io; // up cast
+    for (c = 0; c < 2; c++) {
+        ret = udp->tx(&io->sock, &io->b[io->c], io->len - io->c, &udp->addr);
+        if (ret >= 0) {
+            if (ret + (int)io->c == end) {
+                // Send complete, put into listen mode
+                udp->on_send(io->ctx, 0, io->b, io->len);
+                async_io_state_recv_set(io);
+                io->poll = async_io_udp_poll_recv;
+                ret = 0;
+                break;
+            } else if (ret == 0) {
+                ret = 0;
+                break;
+            } else {
+                io->c += ret;
+                ret = 0;
+            }
+        } else {
+            udp->on_erro(io->ctx); // IO error
+            async_io_state_erro_set(io);
+            io->poll = async_io_udp_poll_recv;
+            break;
+        }
+    }
+    return ret;
 }
 
 int
 async_io_udp_poll_recv(async_io* io)
 {
+    int c, ret = -1, end = io->len;
+    async_io_udp* udp = (async_io_udp*)io; // up cast
+
+    for (c = 0; c < 2; c++) {
+        ret = udp->rx(&io->sock, &io->b[io->c], io->len - io->c, &udp->addr);
+        if (ret >= 0) {
+            if (ret + (int)io->c == end) {
+                udp->on_erro(io->ctx);
+                async_io_state_erro_set(io);
+                break;
+            } else if (ret == 0) {
+                if (c == 0) {
+                    // When a readable socket returns 0 bytes on first then
+                    // that means remote has disconnected.
+                    async_io_state_erro_set(io);
+                } else {
+                    udp->on_recv(io->ctx, 0, io->b, io->c);
+                    ret = 0; // OK no more data
+                }
+                break;
+            } else {
+                io->c += ret;
+                ret = 0; // OK maybe more data
+            }
+        } else {
+            udp->on_erro(io->ctx); // IO error
+            async_io_state_erro_set(io);
+        }
+    }
+    return ret;
 }

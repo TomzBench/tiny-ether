@@ -67,7 +67,7 @@ usys_listen_udp(usys_socket_fd* sock_p, int port)
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
     *sock_p = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
     if (*sock_p < 0) return -1;
     if (bind(*sock_p, (const struct sockaddr*)&addr, sizeof(addr)) == -1) {
