@@ -47,11 +47,11 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     }
 
     // init constants
-    ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io));
+    ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io_tcp));
 
     // Init peer pipes (tcp)
     for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_io_init_tcp(&ctx->ch[i], &ctx->id, &ctx->config.udp, NULL);
+        rlpx_io_init_tcp(&ctx->ch[i], &ctx->id, &ctx->config.udp);
         rlpx_io_devp2p_install(&ctx->ch[i]);
     }
 
@@ -93,13 +93,13 @@ int
 ueth_stop(ueth_context* ctx)
 {
     uint32_t mask = 0, i, c = 0, b = 0;
-    rlpx_io* ch[ctx->n];
+    rlpx_io_tcp* ch[ctx->n];
     rlpx_io_devp2p* devp2p;
     for (i = 0; i < ctx->n; i++) {
         if (rlpx_io_is_ready(&ctx->ch[i])) {
             mask |= (1 << i);
             ch[b++] = &ctx->ch[i];
-            devp2p = ctx->ch[i].protocols[0].context;
+            devp2p = ctx->ch[i].rlpx.protocols[0].context;
             rlpx_io_devp2p_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
         }
     }
@@ -117,15 +117,15 @@ int
 ueth_poll_internal(ueth_context* ctx)
 {
     uint32_t i, b = 0;
-    rlpx_io* ch[ctx->n + 1];
+    rlpx_io_tcp* ch[ctx->n + 1];
     for (i = 0; i < ctx->n; i++) {
         // If this channel has peer
-        if (ctx->ch[i].node.port_tcp) {
+        if (ctx->ch[i].rlpx.node.port_tcp) {
             ch[b++] = &ctx->ch[i];
             // If this channel is not connected
             if (!rlpx_io_is_connected(&ctx->ch[i])) {
-                rlpx_io_nonce(&ctx->ch[i]);
-                rlpx_io_connect_node(&ctx->ch[i], &ctx->ch[i].node);
+                rlpx_io_nonce(&ctx->ch[i].rlpx);
+                rlpx_io_connect_node(&ctx->ch[i], &ctx->ch[i].rlpx.node);
             }
         }
     }

@@ -85,7 +85,7 @@ typedef struct
  */
 typedef struct
 {
-    rlpx_io* base;
+    rlpx_io_tcp* base;
     void* ctx;
     rlpx_io_discovery_table table;
 } rlpx_io_discovery;
@@ -96,7 +96,7 @@ typedef struct
  * @param self
  * @param base
  */
-void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base);
+void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_tcp* base);
 
 /**
  * @brief
@@ -105,7 +105,7 @@ void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base);
  *
  * @return
  */
-int rlpx_io_discovery_install(rlpx_io* base);
+int rlpx_io_discovery_install(rlpx_io_tcp* base);
 
 /**
  * @brief

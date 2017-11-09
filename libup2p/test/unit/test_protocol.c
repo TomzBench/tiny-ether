@@ -37,16 +37,16 @@ test_protocol()
 
     // Hello
     err = rlpx_io_devp2p_write_hello(
-        &s.alice->x, //
-        *s.alice->listen_port,
-        &s.alice->node_id[1],
+        &s.alice->rlpx.x, //
+        *s.alice->rlpx.listen_port,
+        &s.alice->rlpx.node_id[1],
         buffa,
         &lena);
     IF_ERR_EXIT(err);
     err = rlpx_io_devp2p_write_hello(
-        &s.bob->x, //
-        *s.bob->listen_port,
-        &s.bob->node_id[1],
+        &s.bob->rlpx.x, //
+        *s.bob->rlpx.listen_port,
+        &s.bob->rlpx.node_id[1],
         buffb,
         &lenb);
     IF_ERR_EXIT(err);
@@ -57,13 +57,13 @@ test_protocol()
     lena = sizeof(buffa);
     lenb = sizeof(buffb);
     err = rlpx_io_devp2p_write_disconnect(
-        &s.alice->x, //
+        &s.alice->rlpx.x, //
         DEVP2P_DISCONNECT_BAD_VERSION,
         buffa,
         &lena);
     IF_ERR_EXIT(err);
     err = rlpx_io_devp2p_write_disconnect(
-        &s.bob->x, //
+        &s.bob->rlpx.x, //
         DEVP2P_DISCONNECT_BAD_VERSION,
         buffb,
         &lenb);
@@ -74,16 +74,16 @@ test_protocol()
     // Ping
     lena = sizeof(buffa);
     lenb = sizeof(buffb);
-    IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.alice->x, buffa, &lena));
-    IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.bob->x, buffb, &lenb));
+    IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.alice->rlpx.x, buffa, &lena));
+    IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.bob->rlpx.x, buffb, &lenb));
     IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
     IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
     // Pong
     lena = sizeof(buffa);
     lenb = sizeof(buffb);
-    IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.alice->x, buffa, &lena));
-    IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.bob->x, buffb, &lenb));
+    IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.alice->rlpx.x, buffa, &lena));
+    IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.bob->rlpx.x, buffb, &lenb));
     IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
     IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 

@@ -37,6 +37,7 @@ extern "C" {
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
 #include "rlpx_node.h"
+#include "unonce.h"
 
 typedef int (*rlpx_io_ready_fn)(void*);
 typedef int (*rlpx_io_recv_fn)(void*, const urlp*);
@@ -50,9 +51,8 @@ typedef struct
     rlpx_io_uninstall_fn uninstall;
 } rlpx_io_protocol;
 
-typedef struct
+typedef struct rlpx
 {
-    async_io_tcp io;             /*!< io context for network sys calls */
     uecc_ctx* skey;              /*!< TODO make const - our static key ref*/
     uecc_ctx ekey;               /*!< our epheremal key */
     rlpx_coder x;                /*!< igress/ingress */
@@ -66,38 +66,36 @@ typedef struct
     rlpx_io_protocol protocols[RLPX_IO_MAX_PROTOCOL]; /*!< map */
 } rlpx_io;
 
+typedef struct
+{
+    async_io_tcp io; /*!< io context for network sys calls */
+    rlpx_io rlpx;    /*!< rlpx context */
+} rlpx_io_tcp;
+
 // constructors
-rlpx_io* rlpx_io_alloc(uecc_ctx* skey, const uint32_t* listen);
-void rlpx_io_free(rlpx_io** ch_p);
+rlpx_io_tcp* rlpx_io_alloc(uecc_ctx* skey, const uint32_t* listen);
+void rlpx_io_free(rlpx_io_tcp** ch_p);
 void rlpx_io_init_udp(
-    rlpx_io* io,
+    rlpx_io_tcp* io,
     uecc_ctx* s,
     const uint32_t* listen,
     async_io_tcp_settings*);
-void rlpx_io_init_tcp(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
-void rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
-void rlpx_io_deinit(rlpx_io* session);
-
-// Private io callbacks (we expose this methods for test)
-int rlpx_io_on_accept(void* ctx);
-int rlpx_io_on_connect(void* ctx);
-int rlpx_io_on_erro(void* ctx);
-int rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
-int rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
+void rlpx_io_init_tcp(rlpx_io_tcp* io, uecc_ctx* s, const uint32_t* listen);
+void rlpx_io_init(rlpx_io_tcp* io, uecc_ctx* s, const uint32_t* listen);
+void rlpx_io_deinit(rlpx_io_tcp* session);
 
 // methods
-void rlpx_io_nonce(rlpx_io* ch);
-int rlpx_io_poll(rlpx_io** ch, uint32_t count, uint32_t ms);
-int rlpx_io_listen(rlpx_io* io);
+int rlpx_io_poll(rlpx_io_tcp** ch, uint32_t count, uint32_t ms);
+int rlpx_io_listen(rlpx_io_tcp* io);
 int rlpx_io_connect(
-    rlpx_io* ch,
+    rlpx_io_tcp* ch,
     const uecc_public_key* to,
     const char* host,
     uint32_t tcp);
-int rlpx_io_connect_enode(rlpx_io* ch, const char* enode);
-int rlpx_io_connect_node(rlpx_io* ch, const rlpx_node* node);
-int rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from);
-int rlpx_io_send_auth(rlpx_io* ch);
+int rlpx_io_connect_enode(rlpx_io_tcp* ch, const char* enode);
+int rlpx_io_connect_node(rlpx_io_tcp* ch, const rlpx_node* node);
+int rlpx_io_accept(rlpx_io_tcp* ch, const uecc_public_key* from);
+int rlpx_io_send_auth(rlpx_io_tcp* ch);
 int rlpx_io_send(async_io_tcp* io);
 int rlpx_io_send_sync(async_io_tcp* io);
 int rlpx_io_parse_udp(
@@ -106,33 +104,63 @@ int rlpx_io_parse_udp(
     uecc_public_key* node_id,
     int* type,
     urlp** rlp);
-int rlpx_io_recv_udp(rlpx_io* ch, const uint8_t* b, size_t l);
-int rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l);
-int rlpx_io_recv_auth(rlpx_io*, const uint8_t*, size_t l);
-int rlpx_io_recv_ack(rlpx_io* ch, const uint8_t*, size_t l);
+int rlpx_io_recv_udp(rlpx_io_tcp* ch, const uint8_t* b, size_t l);
+int rlpx_io_recv(rlpx_io_tcp* ch, const uint8_t* d, size_t l);
+int rlpx_io_recv_auth(rlpx_io_tcp*, const uint8_t*, size_t l);
+int rlpx_io_recv_ack(rlpx_io_tcp* ch, const uint8_t*, size_t l);
+
+static inline void
+rlpx_io_nonce(rlpx_io* io)
+{
+    unonce(io->nonce.b);
+}
+
+static const uecc_public_key*
+rlpx_io_spub(rlpx_io_tcp* tcp)
+{
+    return &tcp->rlpx.skey->Q;
+}
+
+static const uecc_public_key*
+rlpx_io_spub_remote(rlpx_io_tcp* tcp)
+{
+    return &tcp->rlpx.node.id;
+}
+
+static const uecc_public_key*
+rlpx_io_epub(rlpx_io_tcp* tcp)
+{
+    return &tcp->rlpx.ekey.Q;
+}
+
+static const uecc_public_key*
+rlpx_io_epub_remote(rlpx_io_tcp* tcp)
+{
+    return tcp->rlpx.hs ? &tcp->rlpx.hs->ekey_remote : NULL;
+}
 
 static inline uint8_t*
-rlpx_io_buffer(rlpx_io* io)
+rlpx_io_buffer(rlpx_io_tcp* io)
 {
     return async_io_buffer((async_io*)io);
 }
 
 static inline uint32_t*
-rlpx_io_len_ptr(rlpx_io* io)
+rlpx_io_len_ptr(rlpx_io_tcp* io)
 {
     return async_io_buffer_length_pointer((async_io*)io);
 }
 
 static inline int
-rlpx_io_is_connected(rlpx_io* ch)
+rlpx_io_is_connected(rlpx_io_tcp* ch)
 {
     return async_io_has_sock(&ch->io.base);
 }
 
 static inline int
-rlpx_io_is_ready(rlpx_io* ch)
+rlpx_io_is_ready(rlpx_io_tcp* ch)
 {
-    return ch->ready;
+    return ch->rlpx.ready;
 }
 
 static inline int
@@ -147,9 +175,9 @@ rlpx_io_default_on_recv(void* io, const urlp* rlp)
 }
 
 static inline int
-rlpx_io_is_shutdown(rlpx_io* ch)
+rlpx_io_is_shutdown(rlpx_io_tcp* ch)
 {
-    return ch->shutdown;
+    return ch->rlpx.shutdown;
 }
 
 #ifdef __cplusplus

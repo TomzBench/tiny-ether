@@ -146,10 +146,10 @@ test_session_init(test_session* s, int vec)
     rlpx_test_ekey_set(s->bob, &ekey_b);
 
     // sanity check
-    if ((check_q(&s->alice->ekey.Q, g_alice_epub))) return -1;
-    if ((check_q(&s->bob->ekey.Q, g_bob_epub))) return -1;
-    if ((check_q(&s->alice->skey->Q, g_alice_spub))) return -1;
-    if ((check_q(&s->bob->skey->Q, g_bob_spub))) return -1;
+    if ((check_q(rlpx_io_epub(s->alice), g_alice_epub))) return -1;
+    if ((check_q(rlpx_io_epub(s->bob), g_bob_epub))) return -1;
+    if ((check_q(rlpx_io_spub(s->alice), g_alice_spub))) return -1;
+    if ((check_q(rlpx_io_spub(s->bob), g_bob_spub))) return -1;
     return 0;
 }
 
@@ -172,21 +172,21 @@ test_session_connect(test_session* s)
     rlpx_test_nonce_set(s->bob, &s->bob_n);
 
     // fill remote node info
-    rlpx_node_init(&s->alice->node, &s->bob->skey->Q, "1.1.1.1", 0, 0);
-    rlpx_node_init(&s->bob->node, &s->alice->skey->Q, "1.1.1.1", 0, 0);
+    rlpx_node_init(&s->alice->rlpx.node, rlpx_io_spub(s->bob), "1.1.1.1", 0, 0);
+    rlpx_node_init(&s->bob->rlpx.node, rlpx_io_spub(s->alice), "1.1.1.1", 0, 0);
 
-    s->alice->hs = rlpx_handshake_alloc(
+    s->alice->rlpx.hs = rlpx_handshake_alloc(
         1,
-        s->alice->skey,
-        &s->alice->ekey,
-        &s->alice->nonce,
-        &s->alice->node.id);
-    s->bob->hs = rlpx_handshake_alloc(
+        s->alice->rlpx.skey,
+        &s->alice->rlpx.ekey,
+        &s->alice->rlpx.nonce,
+        &s->alice->rlpx.node.id);
+    s->bob->rlpx.hs = rlpx_handshake_alloc(
         0, //
-        s->bob->skey,
-        &s->bob->ekey,
-        &s->bob->nonce,
-        &s->bob->node.id);
+        s->bob->rlpx.skey,
+        &s->bob->rlpx.ekey,
+        &s->bob->rlpx.nonce,
+        &s->bob->rlpx.node.id);
 }
 
 void
@@ -194,8 +194,17 @@ test_session_handshake(test_session* s)
 {
     // Do handshakes
 
-    rlpx_io_recv_ack(s->alice, s->bob->hs->cipher, s->bob->hs->cipher_len);
-    rlpx_io_recv_auth(s->bob, s->alice->hs->cipher, s->alice->hs->cipher_len);
+    // rlpx_io_recv_ack(s->alice, s->bob->hs->cipher, s->bob->hs->cipher_len);
+    // rlpx_io_recv_auth(s->bob, s->alice->hs->cipher,
+    // s->alice->hs->cipher_len);
+    rlpx_io_recv_ack(
+        s->alice, //
+        s->bob->rlpx.hs->cipher,
+        s->bob->rlpx.hs->cipher_len);
+    rlpx_io_recv_auth(
+        s->bob, //
+        s->alice->rlpx.hs->cipher,
+        s->alice->rlpx.hs->cipher_len);
 }
 
 int

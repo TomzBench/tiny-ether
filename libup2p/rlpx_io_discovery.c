@@ -27,20 +27,20 @@
 void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
 
 void
-rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base)
+rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_tcp* base)
 {
     memset(self, 0, sizeof(rlpx_io_discovery));
     self->base = base;
-    base->protocols[0].context = self;
-    base->protocols[0].ready = rlpx_io_discovery_ready;
-    base->protocols[0].recv = rlpx_io_discovery_recv;
-    base->protocols[0].uninstall = rlpx_io_discovery_uninstall;
+    base->rlpx.protocols[0].context = self;
+    base->rlpx.protocols[0].ready = rlpx_io_discovery_ready;
+    base->rlpx.protocols[0].recv = rlpx_io_discovery_recv;
+    base->rlpx.protocols[0].uninstall = rlpx_io_discovery_uninstall;
 }
 
 int
-rlpx_io_discovery_install(rlpx_io* base)
+rlpx_io_discovery_install(rlpx_io_tcp* base)
 {
-    rlpx_io_discovery* self = base->protocols[0].context
+    rlpx_io_discovery* self = base->rlpx.protocols[0].context
                                   ? NULL
                                   : rlpx_malloc(sizeof(rlpx_io_discovery));
     if (self) {
@@ -504,7 +504,7 @@ rlpx_io_discovery_send_ping(
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_discovery_write_ping(
-        self->base->skey,
+        self->base->rlpx.skey,
         4,
         ep_src,
         ep_dst,
@@ -527,7 +527,7 @@ rlpx_io_discovery_send_pong(
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_discovery_write_pong(
-        self->base->skey,
+        self->base->rlpx.skey,
         ep_to,
         echo,
         timestamp ? timestamp : usys_now(),
@@ -548,7 +548,7 @@ rlpx_io_discovery_send_find(
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_discovery_write_find(
-        self->base->skey,
+        self->base->rlpx.skey,
         nodeid,
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
@@ -568,7 +568,7 @@ rlpx_io_discovery_send_neighbours(
     uint32_t* len = async_io_buffer_length_pointer(io);
     async_io_len_reset(io);
     err = rlpx_io_discovery_write_neighbours(
-        self->base->skey,
+        self->base->rlpx.skey,
         table,
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),

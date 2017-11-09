@@ -57,10 +57,10 @@ test_read()
         test_session_connect(&s);
         if (rlpx_io_recv_auth(s.bob, s.auth, s.authlen)) break;
         if (rlpx_io_recv_ack(s.alice, s.ack, s.acklen)) break;
-        if (!(s.bob->hs->version_remote == tv->authver)) break;
-        if (!(s.alice->hs->version_remote == tv->ackver)) break;
-        if ((cmp_q(&s.bob->hs->ekey_remote, &s.alice->ekey.Q))) break;
-        if ((cmp_q(&s.alice->hs->ekey_remote, &s.bob->ekey.Q))) break;
+        if (!(s.bob->rlpx.hs->version_remote == tv->authver)) break;
+        if (!(s.alice->rlpx.hs->version_remote == tv->ackver)) break;
+        if ((cmp_q(&s.bob->rlpx.hs->ekey_remote, rlpx_io_epub(s.alice)))) break;
+        if ((cmp_q(&s.alice->rlpx.hs->ekey_remote, rlpx_io_epub(s.bob)))) break;
         test_session_deinit(&s);
         i++;
         tv++;
@@ -79,8 +79,8 @@ test_write()
     test_session_connect(&s);
     test_session_handshake(&s);
 
-    IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
-    IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
+    IF_ERR_EXIT(check_q(rlpx_io_epub_remote(s.alice), g_bob_epub));
+    IF_ERR_EXIT(check_q(rlpx_io_epub_remote(s.bob), g_alice_epub));
 EXIT:
     test_session_deinit(&s);
     return err;

@@ -124,7 +124,6 @@ static inline void
 async_io_tcp_state_send_set(async_io_tcp* tcp)
 {
     async_io_state_send_set(&tcp->base);
-    tcp->base.poll = async_io_tcp_poll_send;
 }
 
 #ifdef __cplusplus

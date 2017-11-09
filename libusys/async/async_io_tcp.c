@@ -88,6 +88,7 @@ async_io_tcp_send(async_io_tcp* tcp)
     if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
         // If we are already not in send state and have a socket
         async_io_tcp_state_send_set(tcp);
+        tcp->base.poll = async_io_tcp_poll_send;
         return 0;
     } else {
         // We are busy sending already or not connected
