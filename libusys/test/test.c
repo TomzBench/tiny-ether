@@ -99,10 +99,10 @@ int
 test_udp(void)
 {
     async_io_udp c, s;
-    uint32_t cport = 12223, sport = 12224;
+    uint32_t cport = 12223, sport = 12224, count = 0;
     async_io* ptrs[] = { (async_io*)&c, (async_io*)&s };
-    async_io_udp_init(&c, &g_io_udp_settings, NULL);
-    async_io_udp_init(&s, &g_io_udp_settings, NULL);
+    async_io_udp_init(&c, &g_io_udp_settings, &count);
+    async_io_udp_init(&s, &g_io_udp_settings, &count);
     if (async_io_udp_listen(&c, cport)) goto EXIT;
     if (async_io_udp_listen(&s, sport)) goto EXIT;
     async_io_print(&c.base, 0, "hello");
@@ -116,7 +116,7 @@ test_udp(void)
 EXIT:
     async_io_udp_deinit(&c);
     async_io_udp_deinit(&s);
-    return 0;
+    return (count == 2) ? 0 : -1;
 }
 
 int
@@ -267,6 +267,8 @@ io_udp_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
 int
 io_udp_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
 {
+    uint32_t* cptr = (uint32_t*)ctx;
+    *cptr = *cptr + 1;
     usys_log("[ IN] [UDP] size: %d", l);
     return 0;
 }
