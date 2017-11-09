@@ -75,7 +75,6 @@ void async_io_tcp_install_mock(
 int async_io_tcp_connect(async_io_tcp* tcp, const char* ip, uint32_t p);
 int async_io_tcp_accept(async_io_tcp* tcp);
 int async_io_tcp_send(async_io_tcp* tcp);
-int async_io_tcp_recv(async_io_tcp* tcp);
 
 int async_io_tcp_poll_connect(async_io* io);
 int async_io_tcp_poll_send(async_io* io);

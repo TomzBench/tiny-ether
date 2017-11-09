@@ -50,17 +50,20 @@ async_io_udp_install_mock(async_io_udp* udp, async_io_udp_mock_settings* mock)
 int
 async_io_udp_send(async_io_udp* udp, uint32_t ip, uint32_t port)
 {
-    udp->addr.ip = ip;
-    udp->addr.port = port;
+    async_io* io = (async_io*)udp;
+    if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
+        udp->addr.ip = ip;
+        udp->addr.port = port;
+        async_io_state_send_set(io);
+        io->poll = async_io_udp_poll_send;
+        return 0;
+    } else {
+        return -1;
+    }
 }
 
 int
 async_io_udp_poll_send(async_io* io)
-{
-}
-
-int
-async_io_udp_recv(async_io_udp* udp)
 {
 }
 

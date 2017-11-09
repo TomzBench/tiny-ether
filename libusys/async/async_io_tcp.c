@@ -84,24 +84,13 @@ async_io_tcp_accept(async_io_tcp* tcp)
 int
 async_io_tcp_send(async_io_tcp* tcp)
 {
-    if ((!(ASYNC_IO_IS_SEND(tcp->base.state))) &&
-        async_io_has_sock(&tcp->base)) {
+    async_io* io = (async_io*)tcp; // downcast
+    if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
         // If we are already not in send state and have a socket
         async_io_tcp_state_send_set(tcp);
         return 0;
     } else {
         // We are busy sending already or not connected
-        return -1;
-    }
-}
-
-int
-async_io_tcp_recv(async_io_tcp* tcp)
-{
-    if (async_io_has_sock(&tcp->base)) {
-        async_io_tcp_state_recv_set(tcp);
-        return 0;
-    } else {
         return -1;
     }
 }
@@ -133,6 +122,7 @@ async_io_tcp_poll_send(async_io* io)
         ret = tcp->tx(&io->sock, &io->b[io->c], io->len - io->c);
         if (ret >= 0) {
             if (ret + (int)io->c == end) {
+                // Send complete - put back to recv state
                 tcp->on_send(io->ctx, 0, io->b, io->len);
                 async_io_tcp_state_recv_set(tcp);
                 ret = 0;
