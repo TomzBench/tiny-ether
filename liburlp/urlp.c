@@ -89,6 +89,14 @@ urlp_free(urlp** rlp_p)
 }
 
 uint32_t
+urlp_read_size(const uint8_t* b)
+{
+    uint32_t result, szsz;
+    szsz = urlp_read_sz(b, &result);
+    return result + szsz;
+}
+
+uint32_t
 urlp_szsz(uint32_t size)
 {
     return 4 - (urlp_clz_fn(size) / 8);

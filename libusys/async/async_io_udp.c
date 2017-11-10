@@ -115,9 +115,31 @@ async_io_udp_poll_send(async_io* io)
 int
 async_io_udp_poll_recv(async_io* io)
 {
-    int c, ret = -1, end = io->len;
+    int ret = -1;
     async_io_udp* udp = (async_io_udp*)io; // up cast
 
+    while (1) {
+        ret = udp->rx(&io->sock, &io->b[io->c], io->len - io->c, &udp->addr);
+        if (ret > 0) {
+            io->c += ret;
+            if (io->c >= io->len) {
+                udp->on_erro(io->ctx); // IO error
+                async_io_state_erro_set(io);
+                break;
+            }
+        } else if (ret < 0) {
+            udp->on_erro(io->ctx); // IO error
+            async_io_state_erro_set(io);
+            break;
+        } else {
+            // ret==0
+            udp->on_recv(io->ctx, 0, io->b, io->c);
+            io->c = 0;
+            break;
+        }
+    }
+
+    /*
     for (c = 0; c < 2; c++) {
         ret = udp->rx(&io->sock, &io->b[io->c], io->len - io->c, &udp->addr);
         if (ret >= 0) {
@@ -144,5 +166,6 @@ async_io_udp_poll_recv(async_io* io)
             async_io_state_erro_set(io);
         }
     }
+    */
     return ret;
 }

@@ -311,7 +311,7 @@ rlpx_io_recv(rlpx_io_tcp* ch, const uint8_t* d, size_t l)
 int
 rlpx_io_parse_udp(
     const uint8_t* b,
-    uint32_t l,
+    uint32_t len,
     uecc_public_key* node_id,
     int* type,
     urlp** rlp)
@@ -321,19 +321,19 @@ rlpx_io_parse_udp(
     int err;
 
     // Check len before parsing around
-    if (l < (sizeof(h256) + 65 + 3)) return -1;
+    if (len < (sizeof(h256) + 65 + 3)) return -1;
 
     // Check hash  hash = sha3(sig, type, rlp)
-    ukeccak256((uint8_t*)&b[32], l - 32, hash.b, 32);
+    ukeccak256((uint8_t*)&b[32], len - 32, hash.b, 32);
     if (memcmp(hash.b, b, 32)) return -1;
 
     // Recover signature from signed hash of type+rlp
-    ukeccak256((uint8_t*)&b[32 + 65], l - (32 + 65), shash.b, 32);
+    ukeccak256((uint8_t*)&b[32 + 65], len - (32 + 65), shash.b, 32);
     err = uecc_recover_bin(&b[32], shash.b, node_id);
 
     // Return OK
     *type = b[32 + 65];
-    *rlp = urlp_parse(&b[32 + 65 + 1], l - (32 + 65 + 1));
+    *rlp = urlp_parse(&b[32 + 65 + 1], len - (32 + 65 + 1));
     return 0;
 }
 
@@ -526,6 +526,8 @@ rlpx_io_on_recv_from(void* ctx, int err, uint8_t* b, uint32_t l)
 {
     rlpx_io_udp* self = ctx;
     if (!err) err = rlpx_io_recv_udp(self, b, l);
+
+    if (err) usys_log("[ IN] [UDP] %s", "recv (error)");
     return err;
 }
 
