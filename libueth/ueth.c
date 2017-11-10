@@ -134,13 +134,11 @@ ueth_poll_internal(ueth_context* ctx)
             d = rlpx_io_discovery_get_context(&ctx->discovery);
             r = rlpx_io_discovery_table_node_get_random(&d->table);
             if (r) {
-                // uint32_t ipv4 = usys_ntohl(*(uint32_t*)r->ep.ip);
-                // uint32_t port = usys_ntohl(r->ep.tcp);
-                // uint8_t* ip = (uint8_t*)&ipv4;
                 if (r->ep.iplen == 4) {
                     uint32_t ip;
                     memcpy(&ip, r->ep.ip, 4);
                     usys_log("[OUT] [UDP] (connecting) (%s)", usys_ntoa(ip));
+		    // TODO - usys should take network byte order
                     err = rlpx_io_connect(
                         &ctx->ch[i],
                         &r->nodeid,
