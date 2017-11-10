@@ -237,6 +237,12 @@ usys_sock_ready(usys_socket_fd* sock)
     return err ? err : (optval == EINPROGRESS) ? 0 : optval ? -1 : 1;
 }
 
+uint32_t
+usys_atoh(const char* ip)
+{
+    return inet_network(ip);
+}
+
 //
 //
 //

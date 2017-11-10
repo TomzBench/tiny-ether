@@ -72,6 +72,7 @@ void usys_close(usys_socket_fd* fd);
 void usys_close_fd(usys_socket_fd s);
 int usys_sock_error(usys_socket_fd* fd);
 int usys_sock_ready(usys_socket_fd* fd);
+uint32_t usys_atoh(const char* ip);
 uint32_t usys_select(
     uint32_t* rmask,
     uint32_t* wmask,

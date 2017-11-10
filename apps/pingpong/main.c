@@ -44,6 +44,7 @@ main(int argc, char* argv[])
 {
     ((void)argc);
     ((void)argv);
+    int count = 0;
     ueth_context eth;
 
     // Log message
@@ -60,12 +61,17 @@ main(int argc, char* argv[])
         // Poll io
         usys_msleep(200);
         ueth_poll(&eth);
-        // rlpx_io_discovery_send_find(
-        //    eth.discovery.rlpx.protocols[0].context, //
-        //    0,
-        //    30303,
-        //    &eth.id.Q,
-        //    usys_now());
+        if (count++ >= 10) {
+            count = 0;
+            rlpx_io_discovery_send_find(
+                eth.discovery.rlpx.protocols[0].context,
+                // usys_atoh("94.242.229.4"),
+                // 40404,
+                usys_atoh("127.0.0.1"),
+                30303,
+                &eth.id.Q,
+                usys_now());
+        }
     }
 
     // Notify remotes of shutdown and clean

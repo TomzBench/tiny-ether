@@ -250,7 +250,7 @@ rlpx_io_devp2p_recv_pong(void* ctx, const urlp* rlp)
     ((void)rlp);
     rlpx_io_devp2p* ch = ctx;
     usys_log("[ IN] (pong)");
-    ch->latency = usys_now() - ch->ping;
+    ch->latency = usys_tick() - ch->ping;
     return 0;
 }
 
@@ -306,7 +306,7 @@ rlpx_io_devp2p_send_ping(rlpx_io_devp2p* ch)
     err =
         rlpx_io_devp2p_write_ping(&ch->base->rlpx.x, async_io_buffer(io), len);
     if (!err) {
-        ch->ping = usys_now();
+        ch->ping = usys_tick();
         usys_log("[OUT] (ping) size: %d", *len);
         return rlpx_io_send_sync(&ch->base->io);
     } else {

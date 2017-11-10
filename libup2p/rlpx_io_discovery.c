@@ -341,6 +341,7 @@ rlpx_io_discovery_recv_ping(
         (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
         return err;
     }
+    usys_log("[ IN] [UDP] (ping)");
     return err;
 }
 
@@ -359,6 +360,7 @@ rlpx_io_discovery_recv_pong(
         (!(err = urlp_idx_to_u32(*rlp, 2, timestamp)))) {
         return err;
     }
+    usys_log("[ IN] [UDP] (pong)");
     return err;
 }
 
@@ -376,13 +378,14 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
         // write tests to mimick send/recv
         // make all io writes sync or use queue
         // Trace mem bug
-        uint32_t l = 133;
-        char hex[l];
-        rlpx_node_bin_to_hex(pub, 65, hex, &l);
-        usys_log("[ IN] [UDP] recv find %s", hex);
-        q = NULL;
+        // uint32_t l = 133;
+        // char hex[l];
+        // rlpx_node_bin_to_hex(pub, 65, hex, &l);
+        // usys_log("[ IN] [UDP] recv find %s", hex);
+        // q = NULL;
         err = 0;
     }
+    usys_log("[ IN] [UDP] (find)");
     return err;
 }
 
@@ -405,6 +408,7 @@ rlpx_io_discovery_recv_neighbours(rlpx_io_discovery_table* t, const urlp** rlp)
         *ts = urlp_at(*rlp, 1);               // get timestamp
     ((void)ts);                               // TODO
     urlp_foreach(n, t, rlpx_walk_neighbours); // loop and add to table
+    usys_log("[ IN] [UDP] (neighbours)");
     return 0;
 }
 
@@ -524,6 +528,7 @@ rlpx_io_discovery_send_ping(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
+    usys_log("[OUT] [UDP] (ping) %d", *len);
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
@@ -548,6 +553,7 @@ rlpx_io_discovery_send_pong(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
+    usys_log("[OUT] [UDP] (pong) %d", *len);
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
@@ -570,6 +576,7 @@ rlpx_io_discovery_send_find(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
+    usys_log("[OUT] [UDP] (find) %d", *len);
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
@@ -592,6 +599,7 @@ rlpx_io_discovery_send_neighbours(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
+    usys_log("[OUT] [UDP] (neighbours) %d", *len);
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }

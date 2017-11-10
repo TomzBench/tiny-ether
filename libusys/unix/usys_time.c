@@ -29,9 +29,15 @@ usys_msleep(uint32_t ms)
 }
 
 int64_t
-usys_now()
+usys_tick()
 {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (int64_t)((int64_t)ts.tv_sec * 1000 + (int64_t)ts.tv_nsec / 1000000);
+}
+
+int64_t
+usys_now()
+{
+    return (int64_t)time(NULL);
 }

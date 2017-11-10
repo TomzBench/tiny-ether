@@ -517,7 +517,7 @@ rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l)
     ((void)err);
     ((void)b);
     ((void)l);
-    usys_log("[ IN] [UDP] %s", err ? "send (error)" : "send");
+    if (err) usys_log("[OUT] [UDP] %s", "send (error)");
     return 0;
 }
 
