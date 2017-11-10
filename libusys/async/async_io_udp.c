@@ -126,16 +126,16 @@ async_io_udp_poll_recv(async_io* io)
                 udp->on_erro(io->ctx); // IO error
                 async_io_state_erro_set(io);
                 break;
+            } else {
+                udp->on_recv(io->ctx, 0, io->b, io->c);
+                io->c = 0;
             }
         } else if (ret < 0) {
             udp->on_erro(io->ctx); // IO error
             async_io_state_erro_set(io);
             break;
         } else {
-            // ret==0
-            udp->on_recv(io->ctx, 0, io->b, io->c);
-            io->c = 0;
-            break;
+            break; // ret==0
         }
     }
 

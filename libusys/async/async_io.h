@@ -43,7 +43,7 @@ typedef struct async_io
 {
     usys_socket_fd sock;
     uint32_t state, c, len;
-    uint8_t b[1280];
+    uint8_t b[1290];
     void* ctx;
     usys_io_close_fn close;
     int (*poll)(struct async_io*);

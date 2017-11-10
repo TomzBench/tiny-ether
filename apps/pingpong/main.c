@@ -29,7 +29,13 @@
     "ca634cae0d49acb401d8a4c6b6fe8c55b70d115bf400769cc1400f3258cd31387574077f" \
     "301b421bc84df7266c44e9e6d569fc56be00812904767bf5ccd1fc7f"
 
-const char* g_test_enode = "enode://" REMOTE "@127.0.0.1:30303";
+#define TEST_ENODE_3                                                           \
+    "enode://"                                                                 \
+    "8c441faab26ed52d0b2ca9755ea042e9e1c153c0fc47ddcadcd55551bae5592a631fefd4" \
+    "13270bd6ac41a240f752f7a5c58edd1a8daddd614ea31b6099093358@45.55.63.72:"    \
+    "30303"
+
+// const char* g_test_enode = "enode://" REMOTE "@127.0.0.1:30303";
 
 ueth_config config = { //
     .p2p_private_key = SKEY,
@@ -55,7 +61,8 @@ main(int argc, char* argv[])
 
     // start
     ueth_init(&eth, &config);
-    ueth_start(&eth, 1, g_test_enode);
+    // ueth_start(&eth, 1, g_test_enode);
+    ueth_start(&eth, 1, TEST_ENODE_3);
 
     while (usys_running()) {
         // Poll io
@@ -65,12 +72,12 @@ main(int argc, char* argv[])
             count = 0;
             rlpx_io_discovery_send_find(
                 eth.discovery.rlpx.protocols[0].context,
-                // usys_atoh("94.242.229.4"),
-                // 40404,
-                usys_atoh("127.0.0.1"),
+                usys_atoh("45.55.63.72"),
                 30303,
+                // usys_atoh("127.0.0.1"),
+                // 30303,
                 &eth.id.Q,
-                usys_now());
+                usys_now() + 2);
         }
     }
 
