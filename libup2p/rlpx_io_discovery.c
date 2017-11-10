@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // at your option) any later version.
 //
-// This program is distributed in the hope that it will be useful,
+// This program is distributed in the hope that it will be state,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -123,7 +123,7 @@ rlpx_io_discovery_table_update_recent(
 }
 
 int
-rlpx_io_discovery_table_add_node_rlp(
+rlpx_io_discovery_table_node_add_rlp(
     rlpx_io_discovery_table* table,
     const urlp* rlp)
 {
@@ -140,14 +140,14 @@ rlpx_io_discovery_table_add_node_rlp(
         (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
-        err = rlpx_io_discovery_table_add_node(
+        err = rlpx_io_discovery_table_node_add(
             table, ipbuf, iplen, udp, tcp, &q, NULL);
     }
     return err;
 }
 
 int
-rlpx_io_discovery_table_add_node(
+rlpx_io_discovery_table_node_add(
     rlpx_io_discovery_table* table,
     uint8_t* ip,
     uint32_t iplen,
@@ -156,36 +156,57 @@ rlpx_io_discovery_table_add_node(
     uecc_public_key* id,
     urlp* meta)
 {
-    rlpx_io_discovery_endpoint_node* n = &table->nodes[0];
-    uint32_t i = 0,
-             c = sizeof(table->nodes) - sizeof(rlpx_io_discovery_endpoint_node);
+    rlpx_io_discovery_endpoint_node* n;
 
     ((void)meta); // potential use in future
 
     // Seek a free slot in our table and populate
-    for (i = 0; i < c; i++) {
-        if ((n->useful == RLPX_USEFUL_FALSE) ||
-            (n->useful == RLPX_USEFUL_FREE)) {
-            memset(n->ep.ip, 0, 16);
-            memcpy(n->ep.ip, ip, iplen);
-            n->ep.udp = udp;
-            n->ep.tcp = tcp;
-            n->nodeid = *id;
+    n = rlpx_io_discovery_table_node_get_id(table, NULL);
+    if (n) {
+        // Have a free slot to populate
+        memset(n->ep.ip, 0, 16);
+        memcpy(n->ep.ip, ip, iplen);
+        n->ep.udp = udp;
+        n->ep.tcp = tcp;
+        n->nodeid = *id;
 
-            // Need devp2p hello to figure out if we like this node
-            // This will probably change with introduction of topics in the
-            // udp discovery protocol.
-            //
-            // The rlpx_io_discovery driver will mark this node as useless if
-            // it doesn't like it - it will then be overwritten with other
-            // nodes when usefulness is set to false.
-            //
-            // Not investing much effort here.
-            n->useful = RLPX_USEFUL_PENDING;
-            break;
+        // Need devp2p hello to figure out if we like this node
+        // This will probably change with introduction of topics in the
+        // udp discovery protocol.
+        //
+        // The rlpx_io_discovery driver will mark this node as useless if
+        // it doesn't like it - it will then be overwritten with other
+        // nodes when state is set to false.
+        //
+        // Not investing much effort here.
+        n->state = RLPX_STATE_PENDING;
+        return 0;
+    } else {
+        // TODO Ping some nodes free some space
+    }
+    return -1;
+}
+
+rlpx_io_discovery_endpoint_node*
+rlpx_io_discovery_table_node_get_id(
+    rlpx_io_discovery_table* table,
+    const uecc_public_key* id)
+{
+    uint32_t c = sizeof(table->nodes) - sizeof(rlpx_io_discovery_endpoint_node);
+    rlpx_io_discovery_endpoint_node* seek = NULL;
+    if (id) {
+        for (uint32_t i = 0; i < c; i++) {
+            seek = &table->nodes[i];
+            if (seek->state && uecc_cmpq(&seek->nodeid, id)) return seek;
+        }
+    } else {
+        for (uint32_t i = 0; i < c; i++) {
+            seek = &table->nodes[i];
+            if (!seek->state) return seek;
         }
     }
-    return 0;
+    // Arrive here didn't find what caller wants
+    return NULL;
 }
 
 int
@@ -418,7 +439,7 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
     // rlp.list(ipv(4|6),udp,tcp,nodeid)
     ((void)idx);
     rlpx_io_discovery_table* table = (rlpx_io_discovery_table*)ctx;
-    rlpx_io_discovery_table_add_node_rlp(table, rlp);
+    rlpx_io_discovery_table_node_add_rlp(table, rlp);
 }
 
 int

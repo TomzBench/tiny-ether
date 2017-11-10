@@ -43,11 +43,11 @@ typedef enum {
  * @brief Do we like this peer?
  */
 typedef enum {
-    RLPX_USEFUL_FREE = 0,
-    RLPX_USEFUL_PENDING = 1,
-    RLPX_USEFUL_TRUE = 2,
-    RLPX_USEFUL_FALSE = 3
-} RLPX_DISCOVERY_USEFUL;
+    RLPX_STATE_FREE = 0,
+    RLPX_STATE_PENDING = 1,
+    RLPX_STATE_TRUE = 2,
+    RLPX_STATE_FALSE = 3
+} RLPX_DISCOVERY_STATE;
 
 /**
  * @brief IPv4|IPv6 Endpoint data
@@ -66,9 +66,9 @@ typedef struct
  */
 typedef struct
 {
-    rlpx_io_discovery_endpoint ep; /*!< remote endpoint routing*/
-    uecc_public_key nodeid;        /*!< pubkey */
-    RLPX_DISCOVERY_USEFUL useful;  /*!< usefulness */
+    rlpx_io_discovery_endpoint ep;  /*!< remote endpoint routing*/
+    uecc_public_key nodeid;         /*!< pubkey */
+    RLPX_DISCOVERY_STATE state; /*!< usefulness */
 } rlpx_io_discovery_endpoint_node;
 
 /**
@@ -181,7 +181,7 @@ void rlpx_io_discovery_table_update_recent(
  *
  * @return
  */
-int rlpx_io_discovery_table_add_node_rlp(
+int rlpx_io_discovery_table_node_add_rlp(
     rlpx_io_discovery_table* table,
     const urlp* rlp);
 
@@ -198,7 +198,7 @@ int rlpx_io_discovery_table_add_node_rlp(
  *
  * @return
  */
-int rlpx_io_discovery_table_add_node(
+int rlpx_io_discovery_table_node_add(
     rlpx_io_discovery_table* table,
     uint8_t* ip,
     uint32_t iplen,
@@ -206,6 +206,17 @@ int rlpx_io_discovery_table_add_node(
     uint32_t udp,
     uecc_public_key* id,
     urlp* meta);
+
+/**
+ * @brief Seek a node in the table. (pass null to receive empty node)
+ *
+ * @param table
+ *
+ * @return
+ */
+rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_id(
+    rlpx_io_discovery_table* table,
+    const uecc_public_key* id);
 
 /**
  * @brief Dummy function to populate a callback not used during udp for now.
