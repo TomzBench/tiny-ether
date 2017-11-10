@@ -29,6 +29,8 @@ extern "C" {
 #include "rlpx_config.h"
 #include "rlpx_io.h"
 
+#define RLPX_IO_DISCOVERY_TABLE_SIZE 100
+
 /**
  * @brief Discovery protocol packet types
  */
@@ -66,9 +68,9 @@ typedef struct
  */
 typedef struct
 {
-    rlpx_io_discovery_endpoint ep;  /*!< remote endpoint routing*/
-    uecc_public_key nodeid;         /*!< pubkey */
-    RLPX_DISCOVERY_STATE state; /*!< usefulness */
+    rlpx_io_discovery_endpoint ep; /*!< remote endpoint routing*/
+    uecc_public_key nodeid;        /*!< pubkey */
+    RLPX_DISCOVERY_STATE state;    /*!< usefulness */
 } rlpx_io_discovery_endpoint_node;
 
 /**
@@ -76,7 +78,7 @@ typedef struct
  */
 typedef struct
 {
-    rlpx_io_discovery_endpoint_node nodes[10];   /*!< potential peers */
+    rlpx_io_discovery_endpoint_node nodes[RLPX_IO_DISCOVERY_TABLE_SIZE];
     rlpx_io_discovery_endpoint_node* recents[3]; /*!< last ping */
 } rlpx_io_discovery_table;
 
@@ -113,6 +115,15 @@ int rlpx_io_discovery_install(rlpx_io_udp* base);
  * @param ptr_p
  */
 void rlpx_io_discovery_uninstall(void** ptr_p);
+
+/**
+ * @brief
+ *
+ * @param rlpx
+ *
+ * @return
+ */
+rlpx_io_discovery* rlpx_io_discovery_get_context(rlpx_io_udp* rlpx);
 
 /**
  * @brief Initialize a rlpx_io_discovery_table context
@@ -217,6 +228,16 @@ int rlpx_io_discovery_table_node_add(
 rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_id(
     rlpx_io_discovery_table* table,
     const uecc_public_key* id);
+
+/**
+ * @brief Grab a random node in table
+ *
+ * @param table
+ *
+ * @return
+ */
+rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_random(
+    rlpx_io_discovery_table* table);
 
 /**
  * @brief Dummy function to populate a callback not used during udp for now.

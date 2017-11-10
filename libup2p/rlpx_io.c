@@ -140,6 +140,15 @@ rlpx_io_deinit(rlpx_io* rlpx)
         }
     }
     if (rlpx->hs) rlpx_handshake_free(&rlpx->hs);
+    memset(rlpx, 0, sizeof(rlpx_io));
+}
+
+void
+rlpx_io_refresh(rlpx_io* rlpx)
+{
+    rlpx->error = rlpx->shutdown = rlpx->ready = 0;
+    rlpx_node_deinit(&rlpx->node);
+    if (rlpx->hs) rlpx_handshake_free(&rlpx->hs);
 }
 
 int
@@ -150,6 +159,17 @@ rlpx_io_poll(rlpx_io_tcp** ch, uint32_t count, uint32_t ms)
 
 int
 rlpx_io_connect(
+    rlpx_io_tcp* ch,
+    const uecc_public_key* to,
+    uint32_t ip,
+    uint32_t tcp)
+{
+    const char* host = usys_ntoa(ip);
+    return rlpx_io_connect_host(ch, to, host, usys_ntohl(tcp));
+}
+
+int
+rlpx_io_connect_host(
     rlpx_io_tcp* ch,
     const uecc_public_key* to,
     const char* host,
@@ -231,19 +251,17 @@ rlpx_io_send(async_io_tcp* io)
 int
 rlpx_io_send_sync(async_io_tcp* tcp)
 {
-    int err = -1;
+    int err = 0;
     async_io* io = (async_io*)tcp;
     if (!(async_io_has_sock(io))) return err;
-    while (async_io_state_send(io)) {
-        usys_msleep(20);
-        async_io_tcp_poll(tcp);
+    while ((async_io_state_send(io)) && (!err)) {
+        usys_msleep(200);
+        err = async_io_tcp_poll(tcp);
     }
     err = async_io_tcp_send(tcp);
-    if (!err) {
-        while (async_io_state_send(io)) {
-            usys_msleep(20);
-            async_io_tcp_poll(tcp);
-        }
+    while ((async_io_state_send(io)) && (!err)) {
+        usys_msleep(200);
+        err = async_io_tcp_poll(tcp);
     }
     return err;
 }
@@ -472,6 +490,7 @@ rlpx_io_on_erro(void* ctx)
 {
     rlpx_io_tcp* ch = (rlpx_io_tcp*)ctx;
     usys_log_err("[ERR] %d", ch->io.base.sock);
+    rlpx_io_error_set(&ch->rlpx, 1);
     async_io_close((async_io*)ch);
     return 0;
 }

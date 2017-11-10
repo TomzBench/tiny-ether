@@ -61,6 +61,7 @@ typedef struct rlpx
     rlpx_handshake* hs;          /*!< temp context during handshake process */
     int ready;                   /*!< handshake complete */
     int shutdown;                /*!< shutting down */
+    int error;                   /*!< erro state */
     uint8_t node_id[65];         /*!< node id */
     const uint32_t* listen_port; /*!< our listen port */
     rlpx_io_protocol protocols[RLPX_IO_MAX_PROTOCOL]; /*!< map */
@@ -87,11 +88,17 @@ void rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
 void rlpx_io_udp_deinit(rlpx_io_udp* io);
 void rlpx_io_tcp_deinit(rlpx_io_tcp* io);
 void rlpx_io_deinit(rlpx_io* session);
+void rlpx_io_refresh(rlpx_io* rlpx);
 
 // methods
 int rlpx_io_poll(rlpx_io_tcp** ch, uint32_t count, uint32_t ms);
 int rlpx_io_listen(rlpx_io_tcp* io);
 int rlpx_io_connect(
+    rlpx_io_tcp* ch,
+    const uecc_public_key* to,
+    uint32_t ip,
+    uint32_t tcp);
+int rlpx_io_connect_host(
     rlpx_io_tcp* ch,
     const uecc_public_key* to,
     const char* host,
@@ -119,6 +126,30 @@ static inline void
 rlpx_io_nonce(rlpx_io* io)
 {
     unonce(io->nonce.b);
+}
+
+static inline int
+rlpx_io_error_get(rlpx_io* io)
+{
+    return io->error;
+}
+
+static inline int
+rlpx_io_tcp_error_get(rlpx_io_tcp* io)
+{
+    return rlpx_io_error_get(&io->rlpx);
+}
+
+static inline void
+rlpx_io_tcp_refresh(rlpx_io_tcp* tcp)
+{
+    return rlpx_io_refresh(&tcp->rlpx);
+}
+
+static inline void
+rlpx_io_error_set(rlpx_io* io, int error)
+{
+    io->error = error;
 }
 
 static const uecc_public_key*

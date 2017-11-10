@@ -20,6 +20,7 @@
  */
 
 #include "ueth.h"
+#include "usys_io.h"
 #include "usys_log.h"
 #include "usys_time.h"
 
@@ -116,17 +117,41 @@ ueth_stop(ueth_context* ctx)
 int
 ueth_poll_internal(ueth_context* ctx)
 {
-    uint32_t i, b = 0;
+    uint32_t i, b = 0, err;
     async_io* ch[ctx->n + 1];
     for (i = 0; i < ctx->n; i++) {
-        // If this channel has peer
+        // Refresh channel if it is in error
+        if (rlpx_io_tcp_error_get(&ctx->ch[i])) {
+            // Kick out of discovery table
+
+            // Refresh space (don't like allocs)
+            rlpx_io_tcp_refresh(&ctx->ch[i]);
+        }
+        // Find free node to connect to if empty
+        if (!ctx->ch[i].rlpx.node.port_tcp) {
+            rlpx_io_discovery* d;
+            rlpx_io_discovery_endpoint_node* r;
+            d = rlpx_io_discovery_get_context(&ctx->discovery);
+            r = rlpx_io_discovery_table_node_get_random(&d->table);
+            if (r) {
+                // uint32_t ipv4 = usys_ntohl(*(uint32_t*)r->ep.ip);
+                // uint32_t port = usys_ntohl(r->ep.tcp);
+                // uint8_t* ip = (uint8_t*)&ipv4;
+                if (r->ep.iplen == 4) {
+                    uint32_t ip;
+                    memcpy(&ip, r->ep.ip, 4);
+                    usys_log("[OUT] [UDP] (connecting) (%s)", usys_ntoa(ip));
+                    err = rlpx_io_connect(
+                        &ctx->ch[i],
+                        &r->nodeid,
+                        usys_ntohl(ip),
+                        usys_ntohl(r->ep.tcp));
+                }
+            }
+        }
+        // Add to io polling if there is a socket
         if (ctx->ch[i].rlpx.node.port_tcp) {
             ch[b++] = (async_io*)&ctx->ch[i];
-            // If this channel is not connected
-            if (!rlpx_io_is_connected(&ctx->ch[i])) {
-                rlpx_io_nonce(&ctx->ch[i].rlpx);
-                rlpx_io_connect_node(&ctx->ch[i], &ctx->ch[i].rlpx.node);
-            }
         }
     }
 

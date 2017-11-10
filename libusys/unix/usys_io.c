@@ -34,16 +34,24 @@ int
 usys_connect(usys_socket_fd* sock_p, const char* host, int port)
 {
     // return <0 if err, 0 if INPROGRESS, >0 if connect instant (ie local host)
+    uint32_t ip;
+    inet_pton(AF_INET, host, &ip);
+    return usys_connect_raw(sock_p, ip, port);
+}
+
+int
+usys_connect_raw(usys_socket_fd* sock_p, uint32_t ip, int port)
+{
     int ret = 0;
     struct sockaddr_in addr;
+    usys_socket_fd* sock = sock_p;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    usys_socket_fd* sock = sock_p;
+    addr.sin_addr.s_addr = ip;
     if ((*sock = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)) < 0) {
         return -1;
     }
-    inet_pton(AF_INET, host, &addr.sin_addr);
     int rc = connect(*sock, (struct sockaddr*)&addr, sizeof(addr));
     if (rc < 0) {
         if (errno == EINPROGRESS) {
@@ -241,6 +249,41 @@ uint32_t
 usys_atoh(const char* ip)
 {
     return inet_network(ip);
+}
+
+uint32_t
+usys_aton(const char* host)
+{
+    uint32_t ip;
+    inet_pton(AF_INET, host, &ip);
+    return ip;
+}
+
+const char*
+usys_ntoa(uint32_t ip)
+{
+    struct in_addr in;
+    in.s_addr = ip;
+    return inet_ntoa(in);
+}
+
+const char*
+usys_htoa(uint32_t ip)
+{
+    ip = htonl(ip);
+    return usys_ntoa(ip);
+}
+
+uint32_t
+usys_ntohl(uint32_t n)
+{
+    return ntohl(n);
+}
+
+uint32_t
+usys_htonl(uint32_t n)
+{
+    return htonl(n);
 }
 
 //

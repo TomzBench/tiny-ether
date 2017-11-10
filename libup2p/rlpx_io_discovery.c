@@ -21,6 +21,7 @@
 
 #include "rlpx_io_discovery.h"
 #include "ukeccak256.h"
+#include "urand.h"
 #include "usys_log.h"
 #include "usys_time.h"
 
@@ -56,6 +57,12 @@ rlpx_io_discovery_uninstall(void** ptr_p)
     rlpx_io_discovery* ptr = *ptr_p;
     *ptr_p = NULL;
     rlpx_free(ptr);
+}
+
+rlpx_io_discovery*
+rlpx_io_discovery_get_context(rlpx_io_udp* rlpx)
+{
+    return rlpx->rlpx.protocols[0].context;
 }
 
 void
@@ -98,8 +105,7 @@ rlpx_io_discovery_table_find_node(
     uecc_public_key* target,
     rlpx_io_discovery_endpoint_node* node)
 {
-    uint32_t i = 0,
-             c = sizeof(table->nodes) - sizeof(rlpx_io_discovery_endpoint_node);
+    uint32_t i = 0, c = RLPX_IO_DISCOVERY_TABLE_SIZE;
     for (i = 0; i < c; i++) {
         if (memcmp(
                 table->nodes[i].nodeid.data,
@@ -166,6 +172,7 @@ rlpx_io_discovery_table_node_add(
         // Have a free slot to populate
         memset(n->ep.ip, 0, 16);
         memcpy(n->ep.ip, ip, iplen);
+        n->ep.iplen = iplen;
         n->ep.udp = udp;
         n->ep.tcp = tcp;
         n->nodeid = *id;
@@ -192,7 +199,7 @@ rlpx_io_discovery_table_node_get_id(
     rlpx_io_discovery_table* table,
     const uecc_public_key* id)
 {
-    uint32_t c = sizeof(table->nodes) - sizeof(rlpx_io_discovery_endpoint_node);
+    uint32_t c = RLPX_IO_DISCOVERY_TABLE_SIZE;
     rlpx_io_discovery_endpoint_node* seek = NULL;
     if (id) {
         for (uint32_t i = 0; i < c; i++) {
@@ -206,6 +213,21 @@ rlpx_io_discovery_table_node_get_id(
         }
     }
     // Arrive here didn't find what caller wants
+    return NULL;
+}
+
+rlpx_io_discovery_endpoint_node*
+rlpx_io_discovery_table_node_get_random(rlpx_io_discovery_table* table)
+{
+    rlpx_io_discovery_endpoint_node* nodes[RLPX_IO_DISCOVERY_TABLE_SIZE];
+    int b = 0, i = 0, idx = 0;
+    for (i = 0; i < RLPX_IO_DISCOVERY_TABLE_SIZE; i++) {
+        if (table->nodes[i].state) nodes[b++] = &table->nodes[i];
+    }
+    if (b) {
+        idx = urand_min_max_u8(0, b);
+        if ((idx >= 0) && (idx < (int)b)) return nodes[idx];
+    }
     return NULL;
 }
 

@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-#define UETH_CONFIG_NUM_CHANNELS 8
+#define UETH_CONFIG_NUM_CHANNELS 20
 
 #ifdef __cplusplus
 }

@@ -63,6 +63,7 @@ typedef int (*usys_io_connect_fn)(usys_socket_fd*, const char*, int);
 typedef int (*usys_io_ready_fn)(usys_socket_fd*);
 typedef void (*usys_io_close_fn)(usys_socket_fd*);
 int usys_connect(usys_socket_fd* fd, const char* host, int port);
+int usys_connect_raw(usys_socket_fd* fd, uint32_t ip, int port);
 int usys_listen_udp(usys_socket_fd* sock_p, int port);
 int usys_send_fd(usys_socket_fd fd, const byte* b, uint32_t len);
 int usys_send_to_fd(usys_socket_fd, const byte*, uint32_t, usys_sockaddr*);
@@ -73,6 +74,11 @@ void usys_close_fd(usys_socket_fd s);
 int usys_sock_error(usys_socket_fd* fd);
 int usys_sock_ready(usys_socket_fd* fd);
 uint32_t usys_atoh(const char* ip);
+uint32_t usys_aton(const char* host);
+const char* usys_ntoa(uint32_t ip);
+const char* usys_htoa(uint32_t ip);
+uint32_t usys_ntohl(uint32_t);
+uint32_t usys_htonl(uint32_t);
 uint32_t usys_select(
     uint32_t* rmask,
     uint32_t* wmask,
