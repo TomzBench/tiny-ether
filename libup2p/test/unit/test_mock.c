@@ -21,30 +21,44 @@
 
 #include "test.h"
 
+typedef struct
+{
+    uint8_t* data;
+    uint32_t sz;
+} test_mock_socket;
+
+test_mock_socket g_test_sockets[10] = { //
+    { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 },
+    { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }
+};
+
 // Mock overrides
 int test_mock_ready(usys_socket_fd*);
 int test_mock_connect(usys_socket_fd* fd, const char* host, int port);
 void test_mock_close(usys_socket_fd* fd);
-int test_mock_send(usys_socket_fd* fd,
-                   const byte* b,
-                   uint32_t l,
-                   usys_sockaddr*);
-int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr*);
+int test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l);
+int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l);
 
-async_io_settings g_io_mock_settings = { //
+async_io_mock_settings g_io_mock_settings = { //
     .connect = test_mock_connect,
     .ready = test_mock_ready,
     .close = test_mock_close,
-    .tx = test_mock_send,
-    .rx = test_mock_recv
+    .send = test_mock_send,
+    .recv = test_mock_recv
 };
 int
 test_mock_connect(usys_socket_fd* fd, const char* host, int port)
 {
     ((void)host);
     ((void)port);
-    static int sock = 0;     // 0 is a valid socket.
-    if (*fd >= 0) return -1; // err already connect
+    static int sock = 0;       // 0 is a valid socket.
+    if (*fd >= 0) return -1;   // err already connect
+    if (sock >= 10) return -1; // out of test sockets
+    if (g_test_sockets[sock].data) {
+        rlpx_free(g_test_sockets[sock].data);
+        g_test_sockets[sock].data = NULL;
+        g_test_sockets[sock].sz = 0;
+    }
     *fd = sock++;
     return 1;
 }
@@ -58,27 +72,46 @@ test_mock_ready(usys_socket_fd* fd)
 void
 test_mock_close(usys_socket_fd* fd)
 {
+    if (g_test_sockets[*fd].data) {
+        rlpx_free(g_test_sockets[*fd].data);
+        g_test_sockets[*fd].data = NULL;
+        g_test_sockets[*fd].sz = 0;
+    }
     *fd = -1;
 }
 
 int
-test_mock_send(usys_socket_fd* fd,
-               const byte* b,
-               uint32_t l,
-               usys_sockaddr* addr)
+test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l)
 {
-    ((void)fd);
-    ((void)b);
-    ((void)addr);
-    return l; // Sent all...
+    if (*fd < 10) {
+        // TODO - realloc and prepend instead of free
+        if (g_test_sockets[*fd].data) {
+            rlpx_free(g_test_sockets[*fd].data);
+            g_test_sockets[*fd].data = NULL;
+        }
+        // Read data into sim socket
+        g_test_sockets[*fd].data = rlpx_malloc(l);
+        if (g_test_sockets[*fd].data) {
+            memcpy(g_test_sockets[*fd].data, b, l);
+            g_test_sockets[*fd].sz = l;
+            return l;
+        }
+    }
+    return -1; //
 }
 
 int
-test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr* addr)
+test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l)
 {
-    ((void)fd);
-    ((void)b);
-    ((void)l);
-    ((void)addr);
-    return 0;
+    if (*fd < 10) {
+        if (g_test_sockets[*fd].data) {
+            // TODO if buffer not big enough realloc and shrink, return amount
+            // read
+            if (!(l <= g_test_sockets[*fd].sz)) return -1;
+            memcpy(b, g_test_sockets[*fd].data, g_test_sockets[*fd].sz);
+        } else {
+            return 0; // would block
+        }
+    }
+    return -1;
 }

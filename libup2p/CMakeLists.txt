@@ -1,27 +1,22 @@
 #libup2p sources
 set(sources
 	rlpx_io.c
-	rlpx_io_mock.c
-	rlpx_devp2p.c
-	rlpx_discovery.c
+	rlpx_io_devp2p.c
+	rlpx_io_discovery.c
 	rlpx_frame.c
 	rlpx_handshake.c
-	kademlia/ktable.c
 	rlpx_node.c
-	rlpx_protocol.c
 	rlpx_test_helpers.c)
 set(headers
-	kademlia/ktable.h
 	rlpx_io.h
 	rlpx_config.h
 	rlpx_config_unix.h
-	rlpx_devp2p.h
-	rlpx_discovery.h
+	rlpx_io_devp2p.h
+	rlpx_io_discovery.h
 	rlpx_frame.h
 	rlpx_handshake.h
 	rlpx_helper_macros.h
 	rlpx_node.h
-	rlpx_protocol.h
 	rlpx_test_helpers.h
 	rlpx_types.h)
 
@@ -32,9 +27,9 @@ set(sources-unit-test
 	test/unit/test_enode.c
 	test/unit/test_frame.c
 	test/unit/test_handshake.c
-	test/unit/test_kademlia.c
 	test/unit/test_mock.c
-	test/unit/test_protocol.c)
+	test/unit/test_protocol.c
+	)
 set(headers-unit-test
 	test/unit/test.h
 	test/unit/test_vectors.h)
@@ -62,7 +57,7 @@ add_executable(up2p_integration_test
 target_link_libraries(up2p_integration_test up2p)
 
 # install unit test
-install(TARGETS up2p_unit_test  up2p_integration_test
+install(TARGETS up2p_unit_test up2p_integration_test
 	DESTINATION ${UETH_INSTALL_ROOT}/bin)
 
 #

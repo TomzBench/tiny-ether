@@ -23,132 +23,67 @@
 
 uint32_t g_test_mask = 0;
 
-int test_devp2p_on_hello(void* ctx, const urlp* rlp);
-int test_devp2p_on_ping(void* ctx, const urlp* rlp);
-int test_devp2p_on_pong(void* ctx, const urlp* rlp);
-int test_devp2p_on_disconnect(void* ctx, const urlp* rlp);
-
-rlpx_devp2p_protocol_settings g_test_devp2p_settings = {
-    .on_hello = test_devp2p_on_hello,
-    .on_disconnect = test_devp2p_on_disconnect,
-    .on_ping = test_devp2p_on_ping,
-    .on_pong = test_devp2p_on_pong
-};
-
 int
 test_protocol()
 {
     int err = 0;
+    uint32_t lena = 10000, lenb = 10000;
+    uint8_t buffa[lena], buffb[lenb];
     test_session s;
 
     test_session_init(&s, TEST_VECTOR_LEGACY_GO);
-    rlpx_test_mock_devp2p(&g_test_devp2p_settings);
+    test_session_connect(&s);
+    test_session_handshake(&s);
 
-    rlpx_io_nonce(s.alice);
-    rlpx_io_nonce(s.bob);
-    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(s.bob, &s.alice->skey->Q);
+    // Hello
+    err = rlpx_io_devp2p_write_hello(
+        &s.alice->x, //
+        *s.alice->listen_port,
+        &s.alice->node_id[1],
+        buffa,
+        &lena);
+    IF_ERR_EXIT(err);
+    err = rlpx_io_devp2p_write_hello(
+        &s.bob->x, //
+        *s.bob->listen_port,
+        &s.bob->node_id[1],
+        buffb,
+        &lenb);
+    IF_ERR_EXIT(err);
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
-    // Recv keys
-    IF_ERR_EXIT(rlpx_io_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
+    // Disconnect
+    lena = sizeof(buffa);
+    lenb = sizeof(buffb);
+    err = rlpx_io_devp2p_write_disconnect(
+        &s.alice->x, //
+        DEVP2P_DISCONNECT_BAD_VERSION,
+        buffa,
+        &lena);
+    IF_ERR_EXIT(err);
+    err = rlpx_io_devp2p_write_disconnect(
+        &s.bob->x, //
+        DEVP2P_DISCONNECT_BAD_VERSION,
+        buffb,
+        &lenb);
+    IF_ERR_EXIT(err);
+    IF_ERR_EXIT(rlpx_io_recv(s.alice, buffb, lenb));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
-    // Read/Write HELLO
-    IF_ERR_EXIT(rlpx_io_send_hello(s.alice));
-    IF_ERR_EXIT(rlpx_io_send_hello(s.bob));
-    IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
+    // Ping
+    lena = sizeof(buffa);
+    lenb = sizeof(buffb);
+    IF_ERR_EXIT(rlpx_io_devp2p_write_ping(&s.alice->x, buffa, &lena));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
-    // Read/Write DISCONNECT
-    IF_ERR_EXIT(
-        rlpx_io_send_disconnect(s.alice, DEVP2P_DISCONNECT_BAD_VERSION));
-    IF_ERR_EXIT(rlpx_io_send_disconnect(s.bob, DEVP2P_DISCONNECT_BAD_VERSION));
-    IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
-
-    // Read/Write PING
-    IF_ERR_EXIT(rlpx_io_send_ping(s.alice));
-    IF_ERR_EXIT(rlpx_io_send_ping(s.bob));
-    IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
-
-    // Read/Write PONG
-    IF_ERR_EXIT(rlpx_io_send_pong(s.alice));
-    IF_ERR_EXIT(rlpx_io_send_pong(s.bob));
-    IF_ERR_EXIT(rlpx_io_recv(s.alice, s.bob->io.b, s.bob->io.len));
-    IF_ERR_EXIT(rlpx_io_recv(s.bob, s.alice->io.b, s.alice->io.len));
-
-    // Confirm all callbacks readback
-    IF_ERR_EXIT((g_test_mask == 0x0f) ? 0 : -1);
+    // Pong
+    lena = sizeof(buffa);
+    lenb = sizeof(buffb);
+    IF_ERR_EXIT(rlpx_io_devp2p_write_pong(&s.alice->x, buffa, &lena));
+    IF_ERR_EXIT(rlpx_io_recv(s.bob, buffa, lena));
 
 EXIT:
     test_session_deinit(&s);
-    return err;
-}
-
-int
-test_devp2p_on_hello(void* ctx, const urlp* rlp)
-{
-    int err = 0;
-    const char* mem;
-    uint32_t num;
-    rlpx_io* ch = ctx;
-    uint8_t remote_id[65];
-    uecc_qtob(&ch->node.id, remote_id, 65);
-
-    // Verify p2p ver
-    rlpx_devp2p_protocol_p2p_version(rlp, &num);
-    IF_ERR_EXIT((num == RLPX_VERSION_P2P) ? 0 : -1);
-
-    // Verify client id
-    rlpx_devp2p_protocol_client_id(rlp, &mem, &num);
-    IF_ERR_EXIT((num == RLPX_CLIENT_ID_LEN) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mem, RLPX_CLIENT_ID_STR, num) ? -1 : 0);
-
-    // Verify caps
-    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "p2p", 4));
-    IF_ERR_EXIT(rlpx_devp2p_protocol_capabilities(rlp, "p2p", 4));
-
-    // Verify listen port
-    rlpx_devp2p_protocol_listen_port(rlp, &num);
-    if (!((num == UDP_TEST_PORT) || (num == UDP_TEST_PORT + 1))) goto EXIT;
-
-    // verify node_id
-    rlpx_devp2p_protocol_node_id(rlp, &mem, &num);
-    IF_ERR_EXIT((num == 64) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mem, &remote_id[1], 64) ? -1 : 0);
-
-    g_test_mask |= (0x01 << 0);
-
-EXIT:
-    return err;
-}
-int
-test_devp2p_on_disconnect(void* ctx, const urlp* rlp)
-{
-    ((void)ctx);
-    ((void)rlp);
-    int err = 0;
-    g_test_mask |= (0x01 << 1);
-    return err;
-}
-
-int
-test_devp2p_on_ping(void* ctx, const urlp* rlp)
-{
-    ((void)ctx);
-    ((void)rlp);
-    int err = 0;
-    g_test_mask |= (0x01 << 2);
-    return err;
-}
-
-int
-test_devp2p_on_pong(void* ctx, const urlp* rlp)
-{
-    ((void)ctx);
-    ((void)rlp);
-    int err = 0;
-    g_test_mask |= (0x01 << 3);
     return err;
 }

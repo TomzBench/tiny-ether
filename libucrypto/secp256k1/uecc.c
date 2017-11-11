@@ -128,6 +128,15 @@ uecc_btoq(const byte* b, size_t l, uecc_public_key* q)
 }
 
 int
+uecc_cmpq(const uecc_public_key* a, const uecc_public_key* b)
+{
+    uint8_t puba[65], pubb[65];
+    if (uecc_qtob(a, puba, 65)) return 0;
+    if (uecc_qtob(b, pubb, 65)) return 0;
+    return memcmp(puba, pubb, 65) ? 0 : 1;
+}
+
+int
 uecc_agree_bin(uecc_ctx* ctx, const byte* bytes, size_t blen)
 {
     uecc_public_key key;

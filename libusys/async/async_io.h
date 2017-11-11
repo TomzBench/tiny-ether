@@ -34,57 +34,23 @@ extern "C" {
 #define ASYNC_IO_STATE_SEND (0x01 << 2)
 #define ASYNC_IO_STATE_RECV (0x01 << 3)
 
-#define ASYNC_IO_READY(x) ((x) & (ASYNC_IO_STATE_READY))
-#define ASYNC_IO_SEND(x) ((x) & (ASYNC_IO_STATE_SEND))
-#define ASYNC_IO_RECV(x) ((x) & (ASYNC_IO_STATE_RECV))
-#define ASYNC_IO_ERRO(x) ((x) & (ASYNC_IO_STATE_ERRO))
-#define ASYNC_IO_SOCK(x) ((x)->sock >= 0)
+#define ASYNC_IO_IS_READY(x) ((x) & (ASYNC_IO_STATE_READY))
+#define ASYNC_IO_IS_SEND(x) ((x) & (ASYNC_IO_STATE_SEND))
+#define ASYNC_IO_IS_RECV(x) ((x) & (ASYNC_IO_STATE_RECV))
+#define ASYNC_IO_IS_ERRO(x) ((x) & (ASYNC_IO_STATE_ERRO))
 
-#define ASYNC_IO_SET_SEND(x)                                                   \
-    do {                                                                       \
-        (x)->state |= ASYNC_IO_STATE_SEND;                                     \
-        (x)->state &= (~(ASYNC_IO_STATE_RECV));                                \
-        (x)->c = 0;                                                            \
-    } while (0)
-
-#define ASYNC_IO_SET_RECV(x)                                                   \
-    do {                                                                       \
-        (x)->state |= ASYNC_IO_STATE_RECV;                                     \
-        (x)->state &= (~(ASYNC_IO_STATE_SEND));                                \
-        (x)->c = 0;                                                            \
-        (x)->len = 1200;                                                       \
-    } while (0)
-
-#define ASYNC_IO_SET_ERRO(x)                                                   \
-    do {                                                                       \
-        (x)->settings.on_erro((x)->ctx);                                       \
-        (x)->state = 0;                                                        \
-        (x)->c = 0;                                                            \
-        (x)->len = 0;                                                          \
-        if (ASYNC_IO_SOCK((x))) usys_close(&(x)->sock);                        \
-    } while (0)
-
-#define ASYNC_IO_SET_READY(x)                                                  \
-    do {                                                                       \
-        (x)->state |= ASYNC_IO_STATE_READY;                                    \
-        (x)->c = 0;                                                            \
-        (x)->len = 0;                                                          \
-    } while (0)
-
-#define ASYNC_IO_CLOSE(x)                                                      \
-    do {                                                                       \
-        (x)->state = 0;                                                        \
-        (x)->c = 0;                                                            \
-        (x)->len = 0;                                                          \
-        if (ASYNC_IO_SOCK((x))) usys_close(&(x)->sock);                        \
-    } while (0)
-
+/**
+ * @brief IO callback
+ */
 typedef int (*async_io_on_connect_fn)(void*);
 typedef int (*async_io_on_accept_fn)(void*);
 typedef int (*async_io_on_erro_fn)(void*);
-typedef int (*async_io_on_send_fn)(void*, int err, const uint8_t* b, uint32_t);
+typedef int (*async_io_on_send_fn)(void*, int, const uint8_t*, uint32_t);
 typedef int (*async_io_on_recv_fn)(void*, int err, uint8_t* b, uint32_t);
 
+/**
+ * @brief Initialize io context with callbacks
+ */
 typedef struct async_io_settings
 {
     async_io_on_connect_fn on_connect;
@@ -92,86 +58,230 @@ typedef struct async_io_settings
     async_io_on_erro_fn on_erro;
     async_io_on_send_fn on_send;
     async_io_on_recv_fn on_recv;
-    usys_io_send_to_fn tx;
-    usys_io_recv_from_fn rx;
+} async_io_settings;
+
+/**
+ * @brief Override usys_io_... with mock behavior for test
+ */
+typedef struct async_io_mock_settings
+{
+    union
+    {
+        usys_io_send_fn send;
+        usys_io_send_to_fn sendto;
+    };
+    union
+    {
+        usys_io_recv_fn recv;
+        usys_io_recv_from_fn recvfrom;
+    };
     usys_io_ready_fn ready;
     usys_io_connect_fn connect;
     usys_io_close_fn close;
-} async_io_settings;
+} async_io_mock_settings;
 
-typedef struct
+/**
+ * @brief Main async io context
+ * Send/Recv in a union to support different function pointer types for type
+ * checking.
+ */
+typedef struct async_io
 {
     usys_socket_fd sock;
-    uint32_t state;
-    async_io_settings settings;
-    void* ctx;
     usys_sockaddr addr;
-    usys_sockaddr* addr_ptr;
-    uint32_t c, len;
-    uint8_t b[1200];
+    void* ctx;
+    uint32_t state, c, len;
+    int (*poll)(struct async_io*);
+    usys_io_close_fn close;
+    usys_io_ready_fn ready;
+    usys_io_connect_fn connect;
+    async_io_on_connect_fn on_connect;
+    async_io_on_accept_fn on_accept;
+    async_io_on_erro_fn on_error;
+    async_io_on_send_fn on_send;
+    async_io_on_recv_fn on_recv;
+    union
+    {
+        usys_io_send_fn send;
+        usys_io_send_to_fn sendto;
+    };
+    union
+    {
+        usys_io_recv_fn recv;
+        usys_io_recv_from_fn recvfrom;
+    };
+    uint8_t b[1290];
 } async_io;
 
-void async_io_install(usys_io_send_fn s, usys_io_recv_fn r);
-void async_io_init_udp(async_io*, void*, const async_io_settings*);
-void async_io_init(async_io*, void*, const async_io_settings*);
-void async_io_deinit(async_io* self);
-int async_io_connect(async_io* async, const char* ip, uint32_t p);
-void async_io_close(async_io* self);
-void* async_io_mem(async_io* self, uint32_t idx);
-void async_io_len_set(async_io* self, uint32_t len);
-uint32_t async_io_len(async_io* self);
-const void* async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l);
-int async_io_print(async_io* self, uint32_t, const char* fmt, ...);
-int async_io_send(async_io*);
-int async_io_recv(async_io*);
+void async_io_tcp_init(async_io* io, async_io_settings* settings, void* ctx);
+void async_io_udp_init(async_io* io, async_io_settings* settings, void* ctx);
+void async_io_init(async_io* io, void* ctx);
+void async_io_deinit(async_io* io);
+
+void async_io_install_mock(async_io* io, async_io_mock_settings* mock);
+
+int async_io_tcp_connect(async_io* tcp, const char* ip, uint32_t p);
+int async_io_tcp_accept(async_io* io);
+int async_io_udp_listen(async_io* io, uint32_t port);
+
+int async_io_tcp_send(async_io* io);
+int async_io_udp_send(async_io* io, uint32_t ip, uint32_t port);
+
 int async_io_poll_n(async_io** io, uint32_t n, uint32_t ms);
-int async_io_poll(async_io*);
-void async_io_set_cb_recv(async_io* self, async_io_on_recv_fn fn);
-void async_io_set_cb_send(async_io* self, async_io_on_send_fn fn);
-int async_io_sock(async_io* self);
-int async_io_has_sock(async_io* self);
-int async_io_state_recv(async_io* self);
-int async_io_state_send(async_io* self);
+
+int async_io_tcp_poll_connect(async_io* io);
+int async_io_tcp_poll_send(async_io* io);
+int async_io_tcp_poll_recv(async_io* io);
+
+int async_io_udp_poll_send(async_io* io);
+int async_io_udp_poll_recv(async_io* io);
 
 static inline int
-async_io_default_on_connect(void* ctx)
+async_io_has_sock(async_io* io)
 {
-    ((void)ctx);
-    return 0;
+    return (io->sock >= 0);
+}
+
+static inline void
+async_io_close(async_io* io)
+{
+    io->close(&io->sock);
+    io->state = io->len = io->c = 0;
+}
+
+static inline void
+async_io_on_recv(async_io* io, async_io_on_recv_fn fn)
+{
+    io->on_recv = fn;
+}
+
+static inline void
+async_io_on_send(async_io* io, async_io_on_send_fn fn)
+{
+    io->on_send = fn;
+}
+
+static inline uint32_t
+async_io_ip_addr(async_io* io)
+{
+    return io->addr.ip;
+}
+
+static inline uint32_t
+async_io_port(async_io* io)
+{
+    return io->addr.port;
+}
+
+static inline void*
+async_io_mem(async_io* self, uint32_t idx)
+{
+    return &self->b[idx];
+}
+
+static inline void
+async_io_len_set(async_io* self, uint32_t len)
+{
+    self->len = len;
+}
+
+static inline uint32_t
+async_io_len(async_io* self)
+{
+    return self->len;
+}
+
+static inline const void*
+async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l)
+{
+    self->len = idx + l;
+    return memcpy(&self->b[idx], mem, l);
 }
 
 static inline int
-async_io_default_on_accept(void* ctx)
+async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
 {
-    ((void)ctx);
-    return 0;
-}
-static inline int
-
-async_io_default_on_erro(void* ctx)
-{
-    ((void)ctx);
-    return 0;
+    int l;
+    va_list ap;
+    va_start(ap, fmt);
+    l = vsnprintf((char*)&self->b[idx], sizeof(self->b) - idx, fmt, ap);
+    if (l >= 0) self->len = l;
+    va_end(ap);
+    return l;
 }
 
-static inline int
-async_io_default_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
+static inline uint8_t*
+async_io_buffer(async_io* io)
 {
-    ((void)ctx);
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    return 0;
+    return ((async_io*)io)->b;
+}
+
+static inline uint32_t*
+async_io_buffer_length_pointer(async_io* io)
+{
+    return &((async_io*)io)->len;
+}
+
+static inline void
+async_io_len_reset(async_io* tcp)
+{
+    ((async_io*)tcp)->len = sizeof((async_io*)tcp)->b;
 }
 
 static inline int
-async_io_default_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
+async_io_poll(async_io* io)
 {
-    ((void)ctx);
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    return 0;
+    return io->poll(io);
+}
+
+static inline int
+async_io_state_ready(async_io* io)
+{
+    return ASYNC_IO_IS_READY(io->state);
+}
+
+static inline void
+async_io_state_ready_set(async_io* io)
+{
+    io->state |= ASYNC_IO_STATE_READY;
+    io->c = io->len = 0;
+}
+
+static inline int
+async_io_state_recv(async_io* io)
+{
+    return ASYNC_IO_IS_READY(io->state) && ASYNC_IO_IS_RECV(io->state);
+}
+
+static inline void
+async_io_state_recv_set(async_io* io)
+{
+    io->state |= ASYNC_IO_STATE_RECV;
+    io->state &= (~(ASYNC_IO_STATE_SEND));
+    io->c = 0;
+    io->len = sizeof(io->b);
+}
+
+static inline int
+async_io_state_send(async_io* io)
+{
+    return ASYNC_IO_IS_SEND(io->state);
+    // return ASYNC_IO_IS_READY(io->state) ? ASYNC_IO_IS_SEND(io->state) : 0;
+}
+
+static inline void
+async_io_state_send_set(async_io* io)
+{
+    io->state |= ASYNC_IO_STATE_SEND;
+    io->state &= (~(ASYNC_IO_STATE_RECV));
+    io->c = 0;
+}
+
+static inline int
+async_io_state_erro_set(async_io* io)
+{
+    io->state |= ASYNC_IO_STATE_ERRO;
+    io->len = io->c = 0;
 }
 
 #ifdef __cplusplus

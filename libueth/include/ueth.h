@@ -28,7 +28,8 @@ extern "C" {
 
 #include "ueth_config.h"
 
-#include "rlpx_io.h"
+#include "rlpx_io_devp2p.h"
+#include "rlpx_io_discovery.h"
 
 typedef struct
 {
@@ -39,11 +40,12 @@ typedef struct
 
 typedef struct ueth_context
 {
-    uecc_ctx p2p_static_key;
+    uecc_ctx id;
     ueth_config config;
     async_io io;
     int (*poll)(struct ueth_context*);
     uint32_t n;
+    rlpx_io discovery;
     rlpx_io ch[UETH_CONFIG_NUM_CHANNELS];
 } ueth_context;
 

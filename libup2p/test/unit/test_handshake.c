@@ -54,16 +54,13 @@ test_read()
     int i = 0;
     while (tv->auth) {
         test_session_init(&s, i);
-        rlpx_io_nonce(s.alice);
-        rlpx_io_nonce(s.bob);
-        rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-        rlpx_io_accept(s.bob, &s.alice->skey->Q);
+        test_session_connect(&s);
         if (rlpx_io_recv_auth(s.bob, s.auth, s.authlen)) break;
         if (rlpx_io_recv_ack(s.alice, s.ack, s.acklen)) break;
         if (!(s.bob->hs->version_remote == tv->authver)) break;
         if (!(s.alice->hs->version_remote == tv->ackver)) break;
-        if ((cmp_q(&s.bob->hs->ekey_remote, &s.alice->ekey.Q))) break;
-        if ((cmp_q(&s.alice->hs->ekey_remote, &s.bob->ekey.Q))) break;
+        if ((cmp_q(&s.bob->hs->ekey_remote, rlpx_io_epub(s.alice)))) break;
+        if ((cmp_q(&s.alice->hs->ekey_remote, rlpx_io_epub(s.bob)))) break;
         test_session_deinit(&s);
         i++;
         tv++;
@@ -77,18 +74,13 @@ test_write()
 {
     int err;
     test_session s;
+
     test_session_init(&s, 1);
+    test_session_connect(&s);
+    test_session_handshake(&s);
 
-    // Trade keys
-    rlpx_io_nonce(s.alice);
-    rlpx_io_nonce(s.bob);
-    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(s.bob, &s.alice->skey->Q);
-    IF_ERR_EXIT(rlpx_io_recv_auth(s.bob, s.alice->io.b, s.alice->io.len));
-    IF_ERR_EXIT(rlpx_io_recv_ack(s.alice, s.bob->io.b, s.bob->io.len));
-
-    IF_ERR_EXIT(check_q(&s.alice->hs->ekey_remote, g_bob_epub));
-    IF_ERR_EXIT(check_q(&s.bob->hs->ekey_remote, g_alice_epub));
+    IF_ERR_EXIT(check_q(rlpx_io_epub_remote(s.alice), g_bob_epub));
+    IF_ERR_EXIT(check_q(rlpx_io_epub_remote(s.bob), g_alice_epub));
 EXIT:
     test_session_deinit(&s);
     return err;
@@ -102,24 +94,18 @@ test_secrets()
     test_session s;
 
     test_session_init(&s, 1);
+    test_session_connect(&s);
+    test_session_handshake(&s);
     memcpy(aes, makebin(g_aes_secret, NULL), 32);
     memcpy(mac, makebin(g_mac_secret, NULL), 32);
     memcpy(foo, makebin(g_foo, NULL), 32);
 
-    // Set some phoney nonces to read expected secrets
-    rlpx_test_nonce_set(s.bob, &s.bob_n);
-    rlpx_test_nonce_set(s.alice, &s.alice_n);
-
-    rlpx_io_connect(s.alice, &s.bob->skey->Q, "1.1.1.1", 33);
-    rlpx_io_accept(s.bob, &s.alice->skey->Q);
-    rlpx_io_recv_auth(s.bob, s.auth, s.authlen);
-    rlpx_io_recv_ack(s.alice, s.ack, s.acklen);
-    IF_ERR_EXIT(
-        rlpx_test_expect_secrets(
-            s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, foo));
-    IF_ERR_EXIT(
-        rlpx_test_expect_secrets(
-            s.alice, 1, s.auth, s.authlen, s.ack, s.acklen, aes, mac, foo));
+    err = rlpx_test_expect_secrets(
+        s.bob, 0, s.ack, s.acklen, s.auth, s.authlen, aes, mac, foo);
+    IF_ERR_EXIT(err);
+    err = rlpx_test_expect_secrets(
+        s.alice, 1, s.auth, s.authlen, s.ack, s.acklen, aes, mac, foo);
+    IF_ERR_EXIT(err);
 EXIT:
     test_session_deinit(&s);
     return err;

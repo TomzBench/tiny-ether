@@ -21,138 +21,139 @@
 
 #include "async_io.h"
 
-// Override system IO with MOCK implementation OR other IO implementation.
-// Useful for test or portability.
-async_io_settings g_async_io_settings_default = {
-    .on_connect = async_io_default_on_connect,
-    .on_accept = async_io_default_on_accept,
-    .on_erro = async_io_default_on_erro,
-    .on_send = async_io_default_on_send,
-    .on_recv = async_io_default_on_recv,
-    .tx = usys_send_to,
-    .rx = usys_recv_from,
-    .ready = usys_sock_ready,
-    .connect = usys_connect,
-    .close = usys_close
-};
-
-// Private prototypes.
-void async_error(async_io* self, int);
-
-// Public
 void
-async_io_init_udp(async_io* self, void* ctx, const async_io_settings* opts)
+async_io_tcp_init(async_io* io, async_io_settings* settings, void* ctx)
 {
-    async_io_init(self, ctx, opts);
-    self->addr_ptr = &self->addr;
+    async_io_init(io, ctx);
+    io->send = usys_send;
+    io->recv = usys_recv;
+    io->ready = usys_sock_ready;
+    io->connect = usys_connect;
+    io->on_connect = settings->on_connect;
+    io->on_accept = settings->on_accept;
+    io->on_error = settings->on_erro;
+    io->on_send = settings->on_send;
+    io->on_recv = settings->on_recv;
+    io->poll = async_io_tcp_poll_connect;
 }
 
 void
-async_io_init(async_io* self, void* ctx, const async_io_settings* opts)
+async_io_udp_init(async_io* io, async_io_settings* settings, void* ctx)
 {
-    // Zero mem
-    memset(self, 0, sizeof(async_io));
-
-    // Init state
-    self->sock = -1;
-    self->ctx = ctx;
-    self->settings = g_async_io_settings_default;
-
-    // override defaults with callers mock functions.
-    if (opts->on_connect) self->settings.on_connect = opts->on_connect;
-    if (opts->on_accept) self->settings.on_accept = opts->on_accept;
-    if (opts->on_erro) self->settings.on_erro = opts->on_erro;
-    if (opts->on_send) self->settings.on_send = opts->on_send;
-    if (opts->on_recv) self->settings.on_recv = opts->on_recv;
-    if (opts->tx) self->settings.tx = opts->tx;
-    if (opts->rx) self->settings.rx = opts->rx;
-    if (opts->ready) self->settings.ready = opts->ready;
-    if (opts->connect) self->settings.connect = opts->connect;
-    if (opts->close) self->settings.close = opts->close;
+    async_io_init(io, ctx);
+    io->sendto = usys_send_to;
+    io->recvfrom = usys_recv_from;
+    io->on_connect = settings->on_connect;
+    io->on_accept = settings->on_accept;
+    io->on_error = settings->on_erro;
+    io->on_send = settings->on_send;
+    io->on_recv = settings->on_recv;
+    io->poll = async_io_udp_poll_recv;
 }
 
 void
-async_io_deinit(async_io* self)
+async_io_init(async_io* io, void* ctx)
 {
-    if (ASYNC_IO_SOCK(self)) self->settings.close(&self->sock);
-    memset(self, 0, sizeof(async_io));
+    io->sock = -1;
+    io->addr.ip = io->addr.port = io->c = io->len = io->state = 0;
+    io->ctx = ctx;
+    io->close = usys_close;
+    memset(io->b, 0, sizeof(io->b));
+}
+
+void
+async_io_deinit(async_io* io)
+{
+    if (async_io_has_sock(io)) async_io_close(io);
+    memset(io->b, 0, sizeof(io->b));
+}
+
+void
+async_io_install_mock(async_io* io, async_io_mock_settings* mock)
+{
+    if (mock->sendto) {
+        io->sendto = mock->sendto;
+    } else if (mock->send) {
+        io->send = mock->send;
+    }
+    if (mock->recvfrom) {
+        io->recvfrom = mock->recvfrom;
+    } else if (mock->recv) {
+        io->recv = mock->recv;
+    }
+    if (mock->close) io->close = mock->close;
+    if (mock->connect) io->connect = mock->connect;
+    if (mock->ready) io->ready = mock->ready;
 }
 
 int
-async_io_connect(async_io* self, const char* ip, uint32_t p)
+async_io_tcp_connect(async_io* io, const char* ip, uint32_t p)
 {
-    if (ASYNC_IO_SOCK(self)) self->settings.close(&self->sock);
-    int ret = self->settings.connect(&self->sock, ip, p);
+    int ret;
+    if (async_io_has_sock(io)) async_io_close(io);
+    ret = io->connect(&io->sock, ip, p);
     if (ret < 0) {
-        ASYNC_IO_SET_ERRO(self);
+        async_io_state_erro_set(io);
+        io->poll = async_io_tcp_poll_connect;
     } else if (ret == 0) {
-        self->state |= ASYNC_IO_STATE_SEND;
+        async_io_state_send_set(io);
     } else {
-        self->state |= ASYNC_IO_STATE_RECV | ASYNC_IO_STATE_READY;
-        self->settings.on_connect(self->ctx);
+        async_io_state_ready_set(io);
+        async_io_state_recv_set(io);
+        io->poll = async_io_tcp_poll_recv;
+        io->on_connect(io->ctx);
     }
     return ret;
 }
 
-void
-async_io_close(async_io* self)
+int
+async_io_tcp_accept(async_io* io)
 {
-    ASYNC_IO_CLOSE(self);
-}
-
-void*
-async_io_mem(async_io* self, uint32_t idx)
-{
-    return &self->b[idx];
-}
-
-void
-async_io_len_set(async_io* self, uint32_t len)
-{
-    self->len = len;
-}
-
-uint32_t
-async_io_len(async_io* self)
-{
-    return self->len;
-}
-
-const void*
-async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l)
-{
-    self->len = idx + l;
-    return memcpy(&self->b[idx], mem, l);
+    // TODO - stub
+    if (async_io_has_sock(io)) async_io_close(io);
+    async_io_state_recv_set(io);
+    io->poll = async_io_tcp_poll_recv;
+    return 0;
 }
 
 int
-async_io_print(async_io* self, uint32_t idx, const char* fmt, ...)
+async_io_udp_listen(async_io* io, uint32_t port)
 {
-    int l;
-    va_list ap;
-    va_start(ap, fmt);
-    l = vsnprintf((char*)&self->b[idx], sizeof(self->b) - idx, fmt, ap);
-    if (l >= 0) self->len = l;
-    va_end(ap);
-    return l;
+    int ret = -1;
+    if (async_io_has_sock(io)) async_io_close(io);
+    ret = usys_listen_udp(&io->sock, port);
+    if (!ret) {
+        async_io_state_ready_set(io);
+        async_io_state_recv_set(io);
+        io->poll = async_io_udp_poll_recv;
+    } else {
+        async_io_state_erro_set(io);
+    }
+    return ret;
 }
 
 int
-async_io_send(async_io* self)
+async_io_tcp_send(async_io* io)
 {
-    if (ASYNC_IO_SOCK(self)) {
-        ASYNC_IO_SET_SEND(self);
+    if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
+        // If we are already not in send state and have a socket
+        async_io_state_send_set(io);
+        io->poll = async_io_tcp_poll_send;
         return 0;
     } else {
+        // We are busy sending already or not connected
         return -1;
     }
 }
 
 int
-async_io_recv(async_io* self)
+async_io_udp_send(async_io* io, uint32_t ip, uint32_t port)
 {
-    if (ASYNC_IO_SOCK(self)) {
-        ASYNC_IO_SET_RECV(self);
+    if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
+        io->addr.ip = ip;
+        io->addr.port = port;
+        async_io_state_send_set(io);
+        io->poll = async_io_udp_poll_send;
         return 0;
     } else {
         return -1;
@@ -163,7 +164,7 @@ int
 async_io_poll_n(async_io** io, uint32_t n, uint32_t ms)
 {
     uint32_t mask = 0;
-    int reads[n], writes[n], err;
+    int reads[n], writes[n], err = 0;
     for (uint32_t c = 0; c < n; c++) {
         reads[c] = async_io_state_recv(io[c]) ? io[c]->sock : -1;
         writes[c] = async_io_state_send(io[c]) ? io[c]->sock : -1;
@@ -171,120 +172,164 @@ async_io_poll_n(async_io** io, uint32_t n, uint32_t ms)
     err = usys_select(&mask, &mask, ms, reads, n, writes, n);
     if (mask) {
         for (uint32_t i = 0; i < n; i++) {
-            if (mask & (0x01 << i)) async_io_poll(io[i]);
+            if (mask & (0x01 << i)) err |= async_io_poll(io[i]);
         }
     }
     return err;
 }
 
 int
-async_io_poll(async_io* self)
+async_io_tcp_poll_connect(async_io* io)
 {
-    int c, ret = -1, end = self->len, start = self->c;
-    ((void)start);
-    if (!(ASYNC_IO_READY(self->state))) {
-        if (ASYNC_IO_SOCK(self)) {
-            ret = self->settings.ready(&self->sock);
-            if (ret < 0) {
-                ASYNC_IO_SET_ERRO(self);
+    int ret = 0;
+    if (async_io_has_sock(io)) {
+        ret = io->ready(&io->sock);
+        if (ret < 0) {
+            // Connect error
+            async_io_state_erro_set(io);
+            async_io_close(io);
+            io->poll = async_io_tcp_poll_connect;
+        } else {
+            // Connection complete
+            async_io_state_ready_set(io);
+            async_io_state_recv_set(io);
+            io->poll = async_io_tcp_poll_recv;
+            ret = io->on_connect(io->ctx);
+        }
+    } else {
+        // Invalid socket
+    }
+    return ret;
+}
+
+int
+async_io_tcp_poll_send(async_io* io)
+{
+    int ret = -1, c = 0, end = io->len;
+    for (c = 0; c < 2; c++) {
+        ret = io->send(&io->sock, &io->b[io->c], io->len - io->c);
+        if (ret >= 0) {
+            if (ret + (int)io->c == end) {
+                // Send complete - put back to recv state
+                io->on_send(io->ctx, 0, io->b, io->len);
+                async_io_state_recv_set(io);
+                io->poll = async_io_tcp_poll_recv;
+                ret = 0;
+                break;
+            } else if (ret == 0) {
+                ret = 0; // OK, but maybe more to send
+                break;
             } else {
-                ASYNC_IO_SET_READY(self);
-                ASYNC_IO_SET_RECV(self);
-                self->settings.on_connect(self->ctx);
+                io->c += ret;
+                ret = 0; // OK, but maybe more to send
             }
         } else {
-        }
-    } else if (ASYNC_IO_SEND(self->state)) {
-        for (c = 0; c < 2; c++) {
-            ret = self->settings.tx(
-                &self->sock,
-                &self->b[self->c],
-                self->len - self->c,
-                self->addr_ptr);
-            if (ret >= 0) {
-                if (ret + (int)self->c == end) {
-                    self->settings.on_send(self->ctx, 0, self->b, self->len);
-                    ASYNC_IO_SET_RECV(self); // Send complete, put into listen
-                    break;
-                } else if (ret == 0) {
-                    ret = 0; // OK, but maybe more to send
-                    break;
-                } else {
-                    self->c += ret;
-                    ret = 0; // OK, but maybe more to send
-                }
-            } else {
-                self->settings.on_send(self->ctx, -1, 0, 0); // IO error
-                ASYNC_IO_SET_ERRO(self);
-            }
-        }
-    } else if (ASYNC_IO_RECV(self->state)) {
-        for (c = 0; c < 2; c++) {
-            ret = self->settings.rx(
-                &self->sock,
-                &self->b[self->c],
-                self->len - self->c,
-                self->addr_ptr);
-            if (ret >= 0) {
-                if (ret + (int)self->c == end) {
-                    self->settings.on_recv(self->ctx, -1, 0, 0);
-                    ASYNC_IO_SET_ERRO(self);
-                    break;
-                } else if (ret == 0) {
-                    if (c == 0) {
-                        // When a readable socket returns 0 bytes on first then
-                        // that means remote has disconnected.
-                        ASYNC_IO_SET_ERRO(self);
-                    } else {
-                        self->settings.on_recv(self->ctx, 0, self->b, self->c);
-                        ret = 0; // OK no more data
-                    }
-                    break;
-                } else {
-                    self->c += ret;
-                    ret = 0; // OK maybe more data
-                }
-            } else {
-                self->settings.on_recv(self->ctx, -1, 0, 0); // IO error
-                ASYNC_IO_SET_ERRO(self);
-            }
+            io->on_error(io->ctx); // IO error
+            async_io_state_erro_set(io);
+            io->poll = async_io_tcp_poll_connect;
+            break;
         }
     }
     return ret;
 }
 
-void
-async_io_set_cb_recv(async_io* self, async_io_on_recv_fn fn)
+int
+async_io_tcp_poll_recv(async_io* io)
 {
-    self->settings.on_recv = fn ? fn : async_io_default_on_recv;
-}
+    int ret = -1, end = io->len;
 
-void
-async_io_set_cb_send(async_io* self, async_io_on_send_fn fn)
-{
-    self->settings.on_send = fn ? fn : async_io_default_on_send;
+    for (int c = 0; c < 2; c++) {
+        ret = io->recv(&io->sock, &io->b[io->c], io->len - io->c);
+        if (ret >= 0) {
+            if (ret + (int)io->c == end) {
+                // Buffer isn't big enough
+                io->on_error(io->ctx);
+                async_io_state_erro_set(io);
+                io->poll = async_io_tcp_poll_connect;
+                break;
+            } else if (ret == 0) {
+                if (c == 0) {
+                    // When a readable socket returns 0 bytes on first then
+                    // that means remote has disconnected.
+                    async_io_state_erro_set(io);
+                    io->poll = async_io_tcp_poll_connect;
+                } else {
+                    // Looks like we read every thing.
+                    io->on_recv(io->ctx, 0, io->b, io->c);
+                    ret = 0; // OK no more data
+                }
+                break;
+            } else {
+                // Read in some data maybe try and read more (no break)
+                io->c += ret;
+                ret = 0;
+            }
+        } else {
+            // rx io erro
+            io->on_error(io->ctx); // IO error
+            async_io_state_erro_set(io);
+            io->poll = async_io_tcp_poll_connect;
+        }
+    }
+    return ret;
 }
 
 int
-async_io_sock(async_io* self)
+async_io_udp_poll_send(async_io* io)
 {
-    return ASYNC_IO_SOCK(self) ? self->sock : -1;
+    int c, ret = -1, end = io->len;
+    for (c = 0; c < 2; c++) {
+        ret = io->sendto(&io->sock, &io->b[io->c], io->len - io->c, &io->addr);
+        if (ret >= 0) {
+            if (ret + (int)io->c == end) {
+                // Send complete, put into listen mode
+                io->on_send(io->ctx, 0, io->b, io->len);
+                async_io_state_recv_set(io);
+                io->poll = async_io_udp_poll_recv;
+                ret = 0;
+                break;
+            } else if (ret == 0) {
+                ret = 0;
+                break;
+            } else {
+                io->c += ret;
+                ret = 0;
+            }
+        } else {
+            io->on_error(io->ctx); // IO error
+            async_io_state_erro_set(io);
+            io->poll = async_io_udp_poll_recv;
+            break;
+        }
+    }
+    return ret;
 }
 
 int
-async_io_has_sock(async_io* self)
+async_io_udp_poll_recv(async_io* io)
 {
-    return ASYNC_IO_SOCK(self);
-}
 
-int
-async_io_state_recv(async_io* self)
-{
-    return ASYNC_IO_READY(self->state) && ASYNC_IO_RECV(self->state);
-}
+    int r = -1;
+    while (1) {
+        r = io->recvfrom(&io->sock, &io->b[io->c], io->len - io->c, &io->addr);
+        if (r > 0) {
+            io->c += r;
+            if (io->c >= io->len) {
+                io->on_error(io->ctx); // IO error
+                async_io_state_erro_set(io);
+                break;
+            } else {
+                io->on_recv(io->ctx, 0, io->b, io->c);
+                io->c = 0;
+            }
+        } else if (r < 0) {
+            io->on_error(io->ctx); // IO error
+            async_io_state_erro_set(io);
+            break;
+        } else {
+            break; // r==0
+        }
+    }
 
-int
-async_io_state_send(async_io* self)
-{
-    return ASYNC_IO_READY(self->state) ? ASYNC_IO_SEND(self->state) : 1;
+    return r;
 }

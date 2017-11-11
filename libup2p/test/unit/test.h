@@ -22,10 +22,8 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-#include "kademlia/ktable.h"
-#include "rlpx_devp2p.h"
-#include "rlpx_discovery.h"
-#include "rlpx_io.h"
+#include "rlpx_io_devp2p.h"
+#include "rlpx_io_discovery.h"
 #include "rlpx_test_helpers.h"
 #include "test_vectors.h"
 #include "unonce.h"
@@ -72,6 +70,8 @@ int cmp_q(const uecc_public_key* a, const uecc_public_key* b);
 int check_q(const uecc_public_key* key, const char* str);
 int test_session_init(test_session*, int);
 void test_session_deinit(test_session*);
+void test_session_connect(test_session* s);
+void test_session_handshake(test_session* s);
 
 int test_handshake(void);
 int test_frame(void);

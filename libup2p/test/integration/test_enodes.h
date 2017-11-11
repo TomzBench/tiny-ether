@@ -26,8 +26,9 @@
 
 #define CPP_P2P_LOCAL                                                          \
     "enode://"                                                                 \
-    "fe70d7e3f1e30abbc87a3b4ce02f27600aaded72cee185184ef2192ad257a1b4f482c887" \
-    "9e9b2c56e5a507bbe814e823f8a599e1bcbc90918cdf89c917bbd990@127.0.0.1:30303"
+    "05b9568c6e5e3b69bcb4edfb762f5f676f7f10dc6a903474d3e136c8fd48365fbaf0b4de" \
+    "bba5eeb9bd28204ef38452af10f51aa11534b9401f888cd2fc150456@127.0.0.1:"      \
+    "30303.30303"
 
 #define PARITY_P2P_LOCAL                                                       \
     "enode://"                                                                 \
@@ -39,7 +40,7 @@
     "enode://"                                                                 \
     "ca634cae0d49acb401d8a4c6b6fe8c55b70d115bf400769cc1400f3258cd31387574077f" \
     "301b421bc84df7266c44e9e6d569fc56be00812904767bf5ccd1fc7f@127.0.0.1:"      \
-    "30303.0"
+    "30303.30303"
 
 #define TEST_ENODE_0                                                           \
     "enode://"                                                                 \

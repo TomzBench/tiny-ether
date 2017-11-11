@@ -34,16 +34,24 @@ int
 usys_connect(usys_socket_fd* sock_p, const char* host, int port)
 {
     // return <0 if err, 0 if INPROGRESS, >0 if connect instant (ie local host)
+    uint32_t ip;
+    inet_pton(AF_INET, host, &ip);
+    return usys_connect_raw(sock_p, ip, port);
+}
+
+int
+usys_connect_raw(usys_socket_fd* sock_p, uint32_t ip, int port)
+{
     int ret = 0;
     struct sockaddr_in addr;
+    usys_socket_fd* sock = sock_p;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    usys_socket_fd* sock = sock_p;
+    addr.sin_addr.s_addr = ip;
     if ((*sock = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)) < 0) {
         return -1;
     }
-    inet_pton(AF_INET, host, &addr.sin_addr);
     int rc = connect(*sock, (struct sockaddr*)&addr, sizeof(addr));
     if (rc < 0) {
         if (errno == EINPROGRESS) {
@@ -67,7 +75,7 @@ usys_listen_udp(usys_socket_fd* sock_p, int port)
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
     *sock_p = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
     if (*sock_p < 0) return -1;
     if (bind(*sock_p, (const struct sockaddr*)&addr, sizeof(addr)) == -1) {
@@ -98,8 +106,8 @@ usys_recv_from_fd(int sockfd, byte* b, size_t len, usys_sockaddr* addr)
     socklen_t inlen = sizeof(in);
     if (addr) {
         r = recvfrom(sockfd, (char*)b, len, 0, (struct sockaddr*)&in, &inlen);
-        addr->ip = ((struct sockaddr_in*)&in)->sin_addr.s_addr;
-        addr->port = ((struct sockaddr_in*)&in)->sin_port;
+        addr->ip = ntohl(((struct sockaddr_in*)&in)->sin_addr.s_addr);
+        addr->port = ntohs(((struct sockaddr_in*)&in)->sin_port);
     } else {
         r = recvfrom(sockfd, (char*)b, len, 0, NULL, 0);
     }
@@ -136,8 +144,9 @@ usys_send_to_fd(
     socklen_t dlen = sizeof(dest);
 
     if (addr) {
-        dest.sin_addr.s_addr = addr->ip;
-        dest.sin_port = addr->port;
+        dest.sin_family = AF_INET;
+        dest.sin_addr.s_addr = htonl(addr->ip);
+        dest.sin_port = htons(addr->port);
         bytes = sendto(sockfd, (char*)b, len, 0, (struct sockaddr*)&dest, dlen);
     } else {
         bytes = sendto(sockfd, (char*)b, len, 0, NULL, 0);
@@ -234,6 +243,47 @@ usys_sock_ready(usys_socket_fd* sock)
     socklen_t optlen = sizeof(optval);
     err = getsockopt(*sock, SOL_SOCKET, SO_ERROR, &optval, &optlen);
     return err ? err : (optval == EINPROGRESS) ? 0 : optval ? -1 : 1;
+}
+
+uint32_t
+usys_atoh(const char* ip)
+{
+    return inet_network(ip);
+}
+
+uint32_t
+usys_aton(const char* host)
+{
+    uint32_t ip;
+    inet_pton(AF_INET, host, &ip);
+    return ip;
+}
+
+const char*
+usys_ntoa(uint32_t ip)
+{
+    struct in_addr in;
+    in.s_addr = ip;
+    return inet_ntoa(in);
+}
+
+const char*
+usys_htoa(uint32_t ip)
+{
+    ip = htonl(ip);
+    return usys_ntoa(ip);
+}
+
+uint32_t
+usys_ntohl(uint32_t n)
+{
+    return ntohl(n);
+}
+
+uint32_t
+usys_htonl(uint32_t n)
+{
+    return htonl(n);
 }
 
 //

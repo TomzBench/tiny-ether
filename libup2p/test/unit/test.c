@@ -22,7 +22,7 @@
 #include "test.h"
 #include <string.h>
 
-extern async_io_settings g_io_mock_settings;
+extern async_io_mock_settings g_io_mock_settings;
 
 test_vector g_test_vectors[] = { //
     {.auth = AUTH_1,
@@ -96,7 +96,6 @@ main(int argc, char* argv[])
     IF_ERR_EXIT(test_frame());
     IF_ERR_EXIT(test_protocol());
     IF_ERR_EXIT(test_enode());
-    IF_ERR_EXIT(test_kademlia());
     IF_ERR_EXIT(test_discovery());
 
 EXIT:
@@ -134,18 +133,22 @@ test_session_init(test_session* s, int vec)
     uecc_key_init_binary(&s->skey_b, &bob_s);
     uecc_key_init_binary(&ekey_a, &alice_e);
     uecc_key_init_binary(&ekey_b, &bob_e);
-    s->alice = rlpx_io_mock_alloc(&g_io_mock_settings, &s->skey_a, &s->udp[0]);
-    s->bob = rlpx_io_mock_alloc(&g_io_mock_settings, &s->skey_b, &s->udp[1]);
+    s->alice = rlpx_io_alloc(&s->skey_a, &s->udp[0]);
+    s->bob = rlpx_io_alloc(&s->skey_b, &s->udp[1]);
+    async_io_install_mock(&s->alice->io, &g_io_mock_settings);
+    async_io_install_mock(&s->bob->io, &g_io_mock_settings);
+    rlpx_io_devp2p_install(s->alice);
+    rlpx_io_devp2p_install(s->bob);
 
     // Install mock ekeys
     rlpx_test_ekey_set(s->alice, &ekey_a);
     rlpx_test_ekey_set(s->bob, &ekey_b);
 
     // sanity check
-    if ((check_q(&s->alice->ekey.Q, g_alice_epub))) return -1;
-    if ((check_q(&s->bob->ekey.Q, g_bob_epub))) return -1;
-    if ((check_q(&s->alice->skey->Q, g_alice_spub))) return -1;
-    if ((check_q(&s->bob->skey->Q, g_bob_spub))) return -1;
+    if ((check_q(rlpx_io_epub(s->alice), g_alice_epub))) return -1;
+    if ((check_q(rlpx_io_epub(s->bob), g_bob_epub))) return -1;
+    if ((check_q(rlpx_io_spub(s->alice), g_alice_spub))) return -1;
+    if ((check_q(rlpx_io_spub(s->bob), g_bob_spub))) return -1;
     return 0;
 }
 
@@ -156,6 +159,51 @@ test_session_deinit(test_session* s)
     rlpx_io_free(&s->bob);
     uecc_key_deinit(&s->skey_a);
     uecc_key_deinit(&s->skey_b);
+}
+
+void
+test_session_connect(test_session* s)
+{
+    // Prepare state to look like connections were made
+
+    // Set nonce
+    rlpx_test_nonce_set(s->alice, &s->alice_n);
+    rlpx_test_nonce_set(s->bob, &s->bob_n);
+
+    // fill remote node info
+    rlpx_node_init(&s->alice->node, rlpx_io_spub(s->bob), "1.1.1.1", 0, 0);
+    rlpx_node_init(&s->bob->node, rlpx_io_spub(s->alice), "1.1.1.1", 0, 0);
+
+    s->alice->hs = rlpx_handshake_alloc(
+        1,
+        s->alice->skey,
+        &s->alice->ekey,
+        &s->alice->nonce,
+        &s->alice->node.id);
+    s->bob->hs = rlpx_handshake_alloc(
+        0, //
+        s->bob->skey,
+        &s->bob->ekey,
+        &s->bob->nonce,
+        &s->bob->node.id);
+}
+
+void
+test_session_handshake(test_session* s)
+{
+    // Do handshakes
+
+    // rlpx_io_recv_ack(s->alice, s->bob->hs->cipher, s->bob->hs->cipher_len);
+    // rlpx_io_recv_auth(s->bob, s->alice->hs->cipher,
+    // s->alice->hs->cipher_len);
+    rlpx_io_recv_ack(
+        s->alice, //
+        s->bob->hs->cipher,
+        s->bob->hs->cipher_len);
+    rlpx_io_recv_auth(
+        s->bob, //
+        s->alice->hs->cipher,
+        s->alice->hs->cipher_len);
 }
 
 int

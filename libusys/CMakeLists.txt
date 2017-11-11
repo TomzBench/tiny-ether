@@ -4,8 +4,12 @@ if (${UETH_USE_UNIX})
 endif()
 
 # Common files
-set(sources ./async/async_io.c)
-set(headers ./async/async_io.h)
+set(sources 
+	./async/async_io.c
+	)
+set(headers 
+	./async/async_io.h
+	)
 list(APPEND sources 
 	./${USYS_DIR}/usys_signals.c 
 	./${USYS_DIR}/usys_io.c 
@@ -30,3 +34,6 @@ add_executable(usys_unit_test test/test.c)
 # setup unit test dependencies
 target_link_libraries(usys_unit_test usys)
 add_dependencies(usys_unit_test usys)
+
+# install unit test
+install(TARGETS usys_unit_test DESTINATION ${UETH_INSTALL_ROOT}/bin)

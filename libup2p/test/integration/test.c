@@ -19,7 +19,7 @@
  * @date 2017
  */
 
-#include "rlpx_io.h"
+#include "rlpx_io_devp2p.h"
 #include "test_enodes.h"
 #include "usys_log.h"
 #include "usys_signals.h"
@@ -36,6 +36,7 @@ const char* g_test_enode = PYDEV_P2P_LOCAL;
  *
  * @return -1 err, 0 ok
  */
+
 int
 main(int argc, char* arg[])
 {
@@ -45,46 +46,51 @@ main(int argc, char* arg[])
     uint32_t udp = 33433;
     uecc_ctx static_key;
     uecc_key_init_new(&static_key);
-    rlpx_io* alice = rlpx_io_alloc(&static_key, &udp);
+    rlpx_io_devp2p* devp2p;
+    rlpx_io alice, *ptr = &alice;
+    rlpx_io_tcp_init(&alice, &static_key, &udp);
+    rlpx_io_devp2p_install(&alice);
+    devp2p = alice.protocols[0].context;
 
     // Install interrupt control
     usys_install_signal_handlers();
 
     // Try and connect on start
-    rlpx_io_nonce(alice);
-    rlpx_io_connect_enode(alice, g_test_enode);
+    rlpx_io_nonce(&alice);
+    rlpx_io_connect_enode(&alice, g_test_enode);
 
     // Enter while 1 loop.
     while (usys_running()) {
-        if (!rlpx_io_is_shutdown(alice)) {
-            usys_msleep(rlpx_io_is_connected(alice) ? 100 : 5000);
+        if (!rlpx_io_is_shutdown(&alice)) {
+            usys_msleep(rlpx_io_is_connected(&alice) ? 100 : 5000);
         }
 
         // Need connect?
-        if (!rlpx_io_is_connected(alice)) {
+        if (!rlpx_io_is_connected(&alice)) {
             if (has_connected) {
                 usys_shutdown();
             } else {
-                rlpx_io_nonce(alice);
-                rlpx_io_connect_enode(alice, g_test_enode);
+                rlpx_io_nonce(&alice);
+                rlpx_io_connect_enode(&alice, g_test_enode);
             }
         } else {
-            has_connected = rlpx_io_is_ready(alice) ? 1 : 0;
+            has_connected = rlpx_io_is_ready(&alice) ? 1 : 0;
             // send ping every 2s
-            if (rlpx_io_is_ready(alice) && (++c >= 10)) {
-                rlpx_io_send_ping(alice);
+            if (rlpx_io_is_ready(&alice) && (++c >= 10)) {
+                rlpx_io_devp2p_send_ping(devp2p);
                 c = 0;
             }
 
             // Received a pong? send disconnect
-            if (alice->devp2p.latency) {
+            if (devp2p->latency) {
                 err = 0;
-                rlpx_io_send_disconnect(alice, DEVP2P_DISCONNECT_QUITTING);
+                rlpx_io_devp2p_send_disconnect(
+                    devp2p, DEVP2P_DISCONNECT_QUITTING);
             }
         }
 
         // Poll io
-        rlpx_io_poll(&alice, 1, 100);
+        rlpx_io_poll(&ptr, 1, 100);
     }
 
     if (!err) {
@@ -93,7 +99,7 @@ main(int argc, char* arg[])
         usys_log_err("%s", "[ERR]");
     }
 
-    rlpx_io_free(&alice);
+    rlpx_io_deinit(&alice);
     uecc_key_deinit(&static_key);
     return err;
 }
