@@ -48,7 +48,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     }
 
     // init constants
-    ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io_tcp));
+    ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io));
 
     // Init peer pipes (tcp)
     for (uint32_t i = 0; i < ctx->n; i++) {
@@ -67,10 +67,10 @@ void
 ueth_deinit(ueth_context* ctx)
 {
     // Shutdown any open connections..
-    for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_tcp_deinit(&ctx->ch[i]);
+    for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_deinit(&ctx->ch[i]);
 
     // Shutdown udp
-    rlpx_io_udp_deinit(&ctx->discovery);
+    rlpx_io_deinit(&ctx->discovery);
 
     // Free static key
     uecc_key_deinit(&ctx->id);
@@ -94,13 +94,13 @@ int
 ueth_stop(ueth_context* ctx)
 {
     uint32_t mask = 0, i, c = 0, b = 0;
-    rlpx_io_tcp* ch[ctx->n];
+    rlpx_io* ch[ctx->n];
     rlpx_io_devp2p* devp2p;
     for (i = 0; i < ctx->n; i++) {
         if (rlpx_io_is_ready(&ctx->ch[i])) {
             mask |= (1 << i);
             ch[b++] = &ctx->ch[i];
-            devp2p = ctx->ch[i].rlpx.protocols[0].context;
+            devp2p = ctx->ch[i].protocols[0].context;
             rlpx_io_devp2p_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
         }
     }
@@ -121,14 +121,14 @@ ueth_poll_internal(ueth_context* ctx)
     async_io* ch[ctx->n + 1];
     for (i = 0; i < ctx->n; i++) {
         // Refresh channel if it is in error
-        if (rlpx_io_tcp_error_get(&ctx->ch[i])) {
+        if (rlpx_io_error_get(&ctx->ch[i])) {
             // Kick out of discovery table
 
             // Refresh space (don't like allocs)
-            rlpx_io_tcp_refresh(&ctx->ch[i]);
+            rlpx_io_refresh(&ctx->ch[i]);
         }
         // Find free node to connect to if empty
-        if (!ctx->ch[i].rlpx.node.port_tcp) {
+        if (!ctx->ch[i].node.port_tcp) {
             rlpx_io_discovery* d;
             rlpx_io_discovery_endpoint_node* r;
             d = rlpx_io_discovery_get_context(&ctx->discovery);
@@ -138,7 +138,7 @@ ueth_poll_internal(ueth_context* ctx)
                     uint32_t ip;
                     memcpy(&ip, r->ep.ip, 4);
                     usys_log("[OUT] [TCP] (connecting) (%s)", usys_ntoa(ip));
-		    // TODO - usys should take network byte order
+                    // TODO - usys should take network byte order
                     err = rlpx_io_connect(
                         &ctx->ch[i],
                         &r->nodeid,
@@ -148,7 +148,7 @@ ueth_poll_internal(ueth_context* ctx)
             }
         }
         // Add to io polling if there is a socket
-        if (ctx->ch[i].rlpx.node.port_tcp) {
+        if (ctx->ch[i].node.port_tcp) {
             ch[b++] = (async_io*)&ctx->ch[i];
         }
     }

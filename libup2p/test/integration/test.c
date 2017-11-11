@@ -47,16 +47,16 @@ main(int argc, char* arg[])
     uecc_ctx static_key;
     uecc_key_init_new(&static_key);
     rlpx_io_devp2p* devp2p;
-    rlpx_io_tcp alice, *ptr = &alice;
+    rlpx_io alice, *ptr = &alice;
     rlpx_io_tcp_init(&alice, &static_key, &udp);
     rlpx_io_devp2p_install(&alice);
-    devp2p = alice.rlpx.protocols[0].context;
+    devp2p = alice.protocols[0].context;
 
     // Install interrupt control
     usys_install_signal_handlers();
 
     // Try and connect on start
-    rlpx_io_nonce(&alice.rlpx);
+    rlpx_io_nonce(&alice);
     rlpx_io_connect_enode(&alice, g_test_enode);
 
     // Enter while 1 loop.
@@ -70,7 +70,7 @@ main(int argc, char* arg[])
             if (has_connected) {
                 usys_shutdown();
             } else {
-                rlpx_io_nonce(&alice.rlpx);
+                rlpx_io_nonce(&alice);
                 rlpx_io_connect_enode(&alice, g_test_enode);
             }
         } else {
@@ -99,7 +99,7 @@ main(int argc, char* arg[])
         usys_log_err("%s", "[ERR]");
     }
 
-    rlpx_io_tcp_deinit(&alice);
+    rlpx_io_deinit(&alice);
     uecc_key_deinit(&static_key);
     return err;
 }

@@ -18,10 +18,10 @@ set(CMAKE_BUILD_TYPE Debug) #todo make a release option
 
 # build libraries and their unit tests
 add_subdirectory(libucrypto)
-####add_subdirectory(libueth)
+add_subdirectory(libueth)
 add_subdirectory(libup2p)
 add_subdirectory(liburlp)
 add_subdirectory(libusys)
 
 # some apps
-####add_subdirectory(apps/pingpong)
+add_subdirectory(apps/pingpong)

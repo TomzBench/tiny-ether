@@ -52,6 +52,7 @@ typedef struct
 
 typedef struct rlpx
 {
+    async_io io;                 /*!< io context for network sys calls */
     uecc_ctx* skey;              /*!< TODO make const - our static key ref*/
     uecc_ctx ekey;               /*!< our epheremal key */
     rlpx_coder x;                /*!< igress/ingress */
@@ -66,46 +67,44 @@ typedef struct rlpx
     rlpx_io_protocol protocols[RLPX_IO_MAX_PROTOCOL]; /*!< map */
 } rlpx_io;
 
-typedef struct
-{
-    async_io io;  /*!< io context for network sys calls */
-    rlpx_io rlpx; /*!< rlpx context */
-} rlpx_io_tcp;
-
-typedef struct
-{
-    async_io io;  /*!< io context for network sys calls */
-    rlpx_io rlpx; /*!< rlpx context */
-} rlpx_io_udp;
+// typedef struct
+//{
+//    async_io io;  /*!< io context for network sys calls */
+//    rlpx_io rlpx; /*!< rlpx context */
+//} rlpx_io;
+//
+// typedef struct
+//{
+//    async_io io;  /*!< io context for network sys calls */
+//    rlpx_io rlpx; /*!< rlpx context */
+//} rlpx_io;
 
 // constructors
-rlpx_io_tcp* rlpx_io_alloc(uecc_ctx* skey, const uint32_t* listen);
-void rlpx_io_free(rlpx_io_tcp** ch_p);
-void rlpx_io_udp_init(rlpx_io_udp* io, uecc_ctx* s, const uint32_t* listen);
-void rlpx_io_tcp_init(rlpx_io_tcp* io, uecc_ctx* s, const uint32_t* listen);
+rlpx_io* rlpx_io_alloc(uecc_ctx* skey, const uint32_t* listen);
+void rlpx_io_free(rlpx_io** ch_p);
+void rlpx_io_tcp_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
+void rlpx_io_udp_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
 void rlpx_io_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen);
-void rlpx_io_udp_deinit(rlpx_io_udp* io);
-void rlpx_io_tcp_deinit(rlpx_io_tcp* io);
-void rlpx_io_deinit(rlpx_io* session);
+void rlpx_io_deinit(rlpx_io* io);
 void rlpx_io_refresh(rlpx_io* rlpx);
 
 // methods
-int rlpx_io_poll(rlpx_io_tcp** ch, uint32_t count, uint32_t ms);
-int rlpx_io_listen(rlpx_io_tcp* io);
+int rlpx_io_poll(rlpx_io** ch, uint32_t count, uint32_t ms);
+int rlpx_io_listen(rlpx_io* io);
 int rlpx_io_connect(
-    rlpx_io_tcp* ch,
+    rlpx_io* ch,
     const uecc_public_key* to,
     uint32_t ip,
     uint32_t tcp);
 int rlpx_io_connect_host(
-    rlpx_io_tcp* ch,
+    rlpx_io* ch,
     const uecc_public_key* to,
     const char* host,
     uint32_t tcp);
-int rlpx_io_connect_enode(rlpx_io_tcp* ch, const char* enode);
-int rlpx_io_connect_node(rlpx_io_tcp* ch, const rlpx_node* node);
-int rlpx_io_accept(rlpx_io_tcp* ch, const uecc_public_key* from);
-int rlpx_io_send_auth(rlpx_io_tcp* ch);
+int rlpx_io_connect_enode(rlpx_io* ch, const char* enode);
+int rlpx_io_connect_node(rlpx_io* ch, const rlpx_node* node);
+int rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from);
+int rlpx_io_send_auth(rlpx_io* ch);
 int rlpx_io_send(async_io* io);
 int rlpx_io_send_sync(async_io* io);
 int rlpx_io_sendto(async_io* io, uint32_t ip, uint32_t port);
@@ -116,10 +115,10 @@ int rlpx_io_parse_udp(
     uecc_public_key* node_id,
     int* type,
     urlp** rlp);
-int rlpx_io_recv_udp(rlpx_io_udp* ch, const uint8_t* b, size_t l);
-int rlpx_io_recv(rlpx_io_tcp* ch, const uint8_t* d, size_t l);
-int rlpx_io_recv_auth(rlpx_io_tcp*, const uint8_t*, size_t l);
-int rlpx_io_recv_ack(rlpx_io_tcp* ch, const uint8_t*, size_t l);
+int rlpx_io_recv_udp(rlpx_io* ch, const uint8_t* b, size_t l);
+int rlpx_io_recv(rlpx_io* ch, const uint8_t* d, size_t l);
+int rlpx_io_recv_auth(rlpx_io*, const uint8_t*, size_t l);
+int rlpx_io_recv_ack(rlpx_io* ch, const uint8_t*, size_t l);
 
 static inline void
 rlpx_io_nonce(rlpx_io* io)
@@ -133,18 +132,6 @@ rlpx_io_error_get(rlpx_io* io)
     return io->error;
 }
 
-static inline int
-rlpx_io_tcp_error_get(rlpx_io_tcp* io)
-{
-    return rlpx_io_error_get(&io->rlpx);
-}
-
-static inline void
-rlpx_io_tcp_refresh(rlpx_io_tcp* tcp)
-{
-    return rlpx_io_refresh(&tcp->rlpx);
-}
-
 static inline void
 rlpx_io_error_set(rlpx_io* io, int error)
 {
@@ -152,51 +139,51 @@ rlpx_io_error_set(rlpx_io* io, int error)
 }
 
 static const uecc_public_key*
-rlpx_io_spub(rlpx_io_tcp* tcp)
+rlpx_io_spub(rlpx_io* tcp)
 {
-    return &tcp->rlpx.skey->Q;
+    return &tcp->skey->Q;
 }
 
 static const uecc_public_key*
-rlpx_io_spub_remote(rlpx_io_tcp* tcp)
+rlpx_io_spub_remote(rlpx_io* tcp)
 {
-    return &tcp->rlpx.node.id;
+    return &tcp->node.id;
 }
 
 static const uecc_public_key*
-rlpx_io_epub(rlpx_io_tcp* tcp)
+rlpx_io_epub(rlpx_io* tcp)
 {
-    return &tcp->rlpx.ekey.Q;
+    return &tcp->ekey.Q;
 }
 
 static const uecc_public_key*
-rlpx_io_epub_remote(rlpx_io_tcp* tcp)
+rlpx_io_epub_remote(rlpx_io* tcp)
 {
-    return tcp->rlpx.hs ? &tcp->rlpx.hs->ekey_remote : NULL;
+    return tcp->hs ? &tcp->hs->ekey_remote : NULL;
 }
 
 static inline uint8_t*
-rlpx_io_buffer(rlpx_io_tcp* io)
+rlpx_io_buffer(rlpx_io* io)
 {
     return async_io_buffer((async_io*)io);
 }
 
 static inline uint32_t*
-rlpx_io_len_ptr(rlpx_io_tcp* io)
+rlpx_io_len_ptr(rlpx_io* io)
 {
     return async_io_buffer_length_pointer((async_io*)io);
 }
 
 static inline int
-rlpx_io_is_connected(rlpx_io_tcp* ch)
+rlpx_io_is_connected(rlpx_io* ch)
 {
     return async_io_has_sock(&ch->io);
 }
 
 static inline int
-rlpx_io_is_ready(rlpx_io_tcp* ch)
+rlpx_io_is_ready(rlpx_io* ch)
 {
-    return ch->rlpx.ready;
+    return ch->ready;
 }
 
 static inline int
@@ -211,9 +198,9 @@ rlpx_io_default_on_recv(void* io, const urlp* rlp)
 }
 
 static inline int
-rlpx_io_is_shutdown(rlpx_io_tcp* ch)
+rlpx_io_is_shutdown(rlpx_io* ch)
 {
-    return ch->rlpx.shutdown;
+    return ch->shutdown;
 }
 
 #ifdef __cplusplus

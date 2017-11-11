@@ -71,7 +71,7 @@ main(int argc, char* argv[])
         if (count++ >= 10) {
             count = 0;
             rlpx_io_discovery_send_find(
-                eth.discovery.rlpx.protocols[0].context,
+                eth.discovery.protocols[0].context,
                 usys_atoh("45.55.63.72"),
                 30303,
                 // usys_atoh("127.0.0.1"),

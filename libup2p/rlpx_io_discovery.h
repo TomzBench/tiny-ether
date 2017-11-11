@@ -87,7 +87,7 @@ typedef struct
  */
 typedef struct
 {
-    rlpx_io_udp* base;
+    rlpx_io* base;
     void* ctx;
     rlpx_io_discovery_table table;
 } rlpx_io_discovery;
@@ -98,7 +98,7 @@ typedef struct
  * @param self
  * @param base
  */
-void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_udp* base);
+void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base);
 
 /**
  * @brief
@@ -107,7 +107,7 @@ void rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io_udp* base);
  *
  * @return
  */
-int rlpx_io_discovery_install(rlpx_io_udp* base);
+int rlpx_io_discovery_install(rlpx_io* base);
 
 /**
  * @brief
@@ -123,7 +123,7 @@ void rlpx_io_discovery_uninstall(void** ptr_p);
  *
  * @return
  */
-rlpx_io_discovery* rlpx_io_discovery_get_context(rlpx_io_udp* rlpx);
+rlpx_io_discovery* rlpx_io_discovery_get_context(rlpx_io* rlpx);
 
 /**
  * @brief Initialize a rlpx_io_discovery_table context

@@ -69,7 +69,7 @@ test_frame_read()
         NULL);
     IF_ERR_EXIT(err);
     if (!rlpx_frame_parse(
-            &s.bob->rlpx.x,
+            &s.bob->x,
             makebin(g_hello_packet, NULL),
             strlen(g_hello_packet) / 2,
             &frame)) {
@@ -112,25 +112,21 @@ test_frame_write()
 
     // alice hello bob
     err = rlpx_io_devp2p_write_hello(
-        &s.alice->rlpx.x,
-        *s.alice->rlpx.listen_port,
-        &s.alice->rlpx.node_id[1],
-        buffa,
-        &lena);
+        &s.alice->x, *s.alice->listen_port, &s.alice->node_id[1], buffa, &lena);
     IF_ERR_EXIT(err);
 
     // bob hello alice
     err = rlpx_io_devp2p_write_hello(
-        &s.bob->rlpx.x, //
-        *s.bob->rlpx.listen_port,
-        &s.bob->rlpx.node_id[1],
+        &s.bob->x, //
+        *s.bob->listen_port,
+        &s.bob->node_id[1],
         buffb,
         &lenb);
     IF_ERR_EXIT(err);
 
     // Parse hello (parse returns length processed).
-    err = rlpx_frame_parse(&s.bob->rlpx.x, buffa, lena, &rlpa) ? 0 : -1;
-    err = rlpx_frame_parse(&s.alice->rlpx.x, buffb, lenb, &rlpb) ? 0 : -1;
+    err = rlpx_frame_parse(&s.bob->x, buffa, lena, &rlpa) ? 0 : -1;
+    err = rlpx_frame_parse(&s.alice->x, buffb, lenb, &rlpb) ? 0 : -1;
 
     // Read body frame
     bodya = urlp_at(urlp_at(rlpa, 1), 1); //
@@ -157,16 +153,16 @@ test_frame_write()
     // verify listen port
     rlpx_io_devp2p_listen_port(bodya, &numa);
     rlpx_io_devp2p_listen_port(bodyb, &numb);
-    IF_ERR_EXIT((numa == *s.alice->rlpx.listen_port) ? 0 : -1);
-    IF_ERR_EXIT((numb == *s.bob->rlpx.listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numa == *s.alice->listen_port) ? 0 : -1);
+    IF_ERR_EXIT((numb == *s.bob->listen_port) ? 0 : -1);
 
     // verify node_id
     rlpx_io_devp2p_node_id(bodya, &mema, &numa);
     rlpx_io_devp2p_node_id(bodyb, &memb, &numb);
     IF_ERR_EXIT((numa == 64) ? 0 : -1);
     IF_ERR_EXIT((numb == 64) ? 0 : -1);
-    IF_ERR_EXIT(memcmp(mema, &s.alice->rlpx.node_id[1], numa) ? -1 : 0);
-    IF_ERR_EXIT(memcmp(memb, &s.bob->rlpx.node_id[1], numb) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(mema, &s.alice->node_id[1], numa) ? -1 : 0);
+    IF_ERR_EXIT(memcmp(memb, &s.bob->node_id[1], numb) ? -1 : 0);
 
 EXIT:
     // clean

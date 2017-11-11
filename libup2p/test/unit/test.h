@@ -59,7 +59,7 @@ typedef struct
 {
     uecc_ctx skey_a, skey_b;     /*!< static keys */
     uint32_t udp[2];             /*!< */
-    rlpx_io_tcp *alice, *bob;    /*!< rlpx context */
+    rlpx_io *alice, *bob;        /*!< rlpx context */
     size_t authlen, acklen;      /*!< size of cipher */
     uint8_t auth[800], ack[800]; /*!< cipher test buffers */
     h256 alice_n, bob_n;         /*!< nonces used sometimes */

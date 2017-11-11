@@ -171,21 +171,21 @@ test_session_connect(test_session* s)
     rlpx_test_nonce_set(s->bob, &s->bob_n);
 
     // fill remote node info
-    rlpx_node_init(&s->alice->rlpx.node, rlpx_io_spub(s->bob), "1.1.1.1", 0, 0);
-    rlpx_node_init(&s->bob->rlpx.node, rlpx_io_spub(s->alice), "1.1.1.1", 0, 0);
+    rlpx_node_init(&s->alice->node, rlpx_io_spub(s->bob), "1.1.1.1", 0, 0);
+    rlpx_node_init(&s->bob->node, rlpx_io_spub(s->alice), "1.1.1.1", 0, 0);
 
-    s->alice->rlpx.hs = rlpx_handshake_alloc(
+    s->alice->hs = rlpx_handshake_alloc(
         1,
-        s->alice->rlpx.skey,
-        &s->alice->rlpx.ekey,
-        &s->alice->rlpx.nonce,
-        &s->alice->rlpx.node.id);
-    s->bob->rlpx.hs = rlpx_handshake_alloc(
+        s->alice->skey,
+        &s->alice->ekey,
+        &s->alice->nonce,
+        &s->alice->node.id);
+    s->bob->hs = rlpx_handshake_alloc(
         0, //
-        s->bob->rlpx.skey,
-        &s->bob->rlpx.ekey,
-        &s->bob->rlpx.nonce,
-        &s->bob->rlpx.node.id);
+        s->bob->skey,
+        &s->bob->ekey,
+        &s->bob->nonce,
+        &s->bob->node.id);
 }
 
 void
@@ -198,12 +198,12 @@ test_session_handshake(test_session* s)
     // s->alice->hs->cipher_len);
     rlpx_io_recv_ack(
         s->alice, //
-        s->bob->rlpx.hs->cipher,
-        s->bob->rlpx.hs->cipher_len);
+        s->bob->hs->cipher,
+        s->bob->hs->cipher_len);
     rlpx_io_recv_auth(
         s->bob, //
-        s->alice->rlpx.hs->cipher,
-        s->alice->rlpx.hs->cipher_len);
+        s->alice->hs->cipher,
+        s->alice->hs->cipher_len);
 }
 
 int
