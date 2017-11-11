@@ -6,13 +6,9 @@ endif()
 # Common files
 set(sources 
 	./async/async_io.c
-	./async/async_io_tcp.c
-	./async/async_io_udp.c
 	)
 set(headers 
 	./async/async_io.h
-	./async/async_io_tcp.h
-	./async/async_io_udp.h
 	)
 list(APPEND sources 
 	./${USYS_DIR}/usys_signals.c 

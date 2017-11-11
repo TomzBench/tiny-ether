@@ -39,18 +39,89 @@ extern "C" {
 #define ASYNC_IO_IS_RECV(x) ((x) & (ASYNC_IO_STATE_RECV))
 #define ASYNC_IO_IS_ERRO(x) ((x) & (ASYNC_IO_STATE_ERRO))
 
+/**
+ * @brief IO callback
+ */
+typedef int (*async_io_on_connect_fn)(void*);
+typedef int (*async_io_on_accept_fn)(void*);
+typedef int (*async_io_on_erro_fn)(void*);
+typedef int (*async_io_on_send_fn)(void*, int, const uint8_t*, uint32_t);
+typedef int (*async_io_on_recv_fn)(void*, int err, uint8_t* b, uint32_t);
+
+/**
+ * @brief Initialize io context with callbacks
+ */
+typedef struct async_io_settings
+{
+    async_io_on_connect_fn on_connect;
+    async_io_on_accept_fn on_accept;
+    async_io_on_erro_fn on_erro;
+    async_io_on_send_fn on_send;
+    async_io_on_recv_fn on_recv;
+} async_io_settings;
+
+/**
+ * @brief Override usys_io_... with mock behavior for test
+ */
+typedef struct async_io_mock_settings
+{
+    union
+    {
+        usys_io_send_fn send;
+        usys_io_send_to_fn sendto;
+    };
+    union
+    {
+        usys_io_recv_fn recv;
+        usys_io_recv_from_fn recvfrom;
+    };
+    usys_io_ready_fn ready;
+    usys_io_connect_fn connect;
+    usys_io_close_fn close;
+} async_io_mock_settings;
+
+/**
+ * @brief Main async io context
+ * Send/Recv in a union to support different function pointer types for type
+ * checking.
+ */
 typedef struct async_io
 {
     usys_socket_fd sock;
-    uint32_t state, c, len;
-    uint8_t b[1290];
+    usys_sockaddr addr;
     void* ctx;
-    usys_io_close_fn close;
+    uint32_t state, c, len;
     int (*poll)(struct async_io*);
+    usys_io_close_fn close;
+    usys_io_ready_fn ready;
+    usys_io_connect_fn connect;
+    async_io_on_connect_fn on_connect;
+    async_io_on_accept_fn on_accept;
+    async_io_on_erro_fn on_error;
+    async_io_on_send_fn on_send;
+    async_io_on_recv_fn on_recv;
+    union
+    {
+        usys_io_send_fn send;
+        usys_io_send_to_fn sendto;
+    };
+    union
+    {
+        usys_io_recv_fn recv;
+        usys_io_recv_from_fn recvfrom;
+    };
+    uint8_t b[1290];
 } async_io;
 
 void async_io_init(async_io* io, void* ctx);
 void async_io_deinit(async_io* io);
+
+int async_io_tcp_poll_connect(async_io* io);
+int async_io_tcp_poll_send(async_io* io);
+int async_io_tcp_poll_recv(async_io* io);
+
+int async_io_udp_poll_send(async_io* io);
+int async_io_udp_poll_recv(async_io* io);
 
 int async_io_poll_n(async_io** io, uint32_t n, uint32_t ms);
 
