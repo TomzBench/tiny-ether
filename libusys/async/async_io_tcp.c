@@ -105,6 +105,7 @@ async_io_tcp_poll_connect(async_io* io)
         ret = tcp->ready(&tcp->base.sock);
         if (ret < 0) {
             async_io_tcp_state_erro_set(tcp);
+            async_io_close(io);
         } else {
             async_io_tcp_state_ready_set(tcp);
             ret = tcp->on_connect(io->ctx);

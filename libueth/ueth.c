@@ -137,7 +137,7 @@ ueth_poll_internal(ueth_context* ctx)
                 if (r->ep.iplen == 4) {
                     uint32_t ip;
                     memcpy(&ip, r->ep.ip, 4);
-                    usys_log("[OUT] [UDP] (connecting) (%s)", usys_ntoa(ip));
+                    usys_log("[OUT] [TCP] (connecting) (%s)", usys_ntoa(ip));
 		    // TODO - usys should take network byte order
                     err = rlpx_io_connect(
                         &ctx->ch[i],
