@@ -149,6 +149,30 @@ async_io_close(async_io* io)
     io->state = io->len = io->c = 0;
 }
 
+static inline void
+async_io_on_recv(async_io* io, async_io_on_recv_fn fn)
+{
+    io->on_recv = fn;
+}
+
+static inline void
+async_io_on_send(async_io* io, async_io_on_send_fn fn)
+{
+    io->on_send = fn;
+}
+
+static inline uint32_t
+async_io_ip_addr(async_io* io)
+{
+    return io->addr.ip;
+}
+
+static inline uint32_t
+async_io_port(async_io* io)
+{
+    return io->addr.port;
+}
+
 static inline void*
 async_io_mem(async_io* self, uint32_t idx)
 {

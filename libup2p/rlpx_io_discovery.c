@@ -268,8 +268,8 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         if (!err) {
             return rlpx_io_discovery_send_pong(
                 self,
-                async_io_udp_from_ip(&self->base->io),
-                async_io_udp_from_port(&self->base->io),
+                async_io_ip_addr(&self->base->io),
+                async_io_port(&self->base->io),
                 &from,
                 (h256*)buff32,
                 ts);
@@ -287,8 +287,8 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         if (!err) {
             return rlpx_io_discovery_send_neighbours(
                 self,
-                async_io_udp_from_ip(&self->base->io),
-                async_io_udp_from_port(&self->base->io),
+                async_io_ip_addr(&self->base->io),
+                async_io_port(&self->base->io),
                 &self->table,
                 ts);
         }

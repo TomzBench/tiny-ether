@@ -31,8 +31,7 @@
 extern "C" {
 #endif
 
-#include "async_io_tcp.h"
-#include "async_io_udp.h"
+#include "async_io.h"
 #include "rlpx_config.h"
 #include "rlpx_frame.h"
 #include "rlpx_handshake.h"
@@ -69,14 +68,14 @@ typedef struct rlpx
 
 typedef struct
 {
-    async_io_tcp io; /*!< io context for network sys calls */
-    rlpx_io rlpx;    /*!< rlpx context */
+    async_io io;  /*!< io context for network sys calls */
+    rlpx_io rlpx; /*!< rlpx context */
 } rlpx_io_tcp;
 
 typedef struct
 {
-    async_io_udp io; /*!< io context for network sys calls */
-    rlpx_io rlpx;    /*!< rlpx context */
+    async_io io;  /*!< io context for network sys calls */
+    rlpx_io rlpx; /*!< rlpx context */
 } rlpx_io_udp;
 
 // constructors
@@ -107,10 +106,10 @@ int rlpx_io_connect_enode(rlpx_io_tcp* ch, const char* enode);
 int rlpx_io_connect_node(rlpx_io_tcp* ch, const rlpx_node* node);
 int rlpx_io_accept(rlpx_io_tcp* ch, const uecc_public_key* from);
 int rlpx_io_send_auth(rlpx_io_tcp* ch);
-int rlpx_io_send(async_io_tcp* io);
-int rlpx_io_send_sync(async_io_tcp* io);
-int rlpx_io_sendto(async_io_udp* io, uint32_t ip, uint32_t port);
-int rlpx_io_sendto_sync(async_io_udp* udp, uint32_t ip, uint32_t port);
+int rlpx_io_send(async_io* io);
+int rlpx_io_send_sync(async_io* io);
+int rlpx_io_sendto(async_io* io, uint32_t ip, uint32_t port);
+int rlpx_io_sendto_sync(async_io* udp, uint32_t ip, uint32_t port);
 int rlpx_io_parse_udp(
     const uint8_t* b,
     uint32_t l,
@@ -191,7 +190,7 @@ rlpx_io_len_ptr(rlpx_io_tcp* io)
 static inline int
 rlpx_io_is_connected(rlpx_io_tcp* ch)
 {
-    return async_io_has_sock(&ch->io.base);
+    return async_io_has_sock(&ch->io);
 }
 
 static inline int

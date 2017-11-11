@@ -39,12 +39,12 @@ void test_mock_close(usys_socket_fd* fd);
 int test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l);
 int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l);
 
-async_io_tcp_mock_settings g_io_mock_settings = { //
+async_io_mock_settings g_io_mock_settings = { //
     .connect = test_mock_connect,
     .ready = test_mock_ready,
     .close = test_mock_close,
-    .tx = test_mock_send,
-    .rx = test_mock_recv
+    .send = test_mock_send,
+    .recv = test_mock_recv
 };
 int
 test_mock_connect(usys_socket_fd* fd, const char* host, int port)

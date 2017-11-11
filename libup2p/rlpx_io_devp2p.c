@@ -220,7 +220,7 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
         // Bad public key...
         usys_log_err("[ERR] Invalid \"hello\" - bad public key");
         ch->base->rlpx.shutdown = 1;
-        async_io_close(&ch->base->io.base);
+        async_io_close(&ch->base->io);
         return -1;
     }
 }
@@ -288,8 +288,7 @@ rlpx_io_devp2p_send_disconnect(
         &ch->base->rlpx.x, reason, async_io_buffer(io), len);
     if (!err) {
         usys_log("[OUT] (disconnect) size: %d", *len);
-        async_io_tcp_set_cb_send(
-            &ch->base->io, rlpx_io_devp2p_on_send_shutdown);
+        async_io_on_send(&ch->base->io, rlpx_io_devp2p_on_send_shutdown);
         return rlpx_io_send_sync(&ch->base->io);
     } else {
         return err;
@@ -341,7 +340,7 @@ rlpx_io_devp2p_on_send_shutdown(
     ((void)b);
     ((void)l);
     ch->rlpx.shutdown = 1;
-    async_io_close(&ch->io.base);
+    async_io_close(&ch->io);
     return err;
 }
 
