@@ -19,8 +19,7 @@
  * @date 2017
  */
 
-#include "async_io_tcp.h"
-#include "async_io_udp.h"
+#include "async_io.h"
 #include "usys_log.h"
 #include "usys_time.h"
 
@@ -49,32 +48,32 @@ int io_udp_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
 typedef struct
 {
     int n;
-    async_io_tcp_mock_settings* settings;
+    async_io_mock_settings* settings;
 } io_test_settings;
 
-async_io_udp_settings g_io_udp_settings = {.on_send = io_udp_on_send,
-                                           .on_recv = io_udp_on_recv,
-                                           .on_erro = io_udp_on_erro };
-async_io_tcp_settings g_io_tcp_settings = {.on_connect = io_on_connect,
-                                           .on_accept = io_on_accept,
-                                           .on_erro = io_on_erro,
-                                           .on_send = io_on_send,
-                                           .on_recv = io_on_recv };
-async_io_tcp_mock_settings g_io_settings_all = {.ready = io_mock_ready,
-                                                .connect = io_mock_connect,
-                                                .tx = io_mock_send_all,
-                                                .rx = io_mock_recv,
-                                                .close = io_mock_close };
-async_io_tcp_mock_settings g_io_settings_one = {.ready = io_mock_ready,
-                                                .connect = io_mock_connect,
-                                                .tx = io_mock_send_one,
-                                                .rx = io_mock_recv,
-                                                .close = io_mock_close };
-async_io_tcp_mock_settings g_io_settings_min = {.ready = io_mock_ready,
-                                                .connect = io_mock_connect,
-                                                .tx = io_mock_send_min,
-                                                .rx = io_mock_recv,
-                                                .close = io_mock_close };
+async_io_settings g_io_udp_settings = {.on_send = io_udp_on_send,
+                                       .on_recv = io_udp_on_recv,
+                                       .on_erro = io_udp_on_erro };
+async_io_settings g_io_tcp_settings = {.on_connect = io_on_connect,
+                                       .on_accept = io_on_accept,
+                                       .on_erro = io_on_erro,
+                                       .on_send = io_on_send,
+                                       .on_recv = io_on_recv };
+async_io_mock_settings g_io_settings_all = {.ready = io_mock_ready,
+                                            .connect = io_mock_connect,
+                                            .send = io_mock_send_all,
+                                            .recv = io_mock_recv,
+                                            .close = io_mock_close };
+async_io_mock_settings g_io_settings_one = {.ready = io_mock_ready,
+                                            .connect = io_mock_connect,
+                                            .send = io_mock_send_one,
+                                            .recv = io_mock_recv,
+                                            .close = io_mock_close };
+async_io_mock_settings g_io_settings_min = {.ready = io_mock_ready,
+                                            .connect = io_mock_connect,
+                                            .send = io_mock_send_min,
+                                            .recv = io_mock_recv,
+                                            .close = io_mock_close };
 
 int test_send(void);
 int test_udp(void);
@@ -98,15 +97,15 @@ main(int argc, char* argv[])
 int
 test_udp(void)
 {
-    async_io_udp c, s;
+    async_io c, s;
     uint32_t cport = 12223, sport = 12224, count = 0;
     async_io* ptrs[] = { (async_io*)&c, (async_io*)&s };
     async_io_udp_init(&c, &g_io_udp_settings, &count);
     async_io_udp_init(&s, &g_io_udp_settings, &count);
     if (async_io_udp_listen(&c, cport)) goto EXIT;
     if (async_io_udp_listen(&s, sport)) goto EXIT;
-    async_io_print(&c.base, 0, "hello");
-    async_io_print(&s.base, 0, "world");
+    async_io_print(&c, 0, "hello");
+    async_io_print(&s, 0, "world");
     if (async_io_udp_send(&c, 0, sport)) goto EXIT;
     if (async_io_udp_send(&s, 0, cport)) goto EXIT;
     for (int i = 0; i < 10; i++) {
@@ -114,8 +113,8 @@ test_udp(void)
         async_io_poll_n(ptrs, 2, 100);
     }
 EXIT:
-    async_io_udp_deinit(&c);
-    async_io_udp_deinit(&s);
+    async_io_deinit(&c);
+    async_io_deinit(&s);
     return (count == 2) ? 0 : -1;
 }
 
@@ -124,7 +123,7 @@ test_send(void)
 {
     // Stack
     int err = 0, i, c;
-    async_io_tcp io;
+    async_io io;
     io_test_settings settings[] = {
         {.n = 1, .settings = &g_io_settings_all },  // Test one shot send/recv
         {.n = 28, .settings = &g_io_settings_one }, // Test busy io
@@ -136,21 +135,21 @@ test_send(void)
         err = -1;
 
         async_io_tcp_init(&io, &g_io_tcp_settings, &err);
-        async_io_tcp_install_mock(&io, settings[i].settings);
+        async_io_install_mock(&io, settings[i].settings);
 
         // Mock peer
         async_io_tcp_connect(&io, "thhpt", 8080);
 
         // Test transmit (prepare send buffer and send)
-        async_io_print(&io.base, 0, "%s", g_lorem);
+        async_io_print(&io, 0, "%s", g_lorem);
         async_io_tcp_send(&io);
-        for (c = 0; c < settings[i].n; c++) async_io_poll(&io.base);
+        for (c = 0; c < settings[i].n; c++) async_io_poll(&io);
 
         // Did send callback signal Send complete?
         if (err) break;
 
         // Test receive.
-        async_io_tcp_deinit(&io);
+        async_io_deinit(&io);
     }
     return err;
 }

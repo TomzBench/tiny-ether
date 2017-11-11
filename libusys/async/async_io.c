@@ -22,20 +22,6 @@
 #include "async_io.h"
 
 void
-async_io_udp_init(async_io* io, async_io_settings* settings, void* ctx)
-{
-    async_io_init(io, ctx);
-    io->sendto = usys_send_to;
-    io->recvfrom = usys_recv_from;
-    io->on_connect = settings->on_connect;
-    io->on_accept = settings->on_accept;
-    io->on_error = settings->on_erro;
-    io->on_send = settings->on_send;
-    io->on_recv = settings->on_recv;
-    io->poll = async_io_udp_poll_recv;
-}
-
-void
 async_io_tcp_init(async_io* io, async_io_settings* settings, void* ctx)
 {
     async_io_init(io, ctx);
@@ -49,6 +35,20 @@ async_io_tcp_init(async_io* io, async_io_settings* settings, void* ctx)
     io->on_send = settings->on_send;
     io->on_recv = settings->on_recv;
     io->poll = async_io_tcp_poll_connect;
+}
+
+void
+async_io_udp_init(async_io* io, async_io_settings* settings, void* ctx)
+{
+    async_io_init(io, ctx);
+    io->sendto = usys_send_to;
+    io->recvfrom = usys_recv_from;
+    io->on_connect = settings->on_connect;
+    io->on_accept = settings->on_accept;
+    io->on_error = settings->on_erro;
+    io->on_send = settings->on_send;
+    io->on_recv = settings->on_recv;
+    io->poll = async_io_udp_poll_recv;
 }
 
 void
@@ -84,6 +84,26 @@ async_io_install_mock(async_io* io, async_io_mock_settings* mock)
     if (mock->close) io->close = mock->close;
     if (mock->connect) io->connect = mock->connect;
     if (mock->ready) io->ready = mock->ready;
+}
+
+int
+async_io_tcp_connect(async_io* io, const char* ip, uint32_t p)
+{
+    int ret;
+    if (async_io_has_sock(io)) async_io_close(io);
+    ret = io->connect(&io->sock, ip, p);
+    if (ret < 0) {
+        async_io_state_erro_set(io);
+        io->poll = async_io_tcp_poll_connect;
+    } else if (ret == 0) {
+        async_io_state_send_set(io);
+    } else {
+        async_io_state_ready_set(io);
+        async_io_state_recv_set(io);
+        io->poll = async_io_tcp_poll_recv;
+        io->on_connect(io->ctx);
+    }
+    return ret;
 }
 
 int

@@ -113,8 +113,21 @@ typedef struct async_io
     uint8_t b[1290];
 } async_io;
 
+void async_io_tcp_init(async_io* io, async_io_settings* settings, void* ctx);
+void async_io_udp_init(async_io* io, async_io_settings* settings, void* ctx);
 void async_io_init(async_io* io, void* ctx);
 void async_io_deinit(async_io* io);
+
+void async_io_install_mock(async_io* io, async_io_mock_settings* mock);
+
+int async_io_tcp_connect(async_io* tcp, const char* ip, uint32_t p);
+int async_io_tcp_accept(async_io* io);
+int async_io_udp_listen(async_io* io, uint32_t port);
+
+int async_io_tcp_send(async_io* io);
+int async_io_udp_send(async_io* io, uint32_t ip, uint32_t port);
+
+int async_io_poll_n(async_io** io, uint32_t n, uint32_t ms);
 
 int async_io_tcp_poll_connect(async_io* io);
 int async_io_tcp_poll_send(async_io* io);
@@ -122,8 +135,6 @@ int async_io_tcp_poll_recv(async_io* io);
 
 int async_io_udp_poll_send(async_io* io);
 int async_io_udp_poll_recv(async_io* io);
-
-int async_io_poll_n(async_io** io, uint32_t n, uint32_t ms);
 
 static inline int
 async_io_has_sock(async_io* io)
