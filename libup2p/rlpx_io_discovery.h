@@ -230,13 +230,13 @@ rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_id(
     const uecc_public_key* id);
 
 /**
- * @brief Grab a random node in table
+ * @brief Grab a next node in table
  *
  * @param table
  *
  * @return
  */
-rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_random(
+rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_next(
     rlpx_io_discovery_table* table);
 
 /**

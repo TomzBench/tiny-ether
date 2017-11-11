@@ -217,16 +217,12 @@ rlpx_io_discovery_table_node_get_id(
 }
 
 rlpx_io_discovery_endpoint_node*
-rlpx_io_discovery_table_node_get_random(rlpx_io_discovery_table* table)
+rlpx_io_discovery_table_node_get_next(rlpx_io_discovery_table* table)
 {
-    rlpx_io_discovery_endpoint_node* nodes[RLPX_IO_DISCOVERY_TABLE_SIZE];
-    int b = 0, i = 0, idx = 0;
-    for (i = 0; i < RLPX_IO_DISCOVERY_TABLE_SIZE; i++) {
-        if (table->nodes[i].state) nodes[b++] = &table->nodes[i];
-    }
-    if (b) {
-        idx = urand_min_max_u8(0, b);
-        if ((idx >= 0) && (idx < (int)b)) return nodes[idx];
+    static int spot = 0;
+    if (spot >= RLPX_IO_DISCOVERY_TABLE_SIZE) spot = 0;
+    while (spot++ < RLPX_IO_DISCOVERY_TABLE_SIZE) {
+        if (table->nodes[spot].state) return &table->nodes[spot];
     }
     return NULL;
 }
