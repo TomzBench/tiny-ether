@@ -89,6 +89,14 @@ urlp_free(urlp** rlp_p)
 }
 
 uint32_t
+urlp_read_size(const uint8_t* b)
+{
+    uint32_t result, szsz;
+    szsz = urlp_read_sz(b, &result);
+    return result + szsz;
+}
+
+uint32_t
 urlp_szsz(uint32_t size)
 {
     return 4 - (urlp_clz_fn(size) / 8);
@@ -481,7 +489,7 @@ urlp_read_int(const urlp* rlp, void* mem, uint32_t szof)
     const uint8_t* b = urlp_ref(rlp, &n);
     if (!(b && n <= szof)) return -1;
     urlp_read_big_endian(mem, n < szof ? n : szof, b);
-    return 1;
+    return 1; // TODO needs fix
     return 0;
 }
 

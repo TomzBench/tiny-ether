@@ -20,6 +20,7 @@
  */
 
 #include "rlpx_node.h"
+#include "usys_io.h"
 
 int rlpx_node_hex_to_bin(const char*, uint32_t, uint8_t*, uint32_t*);
 int rlpx_node_bin_to_hex(const uint8_t*, uint32_t, char*, uint32_t*);
@@ -33,11 +34,17 @@ rlpx_node_init(
     uint32_t udp)
 {
     memset(self, 0, sizeof(rlpx_node));
-    snprintf(self->ip_v4, sizeof(self->ip_v4), "%s", host);
-    self->port_tcp = tcp;
-    self->port_udp = udp;
-    self->id = *id;
-    return 0;
+    if (strlen(host) <= 15) {
+        uint32_t ip = usys_atoh(host);
+        memcpy(self->ip_v4, &ip, 4);
+        snprintf(self->ip_v4, sizeof(self->ip_v4), "%s", host);
+        self->port_tcp = tcp;
+        self->port_udp = udp;
+        self->id = *id;
+        return 0;
+    } else {
+        return -1;
+    }
 }
 
 int

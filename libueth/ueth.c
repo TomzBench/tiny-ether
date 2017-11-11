@@ -20,24 +20,14 @@
  */
 
 #include "ueth.h"
+#include "usys_io.h"
 #include "usys_log.h"
 #include "usys_time.h"
 
-int ueth_poll_tcp(ueth_context* ctx);
-int ueth_poll_udp(ueth_context* ctx);
-int ueth_on_accept(void* ctx);
-int ueth_on_connect(void* ctx);
+int ueth_poll_internal(ueth_context* ctx);
 int ueth_on_erro(void* ctx);
 int ueth_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
 int ueth_on_recv(void* ctx, int err, uint8_t* b, uint32_t l);
-
-async_io_settings g_ueth_io_settings = {
-    .on_accept = NULL,       //
-    .on_connect = NULL,      //
-    .on_erro = ueth_on_erro, //
-    .on_send = ueth_on_send, //
-    .on_recv = ueth_on_recv, //
-};
 
 int
 ueth_init(ueth_context* ctx, ueth_config* config)
@@ -47,35 +37,28 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     // Copy config.
     ctx->config = *config;
 
-    // Setup udp listener
-    if (ctx->config.udp) {
-        async_io_init_udp(&ctx->io, ctx, &g_ueth_io_settings);
-        usys_listen_udp(&ctx->io.sock, ctx->config.udp);
-    }
-
     // Polling mode (p2p enable, etc)
-    ctx->poll = config->p2p_enable ? ueth_poll_udp : ueth_poll_tcp;
+    ctx->poll = ueth_poll_internal;
 
     if (config->p2p_private_key) {
         rlpx_node_hex_to_bin(config->p2p_private_key, 0, key.b, NULL);
-        uecc_key_init_binary(&ctx->p2p_static_key, &key);
+        uecc_key_init_binary(&ctx->id, &key);
     } else {
-        uecc_key_init_new(&ctx->p2p_static_key);
+        uecc_key_init_new(&ctx->id);
     }
 
     // init constants
     ctx->n = (sizeof(ctx->ch) / sizeof(rlpx_io));
 
-    // Init peer pipes
+    // Init peer pipes (tcp)
     for (uint32_t i = 0; i < ctx->n; i++) {
-        rlpx_io_init(&ctx->ch[i], &ctx->p2p_static_key, &ctx->config.udp);
+        rlpx_io_tcp_init(&ctx->ch[i], &ctx->id, &ctx->config.udp);
+        rlpx_io_devp2p_install(&ctx->ch[i]);
     }
 
-    char hex[129];
-    uint8_t q[65];
-    uecc_qtob(&ctx->p2p_static_key.Q, q, 65);
-    rlpx_node_bin_to_hex(&q[1], 64, hex, NULL);
-    usys_log_info("enode://%s:%d", hex, ctx->config.udp);
+    // Init discovery pipe
+    rlpx_io_udp_init(&ctx->discovery, &ctx->id, &ctx->config.udp);
+    rlpx_io_discovery_install(&ctx->discovery);
 
     return 0;
 }
@@ -86,8 +69,11 @@ ueth_deinit(ueth_context* ctx)
     // Shutdown any open connections..
     for (uint32_t i = 0; i < ctx->n; i++) rlpx_io_deinit(&ctx->ch[i]);
 
+    // Shutdown udp
+    rlpx_io_deinit(&ctx->discovery);
+
     // Free static key
-    uecc_key_deinit(&ctx->p2p_static_key);
+    uecc_key_deinit(&ctx->id);
 }
 
 int
@@ -109,84 +95,67 @@ ueth_stop(ueth_context* ctx)
 {
     uint32_t mask = 0, i, c = 0, b = 0;
     rlpx_io* ch[ctx->n];
+    rlpx_io_devp2p* devp2p;
     for (i = 0; i < ctx->n; i++) {
-        if (rlpx_io_is_connected(&ctx->ch[i])) {
+        if (rlpx_io_is_ready(&ctx->ch[i])) {
             mask |= (1 << i);
             ch[b++] = &ctx->ch[i];
-            rlpx_io_send_disconnect(&ctx->ch[i], DEVP2P_DISCONNECT_QUITTING);
+            devp2p = ctx->ch[i].protocols[0].context;
+            rlpx_io_devp2p_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
         }
     }
     while (mask && ++c < 50) {
         usys_msleep(100);
         rlpx_io_poll(ch, b, 100);
         for (i = 0; i < ctx->n; i++) {
-            if (rlpx_io_is_shutdown(&ctx->ch[i])) mask &= (~(1 << i));
+            if (rlpx_io_is_shutdown(devp2p->base)) mask &= (~(1 << i));
         }
     }
     return 0;
 }
 
 int
-ueth_poll_tcp(ueth_context* ctx)
+ueth_poll_internal(ueth_context* ctx)
 {
-    uint32_t i, b = 0;
-    rlpx_io* ch[ctx->n];
+    uint32_t i, b = 0, err;
+    async_io* ch[ctx->n + 1];
     for (i = 0; i < ctx->n; i++) {
-        // If this channel has peer
-        if (ctx->ch[i].node.port_tcp) {
-            ch[b++] = &ctx->ch[i];
-            // If this channel is not connected
-            if (!rlpx_io_is_connected(&ctx->ch[i])) {
-                rlpx_io_nonce(&ctx->ch[i]);
-                rlpx_io_connect_node(&ctx->ch[i], &ctx->ch[i].node);
+        // Refresh channel if it is in error
+        if (rlpx_io_error_get(&ctx->ch[i])) {
+            // Kick out of discovery table
+
+            // Refresh space (don't like allocs)
+            rlpx_io_refresh(&ctx->ch[i]);
+        }
+        // Find free node to connect to if empty
+        if (!ctx->ch[i].node.port_tcp) {
+            rlpx_io_discovery* d;
+            rlpx_io_discovery_endpoint_node* r;
+            d = rlpx_io_discovery_get_context(&ctx->discovery);
+            r = rlpx_io_discovery_table_node_get_next(&d->table);
+            if (r) {
+                if (r->ep.iplen == 4) {
+                    uint32_t ip;
+                    memcpy(&ip, r->ep.ip, 4);
+                    usys_log("[OUT] [TCP] (connecting) (%s)", usys_ntoa(ip));
+                    // TODO - usys should take network byte order
+                    err = rlpx_io_connect(
+                        &ctx->ch[i],
+                        &r->nodeid,
+                        usys_ntohl(ip),
+                        usys_ntohl(r->ep.tcp));
+                }
             }
         }
+        // Add to io polling if there is a socket
+        if (ctx->ch[i].node.port_tcp) {
+            ch[b++] = (async_io*)&ctx->ch[i];
+        }
     }
-    rlpx_io_poll(ch, b, 100);
-    return 0;
-}
 
-int
-ueth_poll_udp(ueth_context* ctx)
-{
-    async_io* io = &ctx->io;
-    int err;
-
-    // Poll tcp
-    err = ueth_poll_tcp(ctx);
-
-    // TODO - poll udp ports
-    async_io_poll_n(&io, 1, 100);
-    return 0;
-}
-
-int
-ueth_on_erro(void* ctx)
-{
-    ((void)ctx);
-    usys_log("[ IN] [UDP] error");
-    return 0;
-}
-
-int
-ueth_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
-{
-    ((void)ctx);
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    usys_log("[ IN] [UDP] send");
-    return 0;
-}
-
-int
-ueth_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
-{
-    ueth_context* eth = (ueth_context*)ctx;
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    usys_log("[ IN] [UDP] hit");
+    // Add our listener to poll
+    ch[b++] = (async_io*)&ctx->discovery;
+    async_io_poll_n(ch, b, 100);
     return 0;
 }
 

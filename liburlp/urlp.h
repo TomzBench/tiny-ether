@@ -41,6 +41,7 @@ typedef void (*urlp_walk_fn)(const urlp*, int, void*);
 
 urlp* urlp_alloc(uint32_t);
 void urlp_free(urlp**);
+uint32_t urlp_read_size(const uint8_t* b);
 urlp* urlp_list();
 urlp* urlp_item_u64(const uint64_t);
 urlp* urlp_item_u32(const uint32_t);

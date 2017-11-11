@@ -30,6 +30,7 @@ extern "C" {
 
 void usys_msleep(uint32_t ms);
 int64_t usys_now();
+int64_t usys_tick();
 
 #ifdef __cplusplus
 }
