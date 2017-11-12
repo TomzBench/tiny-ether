@@ -235,6 +235,35 @@ rlpx_io_discovery_ready(void* self)
 }
 
 int
+rlpx_io_discovery_rlp_to_endpoint(
+    const urlp* rlp,
+    rlpx_io_discovery_endpoint* ep)
+{
+    int err;
+    uint32_t n = urlp_children(rlp);
+    if (n < 3) return -1;
+    ep->iplen = sizeof(ep->ip);
+    if ((!(err = urlp_idx_to_mem(rlp, 0, ep->ip, &ep->iplen))) &&
+        (!(err = urlp_idx_to_u32(rlp, 1, &ep->udp))) &&
+        (!(err = urlp_idx_to_u32(rlp, 2, &ep->tcp)))) {
+        return err;
+    }
+    return err;
+}
+urlp*
+rlpx_io_discovery_endpoint_to_rlp(const rlpx_io_discovery_endpoint* ep)
+{
+    urlp* rlp = urlp_list();
+    if (rlp) {
+        urlp_push(rlp, urlp_item_u8_arr(ep->ip, ep->iplen));
+        urlp_push(rlp, urlp_item_u32(ep->udp));
+        urlp_push(rlp, urlp_item_u32(ep->tcp));
+        if (!(urlp_children(rlp) == 3)) urlp_free(&rlp);
+    }
+    return rlp;
+}
+
+int
 rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 {
     rlpx_io_discovery* self = ctx;
@@ -304,66 +333,6 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 }
 
 int
-rlpx_io_discovery_write(
-    uecc_ctx* key,
-    RLPX_DISCOVERY type,
-    const urlp* rlp,
-    uint8_t* b,
-    uint32_t* l)
-{
-    int err = -1;
-    uecc_signature sig;
-    h256 shash;
-    uint32_t sz = *l - (32 + 65 + 1);
-
-    // || packet-data
-    err = urlp_print(rlp, &b[32 + 65 + 1], &sz);
-    if (!err) {
-
-        // || packet-type || packet-data
-        b[32 + 65] = type;
-
-        // sign(sha3(packet-type || packet-data)) || packet-type || packet-data
-        ukeccak256((uint8_t*)&b[32 + 65], sz + 1, shash.b, 32);
-        uecc_sign(key, shash.b, 32, &sig);
-        uecc_sig_to_bin(&sig, &b[32]);
-
-        // hash || sig || packet-type || packet-data
-        ukeccak256((uint8_t*)&b[32], sz + 1 + 65, b, 32);
-
-        *l = 32 + 65 + 1 + sz;
-    }
-    return err;
-}
-
-int
-rlpx_io_discovery_recv_endpoint(const urlp* rlp, rlpx_io_discovery_endpoint* ep)
-{
-    int err;
-    uint32_t n = urlp_children(rlp);
-    if (n < 3) return -1;
-    ep->iplen = sizeof(ep->ip);
-    if ((!(err = urlp_idx_to_mem(rlp, 0, ep->ip, &ep->iplen))) &&
-        (!(err = urlp_idx_to_u32(rlp, 1, &ep->udp))) &&
-        (!(err = urlp_idx_to_u32(rlp, 2, &ep->tcp)))) {
-        return err;
-    }
-    return err;
-}
-urlp*
-rlpx_io_discovery_rlp_endpoint(const rlpx_io_discovery_endpoint* ep)
-{
-    urlp* rlp = urlp_list();
-    if (rlp) {
-        urlp_push(rlp, urlp_item_u8_arr(ep->ip, ep->iplen));
-        urlp_push(rlp, urlp_item_u32(ep->udp));
-        urlp_push(rlp, urlp_item_u32(ep->tcp));
-        if (!(urlp_children(rlp) == 3)) urlp_free(&rlp);
-    }
-    return rlp;
-}
-
-int
 rlpx_io_discovery_recv_ping(
     const urlp** rlp,
     uint8_t* version32,
@@ -375,8 +344,8 @@ rlpx_io_discovery_recv_ping(
     uint32_t sz = 32, n = urlp_children(*rlp);
     if (n < 4) return -1;
     if ((!(err = urlp_idx_to_mem(*rlp, 0, version32, &sz))) && //
-        (!(err = rlpx_io_discovery_recv_endpoint(urlp_at(*rlp, 1), from))) &&
-        (!(err = rlpx_io_discovery_recv_endpoint(urlp_at(*rlp, 2), to))) &&
+        (!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 1), from))) &&
+        (!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 2), to))) &&
         (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
         return err;
     }
@@ -394,7 +363,7 @@ rlpx_io_discovery_recv_pong(
     int err;
     uint32_t sz = 32, n = urlp_children(*rlp);
     if (n < 4) return -1;
-    if ((!(err = rlpx_io_discovery_recv_endpoint(urlp_at(*rlp, 0), to))) &&
+    if ((!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 0), to))) &&
         (!(err = urlp_idx_to_mem(*rlp, 1, echo32, &sz))) &&
         (!(err = urlp_idx_to_u32(*rlp, 2, timestamp)))) {
         return err;
@@ -461,6 +430,38 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
 }
 
 int
+rlpx_io_discovery_write(
+    uecc_ctx* key,
+    RLPX_DISCOVERY type,
+    const urlp* rlp,
+    uint8_t* b,
+    uint32_t* l)
+{
+    int err = -1;
+    uecc_signature sig;
+    h256 shash;
+    uint32_t sz = *l - (32 + 65 + 1);
+
+    // || packet-data
+    err = urlp_print(rlp, &b[32 + 65 + 1], &sz);
+    if (!err) {
+
+        // || packet-type || packet-data
+        b[32 + 65] = type;
+
+        // sign(sha3(packet-type || packet-data)) || packet-type || packet-data
+        ukeccak256((uint8_t*)&b[32 + 65], sz + 1, shash.b, 32);
+        uecc_sign(key, shash.b, 32, &sig);
+        uecc_sig_to_bin(&sig, &b[32]);
+
+        // hash || sig || packet-type || packet-data
+        ukeccak256((uint8_t*)&b[32], sz + 1 + 65, b, 32);
+
+        *l = 32 + 65 + 1 + sz;
+    }
+    return err;
+}
+int
 rlpx_io_discovery_write_ping(
     uecc_ctx* skey,
     uint32_t ver,
@@ -474,8 +475,8 @@ rlpx_io_discovery_write_ping(
     urlp* rlp = urlp_list();
     if (rlp) {
         urlp_push(rlp, urlp_item_u32(ver));
-        urlp_push(rlp, rlpx_io_discovery_rlp_endpoint(ep_src));
-        urlp_push(rlp, rlpx_io_discovery_rlp_endpoint(ep_dst));
+        urlp_push(rlp, rlpx_io_discovery_endpoint_to_rlp(ep_src));
+        urlp_push(rlp, rlpx_io_discovery_endpoint_to_rlp(ep_dst));
         urlp_push(rlp, urlp_item_u32(timestamp));
         err = rlpx_io_discovery_write(skey, RLPX_DISCOVERY_PING, rlp, dst, l);
         urlp_free(&rlp);
@@ -495,7 +496,7 @@ rlpx_io_discovery_write_pong(
     int err = -1;
     urlp* rlp = urlp_list();
     if (rlp) {
-        urlp_push(rlp, rlpx_io_discovery_rlp_endpoint(ep_to));
+        urlp_push(rlp, rlpx_io_discovery_endpoint_to_rlp(ep_to));
         urlp_push(rlp, urlp_item_u8_arr(echo->b, 32));
         urlp_push(rlp, urlp_item_u32(timestamp));
         err = rlpx_io_discovery_write(skey, RLPX_DISCOVERY_PONG, rlp, dst, l);
