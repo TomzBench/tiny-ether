@@ -262,19 +262,17 @@ rlpx_io_sendto(async_io* io, uint32_t ip, uint32_t port)
 int
 rlpx_io_sendto_sync(async_io* udp, uint32_t ip, uint32_t port)
 {
-    int err = -1;
+    int err = 0;
     async_io* io = (async_io*)udp;
     if (!(async_io_has_sock(io))) return err;
-    while (async_io_state_send(io)) {
+    while ((async_io_state_send(io)) && (!err)) {
         usys_msleep(20);
-        async_io_poll(io);
+        err = async_io_poll(io);
     }
     err = async_io_udp_send(udp, ip, port);
-    if (!err) {
-        while (async_io_state_send(io)) {
-            usys_msleep(20);
-            async_io_poll(io);
-        }
+    while ((async_io_state_send(io)) && (!err)) {
+        usys_msleep(200);
+        err = async_io_poll(io);
     }
     return err;
 }

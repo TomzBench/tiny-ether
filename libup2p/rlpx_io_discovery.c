@@ -79,10 +79,10 @@ rlpx_io_discovery_endpoint_v4_init(
     uint32_t tcp)
 {
     memset(ep, 0, sizeof(rlpx_io_discovery_endpoint));
-    *((uint32_t*)ep->ip) = ip;
+    *((uint32_t*)ep->ip) = usys_htonl(ip);
     ep->iplen = 4;
-    ep->udp = udp;
-    ep->tcp = tcp;
+    ep->udp = usys_htonl(udp);
+    ep->tcp = usys_htonl(tcp);
 }
 
 void
@@ -324,7 +324,8 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
 
         // Received some neighbours
-        err = rlpx_io_discovery_recv_neighbours(&self->table, &crlp);
+        err = rlpx_io_discovery_recv_neighbours(
+            &crlp, rlpx_walk_neighbours, self);
     } else {
         // error
     }
@@ -347,9 +348,9 @@ rlpx_io_discovery_recv_ping(
         (!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 1), from))) &&
         (!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 2), to))) &&
         (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
+        usys_log("[ IN] [UDP] (ping)");
         return err;
     }
-    usys_log("[ IN] [UDP] (ping)");
     return err;
 }
 
@@ -366,9 +367,9 @@ rlpx_io_discovery_recv_pong(
     if ((!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 0), to))) &&
         (!(err = urlp_idx_to_mem(*rlp, 1, echo32, &sz))) &&
         (!(err = urlp_idx_to_u32(*rlp, 2, timestamp)))) {
+        usys_log("[ IN] [UDP] (pong)");
         return err;
     }
-    usys_log("[ IN] [UDP] (pong)");
     return err;
 }
 
@@ -410,12 +411,12 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
  * @return
  */
 int
-rlpx_io_discovery_recv_neighbours(rlpx_io_discovery_table* t, const urlp** rlp)
+rlpx_io_discovery_recv_neighbours(const urlp** rlp, urlp_walk_fn fn, void* ctx)
 {
-    const urlp *n = urlp_at(*rlp, 0),         // get list of neighbours
-        *ts = urlp_at(*rlp, 1);               // get timestamp
-    ((void)ts);                               // TODO
-    urlp_foreach(n, t, rlpx_walk_neighbours); // loop and add to table
+    const urlp *n = urlp_at(*rlp, 0), // get list of neighbours
+        *ts = urlp_at(*rlp, 1);       // get timestamp
+    ((void)ts);                       // TODO
+    urlp_foreach(n, ctx, fn);         // loop and add to table
     usys_log("[ IN] [UDP] (neighbours)");
     return 0;
 }
@@ -425,8 +426,45 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
 {
     // rlp.list(ipv(4|6),udp,tcp,nodeid)
     ((void)idx);
-    rlpx_io_discovery_table* table = (rlpx_io_discovery_table*)ctx;
-    rlpx_io_discovery_table_node_add_rlp(table, rlp);
+    int err;
+    rlpx_io_discovery* self = (rlpx_io_discovery*)ctx;
+    uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, iplen = 16;
+    uint8_t ipbuf[iplen];
+    uint8_t pub[65] = { 0x04 };
+    rlpx_io_discovery_endpoint from, to;
+    uecc_public_key q;
+    if (n < 4) return; /*!< invalid rlp */
+
+    memset(ipbuf, 0, iplen);
+
+    // short circuit bail. Arrive inside no errors
+    if ((!(err = urlp_idx_to_mem(rlp, 0, ipbuf, &iplen))) &&
+        (!(err = urlp_idx_to_u32(rlp, 1, &udp))) &&
+        (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
+        (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
+        (!(err = uecc_btoq(pub, publen + 1, &q)))) {
+        if (iplen == 4) {
+            // TODO - ipv6?
+            // TODO have lower level usys_... take network order bytes
+            memset(from.ip, 0, sizeof(from.ip));
+            from.iplen = 4;
+            from.tcp = from.udp = usys_ntohs(*self->base->listen_port);
+            memset(to.ip, 0, sizeof(to.ip));
+            memcpy(to.ip, ipbuf, 4);
+            to.iplen = 4;
+            to.tcp = tcp;
+            to.udp = udp;
+            usys_log("[OUT] [UDP] (ping) %s", usys_ntoa(*(uint32_t*)ipbuf));
+            err = rlpx_io_discovery_send_ping(
+                self,
+                usys_ntohl(*(uint32_t*)ipbuf),
+                //*(uint32_t*)ipbuf,
+                udp,
+                &from,
+                &to,
+                usys_now() + 2);
+        }
+    }
 }
 
 int

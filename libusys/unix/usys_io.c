@@ -286,6 +286,18 @@ usys_htonl(uint32_t n)
     return htonl(n);
 }
 
+uint16_t
+usys_ntohs(uint16_t n)
+{
+    return ntohs(n);
+}
+
+uint16_t
+usys_htons(uint16_t n)
+{
+    return ntohs(n);
+}
+
 //
 //
 //

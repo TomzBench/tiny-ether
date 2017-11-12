@@ -333,8 +333,9 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts);
  * @return
  */
 int rlpx_io_discovery_recv_neighbours(
-    rlpx_io_discovery_table* t,
-    const urlp** rlp);
+    const urlp** rlp, //
+    urlp_walk_fn fn,
+    void* ctx);
 
 /**
  * @brief sign a discovery packet provided RLP and a packet type
