@@ -55,9 +55,10 @@ main(int argc, char* argv[])
     rlpx_io_discovery_endpoint src, dst;
     memset(src.ip, 0, sizeof(src.ip));
     memset(dst.ip, 0, sizeof(dst.ip));
+    uecc_ctx tmp;
     src.iplen = dst.iplen = 4;
-    src.tcp = src.udp = usys_ntohs(22332);
-    dst.udp = dst.tcp = usys_ntohs(30303);
+    src.tcp = src.udp = usys_htons(22332);
+    dst.udp = dst.tcp = usys_htons(30303);
 
     // Log message
     usys_log_note("Running ping pong demo");
@@ -78,6 +79,8 @@ main(int argc, char* argv[])
             count = 0;
         }
         if (count++ == 0) {
+            // TODO - make new rng for pubkeys
+            uecc_key_init_new(&tmp);
 
             // rlpx_io_discovery_send_ping(
             //    eth.discovery.protocols[0].context,
@@ -89,22 +92,29 @@ main(int argc, char* argv[])
 
             rlpx_io_discovery_send_find(
                 eth.discovery.protocols[0].context,
+                usys_atoh("13.84.180.240"),
+                30303,
+                // usys_atoh("52.169.14.227"),
+                // 30303,
                 // usys_atoh("45.55.63.72"),
                 // 30303,
-                usys_atoh("109.103.124.227"),
-                30303,
                 // usys_atoh("127.0.0.1"),
                 // 30303,
-                &eth.id.Q,
+                &tmp.Q,
                 usys_now() + 2);
 
             // rlpx_io_discovery_send_ping(
             //    eth.discovery.protocols[0].context,
-            //    usys_atoh("45.55.63.72"),
+            //    usys_atoh("13.84.180.240"),
             //    30303,
+            //    // usys_atoh("52.169.14.227"),
+            //    // 30303,
+            //    // usys_atoh("45.55.63.72"),
+            //    // 30303,
             //    &src,
             //    &dst,
             //    usys_now() + 2);
+            uecc_key_deinit(&tmp);
         }
     }
 

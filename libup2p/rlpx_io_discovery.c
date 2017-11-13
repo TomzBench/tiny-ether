@@ -431,7 +431,7 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
     uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, iplen = 16;
     uint8_t ipbuf[iplen];
     uint8_t pub[65] = { 0x04 };
-    rlpx_io_discovery_endpoint from, to;
+    rlpx_io_discovery_endpoint src, dst;
     uecc_public_key q;
     if (n < 4) return; /*!< invalid rlp */
 
@@ -446,22 +446,24 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
         if (iplen == 4) {
             // TODO - ipv6?
             // TODO have lower level usys_... take network order bytes
-            memset(from.ip, 0, sizeof(from.ip));
-            from.iplen = 4;
-            from.tcp = from.udp = usys_ntohs(*self->base->listen_port);
-            memset(to.ip, 0, sizeof(to.ip));
-            memcpy(to.ip, ipbuf, 4);
-            to.iplen = 4;
-            to.tcp = tcp;
-            to.udp = udp;
-            usys_log("[OUT] [UDP] (ping) %s", usys_ntoa(*(uint32_t*)ipbuf));
+            // Fill out src endpoint (endpoints in network byte order)
+            memset(src.ip, 0, sizeof(src.ip));
+            src.iplen = 4;
+            src.tcp = src.udp = usys_htons(*self->base->listen_port);
+            // Fill out dst endpoint (already in network byte order)
+            memset(dst.ip, 0, sizeof(dst.ip));
+            memcpy(dst.ip, ipbuf, 4);
+            dst.iplen = 4;
+            dst.tcp = tcp;
+            dst.udp = udp;
             err = rlpx_io_discovery_send_ping(
                 self,
                 usys_ntohl(*(uint32_t*)ipbuf),
+                // usys_ntohs(udp),
                 //*(uint32_t*)ipbuf,
                 udp,
-                &from,
-                &to,
+                &src,
+                &dst,
                 usys_now() + 2);
         }
     }
@@ -606,7 +608,7 @@ rlpx_io_discovery_send_ping(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    usys_log("[OUT] [UDP] (ping) %d", *len);
+    usys_log("[OUT] [UDP] (ping) (size: %d) %s", *len, usys_htoa(ip));
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }

@@ -92,14 +92,13 @@
 
 #define TEST_NET_0                                                             \
     "enode://"                                                                 \
-    "e4533109cc9bd7604e4ff6c095f7a1d807e15b38e9bfeb05d3b7c423ba86af0a9e89abbf" \
-    "40bd9dde4250fef114cd09270fa4e224cbeef8b7bf05a51e8260d6b8:94.242.229.4:"   \
-    "40404"
+    "6ce05930c72abc632c58e2e4324f7c7ea478cec0ed4fa2528982cf34483094e9cbc9216e" \
+    "7aa349691242576d552a2a56aaeae426c5303ded677ce455ba1acd9d@13.84.180.240:"  \
+    "30303"
 
 #define TEST_NET_1                                                             \
     "enode://"                                                                 \
-    "8c336ee6f03e99613ad21274f269479bf4413fb294d697ef15ab897598afb931f56beb8e" \
-    "97af530aee20ce2bcba5776f4a312bc168545de4d43736992c814592:94.242.229.203:" \
+    "20c9ad97c081d63397d7b685a412227a40e23c8bdc6688c6f37e97cfbc22d2b4d1db1510" \
+    "d8f61e6a8866ad7f0e17c02b14182d37ea7c3c8b9c2683aeb6b733a1@52.169.14.227:"  \
     "30303"
-
 #endif
