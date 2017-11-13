@@ -227,7 +227,11 @@ rlpx_io_discovery_connect(rlpx_io_discovery* self, rlpx_io* ch)
                 &self->table.nodes[i].nodeid,
                 self->table.nodes[i].ep.ip,
                 self->table.nodes[i].ep.tcp);
-            if (!err) self->table.nodes[i].state = RLPX_STATE_CONNECTING;
+            if (err) {
+                self->table.nodes[i].state = RLPX_STATE_FREE;
+            } else {
+                self->table.nodes[i].state = RLPX_STATE_CONNECTING;
+            }
         }
     }
     return err;

@@ -195,7 +195,8 @@ static inline void
 rlpx_io_close(rlpx_io* io)
 {
     async_io_close(&io->io);
-    io->shutdown = 1;
+    io->shutdown = 1; // redundant?
+    io->ready = 0;
 }
 
 #ifdef __cplusplus

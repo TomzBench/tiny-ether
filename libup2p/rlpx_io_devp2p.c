@@ -212,12 +212,10 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
     uint32_t l;
     rlpx_io_devp2p* ch = ctx;
 
-    usys_log("[ IN] (hello)");
-
     // Copy client string.
     rlpx_io_devp2p_client_id(rlp, &memptr, &l);
-    memcpy(
-        ch->client, memptr, l < RLPX_CLIENT_MAX_LEN ? l : RLPX_CLIENT_MAX_LEN);
+    if (l > RLPX_CLIENT_MAX_LEN) l = RLPX_CLIENT_MAX_LEN;
+    memcpy(ch->client, memptr, l);
 
     // Copy listening port.
     rlpx_io_devp2p_listen_port(rlp, &ch->listen_port);
@@ -230,6 +228,7 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
         (!uecc_qtob(&ch->base->node.id, pub_expect, 65)) && //
         (!(memcmp(pub, &pub_expect[1], 64)))) {
         ch->base->ready = 1;
+        usys_log("[ IN] (hello) %s", ch->client);
         return 0;
     } else {
         // Bad public key...
