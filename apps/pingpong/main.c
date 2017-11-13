@@ -35,6 +35,18 @@
     "13270bd6ac41a240f752f7a5c58edd1a8daddd614ea31b6099093358@45.55.63.72:"    \
     "30303"
 
+#define PARITY_P2P_LOCAL                                                       \
+    "enode://"                                                                 \
+    "66fff838be611b6ee574e069f731f47ee6553a6538dc19cc8cd0eb0ff000eacb022154cc" \
+    "f5e0af537925b99afab23cdf7fb51985c40e36614f71d2f60edc275e@127.0.0.1:"      \
+    "30303"
+
+#define CPP_P2P_LOCAL                                                          \
+    "enode://"                                                                 \
+    "05b9568c6e5e3b69bcb4edfb762f5f676f7f10dc6a903474d3e136c8fd48365fbaf0b4de" \
+    "bba5eeb9bd28204ef38452af10f51aa11534b9401f888cd2fc150456@127.0.0.1:"      \
+    "30303.30303"
+
 // const char* g_test_enode = "enode://" REMOTE "@127.0.0.1:30303";
 
 ueth_config config = { //
@@ -65,8 +77,7 @@ main(int argc, char* argv[])
 
     // start
     ueth_init(&eth, &config);
-    // ueth_start(&eth, 1, g_test_enode);
-    ueth_start(&eth, 1, TEST_ENODE_3);
+    ueth_start(&eth, 3, CPP_P2P_LOCAL, TEST_ENODE_3, PARITY_P2P_LOCAL);
 
     while (usys_running()) {
         // Poll io

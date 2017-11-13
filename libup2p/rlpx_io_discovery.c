@@ -231,6 +231,7 @@ rlpx_io_discovery_connect(rlpx_io_discovery* self, rlpx_io* ch)
                 self->table.nodes[i].state = RLPX_STATE_FREE;
             } else {
                 self->table.nodes[i].state = RLPX_STATE_CONNECTING;
+                break;
             }
         }
     }

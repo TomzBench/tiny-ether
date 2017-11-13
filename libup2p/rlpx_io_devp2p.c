@@ -220,7 +220,7 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
     // Copy listening port.
     rlpx_io_devp2p_listen_port(rlp, &ch->listen_port);
 
-    // TODO - Check caps
+    // Check caps
     pip = rlpx_io_devp2p_capabilities(rlp, "pip", 1);
     les = rlpx_io_devp2p_capabilities(rlp, "les", 1);
 
