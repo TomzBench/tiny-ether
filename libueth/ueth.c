@@ -82,9 +82,14 @@ ueth_start(ueth_context* ctx, int n, ...)
     va_list l;
     va_start(l, n);
     const char* enode;
+    rlpx_node node;
+    rlpx_io_discovery* d = rlpx_io_discovery_get_context(&ctx->discovery);
     for (uint32_t i = 0; i < (uint32_t)n; i++) {
         enode = va_arg(l, const char*);
-        // rlpx_io_connect_enode(&ctx->ch[i], enode);
+        rlpx_node_init_enode(&node, enode);
+        rlpx_io_discovery_table_node_add(
+            &d->table, node.ipv4, node.port_tcp, node.port_udp, &node.id, NULL);
+        rlpx_node_deinit(&node);
     }
     va_end(l);
     return 0;
@@ -98,16 +103,20 @@ ueth_stop(ueth_context* ctx)
     rlpx_io_devp2p* devp2p;
     for (i = 0; i < ctx->n; i++) {
         if (rlpx_io_is_ready(&ctx->ch[i])) {
-            mask |= (1 << i);
-            ch[b++] = &ctx->ch[i];
             devp2p = ctx->ch[i].protocols[0].context;
-            rlpx_io_devp2p_send_disconnect(devp2p, DEVP2P_DISCONNECT_QUITTING);
+            if (!(rlpx_io_devp2p_send_disconnect(
+                    devp2p, DEVP2P_DISCONNECT_QUITTING))) {
+                mask |= (1 << i);
+                ch[b++] = &ctx->ch[i];
+            }
         }
     }
+    usys_log("[SYS] (shutdown) %s", mask ? "Please be patient..." : "");
     while (mask && ++c < 50) {
         usys_msleep(100);
         rlpx_io_poll(ch, b, 100);
-        for (i = 0; i < ctx->n; i++) {
+        for (i = 0; i < b; i++) {
+            devp2p = ch[i]->protocols[0].context;
             if (rlpx_io_is_shutdown(devp2p->base)) mask &= (~(1 << i));
         }
     }
