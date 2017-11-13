@@ -24,6 +24,11 @@
 
 // Found some nodes on ethernode.org
 
+#define GETH_P2P_LOCAL                                                         \
+    "enode://"                                                                 \
+    "d1824653468535e238db2d115aa65f3bb4acff3d2b543a53b0ac49cbb4c37b7a6ca523b6" \
+    "b0a457058358f290ce3e24473eb4cccfaef3a4dc7cc468d133513bdf@127.0.0.1:30303"
+
 #define CPP_P2P_LOCAL                                                          \
     "enode://"                                                                 \
     "05b9568c6e5e3b69bcb4edfb762f5f676f7f10dc6a903474d3e136c8fd48365fbaf0b4de" \

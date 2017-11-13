@@ -138,6 +138,8 @@ rlpx_io_devp2p_write_hello(
 
     // Create cababilities list (p2p/4)
     urlp_push(caps, urlp_push(urlp_item_str("p2p"), urlp_item_u32(4)));
+    urlp_push(caps, urlp_push(urlp_item_str("les"), urlp_item_u32(1)));
+    urlp_push(caps, urlp_push(urlp_item_str("pip"), urlp_item_u32(1)));
 
     // Create body list
     urlp_push(body, urlp_item_u32(RLPX_VERSION_P2P));

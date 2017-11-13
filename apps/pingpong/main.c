@@ -26,6 +26,11 @@
 
 #define SKEY "5e173f6ac3c669587538e7727cf19b782a4f2fda07c1eaa662c593e5e85e3051"
 
+#define GETH_P2P_LOCAL                                                         \
+    "enode://"                                                                 \
+    "d1824653468535e238db2d115aa65f3bb4acff3d2b543a53b0ac49cbb4c37b7a6ca523b6" \
+    "b0a457058358f290ce3e24473eb4cccfaef3a4dc7cc468d133513bdf@127.0.0.1:30303"
+
 #define PYDEV_P2P_LOCAL                                                        \
     "enode://"                                                                 \
     "ca634cae0d49acb401d8a4c6b6fe8c55b70d115bf400769cc1400f3258cd31387574077f" \
