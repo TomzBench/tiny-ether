@@ -107,7 +107,7 @@ main(int argc, char* argv[])
     ueth_init(&eth, &config);
     ueth_boot(
         &eth,
-        1,
+        8,
         PYDEV_P2P_LOCAL,
         TEST_ENODE_3,
         MAIN_NET_0,
