@@ -267,11 +267,9 @@ int
 rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 {
     rlpx_io_discovery* self = ctx;
-    // uecc_public_key pub;
     RLPX_DISCOVERY type = -1;
     uint16_t t;
-    // rlpx_io_discovery_endpoint_node* node = NULL;
-    rlpx_io_discovery_endpoint from, to;
+    rlpx_io_discovery_endpoint src, dst;
     uecc_public_key target;
     uint32_t ts; // timestamp
     uint8_t buff32[32];
@@ -281,8 +279,9 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     if (urlp_idx_to_u16(rlp, 0, &t)) return -1;
     type = (RLPX_DISCOVERY)t;
 
-    memset(&from, 0, sizeof(rlpx_io_discovery_endpoint));
-    memset(&to, 0, sizeof(rlpx_io_discovery_endpoint));
+    memset(&src, 0, sizeof(rlpx_io_discovery_endpoint));
+    memset(&dst, 0, sizeof(rlpx_io_discovery_endpoint));
+    memset(buff32, 0, sizeof(buff32));
 
     // Update recently seen if this node is in our table
     // if (rlpx_io_discovery_table_find_node(&self->table, &pub, node)) {
@@ -293,22 +292,30 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 
         // Received a ping packet
         // send a pong on device io...
-        err = rlpx_io_discovery_recv_ping(&crlp, buff32, &from, &to, &ts);
+        err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &ts);
         if (!err) {
             return rlpx_io_discovery_send_pong(
                 self,
                 async_io_ip_addr(&self->base->io),
                 async_io_port(&self->base->io),
-                &from,
+                &src,
                 (h256*)buff32,
-                ts);
+                usys_now() + 2);
         }
     } else if (type == RLPX_DISCOVERY_PONG) {
 
         // Received a pong packet
-        err = rlpx_io_discovery_recv_pong(&crlp, &to, buff32, &ts);
+        err = rlpx_io_discovery_recv_pong(&crlp, &dst, buff32, &ts);
         if (!err) {
+
             // If need more peers - send find
+            err = rlpx_io_discovery_send_find(
+                self,
+                async_io_ip_addr(&self->base->io),
+                async_io_port(&self->base->io),
+                NULL,
+                usys_now() + 2);
+
             // If have room in table - add to table
         }
     } else if (type == RLPX_DISCOVERY_FIND) {
@@ -323,7 +330,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 async_io_ip_addr(&self->base->io),
                 async_io_port(&self->base->io),
                 &self->table,
-                ts);
+                usys_now() + 2);
         }
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
 

@@ -129,6 +129,7 @@ ueth_poll_internal(ueth_context* ctx)
         }
         // Find free node to connect to if empty
         if (!ctx->ch[i].node.port_tcp) {
+            /*
             rlpx_io_discovery* d;
             rlpx_io_discovery_endpoint_node* r;
             d = rlpx_io_discovery_get_context(&ctx->discovery);
@@ -146,6 +147,7 @@ ueth_poll_internal(ueth_context* ctx)
                         usys_ntohl(r->ep.tcp));
                 }
             }
+            */
         }
         // Add to io polling if there is a socket
         if (ctx->ch[i].node.port_tcp) {
