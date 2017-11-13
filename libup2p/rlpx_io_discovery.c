@@ -307,6 +307,10 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 
         // Received a pong packet
         err = rlpx_io_discovery_recv_pong(&crlp, &to, buff32, &ts);
+        if (!err) {
+            // If need more peers - send find
+            // If have room in table - add to table
+        }
     } else if (type == RLPX_DISCOVERY_FIND) {
 
         // Received request for our neighbours.
@@ -428,44 +432,33 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
     ((void)idx);
     int err;
     rlpx_io_discovery* self = (rlpx_io_discovery*)ctx;
-    uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, iplen = 16;
-    uint8_t ipbuf[iplen];
+    uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, ip, iplen = 16;
     uint8_t pub[65] = { 0x04 };
     rlpx_io_discovery_endpoint src, dst;
     uecc_public_key q;
     if (n < 4) return; /*!< invalid rlp */
 
-    memset(ipbuf, 0, iplen);
-
     // short circuit bail. Arrive inside no errors
-    if ((!(err = urlp_idx_to_mem(rlp, 0, ipbuf, &iplen))) &&
+    if (((iplen = urlp_size(urlp_at(rlp, 0))) == 4) &&
+        (!(err = urlp_idx_to_u32(rlp, 0, &ip))) &&
         (!(err = urlp_idx_to_u32(rlp, 1, &udp))) &&
         (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
-        if (iplen == 4) {
-            // TODO - ipv6?
-            // TODO have lower level usys_... take network order bytes
-            // Fill out src endpoint (endpoints in network byte order)
-            memset(src.ip, 0, sizeof(src.ip));
-            src.iplen = 4;
-            src.tcp = src.udp = usys_htons(*self->base->listen_port);
-            // Fill out dst endpoint (already in network byte order)
-            memset(dst.ip, 0, sizeof(dst.ip));
-            memcpy(dst.ip, ipbuf, 4);
-            dst.iplen = 4;
-            dst.tcp = tcp;
-            dst.udp = udp;
-            err = rlpx_io_discovery_send_ping(
-                self,
-                usys_ntohl(*(uint32_t*)ipbuf),
-                // usys_ntohs(udp),
-                //*(uint32_t*)ipbuf,
-                udp,
-                &src,
-                &dst,
-                usys_now() + 2);
-        }
+        // TODO - ipv4 only
+        // Note - reading the rlp as a uint32 converts host byte order.  To
+        // preserve network byte order than read rlp as mem.  usys networking io
+        // takes host byte order so we read rlp into host byte order.
+        memset(src.ip, 0, sizeof(src.ip));
+        src.iplen = 4;
+        src.tcp = src.udp = usys_htons(*self->base->listen_port);
+        memset(dst.ip, 0, sizeof(dst.ip));
+        memcpy(dst.ip, urlp_ref(urlp_at(rlp, 0), NULL), 4);
+        dst.iplen = 4;
+        dst.tcp = tcp;
+        dst.udp = udp;
+        err = rlpx_io_discovery_send_ping(
+            self, ip, udp, &src, &dst, usys_now() + 2);
     }
 }
 
