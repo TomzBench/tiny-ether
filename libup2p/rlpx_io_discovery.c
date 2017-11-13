@@ -134,20 +134,19 @@ rlpx_io_discovery_table_node_add_rlp(
     const urlp* rlp)
 {
     int err = 0;
-    uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, iplen = 16;
-    uint8_t ipbuf[iplen];
+    uint32_t n = urlp_children(rlp), udp, tcp, ip, publen = 64, iplen = 16;
     uint8_t pub[65] = { 0x04 };
     uecc_public_key q;
     if (n < 4) return -1; /*!< invalid rlp */
 
     // short circuit bail. Arrive inside no errors
-    if ((!(err = urlp_idx_to_mem(rlp, 0, ipbuf, &iplen))) &&
+    if (((iplen = urlp_size(urlp_at(rlp, 0)) == 4)) &&
+        (!(err = urlp_idx_to_u32(rlp, 0, &ip))) &&
         (!(err = urlp_idx_to_u32(rlp, 1, &udp))) &&
         (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
-        err = rlpx_io_discovery_table_node_add(
-            table, ipbuf, iplen, udp, tcp, &q, NULL);
+        err = rlpx_io_discovery_table_node_add(table, ip, udp, tcp, &q, NULL);
     }
     return err;
 }
@@ -155,8 +154,7 @@ rlpx_io_discovery_table_node_add_rlp(
 int
 rlpx_io_discovery_table_node_add(
     rlpx_io_discovery_table* table,
-    uint8_t* ip,
-    uint32_t iplen,
+    uint32_t ip,
     uint32_t tcp,
     uint32_t udp,
     uecc_public_key* id,
@@ -170,9 +168,11 @@ rlpx_io_discovery_table_node_add(
     n = rlpx_io_discovery_table_node_get_id(table, NULL);
     if (n) {
         // Have a free slot to populate
-        memset(n->ep.ip, 0, 16);
-        memcpy(n->ep.ip, ip, iplen);
-        n->ep.iplen = iplen;
+        // memset(n->ep.ip, 0, 16);
+        // memcpy(n->ep.ip, ip, iplen);
+        // n->ep.iplen = iplen;
+        *((uint32_t*)&n->ep.ip) = ip;
+        n->ep.iplen = 4;
         n->ep.udp = udp;
         n->ep.tcp = tcp;
         n->nodeid = *id;
@@ -271,7 +271,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     uint16_t t;
     rlpx_io_discovery_endpoint src, dst;
     uecc_public_key target;
-    uint32_t ts; // timestamp
+    uint32_t tmp; // timestamp or ipv4
     uint8_t buff32[32];
     int err = -1;
     const urlp* crlp = urlp_at(rlp, 1);
@@ -292,7 +292,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 
         // Received a ping packet
         // send a pong on device io...
-        err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &ts);
+        err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &tmp);
         if (!err) {
             return rlpx_io_discovery_send_pong(
                 self,
@@ -305,7 +305,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     } else if (type == RLPX_DISCOVERY_PONG) {
 
         // Received a pong packet
-        err = rlpx_io_discovery_recv_pong(&crlp, &dst, buff32, &ts);
+        err = rlpx_io_discovery_recv_pong(&crlp, &dst, buff32, &tmp);
         if (!err) {
 
             // If need more peers - send find
@@ -317,13 +317,20 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 usys_now() + 2);
 
             // If have room in table - add to table
+            rlpx_io_discovery_table_node_add(
+                &self->table,
+                usys_ntohl(*(uint32_t*)&dst.ip),
+                usys_ntohs(dst.tcp),
+                usys_ntohs(dst.udp),
+                &self->base->node.id,
+                NULL);
         }
     } else if (type == RLPX_DISCOVERY_FIND) {
 
         // Received request for our neighbours.
         // We send empty neighbours since we are not kademlia
         // We are leech looking for light clients servers
-        err = rlpx_io_discovery_recv_find(&crlp, &target, &ts);
+        err = rlpx_io_discovery_recv_find(&crlp, &target, &tmp);
         if (!err) {
             return rlpx_io_discovery_send_neighbours(
                 self,

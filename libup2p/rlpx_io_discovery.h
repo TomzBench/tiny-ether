@@ -211,8 +211,7 @@ int rlpx_io_discovery_table_node_add_rlp(
  */
 int rlpx_io_discovery_table_node_add(
     rlpx_io_discovery_table* table,
-    uint8_t* ip,
-    uint32_t iplen,
+    uint32_t ip,
     uint32_t tcp,
     uint32_t udp,
     uecc_public_key* id,
