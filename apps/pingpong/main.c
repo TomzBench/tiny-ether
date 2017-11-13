@@ -53,9 +53,7 @@ main(int argc, char* argv[])
     int count = 0;
     ueth_context eth;
     rlpx_io_discovery_endpoint src, dst;
-    memset(src.ip, 0, sizeof(src.ip));
-    memset(dst.ip, 0, sizeof(dst.ip));
-    src.iplen = dst.iplen = 4;
+    src.ip = dst.ip = 0;
     src.tcp = src.udp = usys_htons(22332);
     dst.udp = dst.tcp = usys_htons(30303);
 
@@ -88,20 +86,7 @@ main(int argc, char* argv[])
             //    &dst,
             //    usys_now() + 2);
 
-            rlpx_io_discovery_send_find(
-                eth.discovery.protocols[0].context,
-                usys_atoh("13.84.180.240"),
-                30303,
-                // usys_atoh("52.169.14.227"),
-                // 30303,
-                // usys_atoh("45.55.63.72"),
-                // 30303,
-                // usys_atoh("127.0.0.1"),
-                // 30303,
-                NULL,
-                usys_now() + 2);
-
-            // rlpx_io_discovery_send_ping(
+            // rlpx_io_discovery_send_find(
             //    eth.discovery.protocols[0].context,
             //    usys_atoh("13.84.180.240"),
             //    30303,
@@ -109,9 +94,22 @@ main(int argc, char* argv[])
             //    // 30303,
             //    // usys_atoh("45.55.63.72"),
             //    // 30303,
-            //    &src,
-            //    &dst,
+            //    // usys_atoh("127.0.0.1"),
+            //    // 30303,
+            //    NULL,
             //    usys_now() + 2);
+
+            rlpx_io_discovery_send_ping(
+                eth.discovery.protocols[0].context,
+                usys_atoh("13.84.180.240"),
+                30303,
+                // usys_atoh("52.169.14.227"),
+                // 30303,
+                // usys_atoh("45.55.63.72"),
+                // 30303,
+                &src,
+                &dst,
+                usys_now() + 2);
         }
     }
 

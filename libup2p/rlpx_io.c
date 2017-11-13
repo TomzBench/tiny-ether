@@ -151,8 +151,8 @@ rlpx_io_connect(
     uint32_t ip,
     uint32_t tcp)
 {
-    const char* host = usys_ntoa(ip);
-    return rlpx_io_connect_host(ch, to, host, usys_ntohl(tcp));
+    const char* host = usys_htoa(ip);
+    return rlpx_io_connect_host(ch, to, host, tcp);
 }
 
 int

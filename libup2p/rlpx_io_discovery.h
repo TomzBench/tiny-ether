@@ -47,8 +47,9 @@ typedef enum {
 typedef enum {
     RLPX_STATE_FREE = 0,
     RLPX_STATE_PENDING = 1,
-    RLPX_STATE_TRUE = 2,
-    RLPX_STATE_FALSE = 3
+    RLPX_STATE_CONNECTING = 2,
+    RLPX_STATE_TRUE = 3,
+    RLPX_STATE_FALSE = 4
 } RLPX_DISCOVERY_STATE;
 
 /**
@@ -56,10 +57,9 @@ typedef enum {
  */
 typedef struct
 {
-    uint8_t ip[16]; /*!< BE encoding ipv4 or ipv6 data */
-    uint32_t iplen; /*!< ip4|6 */
-    uint32_t tcp;   /*!< devp2p port */
-    uint32_t udp;   /*!< p2p port */
+    uint32_t ip;  /*!< ipv4 only */
+    uint32_t tcp; /*!< devp2p port */
+    uint32_t udp; /*!< p2p port */
 } rlpx_io_discovery_endpoint;
 
 /**

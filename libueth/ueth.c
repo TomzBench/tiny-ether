@@ -84,7 +84,7 @@ ueth_start(ueth_context* ctx, int n, ...)
     const char* enode;
     for (uint32_t i = 0; i < (uint32_t)n; i++) {
         enode = va_arg(l, const char*);
-        rlpx_io_connect_enode(&ctx->ch[i], enode);
+        // rlpx_io_connect_enode(&ctx->ch[i], enode);
     }
     va_end(l);
     return 0;
@@ -132,22 +132,6 @@ ueth_poll_internal(ueth_context* ctx)
             rlpx_io_discovery* d;
             d = rlpx_io_discovery_get_context(&ctx->discovery);
             rlpx_io_discovery_connect(d, &ctx->ch[i]);
-
-            /*
-            if (r) {
-                if (r->ep.iplen == 4) {
-                    uint32_t ip;
-                    memcpy(&ip, r->ep.ip, 4);
-                    usys_log("[OUT] [TCP] (connecting) (%s)", usys_ntoa(ip));
-                    // TODO - usys should take network byte order
-                    err = rlpx_io_connect(
-                        &ctx->ch[i],
-                        &r->nodeid,
-                        usys_ntohl(ip),
-                        usys_ntohl(r->ep.tcp));
-                }
-            }
-            */
         }
         // Add to io polling if there is a socket
         if (ctx->ch[i].node.port_tcp) {

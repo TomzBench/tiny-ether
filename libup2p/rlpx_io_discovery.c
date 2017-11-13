@@ -79,10 +79,9 @@ rlpx_io_discovery_endpoint_v4_init(
     uint32_t tcp)
 {
     memset(ep, 0, sizeof(rlpx_io_discovery_endpoint));
-    *((uint32_t*)ep->ip) = usys_htonl(ip);
-    ep->iplen = 4;
-    ep->udp = usys_htonl(udp);
-    ep->tcp = usys_htonl(tcp);
+    ep->ip = ip;
+    ep->udp = udp;
+    ep->tcp = tcp;
 }
 
 void
@@ -92,11 +91,11 @@ rlpx_io_discovery_endpoint_v6_init(
     uint32_t udp,
     uint32_t tcp)
 {
+    ((void)ipv6);
+    ((void)udp);
+    ((void)tcp);
+    // TODO
     memset(ep, 0, sizeof(rlpx_io_discovery_endpoint));
-    memcpy(ep->ip, ipv6, 16);
-    ep->iplen = 16;
-    ep->udp = udp;
-    ep->tcp = tcp;
 }
 
 int
@@ -171,8 +170,9 @@ rlpx_io_discovery_table_node_add(
         // memset(n->ep.ip, 0, 16);
         // memcpy(n->ep.ip, ip, iplen);
         // n->ep.iplen = iplen;
-        *((uint32_t*)&n->ep.ip) = ip;
-        n->ep.iplen = 4;
+        //*((uint32_t*)&n->ep.ip) = ip;
+        // n->ep.iplen = 4;
+        n->ep.ip = ip;
         n->ep.udp = udp;
         n->ep.tcp = tcp;
         n->nodeid = *id;
@@ -220,12 +220,15 @@ int
 rlpx_io_discovery_connect(rlpx_io_discovery* self, rlpx_io* ch)
 {
     int err = -1;
-    rlpx_io_discovery_endpoint_node* n;
-    // Find a device to connect to in table
-    n = rlpx_io_discovery_table_node_get_id(&self->table, NULL);
-    if (n) {
-        return rlpx_io_connect(
-            ch, &n->nodeid, *(uint32_t*)&n->ep.ip, n->ep.tcp);
+    for (uint32_t i = 0; i < RLPX_IO_DISCOVERY_TABLE_SIZE; i++) {
+        if (self->table.nodes[i].state == RLPX_STATE_PENDING) {
+            err = rlpx_io_connect(
+                ch,
+                &self->table.nodes[i].nodeid,
+                self->table.nodes[i].ep.ip,
+                self->table.nodes[i].ep.tcp);
+            if (!err) self->table.nodes[i].state = RLPX_STATE_CONNECTING;
+        }
     }
     return err;
 }
@@ -245,8 +248,8 @@ rlpx_io_discovery_rlp_to_endpoint(
     int err;
     uint32_t n = urlp_children(rlp);
     if (n < 3) return -1;
-    ep->iplen = sizeof(ep->ip);
-    if ((!(err = urlp_idx_to_mem(rlp, 0, ep->ip, &ep->iplen))) &&
+    // read in rlp to host format
+    if ((!(err = urlp_idx_to_u32(rlp, 0, &ep->ip))) &&
         (!(err = urlp_idx_to_u32(rlp, 1, &ep->udp))) &&
         (!(err = urlp_idx_to_u32(rlp, 2, &ep->tcp)))) {
         return err;
@@ -257,10 +260,18 @@ urlp*
 rlpx_io_discovery_endpoint_to_rlp(const rlpx_io_discovery_endpoint* ep)
 {
     urlp* rlp = urlp_list();
+    uint32_t ip, tcp, udp;
+    // write rlp in network format
+    ip = usys_htonl(ep->ip);
+    tcp = usys_htons(ep->tcp);
+    udp = usys_htons(ep->udp);
     if (rlp) {
-        urlp_push(rlp, urlp_item_u8_arr(ep->ip, ep->iplen));
-        urlp_push(rlp, urlp_item_u32(ep->udp));
-        urlp_push(rlp, urlp_item_u32(ep->tcp));
+        // urlp_push(rlp, urlp_item_u8_arr(ep->ip, ep->iplen));
+        // urlp_push(rlp, urlp_item_u32(ep->udp));
+        // urlp_push(rlp, urlp_item_u32(ep->tcp));
+        urlp_push(rlp, urlp_item_u8_arr((uint8_t*)&ip, 4));
+        urlp_push(rlp, urlp_item_u8_arr((uint8_t*)&udp, 2));
+        urlp_push(rlp, urlp_item_u8_arr((uint8_t*)&tcp, 2));
         if (!(urlp_children(rlp) == 3)) urlp_free(&rlp);
     }
     return rlp;
@@ -320,13 +331,15 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 usys_now() + 2);
 
             // If have room in table - add to table
-            rlpx_io_discovery_table_node_add(
-                &self->table,
-                usys_ntohl(*(uint32_t*)&dst.ip),
-                usys_ntohs(dst.tcp),
-                usys_ntohs(dst.udp),
-                &self->base->node.id,
-                NULL);
+            if (!err && dst.ip) {
+                //                rlpx_io_discovery_table_node_add(
+                //                    &self->table,
+                //                    dst.ip,
+                //                    dst.tcp,
+                //                    dst.udp,
+                //                    &self->base->node.id,
+                //                    NULL);
+            }
         }
     } else if (type == RLPX_DISCOVERY_FIND) {
 
@@ -466,12 +479,9 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
         // Note - reading the rlp as a uint32 converts to host byte order.  To
         // preserve network byte order than read rlp as mem.  usys networking io
         // takes host byte order so we read rlp into host byte order.
-        memset(src.ip, 0, sizeof(src.ip)); // TODO upnp?
-        src.iplen = 4;
-        src.tcp = src.udp = usys_htons(*self->base->listen_port);
-        memset(dst.ip, 0, sizeof(dst.ip));
-        memcpy(dst.ip, urlp_ref(urlp_at(rlp, 0), NULL), 4);
-        dst.iplen = 4;
+        src.ip = 0; // TODO upnp?
+        src.tcp = src.udp = *self->base->listen_port;
+        dst.ip = ip;
         dst.tcp = tcp;
         dst.udp = udp;
         err = rlpx_io_discovery_send_ping(
