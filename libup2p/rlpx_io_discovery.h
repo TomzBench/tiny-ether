@@ -229,14 +229,14 @@ rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_id(
     const uecc_public_key* id);
 
 /**
- * @brief Grab a next node in table
+ * @brief Connect to some node in our table if we have some peers in table
  *
- * @param table
+ * @param self
+ * @param ch
  *
  * @return
  */
-rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_next(
-    rlpx_io_discovery_table* table);
+int rlpx_io_discovery_connect(rlpx_io_discovery* self, rlpx_io* ch);
 
 /**
  * @brief Dummy function to populate a callback not used during udp for now.

@@ -216,15 +216,18 @@ rlpx_io_discovery_table_node_get_id(
     return NULL;
 }
 
-rlpx_io_discovery_endpoint_node*
-rlpx_io_discovery_table_node_get_next(rlpx_io_discovery_table* table)
+int
+rlpx_io_discovery_connect(rlpx_io_discovery* self, rlpx_io* ch)
 {
-    static int spot = 0;
-    if (spot >= RLPX_IO_DISCOVERY_TABLE_SIZE) spot = 0;
-    while (spot++ < RLPX_IO_DISCOVERY_TABLE_SIZE) {
-        if (table->nodes[spot].state) return &table->nodes[spot];
+    int err = -1;
+    rlpx_io_discovery_endpoint_node* n;
+    // Find a device to connect to in table
+    n = rlpx_io_discovery_table_node_get_id(&self->table, NULL);
+    if (n) {
+        return rlpx_io_connect(
+            ch, &n->nodeid, *(uint32_t*)&n->ep.ip, n->ep.tcp);
     }
-    return NULL;
+    return err;
 }
 
 int

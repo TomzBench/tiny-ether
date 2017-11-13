@@ -129,11 +129,11 @@ ueth_poll_internal(ueth_context* ctx)
         }
         // Find free node to connect to if empty
         if (!ctx->ch[i].node.port_tcp) {
-            /*
             rlpx_io_discovery* d;
-            rlpx_io_discovery_endpoint_node* r;
             d = rlpx_io_discovery_get_context(&ctx->discovery);
-            r = rlpx_io_discovery_table_node_get_next(&d->table);
+            rlpx_io_discovery_connect(d, &ctx->ch[i]);
+
+            /*
             if (r) {
                 if (r->ep.iplen == 4) {
                     uint32_t ip;
