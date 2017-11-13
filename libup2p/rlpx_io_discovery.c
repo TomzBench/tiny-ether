@@ -308,13 +308,26 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         // send a pong on device io...
         err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &tmp);
         if (!err) {
-            return rlpx_io_discovery_send_pong(
+
+            // Todo this echo is not correct.
+            err = rlpx_io_discovery_send_pong(
                 self,
                 async_io_ip_addr(&self->base->io),
                 async_io_port(&self->base->io),
                 &src,
                 (h256*)buff32,
                 usys_now() + 2);
+
+            // If have room in table - add to table
+            if (!err && src.ip) {
+                rlpx_io_discovery_table_node_add(
+                    &self->table,
+                    src.ip,
+                    src.tcp,
+                    src.udp,
+                    &self->base->node.id,
+                    NULL);
+            }
         }
     } else if (type == RLPX_DISCOVERY_PONG) {
 
@@ -329,17 +342,6 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 async_io_port(&self->base->io),
                 NULL,
                 usys_now() + 2);
-
-            // If have room in table - add to table
-            if (!err && dst.ip) {
-                //                rlpx_io_discovery_table_node_add(
-                //                    &self->table,
-                //                    dst.ip,
-                //                    dst.tcp,
-                //                    dst.udp,
-                //                    &self->base->node.id,
-                //                    NULL);
-            }
         }
     } else if (type == RLPX_DISCOVERY_FIND) {
 
@@ -538,6 +540,9 @@ rlpx_io_discovery_write_ping(
         urlp_push(rlp, rlpx_io_discovery_endpoint_to_rlp(ep_src));
         urlp_push(rlp, rlpx_io_discovery_endpoint_to_rlp(ep_dst));
         urlp_push(rlp, urlp_item_u32(timestamp));
+
+        // TODO the first 32 bytes of the udp packet is used as an echo.
+        // This can track the echo's from pongs
         err = rlpx_io_discovery_write(skey, RLPX_DISCOVERY_PING, rlp, dst, l);
         urlp_free(&rlp);
     }
