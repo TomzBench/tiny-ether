@@ -397,7 +397,7 @@ rlpx_io_discovery_recv_pong(
 {
     int err;
     uint32_t sz = 32, n = urlp_children(*rlp);
-    if (n < 4) return -1;
+    if (n < 3) return -1;
     if ((!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 0), to))) &&
         (!(err = urlp_idx_to_mem(*rlp, 1, echo32, &sz))) &&
         (!(err = urlp_idx_to_u32(*rlp, 2, timestamp)))) {

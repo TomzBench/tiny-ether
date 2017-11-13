@@ -558,7 +558,8 @@ urlp_children(const urlp* rlp)
 {
     uint32_t n;
     if (urlp_is_list(rlp)) {
-        n = rlp->n + urlp_children_walk(rlp->child);
+        // n = rlp->n + urlp_children_walk(rlp->child);
+        return rlp->n;
     } else {
         n = 0;
     }
