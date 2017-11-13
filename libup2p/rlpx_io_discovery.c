@@ -446,10 +446,10 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
         // TODO - ipv4 only
-        // Note - reading the rlp as a uint32 converts host byte order.  To
+        // Note - reading the rlp as a uint32 converts to host byte order.  To
         // preserve network byte order than read rlp as mem.  usys networking io
         // takes host byte order so we read rlp into host byte order.
-        memset(src.ip, 0, sizeof(src.ip));
+        memset(src.ip, 0, sizeof(src.ip)); // TODO upnp?
         src.iplen = 4;
         src.tcp = src.udp = usys_htons(*self->base->listen_port);
         memset(dst.ip, 0, sizeof(dst.ip));
@@ -548,8 +548,12 @@ rlpx_io_discovery_write_find(
 {
     int err = -1;
     urlp* rlp = urlp_list();
-    uint8_t pub[65];
-    uecc_qtob(nodeid, pub, sizeof(pub));
+    uint8_t pub[65] = { 0x04 };
+    if (nodeid) {
+        uecc_qtob(nodeid, pub, sizeof(pub));
+    } else {
+        urand(&pub[1], 64);
+    }
     if (rlp) {
         urlp_push(rlp, urlp_item_u8_arr(&pub[1], 64));
         urlp_push(rlp, urlp_item_u32(timestamp));
