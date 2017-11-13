@@ -121,7 +121,7 @@ rlpx_io_devp2p_client_id(const urlp* rlp, const char** ptr_p, uint32_t* l)
     return -1;
 }
 
-static inline int
+static inline uint32_t
 rlpx_io_devp2p_capabilities(const urlp* rlp, const char* cap, uint32_t v)
 {
     const urlp *seek, *caps = urlp_at(rlp, 2);
@@ -134,12 +134,12 @@ rlpx_io_devp2p_capabilities(const urlp* rlp, const char* cap, uint32_t v)
             mem = urlp_ref(rlp, &sz);
             if ((sz == len) && (!(memcmp(mem, cap, len)))) {
                 urlp_idx_to_u32(seek, 1, &ver);
-                return (ver >= v) ? 0 : -1;
+                return (ver >= v) ? ver : 0;
             }
         }
     }
 
-    return -1;
+    return 0;
 }
 
 static inline int

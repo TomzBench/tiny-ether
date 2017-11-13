@@ -29,7 +29,7 @@ extern "C" {
 #include "rlpx_config.h"
 #include "rlpx_io.h"
 
-#define RLPX_IO_DISCOVERY_TABLE_SIZE 100
+#define RLPX_IO_DISCOVERY_TABLE_SIZE 40
 
 /**
  * @brief Discovery protocol packet types

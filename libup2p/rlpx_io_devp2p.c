@@ -209,7 +209,7 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
     const char* memptr;
     const uint8_t* pub;
     uint8_t pub_expect[65];
-    uint32_t l;
+    uint32_t l, pip, les;
     rlpx_io_devp2p* ch = ctx;
 
     // Copy client string.
@@ -221,6 +221,8 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
     rlpx_io_devp2p_listen_port(rlp, &ch->listen_port);
 
     // TODO - Check caps
+    pip = rlpx_io_devp2p_capabilities(rlp, "pip", 1);
+    les = rlpx_io_devp2p_capabilities(rlp, "les", 1);
 
     if ((rlp = urlp_at(rlp, 4)) &&                          //
         (pub = urlp_ref(rlp, &l)) &&                        //
@@ -228,7 +230,7 @@ rlpx_io_devp2p_recv_hello(void* ctx, const urlp* rlp)
         (!uecc_qtob(&ch->base->node.id, pub_expect, 65)) && //
         (!(memcmp(pub, &pub_expect[1], 64)))) {
         ch->base->ready = 1;
-        usys_log("[ IN] (hello) %s", ch->client);
+        usys_log("[ IN] (hello) %s pip:%d les:%d", ch->client, pip, les);
         return 0;
     } else {
         // Bad public key...
