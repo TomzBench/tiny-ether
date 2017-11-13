@@ -474,7 +474,8 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
     uint8_t pub[65] = { 0x04 };
     rlpx_io_discovery_endpoint src, dst;
     uecc_public_key q;
-    if (n < 4) return; /*!< invalid rlp */
+    if (n < 4) return;    /*!< invalid rlp */
+    if (idx >= 3) return; /*!< TODO throddle ping until async send */
 
     // short circuit bail. Arrive inside no errors
     if (((iplen = urlp_size(urlp_at(rlp, 0))) == 4) &&

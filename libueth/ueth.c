@@ -34,6 +34,8 @@ ueth_init(ueth_context* ctx, ueth_config* config)
 {
     h256 key;
 
+    memset(ctx, 0, sizeof(ueth_context));
+
     // Copy config.
     ctx->config = *config;
 
@@ -132,25 +134,6 @@ ueth_poll_internal(ueth_context* ctx)
     rlpx_io_discovery* d;
     async_io* ch[ctx->n + 1];
 
-    // Check if we want to ping some nodes if we have room
-    if ((now - ctx->tick) > ctx->config.interval_discovery) {
-        ctx->tick = now;
-        src.ip = 0;
-        src.tcp = src.udp = ctx->config.udp;
-        d = rlpx_io_discovery_get_context(&ctx->discovery);
-        for (i = 0; i < UETH_CONFIG_MAX_BOOTNODES; i++) {
-            if (ctx->bootnodes[i].ip) {
-                dst.ip = ctx->bootnodes[i].ip;
-                dst.tcp = ctx->bootnodes[i].tcp;
-                dst.udp = ctx->bootnodes[i].udp;
-                rlpx_io_discovery_send_ping(
-                    d, dst.ip, dst.udp, &src, &dst, now + 2);
-            }
-        }
-        // TODO
-        usys_log_info("[SYS] need more peers (%d/10)", 0);
-    }
-
     for (i = 0; i < ctx->n; i++) {
         // Refresh channel if it is in error
         if (rlpx_io_error_get(&ctx->ch[i])) {
@@ -167,14 +150,36 @@ ueth_poll_internal(ueth_context* ctx)
             rlpx_io_discovery_connect(d, &ctx->ch[i]);
         }
         // Add to io polling if there is a socket
-        if (ctx->ch[i].node.port_tcp) {
+        if (async_io_has_sock(&ctx->ch[i].io)) {
             ch[b++] = (async_io*)&ctx->ch[i];
+        }
+    }
+
+    // Check if we want to ping some nodes if we have room
+    if ((now - ctx->tick) > ctx->config.interval_discovery) {
+        ctx->tick = now;
+        if (b < 3) {
+            usys_log("[SYS] need peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
+            src.ip = 0;
+            src.tcp = src.udp = ctx->config.udp;
+            d = rlpx_io_discovery_get_context(&ctx->discovery);
+            for (i = 0; i < UETH_CONFIG_MAX_BOOTNODES; i++) {
+                if (ctx->bootnodes[i].ip) {
+                    dst.ip = ctx->bootnodes[i].ip;
+                    dst.tcp = ctx->bootnodes[i].tcp;
+                    dst.udp = ctx->bootnodes[i].udp;
+                    rlpx_io_discovery_send_ping(
+                        d, dst.ip, dst.udp, &src, &dst, now + 2);
+                }
+            }
+        } else {
+            usys_log("[SYS] peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
         }
     }
 
     // Add our listener to poll
     ch[b++] = (async_io*)&ctx->discovery;
-    async_io_poll_n(ch, b, 100);
+    async_io_poll_n(ch, b, 1);
     return 0;
 }
 

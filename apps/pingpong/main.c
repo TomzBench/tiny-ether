@@ -85,7 +85,7 @@ ueth_config config = { //
     .p2p_private_key = SKEY,
     .p2p_enable = 1,
     .udp = 22332,
-    .interval_discovery = 3
+    .interval_discovery = 10
 };
 
 int main(int argc, char* argv[]);
@@ -105,20 +105,16 @@ main(int argc, char* argv[])
 
     // start
     ueth_init(&eth, &config);
-    ueth_boot(
+    ueth_boot(//
         &eth,
-        8,
-        PYDEV_P2P_LOCAL,
+        3,
         TEST_ENODE_3,
-        MAIN_NET_0,
-        MAIN_NET_1,
-        MAIN_NET_2,
         TEST_NET_0,
         TEST_NET_1);
 
     while (usys_running()) {
         // Poll io
-        usys_msleep(5);
+        usys_msleep(10);
         ueth_poll(&eth);
     }
 
