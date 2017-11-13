@@ -36,6 +36,7 @@ typedef struct
     const char* p2p_private_key;
     int p2p_enable;
     uint32_t udp;
+    uint32_t interval_discovery;
 } ueth_config;
 
 typedef struct ueth_context
@@ -45,13 +46,15 @@ typedef struct ueth_context
     async_io io;
     int (*poll)(struct ueth_context*);
     uint32_t n;
+    uint32_t tick;
+    rlpx_io_discovery_endpoint bootnodes[UETH_CONFIG_MAX_BOOTNODES];
     rlpx_io discovery;
     rlpx_io ch[UETH_CONFIG_NUM_CHANNELS];
 } ueth_context;
 
 int ueth_init(ueth_context* ctx, ueth_config* config);
 void ueth_deinit(ueth_context* ctx);
-int ueth_start(ueth_context* ctx, int, ...);
+int ueth_boot(ueth_context* ctx, int, ...);
 int ueth_stop(ueth_context* ctx);
 
 static inline int

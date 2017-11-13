@@ -77,18 +77,19 @@ ueth_deinit(ueth_context* ctx)
 }
 
 int
-ueth_start(ueth_context* ctx, int n, ...)
+ueth_boot(ueth_context* ctx, int n, ...)
 {
     va_list l;
     va_start(l, n);
     const char* enode;
     rlpx_node node;
-    rlpx_io_discovery* d = rlpx_io_discovery_get_context(&ctx->discovery);
+    if (n > UETH_CONFIG_MAX_BOOTNODES) n = UETH_CONFIG_MAX_BOOTNODES;
     for (uint32_t i = 0; i < (uint32_t)n; i++) {
         enode = va_arg(l, const char*);
         rlpx_node_init_enode(&node, enode);
-        rlpx_io_discovery_table_node_add(
-            &d->table, node.ipv4, node.port_tcp, node.port_udp, &node.id, NULL);
+        ctx->bootnodes[i].ip = node.ipv4;
+        ctx->bootnodes[i].tcp = node.port_tcp;
+        ctx->bootnodes[i].udp = node.port_udp ? node.port_udp : node.port_tcp;
         rlpx_node_deinit(&node);
     }
     va_end(l);
@@ -126,8 +127,30 @@ ueth_stop(ueth_context* ctx)
 int
 ueth_poll_internal(ueth_context* ctx)
 {
-    uint32_t i, b = 0, err;
+    uint32_t i, b = 0, err, now = usys_now();
+    rlpx_io_discovery_endpoint src, dst;
+    rlpx_io_discovery* d;
     async_io* ch[ctx->n + 1];
+
+    // Check if we want to ping some nodes if we have room
+    if ((now - ctx->tick) > ctx->config.interval_discovery) {
+        ctx->tick = now;
+        src.ip = 0;
+        src.tcp = src.udp = ctx->config.udp;
+        d = rlpx_io_discovery_get_context(&ctx->discovery);
+        for (i = 0; i < UETH_CONFIG_MAX_BOOTNODES; i++) {
+            if (ctx->bootnodes[i].ip) {
+                dst.ip = ctx->bootnodes[i].ip;
+                dst.tcp = ctx->bootnodes[i].tcp;
+                dst.udp = ctx->bootnodes[i].udp;
+                rlpx_io_discovery_send_ping(
+                    d, dst.ip, dst.udp, &src, &dst, now + 2);
+            }
+        }
+        // TODO
+        usys_log_info("[SYS] need more peers (%d/10)", 0);
+    }
+
     for (i = 0; i < ctx->n; i++) {
         // Refresh channel if it is in error
         if (rlpx_io_error_get(&ctx->ch[i])) {
