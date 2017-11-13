@@ -67,18 +67,6 @@ typedef struct rlpx
     rlpx_io_protocol protocols[RLPX_IO_MAX_PROTOCOL]; /*!< map */
 } rlpx_io;
 
-// typedef struct
-//{
-//    async_io io;  /*!< io context for network sys calls */
-//    rlpx_io rlpx; /*!< rlpx context */
-//} rlpx_io;
-//
-// typedef struct
-//{
-//    async_io io;  /*!< io context for network sys calls */
-//    rlpx_io rlpx; /*!< rlpx context */
-//} rlpx_io;
-
 // constructors
 rlpx_io* rlpx_io_alloc(uecc_ctx* skey, const uint32_t* listen);
 void rlpx_io_free(rlpx_io** ch_p);
@@ -201,6 +189,13 @@ static inline int
 rlpx_io_is_shutdown(rlpx_io* ch)
 {
     return ch->shutdown;
+}
+
+static inline void
+rlpx_io_close(rlpx_io* io)
+{
+    async_io_close(&io->io);
+    io->shutdown = 1;
 }
 
 #ifdef __cplusplus

@@ -185,7 +185,9 @@ int
 rlpx_io_connect_node(rlpx_io* ch, const rlpx_node* n)
 {
     ch->node = *n;
-    return async_io_tcp_connect(&ch->io, n->ip_v4, n->port_tcp) < 0 ? -1 : 0;
+    return async_io_tcp_connect(&ch->io, usys_htoa(n->ipv4), n->port_tcp) < 0
+               ? -1
+               : 0;
 }
 
 int
@@ -208,12 +210,14 @@ rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from)
 int
 rlpx_io_send_auth(rlpx_io* ch)
 {
-
     if (ch->hs) rlpx_handshake_free(&ch->hs);
     ch->hs =
         rlpx_handshake_alloc(1, ch->skey, &ch->ekey, &ch->nonce, &ch->node.id);
     if (ch->hs) {
-        usys_log("[OUT] (auth) size: %d", ch->hs->cipher_len);
+        usys_log(
+            "[OUT] (auth) (size: %d) (%s)",
+            ch->hs->cipher_len,
+            usys_htoa(ch->node.ipv4));
         async_io_on_recv(&ch->io, rlpx_io_on_recv_ack);
         async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
         return rlpx_io_send_sync(&ch->io);
@@ -472,7 +476,7 @@ rlpx_io_on_erro(void* ctx)
     rlpx_io* ch = (rlpx_io*)ctx;
     usys_log_err("[ERR] %d", ch->io.sock);
     rlpx_io_error_set(ch, 1);
-    async_io_close((async_io*)ch);
+    rlpx_io_close(ch);
     return 0;
 }
 

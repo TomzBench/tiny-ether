@@ -123,6 +123,7 @@ ueth_poll_internal(ueth_context* ctx)
         // Refresh channel if it is in error
         if (rlpx_io_error_get(&ctx->ch[i])) {
             // Kick out of discovery table
+            // TODO
 
             // Refresh space (don't like allocs)
             rlpx_io_refresh(&ctx->ch[i]);

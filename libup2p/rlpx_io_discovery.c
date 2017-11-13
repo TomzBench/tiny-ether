@@ -309,7 +309,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &tmp);
         if (!err) {
 
-            // Todo this echo is not correct.
+            // TODO this echo is not correct.
             err = rlpx_io_discovery_send_pong(
                 self,
                 async_io_ip_addr(&self->base->io),
@@ -319,6 +319,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 usys_now() + 2);
 
             // If have room in table - add to table
+            // Update TCP from contents of ping packet
             if (!err && src.ip) {
                 rlpx_io_discovery_table_node_add(
                     &self->table,
@@ -384,7 +385,7 @@ rlpx_io_discovery_recv_ping(
         (!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 1), from))) &&
         (!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 2), to))) &&
         (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
-        usys_log("[ IN] [UDP] (ping)");
+        // usys_log("[ IN] [UDP] (ping)");
         return err;
     }
     return err;
@@ -403,7 +404,7 @@ rlpx_io_discovery_recv_pong(
     if ((!(err = rlpx_io_discovery_rlp_to_endpoint(urlp_at(*rlp, 0), to))) &&
         (!(err = urlp_idx_to_mem(*rlp, 1, echo32, &sz))) &&
         (!(err = urlp_idx_to_u32(*rlp, 2, timestamp)))) {
-        usys_log("[ IN] [UDP] (pong)");
+        // usys_log("[ IN] [UDP] (pong)");
         return err;
     }
     return err;
@@ -430,7 +431,7 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
         // q = NULL;
         err = 0;
     }
-    usys_log("[ IN] [UDP] (find)");
+    // usys_log("[ IN] [UDP] (find)");
     return err;
 }
 
@@ -453,7 +454,7 @@ rlpx_io_discovery_recv_neighbours(const urlp** rlp, urlp_walk_fn fn, void* ctx)
         *ts = urlp_at(*rlp, 1);       // get timestamp
     ((void)ts);                       // TODO
     urlp_foreach(n, ctx, fn);         // loop and add to table
-    usys_log("[ IN] [UDP] (neighbours)");
+    // usys_log("[ IN] [UDP] (neighbours)");
     return 0;
 }
 
@@ -637,7 +638,7 @@ rlpx_io_discovery_send_ping(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    usys_log("[OUT] [UDP] (ping) (size: %d) %s", *len, usys_htoa(ip));
+    // usys_log("[OUT] [UDP] (ping) (size: %d) %s", *len, usys_htoa(ip));
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
@@ -662,7 +663,7 @@ rlpx_io_discovery_send_pong(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    usys_log("[OUT] [UDP] (pong) %d", *len);
+    // usys_log("[OUT] [UDP] (pong) %d", *len);
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
@@ -685,7 +686,7 @@ rlpx_io_discovery_send_find(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    usys_log("[OUT] [UDP] (find) %d", *len);
+    // usys_log("[OUT] [UDP] (find) %d", *len);
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }
@@ -708,7 +709,7 @@ rlpx_io_discovery_send_neighbours(
         timestamp ? timestamp : usys_now(),
         async_io_buffer(io),
         len);
-    usys_log("[OUT] [UDP] (neighbours) %d", *len);
+    // usys_log("[OUT] [UDP] (neighbours) %d", *len);
     if (!err) err = rlpx_io_sendto_sync(&self->base->io, ip, port);
     return err;
 }

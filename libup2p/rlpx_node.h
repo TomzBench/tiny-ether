@@ -38,7 +38,8 @@ extern "C" {
 typedef struct
 {
     uecc_public_key id;
-    char ip_v4[16];
+    // char ip_v4[16];
+    uint32_t ipv4;
     uint32_t port_tcp;
     uint32_t port_udp;
 } rlpx_node;
