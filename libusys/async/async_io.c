@@ -237,12 +237,13 @@ async_io_tcp_poll_send(async_io* io)
 int
 async_io_tcp_poll_recv(async_io* io)
 {
-    int ret = -1, end = io->len;
+    int ret = -1;
 
     for (int c = 0; c < 2; c++) {
         ret = io->recv(&io->sock, &io->b[io->c], io->len - io->c);
         if (ret >= 0) {
-            if (ret + (int)io->c == end) {
+            io->c += ret;
+            if (io->c >= io->len) {
                 // Buffer isn't big enough
                 io->on_error(io->ctx);
                 async_io_state_erro_set(io);
@@ -263,7 +264,6 @@ async_io_tcp_poll_recv(async_io* io)
                 break;
             } else {
                 // Read in some data maybe try and read more (no break)
-                io->c += ret;
                 ret = 0;
             }
         } else {

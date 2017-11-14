@@ -260,7 +260,8 @@ async_io_state_recv_set(async_io* io)
 static inline int
 async_io_state_send(async_io* io)
 {
-    return ASYNC_IO_IS_SEND(io->state);
+    // TODO rename IO_STATE_BUSY()
+    return (ASYNC_IO_IS_SEND(io->state) || (io->c));
     // return ASYNC_IO_IS_READY(io->state) ? ASYNC_IO_IS_SEND(io->state) : 0;
 }
 
