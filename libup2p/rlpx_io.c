@@ -185,7 +185,9 @@ rlpx_io_connect_enode(rlpx_io* ch, const char* enode)
 int
 rlpx_io_connect_node(rlpx_io* ch, const rlpx_node* n)
 {
+    // All connect calls end up here.
     ch->node = *n;
+    if (ch->error) return -1; // Should assert.  Caller should clear error
     return async_io_tcp_connect(&ch->io, usys_htoa(n->ipv4), n->port_tcp) < 0
                ? -1
                : 0;
