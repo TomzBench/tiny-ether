@@ -24,9 +24,11 @@ set(headers
 set(sources-unit-test
 	test/unit/test.c
 	test/unit/test_discovery.c
+	test/unit/test_discovery_table.c
 	test/unit/test_enode.c
 	test/unit/test_frame.c
 	test/unit/test_handshake.c
+	test/unit/test_io.c
 	test/unit/test_mock.c
 	test/unit/test_protocol.c
 	)

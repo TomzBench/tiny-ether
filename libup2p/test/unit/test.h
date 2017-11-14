@@ -79,5 +79,7 @@ int test_protocol(void);
 int test_enode(void);
 int test_kademlia(void);
 int test_discovery(void);
+int test_io(void);
+int test_discovery_table(void);
 
 #endif

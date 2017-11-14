@@ -27,7 +27,7 @@
 #define SKEY "5e173f6ac3c669587538e7727cf19b782a4f2fda07c1eaa662c593e5e85e3051"
 
 ueth_config config = { //
-    .p2p_private_key = NULL,
+    .p2p_private_key = SKEY,
     .p2p_enable = 1,
     .udp = 22332,
     .interval_discovery = 10

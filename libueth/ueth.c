@@ -67,11 +67,11 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     ueth_boot(
         ctx,
         5,
-        GETH_P2P_LOCAL,
-        CPP_P2P_LOCAL,
         TEST_NET_0,
         TEST_NET_1,
-        TEST_NET_15);
+        TEST_NET_15,
+        GETH_P2P_LOCAL,
+        CPP_P2P_LOCAL);
 
     return 0;
 }
@@ -100,9 +100,18 @@ ueth_boot(ueth_context* ctx, int n, ...)
     for (uint32_t i = 0; i < (uint32_t)n; i++) {
         enode = va_arg(l, const char*);
         rlpx_node_init_enode(&node, enode);
+        rlpx_io_discovery* discovery;
+        discovery = rlpx_io_discovery_get_context(&ctx->discovery);
         ctx->bootnodes[i].ip = node.ipv4;
         ctx->bootnodes[i].tcp = node.port_tcp;
         ctx->bootnodes[i].udp = node.port_udp ? node.port_udp : node.port_tcp;
+        rlpx_io_discovery_table_node_add(
+            &discovery->table,
+            node.ipv4,
+            node.port_tcp,
+            node.port_udp,
+            &node.id,
+            NULL);
         rlpx_node_deinit(&node);
     }
     va_end(l);
@@ -120,7 +129,7 @@ ueth_stop(ueth_context* ctx)
             devp2p = ctx->ch[i].protocols[0].context;
             if (!(rlpx_io_devp2p_send_disconnect(
                     devp2p, DEVP2P_DISCONNECT_QUITTING))) {
-                mask |= (1 << i);
+                mask |= (1 << b);
                 ch[b++] = &ctx->ch[i];
             }
         }
@@ -131,7 +140,10 @@ ueth_stop(ueth_context* ctx)
         rlpx_io_poll(ch, b, 100);
         for (i = 0; i < b; i++) {
             devp2p = ch[i]->protocols[0].context;
-            if (rlpx_io_is_shutdown(devp2p->base)) mask &= (~(1 << i));
+            if ((!async_io_has_sock(&devp2p->base->io)) ||
+                rlpx_io_is_shutdown(devp2p->base)) {
+                mask &= (~(1 << i));
+            }
         }
     }
     return 0;
