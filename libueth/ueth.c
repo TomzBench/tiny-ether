@@ -20,6 +20,7 @@
  */
 
 #include "ueth.h"
+#include "ueth_boot_nodes.h"
 #include "usys_io.h"
 #include "usys_log.h"
 #include "usys_time.h"
@@ -61,6 +62,16 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     // Init discovery pipe
     rlpx_io_udp_init(&ctx->discovery, &ctx->id, &ctx->config.udp);
     rlpx_io_discovery_install(&ctx->discovery);
+
+    // Setup boot nodes
+    ueth_boot(
+        ctx,
+        5,
+        GETH_P2P_LOCAL,
+        CPP_P2P_LOCAL,
+        TEST_NET_0,
+        TEST_NET_1,
+        TEST_NET_15);
 
     return 0;
 }
@@ -171,6 +182,8 @@ ueth_poll_internal(ueth_context* ctx)
                     // TODO - ping some in table.
                     rlpx_io_discovery_send_find(
                         d, dst.ip, dst.udp, NULL, now + 2);
+                } else {
+                    break;
                 }
             }
         } else {
