@@ -24,19 +24,19 @@
 #include "usys_time.h"
 
 const char* g_devp2p_hello_errors[] = { //
-    "Disconnect requested.",            //
-    "TCP error.",
-    "Bad protocol.",
-    "Remote has no use for us.",
-    "Remote has to many peers.",
-    "Already connected.",
-    "Version mismatch.",
-    "Bad public key.",
-    "Remote shutting down.",
-    "Unexpected public key.",
+    "Disconnect requested",             //
+    "TCP error",
+    "Bad protocol",
+    "Remote has no use for us",
+    "Remote has to many peers",
+    "Already connected",
+    "Version mismatch",
+    "Bad public key",
+    "Remote shutting down",
+    "Unexpected public key",
     "Connected to ourself!",
-    "Timeout.",
-    "Unknown reason."
+    "Timeout",
+    "Unknown reason"
 };
 
 int rlpx_io_devp2p_on_send_shutdown(
