@@ -79,6 +79,8 @@ const char* usys_ntoa(uint32_t ip);
 const char* usys_htoa(uint32_t ip);
 uint32_t usys_ntohl(uint32_t);
 uint32_t usys_htonl(uint32_t);
+uint16_t usys_ntohs(uint16_t);
+uint16_t usys_htons(uint16_t);
 uint32_t usys_select(
     uint32_t* rmask,
     uint32_t* wmask,

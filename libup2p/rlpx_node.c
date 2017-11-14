@@ -36,8 +36,7 @@ rlpx_node_init(
     memset(self, 0, sizeof(rlpx_node));
     if (strlen(host) <= 15) {
         uint32_t ip = usys_atoh(host);
-        memcpy(self->ip_v4, &ip, 4);
-        snprintf(self->ip_v4, sizeof(self->ip_v4), "%s", host);
+        self->ipv4 = ip;
         self->port_tcp = tcp;
         self->port_udp = udp;
         self->id = *id;

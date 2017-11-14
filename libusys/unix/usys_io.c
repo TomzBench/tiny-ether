@@ -142,6 +142,7 @@ usys_send_to_fd(
     ssize_t bytes = 0;
     struct sockaddr_in dest;
     socklen_t dlen = sizeof(dest);
+    memset(&dest, 0, sizeof(dest));
 
     if (addr) {
         dest.sin_family = AF_INET;
@@ -284,6 +285,18 @@ uint32_t
 usys_htonl(uint32_t n)
 {
     return htonl(n);
+}
+
+uint16_t
+usys_ntohs(uint16_t n)
+{
+    return ntohs(n);
+}
+
+uint16_t
+usys_htons(uint16_t n)
+{
+    return ntohs(n);
 }
 
 //

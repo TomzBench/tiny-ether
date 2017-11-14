@@ -29,7 +29,7 @@ extern "C" {
 #include "rlpx_config.h"
 #include "rlpx_io.h"
 
-#define RLPX_IO_DISCOVERY_TABLE_SIZE 100
+#define RLPX_IO_DISCOVERY_TABLE_SIZE 40
 
 /**
  * @brief Discovery protocol packet types
@@ -47,8 +47,9 @@ typedef enum {
 typedef enum {
     RLPX_STATE_FREE = 0,
     RLPX_STATE_PENDING = 1,
-    RLPX_STATE_TRUE = 2,
-    RLPX_STATE_FALSE = 3
+    RLPX_STATE_CONNECTING = 2,
+    RLPX_STATE_TRUE = 3,
+    RLPX_STATE_FALSE = 4
 } RLPX_DISCOVERY_STATE;
 
 /**
@@ -56,10 +57,9 @@ typedef enum {
  */
 typedef struct
 {
-    uint8_t ip[16]; /*!< BE encoding ipv4 or ipv6 data */
-    uint32_t iplen; /*!< ip4|6 */
-    uint32_t tcp;   /*!< devp2p port */
-    uint32_t udp;   /*!< p2p port */
+    uint32_t ip;  /*!< ipv4 only */
+    uint32_t tcp; /*!< devp2p port */
+    uint32_t udp; /*!< p2p port */
 } rlpx_io_discovery_endpoint;
 
 /**
@@ -211,8 +211,7 @@ int rlpx_io_discovery_table_node_add_rlp(
  */
 int rlpx_io_discovery_table_node_add(
     rlpx_io_discovery_table* table,
-    uint8_t* ip,
-    uint32_t iplen,
+    uint32_t ip,
     uint32_t tcp,
     uint32_t udp,
     uecc_public_key* id,
@@ -230,14 +229,14 @@ rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_id(
     const uecc_public_key* id);
 
 /**
- * @brief Grab a next node in table
+ * @brief Connect to some node in our table if we have some peers in table
  *
- * @param table
+ * @param self
+ * @param ch
  *
  * @return
  */
-rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_next(
-    rlpx_io_discovery_table* table);
+int rlpx_io_discovery_connect(rlpx_io_discovery* self, rlpx_io* ch);
 
 /**
  * @brief Dummy function to populate a callback not used during udp for now.
@@ -245,33 +244,6 @@ rlpx_io_discovery_endpoint_node* rlpx_io_discovery_table_node_get_next(
  * @return
  */
 int rlpx_io_discovery_ready(void*);
-
-/**
- * @brief Callback when receive
- *
- * @param rlp
- *
- * @return
- */
-int rlpx_io_discovery_recv(void*, const urlp* rlp);
-
-/**
- * @brief sign a discovery packet provided RLP and a packet type
- *
- * @param key
- * @param type
- * @param rlp
- * @param b
- * @param l
- *
- * @return
- */
-int rlpx_io_discovery_write(
-    uecc_ctx* key,
-    RLPX_DISCOVERY type,
-    const urlp* rlp,
-    uint8_t* b,
-    uint32_t* l);
 
 /**
  * @brief Convert RLP endpoint data into end point struct
@@ -282,7 +254,7 @@ int rlpx_io_discovery_write(
  *
  * @return
  */
-int rlpx_io_discovery_recv_endpoint(
+int rlpx_io_discovery_rlp_to_endpoint(
     const urlp*,
     rlpx_io_discovery_endpoint* ep);
 
@@ -294,7 +266,16 @@ int rlpx_io_discovery_recv_endpoint(
  *
  * @return
  */
-urlp* rlpx_io_discovery_rlp_endpoint(const rlpx_io_discovery_endpoint* ep);
+urlp* rlpx_io_discovery_endpoint_to_rlp(const rlpx_io_discovery_endpoint* ep);
+
+/**
+ * @brief Callback when receive
+ *
+ * @param rlp
+ *
+ * @return
+ */
+int rlpx_io_discovery_recv(void*, const urlp* rlp);
 
 /**
  * @brief Parse a signed rlp ping packet
@@ -351,8 +332,27 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts);
  * @return
  */
 int rlpx_io_discovery_recv_neighbours(
-    rlpx_io_discovery_table* t,
-    const urlp** rlp);
+    const urlp** rlp, //
+    urlp_walk_fn fn,
+    void* ctx);
+
+/**
+ * @brief sign a discovery packet provided RLP and a packet type
+ *
+ * @param key
+ * @param type
+ * @param rlp
+ * @param b
+ * @param l
+ *
+ * @return
+ */
+int rlpx_io_discovery_write(
+    uecc_ctx* key,
+    RLPX_DISCOVERY type,
+    const urlp* rlp,
+    uint8_t* b,
+    uint32_t* l);
 
 /**
  * @brief Populate output buffer with signed ping packet

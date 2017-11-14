@@ -78,8 +78,8 @@ test_frame_read()
     seek = urlp_at(urlp_at(frame, 1), 1); // get body frame
     IF_ERR_EXIT(rlpx_io_devp2p_p2p_version(seek, &p2pver));
     IF_ERR_EXIT(p2pver == 3 ? 0 : -1);
-    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(seek, "a", 0));
-    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(seek, "b", 2));
+    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(seek, "a", 0) != 0);
+    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(seek, "b", 2) != 2);
     urlp_free(&frame);
 EXIT:
     test_session_deinit(&s);
@@ -147,8 +147,8 @@ test_frame_write()
     IF_ERR_EXIT(memcmp(memb, RLPX_CLIENT_ID_STR, numb) ? -1 : 0);
 
     // Verify capabilities read ok
-    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(bodya, "p2p", 4));
-    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(bodyb, "p2p", 4));
+    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(bodya, "p2p", 4) != 4);
+    IF_ERR_EXIT(rlpx_io_devp2p_capabilities(bodyb, "p2p", 4) != 4);
 
     // verify listen port
     rlpx_io_devp2p_listen_port(bodya, &numa);
