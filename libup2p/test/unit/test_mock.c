@@ -21,31 +21,31 @@
 
 #include "test.h"
 
-typedef struct
-{
-    uint8_t* data;
-    uint32_t sz;
-} test_mock_socket;
-
 test_mock_socket g_test_sockets[10] = { //
     { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 },
     { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }
 };
 
-// Mock overrides
-int test_mock_ready(usys_socket_fd*);
-int test_mock_connect(usys_socket_fd* fd, const char* host, int port);
-void test_mock_close(usys_socket_fd* fd);
-int test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l);
-int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l);
-
-async_io_mock_settings g_io_mock_settings = { //
+async_io_mock_settings g_io_mock_tcp_settings = { //
     .connect = test_mock_connect,
     .ready = test_mock_ready,
     .close = test_mock_close,
     .send = test_mock_send,
-    .recv = test_mock_recv
+    .recv = test_mock_recv,
+    .sendto = NULL,
+    .recvfrom = NULL
 };
+
+async_io_mock_settings g_io_mock_udp_settings = { //
+    .connect = test_mock_connect,
+    .ready = test_mock_ready,
+    .close = test_mock_close,
+    .send = NULL,
+    .recv = NULL,
+    .sendto = test_mock_sendto,
+    .recvfrom = test_mock_recvfrom
+};
+
 int
 test_mock_connect(usys_socket_fd* fd, const char* host, int port)
 {
@@ -114,4 +114,26 @@ test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l)
         }
     }
     return -1;
+}
+
+int
+test_mock_sendto(
+    usys_socket_fd* fd,
+    const byte* b,
+    uint32_t l,
+    usys_sockaddr* addr)
+{
+    ((void)fd);
+    ((void)b);
+    ((void)addr);
+    return l;
+}
+
+int
+test_mock_recvfrom(usys_socket_fd* fd, byte* b, uint32_t l, usys_sockaddr* addr)
+{
+    ((void)fd);
+    ((void)b);
+    ((void)addr);
+    return l;
 }

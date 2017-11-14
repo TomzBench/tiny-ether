@@ -50,6 +50,14 @@ typedef struct
     rlpx_io_uninstall_fn uninstall;
 } rlpx_io_protocol;
 
+typedef struct rlpx_io_message
+{
+    struct rlpx_io_message* next;
+    uint32_t ip, port;
+    uint32_t sz;
+    uint8_t b[];
+} rlpx_io_message;
+
 typedef struct rlpx
 {
     async_io io;                 /*!< io context for network sys calls */
@@ -64,6 +72,11 @@ typedef struct rlpx
     int error;                   /*!< erro state */
     uint8_t node_id[65];         /*!< node id */
     const uint32_t* listen_port; /*!< our listen port */
+    uint32_t outgoing_max;       /*!< max outgoing */
+    uint32_t outgoing_bytes;     /*!< cap */
+    uint32_t outgoing_count;     /*!< number of messages to send */
+    rlpx_io_message* outgoing;   /*!< pending messages to transmit */
+    rlpx_io_message** tail_p;    /*!< tail ptr */
     rlpx_io_protocol protocols[RLPX_IO_MAX_PROTOCOL]; /*!< map */
 } rlpx_io;
 
@@ -95,8 +108,16 @@ int rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from);
 int rlpx_io_send_auth(rlpx_io* ch);
 int rlpx_io_send(async_io* io);
 int rlpx_io_send_sync(async_io* io);
-int rlpx_io_sendto(async_io* io, uint32_t ip, uint32_t port);
+int
+rlpx_io_sendto(rlpx_io* io, uint32_t ip, uint32_t port, uint8_t* b, uint32_t l);
 int rlpx_io_sendto_sync(async_io* udp, uint32_t ip, uint32_t port);
+int rlpx_io_sendto_enqueue(
+    rlpx_io* io,
+    uint32_t ip,
+    uint32_t port,
+    uint8_t* b,
+    uint32_t l);
+int rlpx_io_sendto_dequeue(rlpx_io* io);
 int rlpx_io_parse_udp(
     const uint8_t* b,
     uint32_t l,
@@ -162,10 +183,22 @@ rlpx_io_len_ptr(rlpx_io* io)
     return async_io_buffer_length_pointer((async_io*)io);
 }
 
+static inline void
+rlpx_io_outgoing_throttle(rlpx_io* io, uint32_t n)
+{
+    io->outgoing_max = n;
+}
+
 static inline int
 rlpx_io_is_connected(rlpx_io* ch)
 {
     return async_io_has_sock(&ch->io);
+}
+
+static inline int
+rlpx_io_is_shutdown(rlpx_io* ch)
+{
+    return ch->shutdown;
 }
 
 static inline int
@@ -183,12 +216,6 @@ static inline int
 rlpx_io_default_on_recv(void* io, const urlp* rlp)
 {
     return -1;
-}
-
-static inline int
-rlpx_io_is_shutdown(rlpx_io* ch)
-{
-    return ch->shutdown;
 }
 
 static inline void

@@ -115,17 +115,26 @@ rlpx_io_init(rlpx_io* rlpx, uecc_ctx* s, const uint32_t* listen)
         rlpx->protocols[i].ready = rlpx_io_default_on_ready;
         rlpx->protocols[i].recv = rlpx_io_default_on_recv;
     }
+
+    // Init message pointer
+    rlpx->tail_p = &rlpx->outgoing;
 }
 
 void
 rlpx_io_deinit(rlpx_io* rlpx)
 {
+    rlpx_io_message* msg;
     async_io_deinit(&rlpx->io);
     uecc_key_deinit(&rlpx->ekey);
     for (uint32_t i = 0; i < RLPX_IO_MAX_PROTOCOL; i++) {
         if (rlpx->protocols[i].context) {
             rlpx->protocols[i].uninstall(&rlpx->protocols[i].context);
         }
+    }
+    while (rlpx->outgoing) {
+        msg = rlpx->outgoing;
+        rlpx->outgoing = rlpx->outgoing->next;
+        rlpx_free(msg);
     }
     if (rlpx->hs) rlpx_handshake_free(&rlpx->hs);
     memset(rlpx, 0, sizeof(rlpx_io));
@@ -137,6 +146,7 @@ rlpx_io_refresh(rlpx_io* rlpx)
     rlpx->error = rlpx->shutdown = rlpx->ready = 0;
     rlpx_node_deinit(&rlpx->node);
     if (rlpx->hs) rlpx_handshake_free(&rlpx->hs);
+    // TODO free outgoing
 }
 
 int
@@ -203,7 +213,7 @@ rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from)
     if (ch->hs) {
         async_io_tcp_accept(&ch->io); // stub
         ch->io.sock = 3;              // stub
-        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+        async_io_memcpy(&ch->io, ch->hs->cipher, ch->hs->cipher_len);
         return rlpx_io_send_sync(&ch->io);
     } else {
         return -1;
@@ -222,7 +232,7 @@ rlpx_io_send_auth(rlpx_io* ch)
             ch->hs->cipher_len,
             usys_htoa(ch->node.ipv4));
         async_io_on_recv(&ch->io, rlpx_io_on_recv_ack);
-        async_io_memcpy(&ch->io, 0, ch->hs->cipher, ch->hs->cipher_len);
+        async_io_memcpy(&ch->io, ch->hs->cipher, ch->hs->cipher_len);
         return rlpx_io_send_sync(&ch->io);
     } else {
         return -1;
@@ -257,12 +267,12 @@ rlpx_io_send_sync(async_io* io)
 }
 
 int
-rlpx_io_sendto(async_io* io, uint32_t ip, uint32_t port)
+rlpx_io_sendto(rlpx_io* io, uint32_t ip, uint32_t port, uint8_t* b, uint32_t l)
 {
-    int err = async_io_udp_send(io, ip, port);
-    // Need queue for async
-    // TODO - breaks test (flushing io resets len)
-    // if (!err) err = async_io_udp_poll(io);
+    int err = rlpx_io_sendto_enqueue(io, ip, port, b, l);
+    if (!err) {
+        if (!async_io_state_send(&io->io)) err = rlpx_io_sendto_dequeue(io);
+    }
     return err;
 }
 
@@ -280,6 +290,57 @@ rlpx_io_sendto_sync(async_io* udp, uint32_t ip, uint32_t port)
     while ((usys_running()) && (async_io_state_send(io)) && (!err)) {
         usys_msleep(200);
         err = async_io_poll(io);
+    }
+    return err;
+}
+
+int
+rlpx_io_sendto_enqueue(
+    rlpx_io* io,
+    uint32_t ip,
+    uint32_t port,
+    uint8_t* b,
+    uint32_t l)
+{
+    // TODO can avoid mem copies if we use heap instead of static space output
+    int err = -1;
+
+    // If a max outgoing is set, make sure this packet doesn't exeded it,
+    // otherwise have unlimited outgoing
+    rlpx_io_message* mesg = NULL;
+    if ((!io->outgoing_max) || (io->outgoing_bytes + l < io->outgoing_max)) {
+        mesg = rlpx_malloc(l + sizeof(rlpx_io_message));
+    }
+    if (mesg) {
+        memset(mesg, 0, sizeof(rlpx_io_message));
+        mesg->ip = ip;
+        mesg->port = port;
+        mesg->sz = l;
+        memcpy(mesg->b, b, l);
+        io->outgoing_bytes += mesg->sz;
+        io->outgoing_count++;
+        *io->tail_p = mesg;
+        io->tail_p = &mesg->next;
+        err = 0;
+    }
+    return err;
+}
+
+int
+rlpx_io_sendto_dequeue(rlpx_io* io)
+{
+    int err = 0;
+    rlpx_io_message* deleteme = io->outgoing;
+    if (io->outgoing) {
+        async_io_memcpy(&io->io, io->outgoing->b, io->outgoing->sz);
+        err = async_io_udp_send(&io->io, io->outgoing->ip, io->outgoing->port);
+        if (!err) {
+            io->outgoing_bytes -= io->outgoing->sz;
+            io->outgoing_count--;
+            io->outgoing = io->outgoing->next;
+            if (!io->outgoing) io->tail_p = &io->outgoing;
+            rlpx_free(deleteme);
+        }
     }
     return err;
 }
@@ -520,12 +581,9 @@ rlpx_io_on_erro_from(void* ctx)
 int
 rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l)
 {
-    ((void)ctx);
-    ((void)err);
-    ((void)b);
-    ((void)l);
-    if (err) usys_log("[OUT] [UDP] %s", "send (error)");
-    return 0;
+    rlpx_io* io = (rlpx_io*)ctx;
+    if (io->outgoing) err = rlpx_io_sendto_dequeue(io);
+    return err;
 }
 
 int

@@ -65,6 +65,29 @@ typedef struct
     h256 alice_n, bob_n;         /*!< nonces used sometimes */
 } test_session;
 
+typedef struct
+{
+    uint8_t* data;
+    uint32_t sz;
+} test_mock_socket;
+
+// Mock overrides
+int test_mock_ready(usys_socket_fd*);
+int test_mock_connect(usys_socket_fd* fd, const char* host, int port);
+void test_mock_close(usys_socket_fd* fd);
+int test_mock_send(usys_socket_fd* fd, const byte* b, uint32_t l);
+int test_mock_recv(usys_socket_fd* fd, byte* b, uint32_t l);
+int test_mock_sendto(
+    usys_socket_fd* fd,
+    const byte* b,
+    uint32_t l,
+    usys_sockaddr* addr);
+int test_mock_recvfrom(
+    usys_socket_fd* fd,
+    byte* b,
+    uint32_t l,
+    usys_sockaddr* addr);
+
 const uint8_t* makebin(const char* str, size_t* len);
 int cmp_q(const uecc_public_key* a, const uecc_public_key* b);
 int check_q(const uecc_public_key* key, const char* str);
