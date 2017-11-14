@@ -112,7 +112,8 @@ main(int argc, char* argv[])
     ueth_init(&eth, &config);
     ueth_boot(//
         &eth,
-        3,
+        4,
+	GETH_P2P_LOCAL,
         TEST_ENODE_3,
         TEST_NET_0,
         TEST_NET_1);
