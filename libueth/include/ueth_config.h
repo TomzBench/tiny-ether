@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 #define UETH_CONFIG_NUM_CHANNELS 30
+#define UETH_CONFIG_MAX_BOOTNODES 8
 
 #ifdef __cplusplus
 }

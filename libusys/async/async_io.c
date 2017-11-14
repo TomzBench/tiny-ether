@@ -252,6 +252,7 @@ async_io_tcp_poll_recv(async_io* io)
                     // When a readable socket returns 0 bytes on first then
                     // that means remote has disconnected.
                     async_io_state_erro_set(io);
+                    io->on_error(io->ctx);
                     io->poll = async_io_tcp_poll_connect;
                 } else {
                     // Looks like we read every thing.

@@ -56,6 +56,7 @@ int check_ping_v5(rlpx_io_discovery_table* t, int type, const urlp* rlp);
 int check_pong(rlpx_io_discovery_table* t, int type, const urlp* rlp);
 int check_find_node(rlpx_io_discovery_table* t, int type, const urlp* rlp);
 int check_neighbours(rlpx_io_discovery_table* t, int type, const urlp* rlp);
+void check_neighbours_walk_fn(const urlp*, int idx, void*);
 
 int
 test_discovery()
@@ -164,14 +165,12 @@ test_disc_read()
     rlpx_io_discovery_table_init(&table);
 
     // Check ping v4
-    IF_ERR_EXIT(
-        rlpx_io_parse_udp(g_ping_v4, g_ping_v4_sz, &q, &type, &rlp));
+    IF_ERR_EXIT(rlpx_io_parse_udp(g_ping_v4, g_ping_v4_sz, &q, &type, &rlp));
     IF_ERR_EXIT(check_ping_v4(&table, type, rlp));
     urlp_free(&rlp);
 
     // Check ping v5
-    IF_ERR_EXIT(
-        rlpx_io_parse_udp(g_ping_v5, g_ping_v5_sz, &q, &type, &rlp));
+    IF_ERR_EXIT(rlpx_io_parse_udp(g_ping_v5, g_ping_v5_sz, &q, &type, &rlp));
     IF_ERR_EXIT(check_ping_v5(&table, type, rlp));
     urlp_free(&rlp);
 
@@ -181,8 +180,7 @@ test_disc_read()
     urlp_free(&rlp);
 
     // Check find node
-    IF_ERR_EXIT(
-        rlpx_io_parse_udp(g_find, g_find_node_sz, &q, &type, &rlp));
+    IF_ERR_EXIT(rlpx_io_parse_udp(g_find, g_find_node_sz, &q, &type, &rlp));
     IF_ERR_EXIT(check_find_node(&table, type, rlp));
     urlp_free(&rlp);
 
@@ -261,6 +259,14 @@ check_neighbours(rlpx_io_discovery_table* t, int type, const urlp* rlp)
 {
     int err = -1;
     if (type != 4) return err;
-    err = rlpx_io_discovery_recv_neighbours(t, &rlp);
+    err = rlpx_io_discovery_recv_neighbours(&rlp, check_neighbours_walk_fn, t);
     return err;
+}
+
+void
+check_neighbours_walk_fn(const urlp* rlp, int idx, void* ctx)
+{
+    ((void)rlp);
+    ((void)idx);
+    ((void)ctx);
 }
