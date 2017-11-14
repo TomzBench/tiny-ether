@@ -186,6 +186,8 @@ rlpx_io_discovery_table_node_add(
         // nodes when state is set to false.
         //
         // Not investing much effort here.
+        // TODO - state should be something like RLPX_STATE_WANT_PONG
+        // On pong update recents and have discovery connect use that.
         n->state = RLPX_STATE_PENDING;
         return 0;
     } else {
@@ -342,12 +344,12 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         if (!err) {
 
             // If need more peers - send find
-            err = rlpx_io_discovery_send_find(
-                self,
-                async_io_ip_addr(&self->base->io),
-                async_io_port(&self->base->io),
-                NULL,
-                usys_now() + 2);
+            // err = rlpx_io_discovery_send_find(
+            //    self,
+            //    async_io_ip_addr(&self->base->io),
+            //    async_io_port(&self->base->io),
+            //    NULL,
+            //    usys_now() + 2);
         }
     } else if (type == RLPX_DISCOVERY_FIND) {
 
@@ -485,6 +487,8 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
         // TODO - ipv4 only
+        // TODO - add in table - don't try connect until returns pong. Erase
+        // from table after timeout from pong.
         // Note - reading the rlp as a uint32 converts to host byte order.  To
         // preserve network byte order than read rlp as mem.  usys networking io
         // takes host byte order so we read rlp into host byte order.

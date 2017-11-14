@@ -168,8 +168,9 @@ ueth_poll_internal(ueth_context* ctx)
                     dst.ip = ctx->bootnodes[i].ip;
                     dst.tcp = ctx->bootnodes[i].tcp;
                     dst.udp = ctx->bootnodes[i].udp;
-                    rlpx_io_discovery_send_ping(
-                        d, dst.ip, dst.udp, &src, &dst, now + 2);
+                    // TODO - ping some in table.
+                    rlpx_io_discovery_send_find(
+                        d, dst.ip, dst.udp, NULL, now + 2);
                 }
             }
         } else {
