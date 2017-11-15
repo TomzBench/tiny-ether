@@ -80,8 +80,12 @@ rlpx_io_tcp_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
 {
     // Init base
     rlpx_io_init(io, s, listen);
+
     // io driver
     async_io_tcp_init(&io->io, &g_rlpx_io_settings, io);
+
+    // Transmit method
+    io->send = rlpx_io_send_tcp;
 }
 
 void
@@ -89,9 +93,13 @@ rlpx_io_udp_init(rlpx_io* io, uecc_ctx* s, const uint32_t* listen)
 {
     // init common
     rlpx_io_init(io, s, listen);
+
     // init io driver
     async_io_udp_init(&io->io, &g_rlpx_disc_settings, io);
     async_io_udp_listen(&io->io, *listen);
+
+    // Transmit method
+    io->send = rlpx_io_send_udp;
 }
 
 void
@@ -279,19 +287,7 @@ rlpx_io_sendto(rlpx_io* io, uint32_t ip, uint32_t port, uint8_t* b, uint32_t l)
 int
 rlpx_io_sendto_sync(async_io* udp, uint32_t ip, uint32_t port)
 {
-    int err = 0;
-    async_io* io = (async_io*)udp;
-    if (!(async_io_has_sock(io))) return err;
-    while ((usys_running()) && (async_io_state_send(io)) && (!err)) {
-        usys_msleep(20);
-        err = async_io_poll(io);
-    }
-    err = async_io_udp_send(udp, ip, port);
-    while ((usys_running()) && (async_io_state_send(io)) && (!err)) {
-        usys_msleep(200);
-        err = async_io_poll(io);
-    }
-    return err;
+    return -1;
 }
 
 int
@@ -332,8 +328,7 @@ rlpx_io_sendto_dequeue(rlpx_io* io)
     int err = 0;
     rlpx_io_message* deleteme = io->outgoing;
     if (io->outgoing) {
-        async_io_memcpy(&io->io, io->outgoing->b, io->outgoing->sz);
-        err = async_io_udp_send(&io->io, io->outgoing->ip, io->outgoing->port);
+        err = io->send(io, io->outgoing);
         if (!err) {
             io->outgoing_bytes -= io->outgoing->sz;
             io->outgoing_count--;
@@ -343,6 +338,20 @@ rlpx_io_sendto_dequeue(rlpx_io* io)
         }
     }
     return err;
+}
+
+int
+rlpx_io_send_udp(rlpx_io* io, rlpx_io_message* msg)
+{
+    async_io_memcpy(&io->io, msg->b, msg->sz);
+    return async_io_udp_send(&io->io, msg->ip, msg->port);
+}
+
+int
+rlpx_io_send_tcp(rlpx_io* io, rlpx_io_message* msg)
+{
+    async_io_memcpy(&io->io, msg->b, msg->sz);
+    return async_io_tcp_send(&io->io);
 }
 
 int

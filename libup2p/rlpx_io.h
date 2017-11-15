@@ -38,10 +38,23 @@ extern "C" {
 #include "rlpx_node.h"
 #include "unonce.h"
 
+/**
+ * @brief forward declar for fn types
+ */
+typedef struct rlpx_io rlpx_io_;
+typedef struct rlpx_io_message rlpx_io_message_;
+
+/**
+ * @brief callback prototype function signatures
+ */
 typedef int (*rlpx_io_ready_fn)(void*);
 typedef int (*rlpx_io_recv_fn)(void*, const urlp*);
 typedef void (*rlpx_io_uninstall_fn)(void**);
+typedef int (*rlpx_io_send_fn)(rlpx_io_*, rlpx_io_message_*);
 
+/**
+ * @brief All protocols populate this callback struct
+ */
 typedef struct
 {
     void* context;
@@ -50,6 +63,9 @@ typedef struct
     rlpx_io_uninstall_fn uninstall;
 } rlpx_io_protocol;
 
+/**
+ * @brief Outgoing messages to eventually go to wire
+ */
 typedef struct rlpx_io_message
 {
     struct rlpx_io_message* next;
@@ -58,7 +74,10 @@ typedef struct rlpx_io_message
     uint8_t b[];
 } rlpx_io_message;
 
-typedef struct rlpx
+/**
+ * @brief The main rlpx_io context.  First parameter to all api calls (ie: this)
+ */
+typedef struct rlpx_io
 {
     async_io io;                 /*!< io context for network sys calls */
     uecc_ctx* skey;              /*!< TODO make const - our static key ref*/
@@ -72,6 +91,7 @@ typedef struct rlpx
     int error;                   /*!< erro state */
     uint8_t node_id[65];         /*!< node id */
     const uint32_t* listen_port; /*!< our listen port */
+    rlpx_io_send_fn send;        /*!< */
     uint32_t outgoing_max;       /*!< max outgoing */
     uint32_t outgoing_bytes;     /*!< cap */
     uint32_t outgoing_count;     /*!< number of messages to send */
@@ -108,8 +128,7 @@ int rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from);
 int rlpx_io_send_auth(rlpx_io* ch);
 int rlpx_io_send(async_io* io);
 int rlpx_io_send_sync(async_io* io);
-int
-rlpx_io_sendto(rlpx_io* io, uint32_t ip, uint32_t port, uint8_t* b, uint32_t l);
+int rlpx_io_sendto(rlpx_io*, uint32_t ip, uint32_t, uint8_t* b, uint32_t l);
 int rlpx_io_sendto_sync(async_io* udp, uint32_t ip, uint32_t port);
 int rlpx_io_sendto_enqueue(
     rlpx_io* io,
@@ -118,6 +137,8 @@ int rlpx_io_sendto_enqueue(
     uint8_t* b,
     uint32_t l);
 int rlpx_io_sendto_dequeue(rlpx_io* io);
+int rlpx_io_send_tcp(rlpx_io* io, rlpx_io_message* msg);
+int rlpx_io_send_udp(rlpx_io* io, rlpx_io_message* msg);
 int rlpx_io_parse_udp(
     const uint8_t* b,
     uint32_t l,
