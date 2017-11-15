@@ -1,18 +1,18 @@
 #libup2p sources
 set(sources
+	discovery/rlpx_io_discovery.c
 	rlpx_io.c
 	rlpx_io_devp2p.c
-	rlpx_io_discovery.c
 	rlpx_frame.c
 	rlpx_handshake.c
 	rlpx_node.c
 	rlpx_test_helpers.c)
 set(headers
+	discovery/rlpx_io_discovery.h
 	rlpx_io.h
 	rlpx_config.h
 	rlpx_config_unix.h
 	rlpx_io_devp2p.h
-	rlpx_io_discovery.h
 	rlpx_frame.h
 	rlpx_handshake.h
 	rlpx_helper_macros.h

@@ -29,7 +29,7 @@ extern "C" {
 #include "ueth_config.h"
 
 #include "rlpx_io_devp2p.h"
-#include "rlpx_io_discovery.h"
+#include "discovery/rlpx_io_discovery.h"
 
 typedef struct
 {

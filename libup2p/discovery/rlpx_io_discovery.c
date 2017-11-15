@@ -375,9 +375,9 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         // Received some neighbours
         err = rlpx_io_discovery_recv_neighbours(
             &crlp, rlpx_walk_neighbours, self);
-        usys_log(
-            "[ IN] [UDP] (neighbours) %s",
-            usys_htoa(async_io_ip_addr(&self->base->io)));
+        // usys_log(
+        //    "[ IN] [UDP] (neighbours) %s",
+        //    usys_htoa(async_io_ip_addr(&self->base->io)));
     } else {
         // error
     }
@@ -499,6 +499,7 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
         dst.ip = ip;
         dst.tcp = tcp;
         dst.udp = udp;
+        err = rlpx_io_discovery_send_find(self, ip, udp, NULL, usys_now() + 2);
         err = rlpx_io_discovery_send_ping(
             self, ip, udp, &src, &dst, usys_now() + 2);
     }

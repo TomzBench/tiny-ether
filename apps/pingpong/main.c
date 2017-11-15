@@ -53,7 +53,7 @@ main(int argc, char* argv[])
 
     while (usys_running()) {
         // Poll io
-        usys_msleep(10);
+        usys_msleep(1);
         ueth_poll(&eth);
     }
 

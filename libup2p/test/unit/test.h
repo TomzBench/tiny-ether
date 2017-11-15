@@ -23,7 +23,7 @@
 #define TEST_H_
 
 #include "rlpx_io_devp2p.h"
-#include "rlpx_io_discovery.h"
+#include "discovery/rlpx_io_discovery.h"
 #include "rlpx_test_helpers.h"
 #include "test_vectors.h"
 #include "unonce.h"
