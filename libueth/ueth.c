@@ -66,9 +66,8 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     // Setup boot nodes
     ueth_boot(
         ctx,
-        5,
-        TEST_NET_0,
-        TEST_NET_1,
+        4,
+        TEST_NET_6,
         TEST_NET_15,
         GETH_P2P_LOCAL,
         CPP_P2P_LOCAL);
@@ -181,7 +180,7 @@ ueth_poll_internal(ueth_context* ctx)
     // Check if we want to ping some nodes if we have room
     if ((now - ctx->tick) > ctx->config.interval_discovery) {
         ctx->tick = now;
-        if (b < 3) {
+        if (b < 30) {
             usys_log("[SYS] need peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
             src.ip = 0;
             src.tcp = src.udp = ctx->config.udp;
