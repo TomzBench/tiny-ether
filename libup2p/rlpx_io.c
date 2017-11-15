@@ -26,7 +26,6 @@
 
 // Private io callbacks (discv4)
 int rlpx_io_on_erro_from(void* ctx);
-int rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l);
 int rlpx_io_on_recv_from(void* ctx, int err, uint8_t* b, uint32_t l);
 int rlpx_io_on_accept(void* ctx);
 int rlpx_io_on_connect(void* ctx);
@@ -44,7 +43,7 @@ int rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l);
 
 async_io_settings g_rlpx_disc_settings = {
     .on_erro = rlpx_io_on_erro_from, //
-    .on_send = rlpx_io_on_send_to,   //
+    .on_send = rlpx_io_on_send,      //
     .on_recv = rlpx_io_on_recv_from, //
 };
 
@@ -221,8 +220,7 @@ rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from)
     if (ch->hs) {
         async_io_tcp_accept(&ch->io); // stub
         ch->io.sock = 3;              // stub
-        async_io_memcpy(&ch->io, ch->hs->cipher, ch->hs->cipher_len);
-        return rlpx_io_send_sync(&ch->io);
+        return rlpx_io_send(ch, ch->hs->cipher, ch->hs->cipher_len);
     } else {
         return -1;
     }
@@ -240,38 +238,16 @@ rlpx_io_send_auth(rlpx_io* ch)
             ch->hs->cipher_len,
             usys_htoa(ch->node.ipv4));
         async_io_on_recv(&ch->io, rlpx_io_on_recv_ack);
-        async_io_memcpy(&ch->io, ch->hs->cipher, ch->hs->cipher_len);
-        return rlpx_io_send_sync(&ch->io);
+        return rlpx_io_send(ch, ch->hs->cipher, ch->hs->cipher_len);
     } else {
         return -1;
     }
 }
 
 int
-rlpx_io_send(async_io* io)
+rlpx_io_send(rlpx_io* io, uint8_t* b, uint32_t l)
 {
-    int err = async_io_tcp_send(io);
-    // Need queue for async
-    // TODO - breaks test (flushing io resets len)
-    // if (!err) err = async_io_tcp_poll(io);
-    return err;
-}
-
-int
-rlpx_io_send_sync(async_io* io)
-{
-    int err = 0;
-    if (!(async_io_has_sock(io))) return err;
-    while ((usys_running()) && (async_io_state_send(io)) && (!err)) {
-        usys_msleep(200);
-        err = async_io_poll(io);
-    }
-    err = async_io_tcp_send(io);
-    while ((usys_running()) && (async_io_state_send(io)) && (!err)) {
-        usys_msleep(200);
-        err = async_io_poll(io);
-    }
-    return err;
+    return rlpx_io_sendto(io, 0, 0, b, l);
 }
 
 int
@@ -279,15 +255,9 @@ rlpx_io_sendto(rlpx_io* io, uint32_t ip, uint32_t port, uint8_t* b, uint32_t l)
 {
     int err = rlpx_io_sendto_enqueue(io, ip, port, b, l);
     if (!err) {
-        if (!async_io_state_send(&io->io)) err = rlpx_io_sendto_dequeue(io);
+        if (!async_io_state_busy(&io->io)) err = rlpx_io_sendto_dequeue(io);
     }
     return err;
-}
-
-int
-rlpx_io_sendto_sync(async_io* udp, uint32_t ip, uint32_t port)
-{
-    return -1;
 }
 
 int
@@ -518,6 +488,7 @@ rlpx_io_on_recv_ack(void* ctx, int err, uint8_t* b, uint32_t l)
             }
             async_io_on_recv(&io->io, rlpx_io_on_recv);
             return io->protocols[0].ready(io->protocols[0].context);
+            return 0;
         } else {
             usys_log_err("[ERR] socket %d (ack)", io->io.sock);
             return -1;
@@ -554,20 +525,6 @@ rlpx_io_on_erro(void* ctx)
 }
 
 int
-rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
-{
-    rlpx_io* ch = (rlpx_io*)ctx;
-    ((void)b);
-    ((void)l);
-    if (!err) {
-        return 0;
-    } else {
-        usys_log_err("[ERR] socket: %d", ch->io.sock);
-        return -1;
-    }
-}
-
-int
 rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
 {
     rlpx_io* ch = (rlpx_io*)ctx;
@@ -588,8 +545,10 @@ rlpx_io_on_erro_from(void* ctx)
 }
 
 int
-rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l)
+rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
 {
+    ((void)b);
+    ((void)l);
     rlpx_io* io = (rlpx_io*)ctx;
     if (io->outgoing) err = rlpx_io_sendto_dequeue(io);
     return err;

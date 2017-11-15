@@ -135,7 +135,7 @@ async_io_udp_listen(async_io* io, uint32_t port)
 int
 async_io_tcp_send(async_io* io)
 {
-    if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
+    if ((async_io_has_sock(io)) && (!async_io_state_busy(io))) {
         // If we are already not in send state and have a socket
         async_io_state_send_set(io);
         io->poll = async_io_tcp_poll_send;
@@ -149,7 +149,7 @@ async_io_tcp_send(async_io* io)
 int
 async_io_udp_send(async_io* io, uint32_t ip, uint32_t port)
 {
-    if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
+    if ((async_io_has_sock(io)) && (!async_io_state_busy(io))) {
         io->addr.ip = ip;
         io->addr.port = port;
         async_io_state_send_set(io);
@@ -259,6 +259,7 @@ async_io_tcp_poll_recv(async_io* io)
                 } else {
                     // Looks like we read every thing.
                     io->on_recv(io->ctx, 0, io->b, io->c);
+                    io->c = 0;
                     ret = 0; // OK no more data
                 }
                 break;

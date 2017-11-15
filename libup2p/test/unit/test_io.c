@@ -5,7 +5,7 @@
 #define NUM_ROUNDS 20
 
 // Expose private for test
-extern int rlpx_io_on_send_to(void* ctx, int err, const uint8_t* b, uint32_t l);
+extern int rlpx_io_on_send(void* ctx, int err, const uint8_t* b, uint32_t l);
 
 // Mock settings
 extern async_io_mock_settings g_io_mock_tcp_settings;
@@ -50,7 +50,7 @@ test_io()
 
     // Process queue
     now = usys_now();
-    while (async_io_state_send(&io[0].io)) async_io_poll(&io[0].io);
+    while (async_io_state_busy(&io[0].io)) async_io_poll(&io[0].io);
 
     // Make sure we sent all
     if (!(g_test_io_bytes_sent == (NUM_ROUNDS * TEST_SIZE))) goto EXIT;
@@ -70,7 +70,7 @@ test_io()
 
     // Process queue
     now = usys_now();
-    while (async_io_state_send(&io[0].io)) async_io_poll(&io[0].io);
+    while (async_io_state_busy(&io[0].io)) async_io_poll(&io[0].io);
 
     // Make sure we sent all but not more than we allow for
     if (!(g_test_io_bytes_sent == (NUM_ROUNDS * TEST_SIZE))) goto EXIT;
@@ -110,7 +110,7 @@ test_mock_on_send(void* ctx, int err, const uint8_t* b, uint32_t l)
     ((void)b);
     ((void)l);
     ((void)err);
-    rlpx_io_on_send_to(io, err, b, l);
+    rlpx_io_on_send(io, err, b, l);
     g_test_io_bytes_sent += l;
     return 0;
 }

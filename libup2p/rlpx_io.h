@@ -126,10 +126,8 @@ int rlpx_io_connect_enode(rlpx_io* ch, const char* enode);
 int rlpx_io_connect_node(rlpx_io* ch, const rlpx_node* node);
 int rlpx_io_accept(rlpx_io* ch, const uecc_public_key* from);
 int rlpx_io_send_auth(rlpx_io* ch);
-int rlpx_io_send(async_io* io);
-int rlpx_io_send_sync(async_io* io);
+int rlpx_io_send(rlpx_io* io, uint8_t *b, uint32_t l);
 int rlpx_io_sendto(rlpx_io*, uint32_t ip, uint32_t, uint8_t* b, uint32_t l);
-int rlpx_io_sendto_sync(async_io* udp, uint32_t ip, uint32_t port);
 int rlpx_io_sendto_enqueue(
     rlpx_io* io,
     uint32_t ip,
