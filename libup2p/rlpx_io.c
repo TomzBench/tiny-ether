@@ -518,7 +518,9 @@ int
 rlpx_io_on_erro(void* ctx)
 {
     rlpx_io* ch = (rlpx_io*)ctx;
-    usys_log_err("[ERR] %d", ch->io.sock);
+    usys_log_err(
+        "[ERR] (%s)",
+        async_io_has_sock(&ch->io) ? usys_htoa(ch->node.ipv4) : "connection");
     rlpx_io_error_set(ch, 1);
     rlpx_io_close(ch);
     return 0;
@@ -531,7 +533,8 @@ rlpx_io_on_recv(void* ctx, int err, uint8_t* b, uint32_t l)
     if (!err) {
         return rlpx_io_recv(ch, b, l);
     } else {
-        usys_log_err("[ERR] socket: %d", ch->io.sock);
+        usys_log_err(
+            "[ERR] socket: (%s)", usys_htoa(async_io_ip_addr(&ch->io)));
         return -1;
     }
 }
