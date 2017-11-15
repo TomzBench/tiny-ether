@@ -1,5 +1,7 @@
 #libup2p sources
 set(sources
+	discovery/knode.c
+	discovery/ktable.c
 	discovery/rlpx_io_discovery.c
 	rlpx_io.c
 	rlpx_io_devp2p.c
@@ -8,6 +10,8 @@ set(sources
 	rlpx_node.c
 	rlpx_test_helpers.c)
 set(headers
+	discovery/knode.h
+	discovery/ktable.h
 	discovery/rlpx_io_discovery.h
 	rlpx_io.h
 	rlpx_config.h

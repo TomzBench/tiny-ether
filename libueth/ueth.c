@@ -64,13 +64,7 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     rlpx_io_discovery_install(&ctx->discovery);
 
     // Setup boot nodes
-    ueth_boot(
-        ctx,
-        4,
-        TEST_NET_6,
-        TEST_NET_15,
-        GETH_P2P_LOCAL,
-        CPP_P2P_LOCAL);
+    ueth_boot(ctx, 4, TEST_NET_6, TEST_NET_15, GETH_P2P_LOCAL, CPP_P2P_LOCAL);
 
     return 0;
 }
@@ -104,7 +98,7 @@ ueth_boot(ueth_context* ctx, int n, ...)
         ctx->bootnodes[i].ip = node.ipv4;
         ctx->bootnodes[i].tcp = node.port_tcp;
         ctx->bootnodes[i].udp = node.port_udp ? node.port_udp : node.port_tcp;
-        rlpx_io_discovery_table_node_add(
+        ktable_node_add(
             &discovery->table,
             node.ipv4,
             node.port_tcp,
@@ -152,7 +146,7 @@ int
 ueth_poll_internal(ueth_context* ctx)
 {
     uint32_t i, b = 0, err, now = usys_now();
-    rlpx_io_discovery_endpoint src, dst;
+    knode src, dst;
     rlpx_io_discovery* d;
     async_io* ch[ctx->n + 1];
 
