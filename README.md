@@ -1,6 +1,6 @@
 # tiny-ether #
 
-**Build** 
+**Build**
 ```
 mkdir build
 cd build
