@@ -19,6 +19,7 @@
  * @date 2017
  */
 
+#include "stdio.h"
 #include "urlp.h"
 
 uint8_t rlp_null[] = { '\x80' };
@@ -31,12 +32,22 @@ uint8_t rlp_empty_nest[] = { '\xc2', '\xc1', '\xc0' };
 uint8_t rlp_cat[] = { '\x83', 'c', 'a', 't' };
 uint8_t rlp_dog[] = { '\x83', 'd', 'o', 'g' };
 uint8_t rlp_catdog[] = { '\xc8', '\x83', 'c', 'a', 't', '\x83', 'd', 'o', 'g' };
-uint8_t rlp_max64[] = { '\x84', '\xff', '\xff', '\xff', '\xff' };
-uint8_t rlp_half64[] = { '\x84', '\x01', '\x00', '\x00', '\x00' };
-uint8_t rlp_max32[] = { '\x83', '\xff', '\xff', '\xff' };
-uint8_t rlp_half32[] = { '\x83', '\x01', '\x00', '\x00' };
+uint8_t rlp_max64[] = { '\x88', '\xff', '\xff', '\xff', '\xff',
+                        '\xff', '\xff', '\xff', '\xff' };
+uint8_t rlp_half64[] = { '\x88', '\x01', '\x00', '\x00', '\x00',
+                         '\x00', '\x00', '\x00', '\x00' };
+uint8_t rlp_max32[] = { '\x84', '\xff', '\xff', '\xff', '\xff' };
+uint8_t rlp_half32[] = { '\x84', '\x01', '\x00', '\x00', '\x00' };
 uint8_t rlp_max16[] = { '\x82', '\xff', '\xff' };
 uint8_t rlp_half16[] = { '\x82', '\x01', '\x00' };
+uint8_t rlp_types[] = {
+    '\xd7',                                                                 //
+    '\x83', 'c',    'a',    't',                                            //
+    '\x88', '\xaa', '\xbb', '\xcc', '\xdd', '\xaa', '\xbb', '\xcc', '\xdd', //
+    '\x84', '\xaa', '\xbb', '\xcc', '\xdd',                                 //
+    '\x82', '\xaa', '\xbb',                                                 //
+    '\x81', '\xaa'                                                          //
+};
 uint8_t rlp_catdogpig[] = {
     '\xcc',                //
     '\x83', 'c', 'a', 't', //
@@ -86,6 +97,7 @@ uint8_t rlp_random[] = {
 uint8_t rlp_wat[] = { '\xc7', '\xc0', '\xc1', '\xc0',
                       '\xc3', '\xc0', '\xc1', '\xc0' };
 
+int test_push_types();
 int test_conversions();
 int test_foreach();
 int test_copy();
@@ -99,13 +111,35 @@ void test_walk_fn(const urlp* rlp, int idx, void* ctx);
 int
 main(int argc, char* argv[])
 {
+    ((void)argc);
+    ((void)argv);
     int err = 0;
+    err |= test_push_types();
     err |= test_foreach();
     err |= test_copy();
     err |= test_u8();
     err |= test_u16();
     err |= test_u32();
     err |= test_u64();
+    printf("%s\n", err ? "\x1b[91m[ERR]\x1b[0m" : "\x1b[32m[ OK]\x1b[0m");
+    return err;
+}
+
+int
+test_push_types()
+{
+    int err = 0;
+    uint64_t u64 = 0xaabbccddaabbccdd;
+    uint32_t u32 = 0xaabbccdd;
+    uint16_t u16 = 0xaabb;
+    uint8_t u8 = 0xaa;
+    urlp* rlp = urlp_list();
+    err |= urlp_push_str(rlp, "cat");
+    err |= urlp_push_u64_arr(rlp, &u64, 1);
+    err |= urlp_push_u32_arr(rlp, &u32, 1);
+    err |= urlp_push_u16_arr(rlp, &u16, 1);
+    err |= urlp_push_u8_arr(rlp, &u8, 1);
+    err |= test_item(rlp_types, sizeof(rlp_types), &rlp);
     return err;
 }
 
@@ -234,10 +268,12 @@ test_u8()
     rlp = urlp_list();
     urlp_push(rlp, urlp_list());
     urlp_push(rlp, urlp_push(urlp_list(), urlp_list()));
-    urlp_push(rlp,
-              urlp_push(urlp_push(urlp_list(), urlp_list()), //
-                        urlp_push(urlp_list(), urlp_list())) //
-              );
+    urlp_push(
+        rlp,
+        urlp_push(
+            urlp_push(urlp_list(), urlp_list()), //
+            urlp_push(urlp_list(), urlp_list())) //
+        );
     err |= (urlp_siblings(urlp_child(rlp)) == 3 ? 0 : -1);
     err |= test_item(rlp_wat, sizeof(rlp_wat), &rlp);
 
@@ -306,8 +342,8 @@ test_u32()
 {
     int err = 0;
     uint32_t cat[] = { 'c', 'a', 't' }; //
-    uint32_t half[] = { 0x10000 };
-    uint32_t max[] = { 0xffffff };
+    uint32_t half[] = { 0x1000000 };
+    uint32_t max[] = { 0xffffffff };
     uint32_t onefive[] = { 0x00000f };
     urlp* rlp;
 
@@ -334,8 +370,8 @@ test_u64()
 {
     int err = 0;
     uint64_t cat[] = { 'c', 'a', 't' }; //
-    uint64_t half[] = { 0x1000000 };
-    uint64_t max[] = { 0xffffffff };
+    uint64_t half[] = { 0x100000000000000 };
+    uint64_t max[] = { 0xffffffffffffffff };
     uint64_t onefive[] = { 0x0000000f };
     urlp* rlp;
 
