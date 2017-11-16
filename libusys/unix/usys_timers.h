@@ -102,12 +102,25 @@ usys_timers_deinit(usys_timers_context* self)
     memset(self, 0, sizeof(usys_timers_context));
 }
 
+/**
+ * @brief Get number of timers inside the hash table
+ *
+ * @param context
+ *
+ * @return
+ */
 static inline uint32_t
 usys_timers_size(usys_timers_context* context)
 {
     return kh_size(context->timers);
 }
 
+/**
+ * @brief Start a timer will fire after ms requires caller to call
+ * usys_timers_poll() on the context where the timer is placed
+ *
+ * @param timer
+ */
 static inline void
 usys_timers_start(usys_timer* timer)
 {
@@ -149,12 +162,26 @@ usys_timers_insert(
     return 0;
 }
 
+/**
+ * @brief Remove a timer from the hash table and free space for new timers.
+ *
+ * @param context
+ * @param key
+ */
 static inline void
 usys_timers_remove(usys_timers_context* context, usys_timer_key key)
 {
     kh_del(usys_timers, context->timers, key);
 }
 
+/**
+ * @brief Grab a timer context from a key (key returned from insert)
+ *
+ * @param context
+ * @param key
+ *
+ * @return
+ */
 static inline usys_timer*
 usys_timers_get(usys_timers_context* context, usys_timer_key key)
 {
@@ -163,6 +190,11 @@ usys_timers_get(usys_timers_context* context, usys_timer_key key)
                                           : &kh_val(context->timers, key);
 }
 
+/**
+ * @brief Loop active timers in hash table, fire any time out callbacks
+ *
+ * @param ctx
+ */
 static inline void
 usys_timers_poll(usys_timers_context* ctx)
 {
