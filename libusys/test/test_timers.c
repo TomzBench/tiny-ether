@@ -59,6 +59,12 @@ test_timers_storage()
     }
     err = usys_timers_size(&timers) == TIMERS_TEST_STORAGE_SIZE ? 0 : -1;
 
+    // Really Check overflow bounds
+    for (uint32_t i = 1; i <= TIMERS_TEST_STORAGE_SIZE * 10; i++) {
+        usys_timers_insert(&timers, i, test_timers_fn, &count, i);
+    }
+    err = usys_timers_size(&timers) == TIMERS_TEST_STORAGE_SIZE ? 0 : -1;
+
     // Free hash table
     usys_timers_deinit(&timers);
     return err;
