@@ -396,7 +396,7 @@ rlpx_io_recv_udp(rlpx_io* ch, const uint8_t* b, size_t l)
         // [type,[body]] - per our implementation after wire for unified handler
         list = urlp_list();
         if (list) {
-            urlp_push(list, urlp_item_u16(type));
+            urlp_push_u16(list, type);
             urlp_push(list, rlp);
             err = p->recv(p->context, list);
             urlp_free(&list);

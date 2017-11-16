@@ -360,10 +360,10 @@ rlpx_io_discovery_write_ping(
     int err = -1;
     urlp* rlp = urlp_list();
     if (rlp) {
-        urlp_push(rlp, urlp_item_u32(ver));
+        urlp_push_u32(rlp, ver);
         urlp_push(rlp, knode_node_to_rlp(ep_src));
         urlp_push(rlp, knode_node_to_rlp(ep_dst));
-        urlp_push(rlp, urlp_item_u32(timestamp));
+        urlp_push_u32(rlp, timestamp);
 
         // TODO the first 32 bytes of the udp packet is used as an echo.
         // This can track the echo's from pongs
@@ -386,8 +386,8 @@ rlpx_io_discovery_write_pong(
     urlp* rlp = urlp_list();
     if (rlp) {
         urlp_push(rlp, knode_node_to_rlp(ep_to));
-        urlp_push(rlp, urlp_item_u8_arr(echo->b, 32));
-        urlp_push(rlp, urlp_item_u32(timestamp));
+        urlp_push_u8_arr(rlp, echo->b, 32);
+        urlp_push_u32(rlp, timestamp);
         err = rlpx_io_discovery_write(skey, RLPX_DISCOVERY_PONG, rlp, dst, l);
         urlp_free(&rlp);
     }
@@ -411,8 +411,8 @@ rlpx_io_discovery_write_find(
         urand(&pub[1], 64);
     }
     if (rlp) {
-        urlp_push(rlp, urlp_item_u8_arr(&pub[1], 64));
-        urlp_push(rlp, urlp_item_u32(timestamp));
+        urlp_push_u8_arr(rlp, &pub[1], 64);
+        urlp_push_u32(rlp, timestamp);
         err = rlpx_io_discovery_write(skey, RLPX_DISCOVERY_FIND, rlp, b, l);
         urlp_free(&rlp);
     }
@@ -432,7 +432,7 @@ rlpx_io_discovery_write_neighbours(
     urlp* rlp = urlp_list();
     if (rlp) {
         urlp_push(rlp, urlp_list()); // empty neighbours!
-        urlp_push(rlp, urlp_item_u32(timestamp));
+        urlp_push_u32(rlp, timestamp);
         err =
             rlpx_io_discovery_write(skey, RLPX_DISCOVERY_NEIGHBOURS, rlp, b, l);
         urlp_free(&rlp);

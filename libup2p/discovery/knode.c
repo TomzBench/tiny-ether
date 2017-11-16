@@ -78,9 +78,9 @@ knode_node_to_rlp(const knode* ep)
     tcp = usys_htons(ep->tcp);
     udp = usys_htons(ep->udp);
     if (rlp) {
-        urlp_push(rlp, urlp_item_u8_arr((uint8_t*)&ip, 4));
-        urlp_push(rlp, urlp_item_u8_arr((uint8_t*)&udp, 2));
-        urlp_push(rlp, urlp_item_u8_arr((uint8_t*)&tcp, 2));
+        urlp_push_u8_arr(rlp, (uint8_t*)&ip, 4);
+        urlp_push_u8_arr(rlp, (uint8_t*)&udp, 2);
+        urlp_push_u8_arr(rlp, (uint8_t*)&tcp, 2);
         if (!(urlp_children(rlp) == 3)) urlp_free(&rlp);
     }
     return rlp;
