@@ -3,6 +3,10 @@ if (${UETH_USE_UNIX})
 	set(USYS_DIR unix)
 endif()
 
+if (${UETH_USE_KLIB})
+	include(${CMAKE_SOURCE_DIR}/cmake/klib.cmake)
+endif()
+
 # Common files
 set(sources 
 	./async/async_io.c
