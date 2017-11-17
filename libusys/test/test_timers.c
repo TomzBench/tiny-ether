@@ -19,7 +19,7 @@ test_timers()
 int
 test_timers_storage()
 {
-    int err = 0, count = 0, ms = 1;
+    int err = 0, count = 0;
     usys_timers_context timers;
     usys_timer* timer = NULL;
 
@@ -28,7 +28,7 @@ test_timers_storage()
 
     // Put some timers into our map
     for (uint32_t i = 1; i <= 100; i++) {
-        usys_timers_insert(&timers, i, test_timers_fn, &count, ms++);
+        usys_timers_insert(&timers, i, test_timers_fn, &count, i);
     }
 
     // Verify we have our timers

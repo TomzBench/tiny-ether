@@ -18,8 +18,7 @@ list(APPEND sources
 	./${USYS_DIR}/usys_signals.c 
 	./${USYS_DIR}/usys_io.c 
 	./${USYS_DIR}/usys_log.c 
-	./${USYS_DIR}/usys_time.c
-	./${USYS_DIR}/usys_timers.c)
+	./${USYS_DIR}/usys_time.c)
 list(APPEND headers 
 	./${USYS_DIR}/usys_signals.h 
 	./${USYS_DIR}/usys_io.h 
