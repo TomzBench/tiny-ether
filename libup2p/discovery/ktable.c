@@ -117,6 +117,7 @@ ktable_insert(
         // TODO - state should be something like RLPX_STATE_WANT_PONG
         // On pong update recents and have discovery connect use that.
         n->state = KNODE_STATE_PENDING;
+        // self->want_ping(self, n);
         return k;
     }
     return 0;

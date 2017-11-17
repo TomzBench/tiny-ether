@@ -45,12 +45,17 @@ typedef khint_t ktable_key;
 /**
  * @brief A list of nodes we know about
  */
-typedef struct
+typedef struct ktable
 {
-    uint32_t max;
-    kh_knode_table_t* nodes;
-    knode* recents[3]; /*!< last ping */
+    int (*want_ping)(struct ktable*, knode* n);                     /*!< */
+    int (*want_find)(struct ktable*, knode* n, uint8_t*, uint32_t); /*!< */
+    uint32_t max;            /*!< max number of nodes in table */
+    kh_knode_table_t* nodes; /*!< node hash lookup */
+    knode* recents[3];       /*!< last ping */
 } ktable;
+
+typedef int (*ktable_want_ping_fn)(ktable*, knode* n);
+typedef int (*ktable_want_find_fn)(ktable*, knode* n, uint8_t* id, uint32_t);
 
 /**
  * @brief Initialize a ktable context

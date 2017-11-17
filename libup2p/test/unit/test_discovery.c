@@ -104,11 +104,9 @@ test_disc_write()
     urlp* rlp = NULL;
     uecc_ctx skey;
     uecc_public_key q;
-    ktable table;
     knode from, to;
 
     // setup test
-    ktable_init(&table);
     knode_v4_init(&from, NULL, 33342, 123, 456);
     knode_v4_init(&to, NULL, 33342, 123, 456);
     uecc_key_init_new(&skey);
@@ -117,14 +115,14 @@ test_disc_write()
     l = sizeof(b);
     rlpx_io_discovery_write_ping(&skey, 4, &from, &to, 1234, b, &l);
     IF_ERR_EXIT(rlpx_io_parse_udp(b, l, &q, &type, &rlp));
-    IF_ERR_EXIT(check_ping_v4(&table, type, rlp));
+    IF_ERR_EXIT(check_ping_v4(NULL, type, rlp));
     urlp_free(&rlp);
 
     // Check ping v5
     l = sizeof(b);
     rlpx_io_discovery_write_ping(&skey, 555, &from, &to, 1234, b, &l);
     IF_ERR_EXIT(rlpx_io_parse_udp(b, l, &q, &type, &rlp));
-    IF_ERR_EXIT(check_ping_v5(&table, type, rlp));
+    IF_ERR_EXIT(check_ping_v5(NULL, type, rlp));
     urlp_free(&rlp);
 
     // Check pong
@@ -132,26 +130,25 @@ test_disc_write()
     urand(tmp.b, 32);
     rlpx_io_discovery_write_pong(&skey, &to, &tmp, 1234, b, &l);
     IF_ERR_EXIT(rlpx_io_parse_udp(b, l, &q, &type, &rlp));
-    IF_ERR_EXIT(check_pong(&table, type, rlp));
+    IF_ERR_EXIT(check_pong(NULL, type, rlp));
     urlp_free(&rlp);
 
     // Check find node
     l = sizeof(b);
     rlpx_io_discovery_write_find(&skey, &skey.Q, 1234, b, &l);
     IF_ERR_EXIT(rlpx_io_parse_udp(b, l, &q, &type, &rlp));
-    IF_ERR_EXIT(check_find_node(&table, type, rlp));
+    IF_ERR_EXIT(check_find_node(NULL, type, rlp));
     urlp_free(&rlp);
 
     // check neighbours
     l = sizeof(b);
-    rlpx_io_discovery_write_neighbours(&skey, &table, 1234, b, &l);
+    rlpx_io_discovery_write_neighbours(&skey, NULL, 1234, b, &l);
     IF_ERR_EXIT(rlpx_io_parse_udp(b, l, &q, &type, &rlp));
-    IF_ERR_EXIT(check_neighbours(&table, type, rlp));
+    IF_ERR_EXIT(check_neighbours(NULL, type, rlp));
     urlp_free(&rlp);
 
 EXIT:
     uecc_key_deinit(&skey);
-    ktable_deinit(&table);
     if (rlp) urlp_free(&rlp);
     return err;
 }
@@ -160,38 +157,35 @@ int
 test_disc_read()
 {
     urlp* rlp = NULL;
-    ktable table;
     uecc_public_key q;
     int type, err;
-    ktable_init(&table);
 
     // Check ping v4
     IF_ERR_EXIT(rlpx_io_parse_udp(g_ping_v4, g_ping_v4_sz, &q, &type, &rlp));
-    IF_ERR_EXIT(check_ping_v4(&table, type, rlp));
+    IF_ERR_EXIT(check_ping_v4(NULL, type, rlp));
     urlp_free(&rlp);
 
     // Check ping v5
     IF_ERR_EXIT(rlpx_io_parse_udp(g_ping_v5, g_ping_v5_sz, &q, &type, &rlp));
-    IF_ERR_EXIT(check_ping_v5(&table, type, rlp));
+    IF_ERR_EXIT(check_ping_v5(NULL, type, rlp));
     urlp_free(&rlp);
 
     // Check pong
     IF_ERR_EXIT(rlpx_io_parse_udp(g_pong, g_pong_sz, &q, &type, &rlp));
-    IF_ERR_EXIT(check_pong(&table, type, rlp));
+    IF_ERR_EXIT(check_pong(NULL, type, rlp));
     urlp_free(&rlp);
 
     // Check find node
     IF_ERR_EXIT(rlpx_io_parse_udp(g_find, g_find_node_sz, &q, &type, &rlp));
-    IF_ERR_EXIT(check_find_node(&table, type, rlp));
+    IF_ERR_EXIT(check_find_node(NULL, type, rlp));
     urlp_free(&rlp);
 
     // check neighbours
     IF_ERR_EXIT(rlpx_io_parse_udp(g_peers, g_peers_sz, &q, &type, &rlp));
-    IF_ERR_EXIT(check_neighbours(&table, type, rlp));
+    IF_ERR_EXIT(check_neighbours(NULL, type, rlp));
     urlp_free(&rlp);
 
 EXIT:
-    ktable_deinit(&table);
     return err;
 }
 
