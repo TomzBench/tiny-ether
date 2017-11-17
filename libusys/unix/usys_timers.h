@@ -42,7 +42,7 @@ extern "C" {
  */
 typedef struct usys_timer
 {
-    uint32_t ms, flags;
+    uint32_t ms, fire, flags;
     void* ctx;
     int (*fn)(struct usys_timer*, void*, uint32_t);
 } usys_timer;
@@ -116,15 +116,39 @@ usys_timers_size(usys_timers_context* context)
 }
 
 /**
+ * @brief Grab a timer context from a key (key returned from insert)
+ *
+ * @param context
+ * @param key
+ *
+ * @return
+ */
+static inline usys_timer*
+usys_timers_get(usys_timers_context* context, usys_timer_key key)
+{
+    key = kh_get(usys_timers, context->timers, key);
+    return key == kh_end(context->timers) ? NULL
+                                          : &kh_val(context->timers, key);
+}
+
+/**
  * @brief Start a timer will fire after ms requires caller to call
  * usys_timers_poll() on the context where the timer is placed
  *
  * @param timer
  */
-static inline void
-usys_timers_start(usys_timer* timer)
+static inline int
+usys_timers_start(usys_timers_context* context, usys_timer_key key, uint32_t ms)
 {
-    timer->flags = 1;
+    usys_timer* t = usys_timers_get(context, key);
+    uint32_t tick = usys_tick();
+    if (t) {
+        if (ms) t->ms = ms;
+        t->flags |= 1;
+        t->fire = tick + t->ms;
+        return 0;
+    }
+    return -1;
 }
 
 /**
@@ -156,7 +180,7 @@ usys_timers_insert(
         t->fn = fn;
         t->ctx = ctx;
         t->ms = ms;
-        t->flags = 0;
+        t->flags = t->fire = 0;
         return k;
     }
     return 0;
@@ -175,22 +199,6 @@ usys_timers_remove(usys_timers_context* context, usys_timer_key key)
 }
 
 /**
- * @brief Grab a timer context from a key (key returned from insert)
- *
- * @param context
- * @param key
- *
- * @return
- */
-static inline usys_timer*
-usys_timers_get(usys_timers_context* context, usys_timer_key key)
-{
-    key = kh_get(usys_timers, context->timers, key);
-    return key == kh_end(context->timers) ? NULL
-                                          : &kh_val(context->timers, key);
-}
-
-/**
  * @brief Loop active timers in hash table, fire any time out callbacks
  *
  * @param ctx
@@ -202,8 +210,14 @@ usys_timers_poll(usys_timers_context* ctx)
     usys_timer_key key;
     uint32_t tick = usys_tick();
     for (key = kh_begin(ctx->timers); key != kh_end(ctx->timers); key++) {
-        t = usys_timers_get(ctx, key);
-        if (t && t->flags) t->fn(t, t->ctx, tick);
+        t = &kh_val(ctx->timers, key);
+        if (kh_exist(ctx->timers, key)) {
+            if (t && t->flags && t->fire && tick >= t->fire) {
+                t->flags &= (~(1));
+                t->fire = 0;
+                t->fn(t, t->ctx, tick);
+            }
+        }
     }
 }
 
