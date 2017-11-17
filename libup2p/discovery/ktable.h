@@ -67,6 +67,7 @@ typedef struct ktable
 {
     ktable_settings settings;   /*!< callers config*/
     usys_timers_context timers; /*!< hash table of timers */
+    usys_timer_key timerid;     /*!< refresh timer id */
     kh_knode_table_t* nodes;    /*!< node hash lookup */
     knode* recents[3];          /*!< last ping */
 } ktable;

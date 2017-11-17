@@ -20,6 +20,7 @@
  */
 
 #include "ktable.h"
+#include "urand.h"
 
 int ktable_timer_want_pong(usys_timer_key key, void* ctx, uint32_t tick);
 int ktable_timer_refresh(usys_timer_key key, void* ctx, uint32_t tick);
@@ -31,8 +32,16 @@ ktable_init(ktable* table, ktable_settings* settings)
     table->nodes = kh_init(knode_table);
     if (table->nodes) {
         table->settings = *settings;
-        usys_timers_init(&table->timers, table->settings.size + 1);
+        table->timerid = 1;
         kh_resize(knode_table, table->nodes, table->settings.size);
+        usys_timers_init(&table->timers, table->settings.size + 1);
+        usys_timers_insert(
+            &table->timers,
+            table->timerid,
+            ktable_timer_refresh,
+            table,
+            table->settings.refresh);
+        usys_timers_start(&table->timers, table->timerid, 0);
         return 0;
     }
     return -1;
@@ -182,4 +191,19 @@ int
 ktable_timer_refresh(usys_timer_key key, void* ctx, uint32_t tick)
 {
     // Send some find nodes
+    ktable* table = (ktable*)ctx;
+    khiter_t k;
+    knode* n;
+    uint8_t id[64];
+    for (k = kh_begin(table->nodes); k != kh_end(table->nodes); k++) {
+        if (kh_exist(table->nodes, k)) {
+            n = &kh_val(table->nodes, k);
+            urand(id, sizeof(id));
+            table->settings.want_find(table, n, id, 65);
+            break;
+        }
+    }
+    // Kick timer again
+    usys_timers_start(&table->timers, table->timerid, 0);
+    return 0;
 }

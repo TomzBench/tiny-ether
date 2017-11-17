@@ -24,11 +24,15 @@
 int test_ktable_want_ping(struct ktable* table, knode* n);
 int test_ktable_want_find(struct ktable* table, knode* n, uint8_t*, uint32_t);
 
-ktable_settings g_ktable_settings = { //
-    .size = 40,
-    .refresh = 10,
-    .want_ping = test_ktable_want_ping,
-    .want_find = test_ktable_want_find
+uint32_t g_test_ktable_want_find_count = 0;
+uint32_t g_test_ktable_want_ping_count = 0;
+
+ktable_settings g_ktable_settings = {
+    .size = 40,                         // number of nodes
+    .refresh = 10,                      // short interval for testing
+    .pong_timeout = 100,                // short interval for testing
+    .want_ping = test_ktable_want_ping, // test callbacks
+    .want_find = test_ktable_want_find  // test callbacks
 };
 
 int test_ktable_storage();
@@ -47,8 +51,12 @@ int
 test_ktable_maintenance()
 {
     int err = 0;
+    uint32_t tick = 0;
     ktable table;
     ktable_init(&table, &g_ktable_settings);
+
+    // Reset counters for test
+    g_test_ktable_want_ping_count = 0;
 
     // fill table
     for (uint32_t i = 0; i < table.settings.size; i++) {
@@ -65,7 +73,16 @@ test_ktable_maintenance()
     ktable_poll(&table);
     err |= ktable_size(&table) == table.settings.size / 2 ? 0 : -1;
 
+    // Check we sent some pings
+    err |= g_test_ktable_want_ping_count == table.settings.size ? 0 : -1;
+
     // Check we send some find requests
+    g_test_ktable_want_find_count = 0;
+    tick = usys_tick();
+    while (usys_tick() < (tick + table.settings.refresh * 10 + 2)) {
+        ktable_poll(&table);
+    }
+    err |= g_test_ktable_want_find_count == 10 ? 0 : -1;
 
     ktable_deinit(&table);
     return err;
@@ -134,6 +151,7 @@ test_ktable_want_ping(ktable* self, knode* node)
 {
     ((void)self);
     ((void)node);
+    g_test_ktable_want_ping_count++;
     return 0;
 }
 
@@ -144,5 +162,6 @@ test_ktable_want_find(ktable* self, knode* node, uint8_t* id, uint32_t idlen)
     ((void)node);
     ((void)id);
     ((void)idlen);
+    g_test_ktable_want_find_count++;
     return 0;
 }
