@@ -2,6 +2,7 @@
 
 # libusys objs
 option (UETH_USE_UNIX "os abstraction layer linkage" ON)
+option (UETH_USE_KLIB "generic stdlib" ON)
 
 # libucrypto config
 option(UETH_USE_MBEDTLS "Link with libmbedcrypto.a" ON)
