@@ -151,6 +151,7 @@ test_disc_write()
 
 EXIT:
     uecc_key_deinit(&skey);
+    ktable_deinit(&table);
     if (rlp) urlp_free(&rlp);
     return err;
 }
@@ -190,6 +191,7 @@ test_disc_read()
     urlp_free(&rlp);
 
 EXIT:
+    ktable_deinit(&table);
     return err;
 }
 

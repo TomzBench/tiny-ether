@@ -26,16 +26,29 @@
 extern "C" {
 #endif
 
+#include "khash.h"
 #include "knode.h"
+#include "usys_timers.h"
 
 #define KTABLE_SIZE 40
+
+/**
+ * @brief Initialize hash table api
+ */
+KHASH_MAP_INIT_INT(knode_table, knode);
+
+/**
+ * @brief typedef unify interface with our hash table wrapper
+ */
+typedef khint_t ktable_key;
 
 /**
  * @brief A list of nodes we know about
  */
 typedef struct
 {
-    knode nodes[KTABLE_SIZE];
+    uint32_t max;
+    kh_knode_table_t* nodes;
     knode* recents[3]; /*!< last ping */
 } ktable;
 
@@ -44,18 +57,23 @@ typedef struct
  *
  * @param table Adress of table
  */
-void ktable_init(ktable* table);
+int ktable_init(ktable* table);
 
 /**
- * @brief Find a node in our table using public key in point format
+ * @brief Free table after no longer need
  *
  * @param table
- * @param target
- * @param node
+ */
+void ktable_deinit(ktable* table);
+
+/**
+ * @brief Return the number of nodes in the table
+ *
+ * @param self
  *
  * @return
  */
-int ktable_find_node(ktable* table, uecc_public_key* target, knode* node);
+uint32_t ktable_size(ktable* self);
 
 /**
  * @brief Make this "node" a most recently heard from node
@@ -66,6 +84,16 @@ int ktable_find_node(ktable* table, uecc_public_key* target, knode* node);
 void ktable_update_recent(ktable* table, knode* node);
 
 /**
+ * @brief Get a node from the table
+ *
+ * @param self api handle
+ * @param key callers hash lookup
+ *
+ * @return the node or NULL if it does not exist
+ */
+knode* ktable_get(ktable* self, ktable_key key);
+
+/**
  * @brief Add a node to our table using rlp data received from find node reply
  *
  * @param table
@@ -73,7 +101,7 @@ void ktable_update_recent(ktable* table, knode* node);
  *
  * @return
  */
-int ktable_node_add_rlp(ktable* table, const urlp* rlp);
+ktable_key ktable_insert_rlp(ktable* table, ktable_key key, const urlp* rlp);
 
 /**
  * @brief Add a node to out table using raw data
@@ -88,8 +116,9 @@ int ktable_node_add_rlp(ktable* table, const urlp* rlp);
  *
  * @return
  */
-int ktable_node_add(
+ktable_key ktable_insert(
     ktable* table,
+    ktable_key key,
     uint32_t ip,
     uint32_t tcp,
     uint32_t udp,
@@ -97,13 +126,12 @@ int ktable_node_add(
     urlp* meta);
 
 /**
- * @brief Seek a node in the table. (pass null to receive empty node)
+ * @brief Remove a node from the table
  *
- * @param table
- *
- * @return
+ * @param self
+ * @param key
  */
-knode* ktable_node_get_id(ktable* table, const uecc_public_key* id);
+void ktable_remove(ktable* self, ktable_key key);
 
 #ifdef __cplusplus
 }

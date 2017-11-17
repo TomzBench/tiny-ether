@@ -193,9 +193,10 @@ usys_timers_insert(
  * @param key
  */
 static inline void
-usys_timers_remove(usys_timers_context* context, usys_timer_key key)
+usys_timers_remove(usys_timers_context* self, usys_timer_key key)
 {
-    kh_del(usys_timers, context->timers, key);
+    key = kh_get(usys_timers, self->timers, key);
+    if (!(key == kh_end(self->timers))) kh_del(usys_timers, self->timers, key);
 }
 
 /**

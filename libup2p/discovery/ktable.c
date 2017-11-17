@@ -21,26 +21,30 @@
 
 #include "ktable.h"
 
-void
+int
 ktable_init(ktable* table)
 {
     memset(table, 0, sizeof(ktable));
-}
-
-int
-ktable_find_node(ktable* table, uecc_public_key* target, knode* node)
-{
-    uint32_t i = 0, c = KTABLE_SIZE;
-    for (i = 0; i < c; i++) {
-        if (memcmp(
-                table->nodes[i].nodeid.data,
-                target->data,
-                sizeof(target->data))) {
-            node = &table->nodes[i];
-            return 0;
-        }
+    table->nodes = kh_init(knode_table);
+    if (table->nodes) {
+        table->max = KTABLE_SIZE;
+        kh_resize(knode_table, table->nodes, KTABLE_SIZE);
+        return 0;
     }
     return -1;
+}
+
+void
+ktable_deinit(ktable* table)
+{
+    kh_destroy(knode_table, table->nodes);
+    memset(table, 0, sizeof(ktable));
+}
+
+uint32_t
+ktable_size(ktable* self)
+{
+    return kh_size(self->nodes);
 }
 
 void
@@ -51,8 +55,15 @@ ktable_update_recent(ktable* table, knode* node)
     table->recents[0] = node;
 }
 
-int
-ktable_node_add_rlp(ktable* table, const urlp* rlp)
+knode*
+ktable_get(ktable* self, ktable_key key)
+{
+    key = kh_get(knode_table, self->nodes, key);
+    return key == kh_end(self->nodes) ? NULL : &kh_val(self->nodes, key);
+}
+
+ktable_key
+ktable_insert_rlp(ktable* table, ktable_key key, const urlp* rlp)
 {
     int err = 0;
     uint32_t n = urlp_children(rlp), udp, tcp, ip, publen = 64, iplen = 16;
@@ -67,37 +78,32 @@ ktable_node_add_rlp(ktable* table, const urlp* rlp)
         (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
-        err = ktable_node_add(table, ip, udp, tcp, &q, NULL);
+        return ktable_insert(table, key, ip, udp, tcp, &q, NULL);
     }
-    return err;
+    return 0;
 }
 
-int
-ktable_node_add(
-    ktable* table,
+ktable_key
+ktable_insert(
+    ktable* self,
+    ktable_key key,
     uint32_t ip,
     uint32_t tcp,
     uint32_t udp,
     uecc_public_key* id,
     urlp* meta)
 {
-    knode* n;
-
-    ((void)meta); // potential use in future
-
-    // Seek a free slot in our table and populate
-    n = ktable_node_get_id(table, NULL);
-    if (n) {
-        // Have a free slot to populate
-        // memset(n->ip, 0, 16);
-        // memcpy(n->ip, ip, iplen);
-        // n->iplen = iplen;
-        //*((uint32_t*)&n->ip) = ip;
-        // n->iplen = 4;
+    ((void)meta);
+    int absent;
+    knode* n = NULL;
+    ktable_key k;
+    if (ktable_size(self) < self->max) {
+        k = kh_put(knode_table, self->nodes, key, &absent);
+        n = &kh_val(self->nodes, k);
         n->ip = ip;
         n->udp = udp;
         n->tcp = tcp;
-        n->nodeid = *id;
+        if (id) n->nodeid = *id;
 
         // Need devp2p hello to figure out if we like this node
         // This will probably change with introduction of topics in the
@@ -111,29 +117,14 @@ ktable_node_add(
         // TODO - state should be something like RLPX_STATE_WANT_PONG
         // On pong update recents and have discovery connect use that.
         n->state = KNODE_STATE_PENDING;
-        return 0;
-    } else {
-        // TODO Ping some nodes free some space
+        return k;
     }
-    return -1;
+    return 0;
 }
 
-knode*
-ktable_node_get_id(ktable* table, const uecc_public_key* id)
+void
+ktable_remove(ktable* self, ktable_key key)
 {
-    uint32_t c = KTABLE_SIZE;
-    knode* seek = NULL;
-    if (id) {
-        for (uint32_t i = 0; i < c; i++) {
-            seek = &table->nodes[i];
-            if (seek->state && uecc_cmpq(&seek->nodeid, id)) return seek;
-        }
-    } else {
-        for (uint32_t i = 0; i < c; i++) {
-            seek = &table->nodes[i];
-            if (!seek->state) return seek;
-        }
-    }
-    // Arrive here didn't find what caller wants
-    return NULL;
+    key = kh_get(knode_table, self->nodes, key);
+    if (!(key == kh_end(self->nodes))) kh_del(knode_table, self->nodes, key);
 }

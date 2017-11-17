@@ -22,8 +22,8 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-#include "rlpx_io_devp2p.h"
 #include "discovery/rlpx_io_discovery.h"
+#include "rlpx_io_devp2p.h"
 #include "rlpx_test_helpers.h"
 #include "test_vectors.h"
 #include "unonce.h"
@@ -103,6 +103,6 @@ int test_enode(void);
 int test_kademlia(void);
 int test_discovery(void);
 int test_io(void);
-int test_discovery_table(void);
+int test_ktable(void);
 
 #endif

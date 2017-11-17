@@ -69,20 +69,21 @@ int
 rlpx_io_discovery_connect(rlpx_io_discovery* self, rlpx_io* ch)
 {
     int err = -1;
+    return err;
     for (uint32_t i = 0; i < KTABLE_SIZE; i++) {
-        if (self->table.nodes[i].state == KNODE_STATE_PENDING) {
-            err = rlpx_io_connect(
-                ch,
-                &self->table.nodes[i].nodeid,
-                self->table.nodes[i].ip,
-                self->table.nodes[i].tcp);
-            if (err) {
-                self->table.nodes[i].state = KNODE_STATE_FREE;
-            } else {
-                self->table.nodes[i].state = KNODE_STATE_CONNECTING;
-                break;
-            }
-        }
+        // if (self->table.nodes[i].state == KNODE_STATE_PENDING) {
+        //    err = rlpx_io_connect(
+        //        ch,
+        //        &self->table.nodes[i].nodeid,
+        //        self->table.nodes[i].ip,
+        //        self->table.nodes[i].tcp);
+        //    if (err) {
+        //        self->table.nodes[i].state = KNODE_STATE_FREE;
+        //    } else {
+        //        self->table.nodes[i].state = KNODE_STATE_CONNECTING;
+        //        break;
+        //    }
+        //}
     }
     return err;
 }
@@ -114,11 +115,6 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     memset(&dst, 0, sizeof(knode));
     memset(buff32, 0, sizeof(buff32));
 
-    // Update recently seen if this node is in our table
-    // if (ktable_find_node(&self->table, &pub, node)) {
-    //    ktable_update_recent(&self->table, node);
-    //}
-
     if (type == RLPX_DISCOVERY_PING) {
 
         // Received a ping packet
@@ -137,15 +133,15 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 
             // If have room in table - add to table
             // Update TCP from contents of ping packet
-            if (!err && src.ip) {
-                ktable_node_add(
-                    &self->table,
-                    src.ip,
-                    src.tcp,
-                    src.udp,
-                    &self->base->node.id,
-                    NULL);
-            }
+            // if (!err && src.ip) {
+            //    ktable_node_add(
+            //        &self->table,
+            //        src.ip,
+            //        src.tcp,
+            //        src.udp,
+            //        &self->base->node.id,
+            //        NULL);
+            //}
             usys_log("[ IN] [UDP] (ping) %s", usys_htoa(src.ip));
         }
     } else if (type == RLPX_DISCOVERY_PONG) {

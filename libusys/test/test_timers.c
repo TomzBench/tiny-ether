@@ -30,12 +30,12 @@ test_timers_storage()
     usys_timers_init(&timers, TIMERS_TEST_STORAGE_SIZE);
 
     // Put some timers into our map
-    for (uint32_t i = 1; i <= 100; i++) {
+    for (uint32_t i = 0; i < 100; i++) {
         usys_timers_insert(&timers, i + 100, test_timers_fn, &count, i);
     }
 
     // Verify we have our timers
-    for (uint32_t i = 1; i <= 100; i++) {
+    for (uint32_t i = 0; i < 100; i++) {
         timer = usys_timers_get(&timers, i + 100);
         err |= (timer && timer->ms == i) ? 0 : -1;
     }
@@ -45,26 +45,26 @@ test_timers_storage()
     if (timer) err |= -1;
 
     // Check shrinking
-    for (uint32_t i = 51; i <= 100; i++) {
+    for (uint32_t i = 50; i < 100; i++) {
         usys_timers_remove(&timers, i + 100);
     }
     err |= usys_timers_size(&timers) == 50 ? 0 : -1;
 
     // Check overwrite
-    for (uint32_t i = 1; i <= 50; i++) {
+    for (uint32_t i = 0; i < 50; i++) {
         usys_timers_insert(&timers, i + 100, test_timers_fn, &count, i);
     }
     err |= usys_timers_size(&timers) == 50 ? 0 : -1;
 
     // Check overflow bounds
     for (uint32_t i = 1; i <= TIMERS_TEST_STORAGE_SIZE + 1; i++) {
-        usys_timers_insert(&timers, i + 100, test_timers_fn, &count, i);
+        usys_timers_insert(&timers, i + 200, test_timers_fn, &count, i);
     }
     err |= usys_timers_size(&timers) == TIMERS_TEST_STORAGE_SIZE ? 0 : -1;
 
     // Really Check overflow bounds
     for (uint32_t i = 1; i <= TIMERS_TEST_STORAGE_SIZE * 10; i++) {
-        usys_timers_insert(&timers, i + 100, test_timers_fn, &count, i);
+        usys_timers_insert(&timers, i + 200, test_timers_fn, &count, i);
     }
     err |= usys_timers_size(&timers) == TIMERS_TEST_STORAGE_SIZE ? 0 : -1;
 

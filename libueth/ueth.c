@@ -98,13 +98,13 @@ ueth_boot(ueth_context* ctx, int n, ...)
         ctx->bootnodes[i].ip = node.ipv4;
         ctx->bootnodes[i].tcp = node.port_tcp;
         ctx->bootnodes[i].udp = node.port_udp ? node.port_udp : node.port_tcp;
-        ktable_node_add(
-            &discovery->table,
-            node.ipv4,
-            node.port_tcp,
-            node.port_udp,
-            &node.id,
-            NULL);
+        // ktable_node_add(
+        //    &discovery->table,
+        //    node.ipv4,
+        //    node.port_tcp,
+        //    node.port_udp,
+        //    &node.id,
+        //    NULL);
         rlpx_node_deinit(&node);
     }
     va_end(l);
