@@ -70,21 +70,21 @@ rlpx_io_discovery_connect(rlpx_io_discovery* self, rlpx_io* ch)
 {
     int err = -1;
     return err;
-    for (uint32_t i = 0; i < KTABLE_SIZE; i++) {
-        // if (self->table.nodes[i].state == KNODE_STATE_PENDING) {
-        //    err = rlpx_io_connect(
-        //        ch,
-        //        &self->table.nodes[i].nodeid,
-        //        self->table.nodes[i].ip,
-        //        self->table.nodes[i].tcp);
-        //    if (err) {
-        //        self->table.nodes[i].state = KNODE_STATE_FREE;
-        //    } else {
-        //        self->table.nodes[i].state = KNODE_STATE_CONNECTING;
-        //        break;
-        //    }
-        //}
-    }
+    // for (uint32_t i = 0; i < KTABLE_SIZE; i++) {
+    // if (self->table.nodes[i].state == KNODE_STATE_PENDING) {
+    //    err = rlpx_io_connect(
+    //        ch,
+    //        &self->table.nodes[i].nodeid,
+    //        self->table.nodes[i].ip,
+    //        self->table.nodes[i].tcp);
+    //    if (err) {
+    //        self->table.nodes[i].state = KNODE_STATE_FREE;
+    //    } else {
+    //        self->table.nodes[i].state = KNODE_STATE_CONNECTING;
+    //        break;
+    //    }
+    //}
+    //}
     return err;
 }
 

@@ -38,13 +38,20 @@ extern "C" {
 #include "khash.h"
 
 /**
+ * @brief Typedefs to provide commin interface and hide kh_ details
+ */
+typedef khint_t usys_timer_key;
+typedef khiter_t usys_timer_iter;
+
+/**
  * @brief Timer context
  */
 typedef struct usys_timer
 {
     uint32_t ms, fire, flags;
+    usys_timer_key key;
     void* ctx;
-    int (*fn)(struct usys_timer*, void*, uint32_t);
+    int (*fn)(usys_timer_key, void*, uint32_t);
 } usys_timer;
 
 /**
@@ -64,12 +71,7 @@ typedef struct
 /**
  * @brief Callers on expirey function
  */
-typedef int (*usys_timer_fn)(usys_timer*, void*, uint32_t);
-
-/**
- * @brief Typedefs to provide commin interface and hide kh_ details
- */
-typedef khint_t usys_timer_key;
+typedef int (*usys_timer_fn)(usys_timer_key, void*, uint32_t);
 
 /**
  * @brief Allocate a main timers context
@@ -126,9 +128,8 @@ usys_timers_size(usys_timers_context* context)
 static inline usys_timer*
 usys_timers_get(usys_timers_context* context, usys_timer_key key)
 {
-    key = kh_get(usys_timers, context->timers, key);
-    return key == kh_end(context->timers) ? NULL
-                                          : &kh_val(context->timers, key);
+    khiter_t k = kh_get(usys_timers, context->timers, key);
+    return k == kh_end(context->timers) ? NULL : &kh_val(context->timers, k);
 }
 
 /**
@@ -147,6 +148,17 @@ usys_timers_start(usys_timers_context* context, usys_timer_key key, uint32_t ms)
         t->flags |= 1;
         t->fire = tick + t->ms;
         return 0;
+    }
+    return -1;
+}
+
+static inline int
+usys_timers_cancel(usys_timers_context* context, usys_timer_key key)
+{
+    usys_timer* t = usys_timers_get(context, key);
+    if (t) {
+        t->flags &= (~(1));
+        t->fire = 0;
     }
     return -1;
 }
@@ -172,7 +184,7 @@ usys_timers_insert(
 {
     int absent;
     usys_timer* t = NULL;
-    usys_timer_key k;
+    khiter_t k;
 
     if (usys_timers_size(context) < context->max) {
         k = kh_put(usys_timers, context->timers, key, &absent);
@@ -180,6 +192,7 @@ usys_timers_insert(
         t->fn = fn;
         t->ctx = ctx;
         t->ms = ms;
+        t->key = key;
         t->flags = t->fire = 0;
         return k;
     }
@@ -195,8 +208,8 @@ usys_timers_insert(
 static inline void
 usys_timers_remove(usys_timers_context* self, usys_timer_key key)
 {
-    key = kh_get(usys_timers, self->timers, key);
-    if (!(key == kh_end(self->timers))) kh_del(usys_timers, self->timers, key);
+    usys_timer_iter k = kh_get(usys_timers, self->timers, key);
+    if (!(k == kh_end(self->timers))) kh_del(usys_timers, self->timers, k);
 }
 
 /**
@@ -208,15 +221,15 @@ static inline void
 usys_timers_poll(usys_timers_context* ctx)
 {
     usys_timer* t;
-    usys_timer_key key;
+    khiter_t iter;
     uint32_t tick = usys_tick();
-    for (key = kh_begin(ctx->timers); key != kh_end(ctx->timers); key++) {
-        t = &kh_val(ctx->timers, key);
-        if (kh_exist(ctx->timers, key)) {
+    for (iter = kh_begin(ctx->timers); iter != kh_end(ctx->timers); iter++) {
+        t = &kh_val(ctx->timers, iter);
+        if (kh_exist(ctx->timers, iter)) {
             if (t && t->flags && t->fire && tick >= t->fire) {
                 t->flags &= (~(1));
                 t->fire = 0;
-                t->fn(t, t->ctx, tick);
+                t->fn(t->key, t->ctx, tick);
             }
         }
     }

@@ -30,8 +30,6 @@ extern "C" {
 #include "knode.h"
 #include "usys_timers.h"
 
-#define KTABLE_SIZE 40
-
 /**
  * @brief Initialize hash table api
  */
@@ -43,26 +41,42 @@ KHASH_MAP_INIT_INT(knode_table, knode);
 typedef khint_t ktable_key;
 
 /**
+ * @brief Forward declaration
+ */
+typedef struct ktable ktable;
+
+/**
+ * @brief Callbacks for ktable
+ */
+typedef int (*ktable_want_ping_fn)(ktable*, knode* n);
+typedef int (*ktable_want_find_fn)(ktable*, knode* n, uint8_t* id, uint32_t);
+
+typedef struct ktable_settings
+{
+    uint32_t size;
+    uint32_t refresh;
+    uint32_t pong_timeout;
+    ktable_want_ping_fn want_ping;
+    ktable_want_find_fn want_find;
+} ktable_settings;
+
+/**
  * @brief A list of nodes we know about
  */
 typedef struct ktable
 {
-    int (*want_ping)(struct ktable*, knode* n);                     /*!< */
-    int (*want_find)(struct ktable*, knode* n, uint8_t*, uint32_t); /*!< */
-    uint32_t max;            /*!< max number of nodes in table */
-    kh_knode_table_t* nodes; /*!< node hash lookup */
-    knode* recents[3];       /*!< last ping */
+    ktable_settings settings;   /*!< callers config*/
+    usys_timers_context timers; /*!< hash table of timers */
+    kh_knode_table_t* nodes;    /*!< node hash lookup */
+    knode* recents[3];          /*!< last ping */
 } ktable;
-
-typedef int (*ktable_want_ping_fn)(ktable*, knode* n);
-typedef int (*ktable_want_find_fn)(ktable*, knode* n, uint8_t* id, uint32_t);
 
 /**
  * @brief Initialize a ktable context
  *
  * @param table Adress of table
  */
-int ktable_init(ktable* table);
+int ktable_init(ktable* table, ktable_settings* settings);
 
 /**
  * @brief Free table after no longer need
@@ -79,6 +93,23 @@ void ktable_deinit(ktable* table);
  * @return
  */
 uint32_t ktable_size(ktable* self);
+
+/**
+ * @brief Call periodically to maintain table
+ *
+ * @param self
+ */
+void ktable_poll(ktable* self);
+
+/**
+ * @brief Ping a device in the table
+ *
+ * @param self api handle
+ * @param key key when inserted
+ *
+ * @return 0 ok -1 device does not exist or other error
+ */
+int ktable_pong(ktable* self, ktable_key key);
 
 /**
  * @brief Make this "node" a most recently heard from node

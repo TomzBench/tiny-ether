@@ -29,6 +29,7 @@ extern "C" {
 #include "rlpx_config.h"
 #include "uecc.h"
 #include "urlp.h"
+#include "usys_timers.h"
 
 /**
  * @brief Do we like this peer?
@@ -46,7 +47,9 @@ typedef enum {
  */
 typedef struct
 {
-    uint32_t ip, tcp, udp;
+    uint32_t ip, tcp, udp;  /*!< endpoing data*/
+    khint_t key;            /*!< hash lookup*/
+    usys_timer_key timerid; /*!< random bits */
     uecc_public_key nodeid; /*!< pubkey */
     KNODE_STATE state;      /*!< usefulness */
 } knode;
