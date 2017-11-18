@@ -33,12 +33,12 @@ extern "C" {
 /**
  * @brief Initialize hash table api
  */
-KHASH_MAP_INIT_INT(knode_table, knode);
+KHASH_MAP_INIT_INT64(knode_table, knode);
 
 /**
  * @brief typedef unify interface with our hash table wrapper
  */
-typedef khint_t ktable_key;
+typedef khint64_t ktable_key;
 
 /**
  * @brief Forward declaration
