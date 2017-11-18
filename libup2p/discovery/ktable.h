@@ -126,11 +126,12 @@ void ktable_poll(ktable* self);
  * table. Will want to ping this node if it is not in the table yet. Will also
  * update node if it is already in the table.
  *
- * @param self
- * @param id
+ * @param self api handle
+ * @param key key when inserted
  * @param ip
  * @param tcp
  * @param udp
+ * @param id
  *
  * @return
  */
@@ -147,10 +148,20 @@ int ktable_ping(
  *
  * @param self api handle
  * @param key key when inserted
+ * @param ip
+ * @param tcp
+ * @param udp
+ * @param id
  *
  * @return 0 ok -1 device does not exist or other error
  */
-int ktable_pong(ktable* self, ktable_key key);
+int ktable_pong(
+    ktable* self,
+    ktable_key key,
+    uint32_t ip,
+    uint32_t tcp,
+    uint32_t udp,
+    uecc_public_key* id);
 
 /**
  * @brief Make this "node" a most recently heard from node

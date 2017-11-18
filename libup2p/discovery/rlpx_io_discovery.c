@@ -150,7 +150,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 ktable_pub_to_key(&self->base->node.id), // key
                 src.ip,                                  //
                 src.tcp,                                 // devp2p port
-                src.udp,                                 //
+                async_io_port(&self->base->io),          //
                 &self->base->node.id);                   // pubkey
 
             usys_log("[ IN] [UDP] (ping) %s", usys_htoa(src.ip));
@@ -162,10 +162,16 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         //  - Unsolicited pong rejected
         // If in table
         //  - Clear timeout
-        //  - Update devp2p tcp port
+        //  - Update ip address
         err = rlpx_io_discovery_recv_pong(&crlp, &dst, buff32, &tmp);
         if (!err) {
-            ktable_pong(&self->table, ktable_pub_to_key(&self->base->node.id));
+            ktable_pong(
+                &self->table,
+                ktable_pub_to_key(&self->base->node.id),
+                async_io_ip_addr(&self->base->io),
+                0,
+                0,
+                NULL);
             usys_log(
                 "[ IN] [UDP] (pong) %s",
                 usys_htoa(async_io_ip_addr(&self->base->io)));

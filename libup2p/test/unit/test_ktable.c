@@ -65,7 +65,7 @@ test_ktable_maintenance()
 
     // Pong half table
     for (uint32_t i = 0; i < table.settings.size; i++) {
-        if (!(i % 2)) ktable_pong(&table, i + 100);
+        if (!(i % 2)) ktable_pong(&table, i + 100, i, i, i, NULL);
     }
 
     // Make sure table half empty

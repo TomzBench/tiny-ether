@@ -76,15 +76,40 @@ ktable_ping(
     uint32_t udp,
     uecc_public_key* id)
 {
-    return -1;
+    knode* node = ktable_get(self, key);
+    if (!node) {
+        ktable_insert(self, key, ip, tcp, udp, id, NULL);
+        node = ktable_get(self, key);
+        if (node) {
+            self->settings.want_ping(self, node);
+            return 0;
+        } else {
+            return -1;
+        }
+    } else {
+        if (udp) node->udp = udp;
+        if (tcp) node->tcp = tcp;
+        return 0;
+    }
 }
 
 int
-ktable_pong(ktable* self, ktable_key key)
+ktable_pong(
+    ktable* self,
+    ktable_key key,
+    uint32_t ip,
+    uint32_t tcp,
+    uint32_t udp,
+    uecc_public_key* id)
+
 {
     knode* node = ktable_get(self, key);
     if (node) {
         if (node->timerid) usys_timers_cancel(&self->timers, node->timerid);
+        if (ip) node->ip = ip;
+        if (tcp) node->tcp = tcp;
+        if (udp) node->udp = udp;
+        if (id) node->nodeid = *id;
         return 0;
     } else {
         // unsolicited pong
@@ -145,11 +170,11 @@ ktable_insert(
     if (ktable_size(self) < self->settings.size) {
         k = kh_put(knode_table, self->nodes, key, &absent);
         n = &kh_val(self->nodes, k);
-        n->ip = ip;
-        n->tcp = tcp;
-        n->udp = udp;
-        n->key = key;
+        if (ip) n->ip = ip;
+        if (tcp) n->tcp = tcp;
+        if (udp) n->udp = udp;
         if (id) n->nodeid = *id;
+        n->key = key;
 
         // Need devp2p hello to figure out if we like this node
         // This will probably change with introduction of topics in the
