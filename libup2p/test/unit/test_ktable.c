@@ -84,6 +84,12 @@ test_ktable_maintenance()
     }
     err |= g_test_ktable_want_find_count == 10 ? 0 : -1;
 
+    // Make sure we ping random nodes that ping us that arent in our table
+    g_test_ktable_want_ping_count = 0;
+    ktable_ping(&table, 999999999, 9, 9, 9, NULL);
+    err |= ktable_size(&table) == table.settings.size / 2 + 1 ? 0 : -1;
+    err |= g_test_ktable_want_ping_count == 1 ? 0 : -1;
+
     ktable_deinit(&table);
     return err;
 }

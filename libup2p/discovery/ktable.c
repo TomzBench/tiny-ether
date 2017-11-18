@@ -78,14 +78,9 @@ ktable_ping(
 {
     knode* node = ktable_get(self, key);
     if (!node) {
+        // table insert auto pings (we'll see if we need to change that)
         ktable_insert(self, key, ip, tcp, udp, id, NULL);
-        node = ktable_get(self, key);
-        if (node) {
-            self->settings.want_ping(self, node);
-            return 0;
-        } else {
-            return -1;
-        }
+        return 0;
     } else {
         if (udp) node->udp = udp;
         if (tcp) node->tcp = tcp;
@@ -170,9 +165,9 @@ ktable_insert(
     if (ktable_size(self) < self->settings.size) {
         k = kh_put(knode_table, self->nodes, key, &absent);
         n = &kh_val(self->nodes, k);
-        if (ip) n->ip = ip;
-        if (tcp) n->tcp = tcp;
-        if (udp) n->udp = udp;
+        n->ip = ip;
+        n->tcp = tcp;
+        n->udp = udp;
         if (id) n->nodeid = *id;
         n->key = key;
 
