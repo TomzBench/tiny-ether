@@ -25,17 +25,34 @@
 #include "usys_log.h"
 #include "usys_time.h"
 
+int rlpx_io_discovery_table_ping(ktable* t, knode* n);
+int rlpx_io_discovery_table_find(ktable* t, knode* n, uint8_t* b, uint32_t l);
+
+ktable_settings g_rlpx_io_discovery_table_settings = {
+    .size = 100,
+    .refresh = 3000,
+    .pong_timeout = 3000,
+    .want_ping = rlpx_io_discovery_table_ping,
+    .want_find = rlpx_io_discovery_table_find
+};
 void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
 
 void
 rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base)
 {
     memset(self, 0, sizeof(rlpx_io_discovery));
+
+    //
     self->base = base;
+
+    //
     base->protocols[0].context = self;
     base->protocols[0].ready = rlpx_io_discovery_ready;
     base->protocols[0].recv = rlpx_io_discovery_recv;
     base->protocols[0].uninstall = rlpx_io_discovery_uninstall;
+
+    //
+    ktable_init(&self->table, &g_rlpx_io_discovery_table_settings);
 }
 
 int
@@ -56,6 +73,7 @@ rlpx_io_discovery_uninstall(void** ptr_p)
 {
     rlpx_io_discovery* ptr = *ptr_p;
     *ptr_p = NULL;
+    ktable_deinit(&ptr->table);
     rlpx_free(ptr);
 }
 
@@ -121,6 +139,12 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         // send a pong on device io...
         err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &tmp);
         if (!err) {
+
+            // If not in table
+            // 	- Add node into table
+            // 	- Send ping
+            // If in table
+            // 	- Update UDP from socket data
             ktable_ping(
                 &self->table,                            // handle
                 ktable_pub_to_key(&self->base->node.id), // key
@@ -129,44 +153,22 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 src.udp,                                 //
                 &self->base->node.id);                   // pubkey
 
-            // TODO this echo is not correct.
-            // err = rlpx_io_discovery_send_pong(
-            //    self,
-            //    async_io_ip_addr(&self->base->io),
-            //    async_io_port(&self->base->io),
-            //    &src,
-            //    (h256*)buff32,
-            //    usys_now() + 2);
-            // If have room in table - add to table
-            // Update TCP from contents of ping packet
-            // if (!err && src.ip) {
-            //    ktable_node_add(
-            //        &self->table,
-            //        src.ip,
-            //        src.tcp,
-            //        src.udp,
-            //        &self->base->node.id,
-            //        NULL);
-            //}
             usys_log("[ IN] [UDP] (ping) %s", usys_htoa(src.ip));
         }
     } else if (type == RLPX_DISCOVERY_PONG) {
 
         // Received a pong packet
+        // If not in table
+        //  - Unsolicited pong rejected
+        // If in table
+        //  - Clear timeout
+        //  - Update devp2p tcp port
         err = rlpx_io_discovery_recv_pong(&crlp, &dst, buff32, &tmp);
         if (!err) {
-
+            ktable_pong(&self->table, ktable_pub_to_key(&self->base->node.id));
             usys_log(
                 "[ IN] [UDP] (pong) %s",
                 usys_htoa(async_io_ip_addr(&self->base->io)));
-
-            // If need more peers - send find
-            // err = rlpx_io_discovery_send_find(
-            //    self,
-            //    async_io_ip_addr(&self->base->io),
-            //    async_io_port(&self->base->io),
-            //    NULL,
-            //    usys_now() + 2);
         }
     } else if (type == RLPX_DISCOVERY_FIND) {
 
@@ -289,7 +291,6 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
     rlpx_io_discovery* self = (rlpx_io_discovery*)ctx;
     uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, ip, iplen = 16;
     uint8_t pub[65] = { 0x04 };
-    knode src, dst;
     uecc_public_key q;
     if (n < 4) return; /*!< invalid rlp */
 
@@ -301,19 +302,19 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
         // TODO - ipv4 only
-        // TODO - add in table - don't try connect until returns pong. Erase
+        // TODO - add in table
         // from table after timeout from pong.
         // Note - reading the rlp as a uint32 converts to host byte order.  To
         // preserve network byte order than read rlp as mem.  usys networking io
         // takes host byte order so we read rlp into host byte order.
-        src.ip = 0; // TODO upnp?
-        src.tcp = src.udp = *self->base->listen_port;
-        dst.ip = ip;
-        dst.tcp = tcp;
-        dst.udp = udp;
-        err = rlpx_io_discovery_send_find(self, ip, udp, NULL, usys_now() + 2);
-        err = rlpx_io_discovery_send_ping(
-            self, ip, udp, &src, &dst, usys_now() + 2);
+        ktable_insert(
+            &self->table, //
+            ktable_pub_to_key(&q),
+            ip,
+            tcp,
+            udp,
+            &q,
+            NULL);
     }
 }
 
@@ -531,4 +532,14 @@ rlpx_io_discovery_send_neighbours(
         &len);
     if (!err) err = rlpx_io_sendto(self->base, ip, port, stack, len);
     return err;
+}
+
+int
+rlpx_io_discovery_table_ping(ktable* t, knode* n)
+{
+}
+
+int
+rlpx_io_discovery_table_find(ktable* t, knode* n, uint8_t* b, uint32_t l)
+{
 }
