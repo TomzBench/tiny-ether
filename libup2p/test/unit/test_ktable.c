@@ -53,7 +53,7 @@ test_ktable_maintenance()
     int err = 0;
     uint32_t tick = 0;
     ktable table;
-    ktable_init(&table, &g_ktable_settings);
+    ktable_init(&table, &g_ktable_settings, NULL);
 
     // Reset counters for test
     g_test_ktable_want_ping_count = 0;
@@ -82,7 +82,7 @@ test_ktable_maintenance()
     while (usys_tick() < (tick + table.settings.refresh * 10 + 2)) {
         ktable_poll(&table);
     }
-    err |= g_test_ktable_want_find_count == 10 ? 0 : -1;
+    err |= g_test_ktable_want_find_count == 10 * ktable_size(&table) ? 0 : -1;
 
     // Make sure we ping random nodes that ping us that arent in our table
     g_test_ktable_want_ping_count = 0;
@@ -105,7 +105,7 @@ test_ktable_storage()
     knode* node = NULL;
 
     // Allocate table
-    ktable_init(&table, &g_ktable_settings);
+    ktable_init(&table, &g_ktable_settings, NULL);
 
     // Put some nodes into our map
     for (uint32_t i = 0; i < 20; i++) {

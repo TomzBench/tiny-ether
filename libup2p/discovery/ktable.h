@@ -85,6 +85,7 @@ typedef struct ktable_settings
 typedef struct ktable
 {
     ktable_settings settings;   /*!< callers config*/
+    void* context;              /*!< callers callback context */
     usys_timers_context timers; /*!< hash table of timers */
     usys_timer_key timerid;     /*!< refresh timer id */
     kh_knode_table_t* nodes;    /*!< node hash lookup */
@@ -96,7 +97,7 @@ typedef struct ktable
  *
  * @param table Adress of table
  */
-int ktable_init(ktable* table, ktable_settings* settings);
+int ktable_init(ktable* table, ktable_settings* settings, void*);
 
 /**
  * @brief Free table after no longer need

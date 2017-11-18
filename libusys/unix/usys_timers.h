@@ -40,7 +40,7 @@ extern "C" {
 /**
  * @brief Typedefs to provide commin interface and hide kh_ details
  */
-typedef khint_t usys_timer_key;
+typedef khint64_t usys_timer_key;
 typedef khiter_t usys_timer_iter;
 
 /**
@@ -57,7 +57,7 @@ typedef struct usys_timer
 /**
  * @brief klib context (klib hash table)
  */
-KHASH_MAP_INIT_INT(usys_timers, usys_timer);
+KHASH_MAP_INIT_INT64(usys_timers, usys_timer);
 
 /**
  * @brief Our wrapper around kh_* to provided bounds

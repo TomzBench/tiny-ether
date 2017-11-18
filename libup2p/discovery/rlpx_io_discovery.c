@@ -31,7 +31,7 @@ int rlpx_io_discovery_table_find(ktable* t, knode* n, uint8_t* b, uint32_t l);
 ktable_settings g_rlpx_io_discovery_table_settings = {
     .size = 100,
     .refresh = 3000,
-    .pong_timeout = 3000,
+    .pong_timeout = 4000,
     .want_ping = rlpx_io_discovery_table_ping,
     .want_find = rlpx_io_discovery_table_find
 };
@@ -52,7 +52,7 @@ rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base)
     base->protocols[0].uninstall = rlpx_io_discovery_uninstall;
 
     //
-    ktable_init(&self->table, &g_rlpx_io_discovery_table_settings);
+    ktable_init(&self->table, &g_rlpx_io_discovery_table_settings, self);
 }
 
 int
@@ -469,7 +469,7 @@ rlpx_io_discovery_send_ping(
         timestamp ? timestamp : usys_now(),
         stack,
         &len);
-    // usys_log("[OUT] [UDP] (ping) (size: %d) %s", len, usys_htoa(ip));
+    usys_log("[OUT] [UDP] (ping) (size: %d) %s", len, usys_htoa(ip));
     if (!err) err = rlpx_io_sendto(self->base, ip, port, stack, len);
     return err;
 }
@@ -514,7 +514,7 @@ rlpx_io_discovery_send_find(
         timestamp ? timestamp : usys_now(),
         stack,
         &len);
-    // usys_log("[OUT] [UDP] (find) %s", usys_htoa(ip));
+    usys_log("[OUT] [UDP] (find) %s", usys_htoa(ip));
     if (!err) err = rlpx_io_sendto(self->base, ip, port, stack, len);
     return err;
 }
@@ -543,9 +543,27 @@ rlpx_io_discovery_send_neighbours(
 int
 rlpx_io_discovery_table_ping(ktable* t, knode* n)
 {
+
+    int err;
+    rlpx_io_discovery* self = t->context;
+    knode src = {.tcp = *self->base->listen_port,
+                 .udp = *self->base->listen_port,
+                 .ip = 0,
+                 .nodeid = self->base->node.id };
+    err = rlpx_io_discovery_send_ping(
+        self, //
+        n->ip,
+        n->udp,
+        &src,
+        n,
+        usys_now() + 2);
+    return err;
 }
 
 int
 rlpx_io_discovery_table_find(ktable* t, knode* n, uint8_t* b, uint32_t l)
 {
+    rlpx_io_discovery* self = t->context;
+    return rlpx_io_discovery_send_find(
+        self, n->ip, n->udp, NULL, usys_now() + 2);
 }

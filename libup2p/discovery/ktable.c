@@ -26,14 +26,15 @@ int ktable_timer_want_pong(usys_timer_key key, void* ctx, uint32_t tick);
 int ktable_timer_refresh(usys_timer_key key, void* ctx, uint32_t tick);
 
 int
-ktable_init(ktable* table, ktable_settings* settings)
+ktable_init(ktable* table, ktable_settings* settings, void* ctx)
 {
     memset(table, 0, sizeof(ktable));
     table->nodes = kh_init(knode_table);
     if (table->nodes) {
-        table->settings = *settings;
-        table->timerid = 1;
         kh_resize(knode_table, table->nodes, table->settings.size);
+        table->settings = *settings;
+        table->context = ctx;
+        table->timerid = 1;
         usys_timers_init(&table->timers, table->settings.size + 1);
         usys_timers_insert(
             &table->timers,
@@ -226,11 +227,11 @@ ktable_timer_refresh(usys_timer_key key, void* ctx, uint32_t tick)
     ktable* table = (ktable*)ctx;
     khiter_t k;
     knode* n;
-    uint8_t id[64];
+    uint8_t id[65] = { 0x04 };
     for (k = kh_begin(table->nodes); k != kh_end(table->nodes); k++) {
         if (kh_exist(table->nodes, k)) {
             n = &kh_val(table->nodes, k);
-            urand(id, sizeof(id));
+            urand(&id[1], 64);
             table->settings.want_find(table, n, id, 65);
             break;
         }

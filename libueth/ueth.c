@@ -98,13 +98,14 @@ ueth_boot(ueth_context* ctx, int n, ...)
         ctx->bootnodes[i].ip = node.ipv4;
         ctx->bootnodes[i].tcp = node.port_tcp;
         ctx->bootnodes[i].udp = node.port_udp ? node.port_udp : node.port_tcp;
-        // ktable_node_add(
-        //    &discovery->table,
-        //    node.ipv4,
-        //    node.port_tcp,
-        //    node.port_udp,
-        //    &node.id,
-        //    NULL);
+        ktable_insert(
+            &discovery->table,
+            ktable_pub_to_key(&node.id),
+            node.ipv4,
+            node.port_tcp,
+            node.port_udp,
+            &node.id,
+            NULL);
         rlpx_node_deinit(&node);
     }
     va_end(l);
@@ -161,9 +162,10 @@ ueth_poll_internal(ueth_context* ctx)
         }
         // Find free node to connect to if empty
         if (!ctx->ch[i].node.port_tcp) {
-            rlpx_io_discovery* d;
-            d = rlpx_io_discovery_get_context(&ctx->discovery);
-            rlpx_io_discovery_connect(d, &ctx->ch[i]);
+            // TODO
+            // rlpx_io_discovery* d;
+            // d = rlpx_io_discovery_get_context(&ctx->discovery);
+            // rlpx_io_discovery_connect(d, &ctx->ch[i]);
         }
         // Add to io polling if there is a socket
         if (async_io_has_sock(&ctx->ch[i].io)) {
@@ -171,30 +173,37 @@ ueth_poll_internal(ueth_context* ctx)
         }
     }
 
-    // Check if we want to ping some nodes if we have room
+    d = rlpx_io_discovery_get_context(&ctx->discovery);
+    ktable_poll(&d->table);
     if ((now - ctx->tick) > ctx->config.interval_discovery) {
         ctx->tick = now;
-        if (b < 30) {
-            usys_log("[SYS] need peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
-            src.ip = 0;
-            src.tcp = src.udp = ctx->config.udp;
-            d = rlpx_io_discovery_get_context(&ctx->discovery);
-            for (i = 0; i < UETH_CONFIG_MAX_BOOTNODES; i++) {
-                if (ctx->bootnodes[i].ip) {
-                    dst.ip = ctx->bootnodes[i].ip;
-                    dst.tcp = ctx->bootnodes[i].tcp;
-                    dst.udp = ctx->bootnodes[i].udp;
-                    // TODO - ping some in table.
-                    rlpx_io_discovery_send_find(
-                        d, dst.ip, dst.udp, NULL, now + 2);
-                } else {
-                    break;
-                }
-            }
-        } else {
-            usys_log("[SYS] peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
-        }
+        usys_log("[SYS] want peers (%d/%d)", 0, ktable_size(&d->table));
     }
+
+    // Check if we want to ping some nodes if we have room
+    // if ((now - ctx->tick) > ctx->config.interval_discovery) {
+    //    ctx->tick = now;
+    //    if (b < 30) {
+    //        usys_log("[SYS] need peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
+    //        src.ip = 0;
+    //        src.tcp = src.udp = ctx->config.udp;
+    //        d = rlpx_io_discovery_get_context(&ctx->discovery);
+    //        for (i = 0; i < UETH_CONFIG_MAX_BOOTNODES; i++) {
+    //            if (ctx->bootnodes[i].ip) {
+    //                dst.ip = ctx->bootnodes[i].ip;
+    //                dst.tcp = ctx->bootnodes[i].tcp;
+    //                dst.udp = ctx->bootnodes[i].udp;
+    //                // TODO - ping some in table.
+    //                rlpx_io_discovery_send_find(
+    //                    d, dst.ip, dst.udp, NULL, now + 2);
+    //            } else {
+    //                break;
+    //            }
+    //        }
+    //    } else {
+    //        usys_log("[SYS] peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
+    //    }
+    //}
 
     // Add our listener to poll
     ch[b++] = (async_io*)&ctx->discovery;
