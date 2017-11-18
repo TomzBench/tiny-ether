@@ -30,7 +30,7 @@ ueth_config config = { //
     .p2p_private_key = SKEY,
     .p2p_enable = 1,
     .udp = 22332,
-    .interval_discovery = 1
+    .interval_discovery = 5
 };
 
 int main(int argc, char* argv[]);

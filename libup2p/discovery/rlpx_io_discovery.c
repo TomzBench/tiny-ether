@@ -29,9 +29,9 @@ int rlpx_io_discovery_table_ping(ktable* t, knode* n);
 int rlpx_io_discovery_table_find(ktable* t, knode* n, uint8_t* b, uint32_t l);
 
 ktable_settings g_rlpx_io_discovery_table_settings = {
-    .size = 100,
-    .refresh = 3000,
-    .pong_timeout = 4000,
+    .size = 1800,
+    .refresh = 6000,
+    .pong_timeout = 8000,
     .want_ping = rlpx_io_discovery_table_ping,
     .want_find = rlpx_io_discovery_table_find
 };

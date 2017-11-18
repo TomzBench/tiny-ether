@@ -233,7 +233,6 @@ ktable_timer_refresh(usys_timer_key key, void* ctx, uint32_t tick)
             n = &kh_val(table->nodes, k);
             urand(&id[1], 64);
             table->settings.want_find(table, n, id, 65);
-            break;
         }
     }
     // Kick timer again
