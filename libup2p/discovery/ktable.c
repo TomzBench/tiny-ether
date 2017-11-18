@@ -68,6 +68,18 @@ ktable_poll(ktable* self)
 }
 
 int
+ktable_ping(
+    ktable* self,
+    uecc_public_key* id,
+    uint32_t ip,
+    uint32_t tcp,
+    uint32_t udp)
+{
+    // TODO some how map the id to our hash table.
+    return -1;
+}
+
+int
 ktable_pong(ktable* self, ktable_key key)
 {
     knode* node = ktable_get(self, key);

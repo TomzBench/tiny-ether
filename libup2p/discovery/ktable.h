@@ -103,7 +103,27 @@ uint32_t ktable_size(ktable* self);
 void ktable_poll(ktable* self);
 
 /**
- * @brief Ping a device in the table
+ * @brief Ping from somewhere. Will add node into table if it is not already in
+ * table. Will want to ping this node if it is not in the table yet. Will also
+ * update node if it is already in the table.
+ *
+ * @param self
+ * @param id
+ * @param ip
+ * @param tcp
+ * @param udp
+ *
+ * @return
+ */
+int ktable_ping(
+    ktable* self,
+    uecc_public_key* id,
+    uint32_t ip,
+    uint32_t tcp,
+    uint32_t udp);
+
+/**
+ * @brief Pong a device in the table
  *
  * @param self api handle
  * @param key key when inserted

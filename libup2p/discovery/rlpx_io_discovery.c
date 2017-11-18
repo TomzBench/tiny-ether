@@ -121,16 +121,21 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         // send a pong on device io...
         err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &tmp);
         if (!err) {
+            ktable_ping(
+                &self->table,         // handle
+                &self->base->node.id, // pubkey of the remote node
+                src.ip,               // redundant ip (propbably prefer WAN ip)
+                src.tcp,              // Their devp2p port Need to update this
+                src.udp);             // Redundant, but maybe there moving?
 
             // TODO this echo is not correct.
-            err = rlpx_io_discovery_send_pong(
-                self,
-                async_io_ip_addr(&self->base->io),
-                async_io_port(&self->base->io),
-                &src,
-                (h256*)buff32,
-                usys_now() + 2);
-
+            // err = rlpx_io_discovery_send_pong(
+            //    self,
+            //    async_io_ip_addr(&self->base->io),
+            //    async_io_port(&self->base->io),
+            //    &src,
+            //    (h256*)buff32,
+            //    usys_now() + 2);
             // If have room in table - add to table
             // Update TCP from contents of ping packet
             // if (!err && src.ip) {
