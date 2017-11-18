@@ -48,7 +48,7 @@ typedef enum {
 typedef struct
 {
     uint32_t ip, tcp, udp;  /*!< endpoing data*/
-    khint_t key;            /*!< hash lookup*/
+    khint64_t key;          /*!< hash lookup*/
     usys_timer_key timerid; /*!< random bits */
     uecc_public_key nodeid; /*!< pubkey */
     KNODE_STATE state;      /*!< usefulness */

@@ -228,6 +228,7 @@ ktable_timer_refresh(usys_timer_key key, void* ctx, uint32_t tick)
     khiter_t k;
     knode* n;
     uint8_t id[65] = { 0x04 };
+    // TODO send find to alpha number of nodes
     for (k = kh_begin(table->nodes); k != kh_end(table->nodes); k++) {
         if (kh_exist(table->nodes, k)) {
             n = &kh_val(table->nodes, k);

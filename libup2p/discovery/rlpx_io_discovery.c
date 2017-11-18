@@ -153,7 +153,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 async_io_port(&self->base->io),          //
                 &self->base->node.id);                   // pubkey
 
-            usys_log("[ IN] [UDP] (ping) %s", usys_htoa(src.ip));
+            usys_log("[ IN] [UDP] (ping) %s:%d", usys_htoa(src.ip), src.udp);
         }
     } else if (type == RLPX_DISCOVERY_PONG) {
 
@@ -173,8 +173,9 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 0,
                 NULL);
             usys_log(
-                "[ IN] [UDP] (pong) %s",
-                usys_htoa(async_io_ip_addr(&self->base->io)));
+                "[ IN] [UDP] (pong) %s:%d",
+                usys_htoa(async_io_ip_addr(&self->base->io)),
+                async_io_port(&self->base->io));
         }
     } else if (type == RLPX_DISCOVERY_FIND) {
 
@@ -196,8 +197,9 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         err = rlpx_io_discovery_recv_neighbours(
             &crlp, rlpx_walk_neighbours, self);
         usys_log(
-            "[ IN] [UDP] (neighbours) %s",
-            usys_htoa(async_io_ip_addr(&self->base->io)));
+            "[ IN] [UDP] (neighbours) %s:%d",
+            usys_htoa(async_io_ip_addr(&self->base->io)),
+            async_io_port(&self->base->io));
     } else {
         // error
     }
@@ -469,7 +471,7 @@ rlpx_io_discovery_send_ping(
         timestamp ? timestamp : usys_now(),
         stack,
         &len);
-    usys_log("[OUT] [UDP] (ping) (size: %d) %s", len, usys_htoa(ip));
+    // usys_log("[OUT] [UDP] (ping) (size: %d) %s", len, usys_htoa(ip));
     if (!err) err = rlpx_io_sendto(self->base, ip, port, stack, len);
     return err;
 }
@@ -514,7 +516,7 @@ rlpx_io_discovery_send_find(
         timestamp ? timestamp : usys_now(),
         stack,
         &len);
-    usys_log("[OUT] [UDP] (find) %s", usys_htoa(ip));
+    // usys_log("[OUT] [UDP] (find) %s", usys_htoa(ip));
     if (!err) err = rlpx_io_sendto(self->base, ip, port, stack, len);
     return err;
 }
