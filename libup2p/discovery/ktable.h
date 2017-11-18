@@ -28,6 +28,7 @@ extern "C" {
 
 #include "khash.h"
 #include "knode.h"
+#include "ukeccak256.h"
 #include "usys_timers.h"
 
 /**
@@ -39,6 +40,24 @@ KHASH_MAP_INIT_INT64(knode_table, knode);
  * @brief typedef unify interface with our hash table wrapper
  */
 typedef khint64_t ktable_key;
+
+/**
+ * @brief TODO Not sure if this OK.  Our node table has 8 byte lookup key.  We
+ * hash pubkey and only use the first 64 bites. Collision just confuses our
+ * table but should not likely happen.
+ *
+ * @param q
+ *
+ * @return
+ */
+static inline ktable_key
+ktable_pub_to_key(uecc_public_key* q)
+{
+    uint8_t pub[65], h[32];
+    uecc_qtob(q, pub, 65);
+    ukeccak256(&pub[1], 64, h, 32);
+    return *(int64_t*)h;
+}
 
 /**
  * @brief Forward declaration
@@ -117,10 +136,11 @@ void ktable_poll(ktable* self);
  */
 int ktable_ping(
     ktable* self,
-    uecc_public_key* id,
+    ktable_key key,
     uint32_t ip,
     uint32_t tcp,
-    uint32_t udp);
+    uint32_t udp,
+    uecc_public_key* id);
 
 /**
  * @brief Pong a device in the table

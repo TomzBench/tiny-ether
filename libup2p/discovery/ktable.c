@@ -70,12 +70,12 @@ ktable_poll(ktable* self)
 int
 ktable_ping(
     ktable* self,
-    uecc_public_key* id,
+    ktable_key key,
     uint32_t ip,
     uint32_t tcp,
-    uint32_t udp)
+    uint32_t udp,
+    uecc_public_key* id)
 {
-    // TODO some how map the id to our hash table.
     return -1;
 }
 

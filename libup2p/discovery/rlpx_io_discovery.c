@@ -122,11 +122,12 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &tmp);
         if (!err) {
             ktable_ping(
-                &self->table,         // handle
-                &self->base->node.id, // pubkey of the remote node
-                src.ip,               // redundant ip (propbably prefer WAN ip)
-                src.tcp,              // Their devp2p port Need to update this
-                src.udp);             // Redundant, but maybe there moving?
+                &self->table,                            // handle
+                ktable_pub_to_key(&self->base->node.id), // key
+                src.ip,                                  //
+                src.tcp,                                 // devp2p port
+                src.udp,                                 //
+                &self->base->node.id);                   // pubkey
 
             // TODO this echo is not correct.
             // err = rlpx_io_discovery_send_pong(
