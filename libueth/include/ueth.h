@@ -47,7 +47,7 @@ typedef struct ueth_context
     int (*poll)(struct ueth_context*);
     uint32_t n;
     uint32_t tick;
-    knode bootnodes[UETH_CONFIG_MAX_BOOTNODES];
+    knodes bootnodes[UETH_CONFIG_MAX_BOOTNODES];
     rlpx_io discovery;
     rlpx_io ch[UETH_CONFIG_NUM_CHANNELS];
 } ueth_context;

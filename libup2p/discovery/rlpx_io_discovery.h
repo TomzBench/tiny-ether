@@ -29,7 +29,6 @@ extern "C" {
 #include "rlpx_config.h"
 #include "rlpx_io.h"
 
-#include "knode.h"
 #include "ktable.h"
 
 /**
@@ -125,8 +124,8 @@ int rlpx_io_discovery_recv(void*, const urlp* rlp);
 int rlpx_io_discovery_recv_ping(
     const urlp**,
     uint8_t* version32,
-    knode* from,
-    knode* to,
+    knodes* from,
+    knodes* to,
     uint32_t* timestamp);
 
 /**
@@ -141,7 +140,7 @@ int rlpx_io_discovery_recv_ping(
  */
 int rlpx_io_discovery_recv_pong(
     const urlp** rlp,
-    knode* to,
+    knodes* to,
     uint8_t* echo32,
     uint32_t* timestamp);
 
@@ -204,8 +203,8 @@ int rlpx_io_discovery_write(
 int rlpx_io_discovery_write_ping(
     uecc_ctx* skey,
     uint32_t ver,
-    const knode* ep_src,
-    const knode* ep_dst,
+    const knodes* ep_src,
+    const knodes* ep_dst,
     uint32_t timestamp,
     uint8_t* dst,
     uint32_t* l);
@@ -224,7 +223,7 @@ int rlpx_io_discovery_write_ping(
  */
 int rlpx_io_discovery_write_pong(
     uecc_ctx* skey,
-    const knode* ep_to,
+    const knodes* ep_to,
     h256* echo,
     uint32_t timestamp,
     uint8_t* d,
@@ -272,15 +271,15 @@ int rlpx_io_discovery_send_ping(
     rlpx_io_discovery* self,
     uint32_t ip,
     uint32_t port,
-    const knode* ep_src,
-    const knode* ep_dst,
+    const knodes* ep_src,
+    const knodes* ep_dst,
     uint32_t timestamp);
 
 int rlpx_io_discovery_send_pong(
     rlpx_io_discovery* self,
     uint32_t ip,
     uint32_t port,
-    const knode* ep_to,
+    const knodes* ep_to,
     h256* echo,
     uint32_t timestamp);
 

@@ -3,16 +3,13 @@ if (${UETH_USE_UNIX})
 	set(USYS_DIR unix)
 endif()
 
-if (${UETH_USE_KLIB})
-	include(${CMAKE_SOURCE_DIR}/cmake/klib.cmake)
-endif()
-
 # Common files
 set(sources 
 	./async/async_io.c
 	)
 set(headers 
 	./async/async_io.h
+	./utimers.h
 	)
 list(APPEND sources 
 	./${USYS_DIR}/usys_signals.c 
@@ -24,15 +21,14 @@ list(APPEND headers
 	./${USYS_DIR}/usys_io.h 
 	./${USYS_DIR}/usys_log.h 
 	./${USYS_DIR}/usys_time.h 
-	./${USYS_DIR}/usys_timers.h 
 	./${USYS_DIR}/usys_config.h 
 	./${USYS_DIR}/usys_config_unix.h)
 
 # libusys
 add_library(usys ${sources} ${headers})
-target_link_libraries(usys klib)
 target_include_directories(usys PUBLIC ./${USYS_DIR})
 target_include_directories(usys PUBLIC ./async)
+target_include_directories(usys PUBLIC ./)
 
 #unit test for libusys
 add_executable(usys_unit_test 
