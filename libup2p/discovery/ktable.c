@@ -200,18 +200,17 @@ ktable_timer_refresh(utimers* t, void* ctx, uint32_t tick)
 {
     // Send some find nodes
     ktable* table = (ktable*)ctx;
-    int k;
     knodes* n;
     uint8_t id[65] = { 0x04 };
 
-    // TODO send find to alpha number of nodes
-    // for (k = kh_begin(table->nodes); k != kh_end(table->nodes); k++) {
-    //    if (kh_exist(table->nodes, k)) {
-    //        n = &kh_val(table->nodes, k);
-    //        urand(&id[1], 64);
-    //        table->settings.want_find(table, n, id, 65);
-    //    }
-    //}
+    for (int i = 0; i < KTABLE_N_NODES; i++) {
+        urand(&id[1], 64);
+        n = knodes_get(table->nodes, i);
+        if (n) {
+            table->settings.want_find(table, n, id, 65);
+        }
+    }
+
     // Kick timer again
     utimers_start(table->timers, table->timerid, 0);
     return 0;
