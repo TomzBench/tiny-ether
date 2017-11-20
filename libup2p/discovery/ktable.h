@@ -19,12 +19,12 @@
  * @date 2017
  */
 
-//#ifndef KTABLE_H_
-//#define KTABLE_H_
-//
-//#ifdef __cplusplus
-// extern "C" {
-//#endif
+#ifndef KTABLE_H_
+#define KTABLE_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "knodes.h"
 #include "ukeccak256.h"
@@ -46,9 +46,9 @@ typedef int (*ktable_want_find_fn)(ktable*, knodes* n, uint8_t* id, uint32_t);
 
 typedef struct ktable_settings
 {
-    uint32_t size;
     uint32_t refresh;
     uint32_t pong_timeout;
+    uint32_t alpha;
     ktable_want_ping_fn want_ping;
     ktable_want_find_fn want_find;
 } ktable_settings;
@@ -102,6 +102,16 @@ knode_key ktable_pub_to_key(ktable* self, uecc_public_key* q);
  * @param self
  */
 void ktable_poll(ktable* self);
+
+/**
+ * @brief Ping a node in the table
+ *
+ * @param self
+ * @param q
+ *
+ * @return
+ */
+int ktable_ping(ktable* self, uecc_public_key* q);
 
 /**
  * @brief Ping from somewhere. Will add node into table if it is not already in
@@ -218,9 +228,17 @@ knode_key ktable_insert(
  * @param self
  * @param key
  */
-void ktable_remove(ktable* self, knode_key key);
+void ktable_remove(ktable* self, uecc_public_key* q);
 
-//#ifdef __cplusplus
-//}
-//#endif
-//#endif
+/**
+ * @brief
+ *
+ * @param self
+ * @param key
+ */
+void ktable_remove_key(ktable* self, knode_key key);
+
+#ifdef __cplusplus
+}
+#endif
+#endif

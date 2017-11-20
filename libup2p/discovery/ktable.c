@@ -71,6 +71,19 @@ ktable_poll(ktable* self)
 }
 
 int
+ktable_ping(ktable* self, uecc_public_key* q)
+{
+    knodes* n = ktable_get(self, q);
+    if (n) {
+        utimers_insert(self->timers, n->key, ktable_timer_want_pong, self);
+        utimers_start(self->timers, n->key, self->settings.pong_timeout);
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+int
 ktable_on_ping(
     ktable* self,
     uecc_public_key* q,
@@ -230,7 +243,14 @@ ktable_insert(
 }
 
 void
-ktable_remove(ktable* self, knode_key key)
+ktable_remove(ktable* self, uecc_public_key* q)
+{
+    knode_key key = ktable_pub_to_key(self, q);
+    if (key >= 0) ktable_remove_key(self, key);
+}
+
+void
+ktable_remove_key(ktable* self, knode_key key)
 {
     knodes_remove(self->nodes, key);
 }
@@ -242,7 +262,7 @@ ktable_timer_want_pong(utimers* t, void* ctx, uint32_t tick)
     // Timers and node share same lookup key
     ((void)tick);
     ktable* table = (ktable*)ctx;
-    ktable_remove(table, t->key);
+    ktable_remove_key(table, t->key);
     return 0;
 }
 
@@ -252,6 +272,7 @@ ktable_timer_refresh(utimers* t, void* ctx, uint32_t tick)
     // Send some find nodes
     ktable* table = (ktable*)ctx;
     knodes* n;
+    uint32_t alpha = 0;
     uint8_t id[65] = { 0x04 };
 
     for (int i = 0; i < KTABLE_N_NODES; i++) {
@@ -259,6 +280,7 @@ ktable_timer_refresh(utimers* t, void* ctx, uint32_t tick)
         n = knodes_get(table->nodes, i);
         if (n) {
             table->settings.want_find(table, n, id, 65);
+            if (++alpha >= table->settings.alpha) break;
         }
     }
 
