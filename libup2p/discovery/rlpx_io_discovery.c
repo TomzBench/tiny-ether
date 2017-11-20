@@ -134,35 +134,35 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
 
     if (type == RLPX_DISCOVERY_PING) {
 
-        // Received a ping packet
-        // send a pong on device io...
         err = rlpx_io_discovery_recv_ping(&crlp, buff32, &src, &dst, &tmp);
         if (!err) {
 
+            // Received a ping packet
+            // send a pong on device io...
             // If not in table
             // 	- Add node into table
             // 	- Send ping
             // If in table
             // 	- Update UDP from socket data
             ktable_on_ping(
-                &self->table,         // handle
-                &self->base->node.id, // key
-                src.ip,               //
-                src.tcp,              // devp2p port
+                &self->table,
+                &self->base->node.id,
+                src.ip,
+                src.tcp,
                 async_io_port(&self->base->io));
-
             usys_log("[ IN] [UDP] (ping) %s:%d", usys_htoa(src.ip), src.udp);
         }
     } else if (type == RLPX_DISCOVERY_PONG) {
 
-        // Received a pong packet
-        // If not in table
-        //  - Unsolicited pong rejected
-        // If in table
-        //  - Clear timeout
-        //  - Update ip address
         err = rlpx_io_discovery_recv_pong(&crlp, &dst, buff32, &tmp);
         if (!err) {
+
+            // Received a pong packet
+            // If not in table
+            //  - Unsolicited pong rejected
+            // If in table
+            //  - Clear timeout
+            //  - Update ip address
             ktable_on_pong(
                 &self->table,
                 &self->base->node.id,
@@ -176,11 +176,12 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         }
     } else if (type == RLPX_DISCOVERY_FIND) {
 
-        // Received request for our neighbours.
-        // We send empty neighbours since we are not kademlia
-        // We are leech looking for light clients servers
         err = rlpx_io_discovery_recv_find(&crlp, &target, &tmp);
         if (!err) {
+
+            // Received request for our neighbours.
+            // We send empty neighbours since we are not kademlia
+            // We are leech looking for light clients servers
             return rlpx_io_discovery_send_neighbours(
                 self,
                 async_io_ip_addr(&self->base->io),
