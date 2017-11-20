@@ -105,6 +105,8 @@ flags = [
 '-I',
 './libusys/async',
 '-I',
+'./libusys',
+'-I',
 './libueth',
 '-I',
 './libueth/test',
