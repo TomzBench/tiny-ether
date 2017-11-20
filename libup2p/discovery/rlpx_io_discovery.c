@@ -297,6 +297,7 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
     ((void)idx);
     int err;
     rlpx_io_discovery* self = (rlpx_io_discovery*)ctx;
+    knode src, dst;
     uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, ip, iplen = 16;
     uint8_t pub[65] = { 0x04 };
     uecc_public_key q;
@@ -310,19 +311,15 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
         // TODO - ipv4 only
-        // TODO - add in table
-        // from table after timeout from pong.
         // Note - reading the rlp as a uint32 converts to host byte order.  To
         // preserve network byte order than read rlp as mem.  usys networking io
         // takes host byte order so we read rlp into host byte order.
-        ktable_insert(
-            &self->table, //
-            ktable_pub_to_key(&q),
-            ip,
-            tcp,
-            udp,
-            &q,
-            NULL);
+        src.ip = 0;
+        src.tcp = src.udp = *self->base->listen_port;
+        dst.ip = ip;
+        dst.tcp = tcp;
+        dst.udp = udp;
+        rlpx_io_discovery_send_ping(self, ip, udp, &src, &dst, usys_now() + 2);
     }
 }
 
