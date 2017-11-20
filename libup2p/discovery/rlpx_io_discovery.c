@@ -35,7 +35,6 @@ ktable_settings g_rlpx_io_discovery_table_settings = {
     .want_ping = rlpx_io_discovery_table_ping,
     .want_find = rlpx_io_discovery_table_find
 };
-void rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx);
 
 void
 rlpx_io_discovery_init(rlpx_io_discovery* self, rlpx_io* base)
@@ -192,8 +191,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
 
         // Received some neighbours
-        err = rlpx_io_discovery_recv_neighbours(
-            &crlp, rlpx_walk_neighbours, self);
+        err = ktable_neighbours(&self->table, &crlp);
         usys_log(
             "[ IN] [UDP] (neighbours) %s:%d",
             usys_htoa(async_io_ip_addr(&self->base->io)),
@@ -264,61 +262,6 @@ rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts)
         err = 0;
     }
     return err;
-}
-
-/**
- * @brief
- *
- * rlp.list(rlp.list(neighbours),timestamp)
- * rlp.list(rlp.list(neighbours),timestamp,a,b,c,d)
- * where neighbours = [ipv4|6,udp,tcp,nodeid]
- *
- * @param t
- * @param rlp
- *
- * @return
- */
-int
-rlpx_io_discovery_recv_neighbours(const urlp** rlp, urlp_walk_fn fn, void* ctx)
-{
-    const urlp *n = urlp_at(*rlp, 0), // get list of neighbours
-        *ts = urlp_at(*rlp, 1);       // get timestamp
-    ((void)ts);                       // TODO
-    urlp_foreach(n, ctx, fn);         // loop and add to table
-    return 0;
-}
-
-void
-rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
-{
-    // rlp.list(ipv(4|6),udp,tcp,nodeid)
-    ((void)idx);
-    int err;
-    rlpx_io_discovery* self = (rlpx_io_discovery*)ctx;
-    knodes src, dst;
-    uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, ip, iplen = 16;
-    uint8_t pub[65] = { 0x04 };
-    uecc_public_key q;
-    if (n < 4) return; /*!< invalid rlp */
-
-    // short circuit bail. Arrive inside no errors
-    if (((iplen = urlp_size(urlp_at(rlp, 0))) == 4) &&
-        (!(err = urlp_idx_to_u32(rlp, 0, &ip))) &&
-        (!(err = urlp_idx_to_u32(rlp, 1, &udp))) &&
-        (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
-        (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
-        (!(err = uecc_btoq(pub, publen + 1, &q)))) {
-        // TODO - ipv4 only
-        // Note - reading the rlp as a uint32 converts to host byte order.  To
-        // preserve network byte order than read rlp as mem.  usys networking io
-        // takes host byte order so we read rlp into host byte order.
-        src.ip = 0;
-        src.tcp = src.udp = *self->base->listen_port;
-        dst.ip = ip;
-        dst.tcp = tcp;
-        dst.udp = udp;
-        rlpx_io_discovery_send_ping(self, ip, udp, &src, &dst, usys_now() + 15);
-    }
 }
 
 int

@@ -24,6 +24,7 @@
 
 int ktable_timer_want_pong(utimers* key, void* ctx, uint32_t tick);
 int ktable_timer_refresh(utimers* key, void* ctx, uint32_t tick);
+void ktable_neighbours_walk(const urlp* rlp, int idx, void* ctx);
 
 int
 ktable_init(ktable* table, ktable_settings* settings, void* ctx)
@@ -108,6 +109,49 @@ ktable_pong(
     } else {
         // unsolicited pong
         return -1;
+    }
+}
+
+int
+ktable_neighbours(ktable* self, const urlp** rlp)
+{
+    const urlp *n = urlp_at(*rlp, 0),              // get list of neighbours
+        *ts = urlp_at(*rlp, 1);                    // get timestamp
+    ((void)ts);                                    // TODO
+    urlp_foreach(n, self, ktable_neighbours_walk); // loop and add to table
+    return 0;
+}
+
+void
+ktable_neighbours_walk(const urlp* rlp, int idx, void* ctx)
+{
+    // rlp.list(ipv(4|6),udp,tcp,nodeid)
+    ((void)idx);
+    int err;
+    ktable* self = (ktable*)ctx;
+    knodes node;
+    uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, ip, iplen = 16;
+    uint8_t pub[65] = { 0x04 };
+    uecc_public_key q;
+    if (n < 4) return; /*!< invalid rlp */
+
+    // short circuit bail. Arrive inside no errors
+    if (((iplen = urlp_size(urlp_at(rlp, 0))) == 4) &&
+        (!(err = urlp_idx_to_u32(rlp, 0, &ip))) &&
+        (!(err = urlp_idx_to_u32(rlp, 1, &udp))) &&
+        (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
+        (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
+        (!(err = uecc_btoq(pub, publen + 1, &q)))) {
+        // TODO - ipv4 only
+        // Note - reading the rlp as a uint32 converts to host byte order.  To
+        // preserve network byte order than read rlp as mem.  usys networking io
+        // takes host byte order so we read rlp into host byte order.
+        node.ip = ip;
+        node.tcp = tcp;
+        node.udp = udp;
+        node.nodeid = q;
+        node.flags = node.key = 0;
+        self->settings.want_ping(self, &node);
     }
 }
 

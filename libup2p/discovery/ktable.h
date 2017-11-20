@@ -144,6 +144,17 @@ int ktable_pong(
     uint32_t udp);
 
 /**
+ * @brief Present nodes to the table
+ *
+ * @param self
+ * @param q
+ * @param rlp
+ *
+ * @return
+ */
+int ktable_neighbours(ktable* self, const urlp** rlp);
+
+/**
  * @brief Make this "node" a most recently heard from node
  *
  * @param table

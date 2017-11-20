@@ -258,7 +258,7 @@ check_neighbours(ktable* t, int type, const urlp* rlp)
 {
     int err = -1;
     if (type != 4) return err;
-    err = rlpx_io_discovery_recv_neighbours(&rlp, check_neighbours_walk_fn, t);
+    err = 0;
     return err;
 }
 

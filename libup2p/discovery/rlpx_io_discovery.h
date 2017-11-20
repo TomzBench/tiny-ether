@@ -157,19 +157,6 @@ int
 rlpx_io_discovery_recv_find(const urlp** rlp, uecc_public_key* q, uint32_t* ts);
 
 /**
- * @brief Parse a signed rlp neighbours packet
- *
- * @param t
- * @param rlp
- *
- * @return
- */
-int rlpx_io_discovery_recv_neighbours(
-    const urlp** rlp, //
-    urlp_walk_fn fn,
-    void* ctx);
-
-/**
  * @brief sign a discovery packet provided RLP and a packet type
  *
  * @param key
