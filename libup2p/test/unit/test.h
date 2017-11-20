@@ -104,5 +104,6 @@ int test_kademlia(void);
 int test_discovery(void);
 int test_io(void);
 int test_ktable(void);
+int test_knodes(void);
 
 #endif

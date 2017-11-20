@@ -99,6 +99,7 @@ main(int argc, char* argv[])
     IF_ERR_EXIT(test_discovery());
     IF_ERR_EXIT(test_io());
     IF_ERR_EXIT(test_ktable());
+    IF_ERR_EXIT(test_knodes());
 
 EXIT:
     if (!err) {

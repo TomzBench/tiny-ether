@@ -19,32 +19,24 @@
  * @date 2017
  */
 
-#ifndef KTABLE_H_
-#define KTABLE_H_
+//#ifndef KTABLE_H_
+//#define KTABLE_H_
+//
+//#ifdef __cplusplus
+// extern "C" {
+//#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "khash.h"
-#include "knode.h"
+#include "knodes.h"
 #include "ukeccak256.h"
-#include "usys_timers.h"
+#include "utimers.h"
+
+#define KTABLE_N_NODES (20)
+#define KTABLE_N_TIMERS (KTABLE_N_NODES + 1)
+
+typedef int ktable_key;
 
 /**
- * @brief Initialize hash table api
- */
-KHASH_MAP_INIT_INT64(knode_table, knode);
-
-/**
- * @brief typedef unify interface with our hash table wrapper
- */
-typedef khint64_t ktable_key;
-
-/**
- * @brief TODO Not sure if this OK.  Our node table has 8 byte lookup key.  We
- * hash pubkey and only use the first 64 bites. Collision just confuses our
- * table but should not likely happen.
+ * @brief
  *
  * @param q
  *
@@ -67,8 +59,8 @@ typedef struct ktable ktable;
 /**
  * @brief Callbacks for ktable
  */
-typedef int (*ktable_want_ping_fn)(ktable*, knode* n);
-typedef int (*ktable_want_find_fn)(ktable*, knode* n, uint8_t* id, uint32_t);
+typedef int (*ktable_want_ping_fn)(ktable*, knodes* n);
+typedef int (*ktable_want_find_fn)(ktable*, knodes* n, uint8_t* id, uint32_t);
 
 typedef struct ktable_settings
 {
@@ -84,12 +76,12 @@ typedef struct ktable_settings
  */
 typedef struct ktable
 {
-    ktable_settings settings;   /*!< callers config*/
-    void* context;              /*!< callers callback context */
-    usys_timers_context timers; /*!< hash table of timers */
-    usys_timer_key timerid;     /*!< refresh timer id */
-    kh_knode_table_t* nodes;    /*!< node hash lookup */
-    knode* recents[3];          /*!< last ping */
+    ktable_settings settings;        /*!< callers config*/
+    void* context;                   /*!< callers callback context */
+    int timerid;                     /*!< refresh timer id */
+    utimers timers[KTABLE_N_TIMERS]; /*!< */
+    knodes nodes[KTABLE_N_NODES];    /*!< */
+    knodes* recents[3];              /*!< last ping */
 } ktable;
 
 /**
@@ -170,7 +162,7 @@ int ktable_pong(
  * @param table
  * @param node
  */
-void ktable_update_recent(ktable* table, knode* node);
+void ktable_update_recent(ktable* table, knodes* node);
 
 /**
  * @brief Get a node from the table
@@ -180,7 +172,7 @@ void ktable_update_recent(ktable* table, knode* node);
  *
  * @return the node or NULL if it does not exist
  */
-knode* ktable_get(ktable* self, ktable_key key);
+knodes* ktable_get(ktable* self, ktable_key key);
 
 /**
  * @brief Add a node to our table using rlp data received from find node reply
@@ -222,7 +214,7 @@ ktable_key ktable_insert(
  */
 void ktable_remove(ktable* self, ktable_key key);
 
-#ifdef __cplusplus
-}
-#endif
-#endif
+//#ifdef __cplusplus
+//}
+//#endif
+//#endif

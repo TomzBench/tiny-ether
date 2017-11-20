@@ -1,6 +1,6 @@
 #libup2p sources
 set(sources
-	discovery/knode.c
+	discovery/knodes.c
 	discovery/ktable.c
 	discovery/rlpx_io_discovery.c
 	rlpx_io.c
@@ -10,7 +10,7 @@ set(sources
 	rlpx_node.c
 	rlpx_test_helpers.c)
 set(headers
-	discovery/knode.h
+	discovery/knodes.h
 	discovery/ktable.h
 	discovery/rlpx_io_discovery.h
 	rlpx_io.h
@@ -33,6 +33,7 @@ set(sources-unit-test
 	test/unit/test_handshake.c
 	test/unit/test_io.c
 	test/unit/test_ktable.c
+	test/unit/test_knodes.c
 	test/unit/test_mock.c
 	test/unit/test_protocol.c
 	)

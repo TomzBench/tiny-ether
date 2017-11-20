@@ -20,18 +20,18 @@
  */
 
 /**
- * @file usys_timers.h
+ * @file utimers.h
  *
  * @brief Simple wrapper around OS primitives to better support non standard
  * enviorments.
  */
-//#ifndef UTIMER_H_
-//#define UTIMER_H_
-//
-//#ifdef __cplusplus
-// extern "C" {
-//#endif
-//
+#ifndef UTIMERS_H_
+#define UTIMERS_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "usys_config.h"
 #include "usys_time.h"
 
@@ -127,7 +127,7 @@ utimers_poll(utimers* timers, uint32_t count)
     }
 }
 
-//#ifdef __cplusplus
-//}
-//#endif
-//#endif
+#ifdef __cplusplus
+}
+#endif
+#endif

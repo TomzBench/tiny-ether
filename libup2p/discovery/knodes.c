@@ -19,43 +19,11 @@
  * @date 2017
  */
 
-#include "knode.h"
+#include "knodes.h"
 #include "usys_io.h"
 
-void
-knode_v4_init(
-    knode* n,
-    uecc_public_key* id,
-    uint32_t ip,
-    uint32_t udp,
-    uint32_t tcp)
-{
-    memset(n, 0, sizeof(knode));
-    if (id) n->nodeid = *id;
-    n->ip = ip;
-    n->udp = udp;
-    n->tcp = tcp;
-    n->state = 0;
-}
-
-void
-knode_v6_init(
-    knode* n,
-    uecc_public_key* id,
-    uint8_t* ipv6,
-    uint32_t udp,
-    uint32_t tcp)
-{
-    ((void)id);
-    ((void)ipv6);
-    ((void)udp);
-    ((void)tcp);
-    // TODO
-    memset(n, 0, sizeof(knode));
-}
-
 int
-knode_rlp_to_node(const urlp* rlp, knode* ep)
+knodes_rlp_to_node(const urlp* rlp, knodes* ep)
 {
     int err;
     uint32_t n = urlp_children(rlp);
@@ -69,7 +37,7 @@ knode_rlp_to_node(const urlp* rlp, knode* ep)
     return err;
 }
 urlp*
-knode_node_to_rlp(const knode* ep)
+knodes_node_to_rlp(const knodes* ep)
 {
     urlp* rlp = urlp_list();
     uint32_t ip, tcp, udp;

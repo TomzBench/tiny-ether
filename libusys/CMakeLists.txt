@@ -3,10 +3,6 @@ if (${UETH_USE_UNIX})
 	set(USYS_DIR unix)
 endif()
 
-if (${UETH_USE_KLIB})
-	include(${CMAKE_SOURCE_DIR}/cmake/klib.cmake)
-endif()
-
 # Common files
 set(sources 
 	./async/async_io.c
@@ -30,7 +26,6 @@ list(APPEND headers
 
 # libusys
 add_library(usys ${sources} ${headers})
-target_link_libraries(usys klib)
 target_include_directories(usys PUBLIC ./${USYS_DIR})
 target_include_directories(usys PUBLIC ./async)
 target_include_directories(usys PUBLIC ./)

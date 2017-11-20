@@ -17,9 +17,7 @@ test_timers()
 int
 test_timers_storage()
 {
-    // the timers key is an index in an array, our hash value is i+100 because
-    // we want it to be different than the iterator to make sure api is correct
-    // during test. So that is why you see i+100 in the loops using the api
+    // the timers key is an index in an array
     int err = 0, c = 0;
     utimers timers[100];
     utimers* timer = NULL;

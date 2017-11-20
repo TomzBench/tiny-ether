@@ -22,50 +22,40 @@
 #include "ktable.h"
 #include "urand.h"
 
-int ktable_timer_want_pong(usys_timer_key key, void* ctx, uint32_t tick);
-int ktable_timer_refresh(usys_timer_key key, void* ctx, uint32_t tick);
+int ktable_timer_want_pong(utimers* key, void* ctx, uint32_t tick);
+int ktable_timer_refresh(utimers* key, void* ctx, uint32_t tick);
 
 int
 ktable_init(ktable* table, ktable_settings* settings, void* ctx)
 {
     memset(table, 0, sizeof(ktable));
-    table->nodes = kh_init(knode_table);
-    if (table->nodes) {
-        kh_resize(knode_table, table->nodes, table->settings.size);
-        table->settings = *settings;
-        table->context = ctx;
-        table->timerid = 1;
-        usys_timers_init(&table->timers, table->settings.size + 1);
-        usys_timers_insert(
-            &table->timers,
-            table->timerid,
-            ktable_timer_refresh,
-            table,
-            table->settings.refresh);
-        usys_timers_start(&table->timers, table->timerid, 0);
-        return 0;
-    }
-    return -1;
+    table->settings = *settings;
+    table->context = ctx;
+    table->timerid = KTABLE_N_TIMERS - 1;
+    utimers_init(table->timers, KTABLE_N_TIMERS);
+    utimers_insert(table->timers, table->timerid, ktable_timer_refresh, table);
+    utimers_start(table->timers, table->timerid, table->settings.refresh);
+    return 0;
 }
 
 void
 ktable_deinit(ktable* table)
 {
-    kh_destroy(knode_table, table->nodes);
-    usys_timers_deinit(&table->timers);
+    utimers_deinit(table->timers, KTABLE_N_TIMERS);
     memset(table, 0, sizeof(ktable));
 }
 
 uint32_t
 ktable_size(ktable* self)
 {
-    return kh_size(self->nodes);
+    // TODO
+    // return kh_size(self->nodes);
 }
 
 void
 ktable_poll(ktable* self)
 {
-    usys_timers_poll(&self->timers);
+    utimers_poll(self->timers, KTABLE_N_TIMERS);
 }
 
 int
@@ -77,7 +67,7 @@ ktable_ping(
     uint32_t udp,
     uecc_public_key* id)
 {
-    knode* node = ktable_get(self, key);
+    knodes* node = ktable_get(self, key);
     if (!node) {
         // table insert auto pings (we'll see if we need to change that)
         ktable_insert(self, key, ip, tcp, udp, id, NULL);
@@ -99,9 +89,9 @@ ktable_pong(
     uecc_public_key* id)
 
 {
-    knode* node = ktable_get(self, key);
+    knodes* node = ktable_get(self, key);
     if (node) {
-        if (node->timerid) usys_timers_cancel(&self->timers, node->timerid);
+        utimers_cancel(self->timers, node->key);
         if (ip) node->ip = ip;
         if (tcp) node->tcp = tcp;
         if (udp) node->udp = udp;
@@ -114,18 +104,19 @@ ktable_pong(
 }
 
 void
-ktable_update_recent(ktable* table, knode* node)
+ktable_update_recent(ktable* table, knodes* node)
 {
     table->recents[2] = table->recents[1];
     table->recents[1] = table->recents[0];
     table->recents[0] = node;
 }
 
-knode*
+knodes*
 ktable_get(ktable* self, ktable_key key)
 {
-    khiter_t k = kh_get(knode_table, self->nodes, key);
-    return k == kh_end(self->nodes) ? NULL : &kh_val(self->nodes, k);
+    // TODO
+    // khiter_t k = kh_get(knode_table, self->nodes, key);
+    // return k == kh_end(self->nodes) ? NULL : &kh_val(self->nodes, k);
 }
 
 ktable_key
@@ -159,13 +150,14 @@ ktable_insert(
     uecc_public_key* id,
     urlp* meta)
 {
+    // TODO
     ((void)meta);
     int absent;
-    knode* n = NULL;
-    khiter_t k;
+    knodes* n = NULL;
+    int k;
     if (ktable_size(self) < self->settings.size) {
-        k = kh_put(knode_table, self->nodes, key, &absent);
-        n = &kh_val(self->nodes, k);
+        // k = kh_put(knode_table, self->nodes, key, &absent);
+        // n = &kh_val(self->nodes, k);
         n->ip = ip;
         n->tcp = tcp;
         n->udp = udp;
@@ -183,21 +175,16 @@ ktable_insert(
         // Not investing much effort here.
         // TODO - state should be something like RLPX_STATE_WANT_PONG
         // On pong update recents and have discovery connect use that.
-        n->state = KNODE_STATE_PENDING;
+        // n->state = KNODE_STATE_PENDING;
 
         // Ping this node
-        self->settings.want_ping(self, n);
+        // self->settings.want_ping(self, n);
 
         // Start timer - if no pong remove from table
-        n->timerid = key;
-        usys_timers_insert(
-            &self->timers,
-            n->timerid,
-            ktable_timer_want_pong,
-            self,
-            self->settings.pong_timeout);
-        usys_timers_start(&self->timers, n->timerid, 0);
-        return k;
+        n->key = key;
+        utimers_insert(self->timers, n->key, ktable_timer_want_pong, self);
+        utimers_start(self->timers, n->key, self->settings.pong_timeout);
+        return 0;
     }
     return 0;
 }
@@ -205,38 +192,40 @@ ktable_insert(
 void
 ktable_remove(ktable* self, ktable_key key)
 {
-    khiter_t k = kh_get(knode_table, self->nodes, key);
-    if (!(k == kh_end(self->nodes))) kh_del(knode_table, self->nodes, k);
+    // TODO
+    // khiter_t k = kh_get(knode_table, self->nodes, key);
+    // if (!(k == kh_end(self->nodes))) kh_del(knode_table, self->nodes, k);
 }
 
 int
-ktable_timer_want_pong(usys_timer_key key, void* ctx, uint32_t tick)
+ktable_timer_want_pong(utimers* t, void* ctx, uint32_t tick)
 {
     // This node didn't pong us back - remove from the table
     // Timers and node share same lookup key
     ((void)tick);
     ktable* table = (ktable*)ctx;
-    ktable_remove(table, key);
+    ktable_remove(table, t->key);
     return 0;
 }
 
 int
-ktable_timer_refresh(usys_timer_key key, void* ctx, uint32_t tick)
+ktable_timer_refresh(utimers* t, void* ctx, uint32_t tick)
 {
     // Send some find nodes
     ktable* table = (ktable*)ctx;
-    khiter_t k;
-    knode* n;
+    int k;
+    knodes* n;
     uint8_t id[65] = { 0x04 };
+
     // TODO send find to alpha number of nodes
-    for (k = kh_begin(table->nodes); k != kh_end(table->nodes); k++) {
-        if (kh_exist(table->nodes, k)) {
-            n = &kh_val(table->nodes, k);
-            urand(&id[1], 64);
-            table->settings.want_find(table, n, id, 65);
-        }
-    }
+    // for (k = kh_begin(table->nodes); k != kh_end(table->nodes); k++) {
+    //    if (kh_exist(table->nodes, k)) {
+    //        n = &kh_val(table->nodes, k);
+    //        urand(&id[1], 64);
+    //        table->settings.want_find(table, n, id, 65);
+    //    }
+    //}
     // Kick timer again
-    usys_timers_start(&table->timers, table->timerid, 0);
+    utimers_start(table->timers, table->timerid, 0);
     return 0;
 }

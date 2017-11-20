@@ -25,8 +25,8 @@
 #include "usys_log.h"
 #include "usys_time.h"
 
-int rlpx_io_discovery_table_ping(ktable* t, knode* n);
-int rlpx_io_discovery_table_find(ktable* t, knode* n, uint8_t* b, uint32_t l);
+int rlpx_io_discovery_table_ping(ktable* t, knodes* n);
+int rlpx_io_discovery_table_find(ktable* t, knodes* n, uint8_t* b, uint32_t l);
 
 ktable_settings g_rlpx_io_discovery_table_settings = {
     .size = 1800,
@@ -119,7 +119,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     rlpx_io_discovery* self = ctx;
     RLPX_DISCOVERY type = -1;
     uint16_t t;
-    knode src, dst;
+    knodes src, dst;
     uecc_public_key target;
     uint32_t tmp; // timestamp or ipv4
     uint8_t buff32[32];
@@ -129,8 +129,8 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     if (urlp_idx_to_u16(rlp, 0, &t)) return -1;
     type = (RLPX_DISCOVERY)t;
 
-    memset(&src, 0, sizeof(knode));
-    memset(&dst, 0, sizeof(knode));
+    memset(&src, 0, sizeof(knodes));
+    memset(&dst, 0, sizeof(knodes));
     memset(buff32, 0, sizeof(buff32));
 
     if (type == RLPX_DISCOVERY_PING) {
@@ -211,16 +211,16 @@ int
 rlpx_io_discovery_recv_ping(
     const urlp** rlp,
     uint8_t* version32,
-    knode* src,
-    knode* dst,
+    knodes* src,
+    knodes* dst,
     uint32_t* timestamp)
 {
     int err;
     uint32_t sz = 32, n = urlp_children(*rlp);
     if (n < 4) return -1;
     if ((!(err = urlp_idx_to_mem(*rlp, 0, version32, &sz))) && //
-        (!(err = knode_rlp_to_node(urlp_at(*rlp, 1), src))) &&
-        (!(err = knode_rlp_to_node(urlp_at(*rlp, 2), dst))) &&
+        (!(err = knodes_rlp_to_node(urlp_at(*rlp, 1), src))) &&
+        (!(err = knodes_rlp_to_node(urlp_at(*rlp, 2), dst))) &&
         (!(err = urlp_idx_to_u32(*rlp, 3, timestamp)))) {
         return err;
     }
@@ -230,14 +230,14 @@ rlpx_io_discovery_recv_ping(
 int
 rlpx_io_discovery_recv_pong(
     const urlp** rlp,
-    knode* to,
+    knodes* to,
     uint8_t* echo32,
     uint32_t* timestamp)
 {
     int err;
     uint32_t sz = 32, n = urlp_children(*rlp);
     if (n < 3) return -1;
-    if ((!(err = knode_rlp_to_node(urlp_at(*rlp, 0), to))) &&
+    if ((!(err = knodes_rlp_to_node(urlp_at(*rlp, 0), to))) &&
         (!(err = urlp_idx_to_mem(*rlp, 1, echo32, &sz))) &&
         (!(err = urlp_idx_to_u32(*rlp, 2, timestamp)))) {
         return err;
@@ -297,7 +297,7 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
     ((void)idx);
     int err;
     rlpx_io_discovery* self = (rlpx_io_discovery*)ctx;
-    knode src, dst;
+    knodes src, dst;
     uint32_t n = urlp_children(rlp), udp, tcp, publen = 64, ip, iplen = 16;
     uint8_t pub[65] = { 0x04 };
     uecc_public_key q;
@@ -359,8 +359,8 @@ int
 rlpx_io_discovery_write_ping(
     uecc_ctx* skey,
     uint32_t ver,
-    const knode* ep_src,
-    const knode* ep_dst,
+    const knodes* ep_src,
+    const knodes* ep_dst,
     uint32_t timestamp,
     uint8_t* dst,
     uint32_t* l)
@@ -369,8 +369,8 @@ rlpx_io_discovery_write_ping(
     urlp* rlp = urlp_list();
     if (rlp) {
         urlp_push_u32(rlp, ver);
-        urlp_push(rlp, knode_node_to_rlp(ep_src));
-        urlp_push(rlp, knode_node_to_rlp(ep_dst));
+        urlp_push(rlp, knodes_node_to_rlp(ep_src));
+        urlp_push(rlp, knodes_node_to_rlp(ep_dst));
         urlp_push_u32(rlp, timestamp);
 
         // TODO the first 32 bytes of the udp packet is used as an echo.
@@ -384,7 +384,7 @@ rlpx_io_discovery_write_ping(
 int
 rlpx_io_discovery_write_pong(
     uecc_ctx* skey,
-    const knode* ep_to,
+    const knodes* ep_to,
     h256* echo,
     uint32_t timestamp,
     uint8_t* dst,
@@ -393,7 +393,7 @@ rlpx_io_discovery_write_pong(
     int err = -1;
     urlp* rlp = urlp_list();
     if (rlp) {
-        urlp_push(rlp, knode_node_to_rlp(ep_to));
+        urlp_push(rlp, knodes_node_to_rlp(ep_to));
         urlp_push_u8_arr(rlp, echo->b, 32);
         urlp_push_u32(rlp, timestamp);
         err = rlpx_io_discovery_write(skey, RLPX_DISCOVERY_PONG, rlp, dst, l);
@@ -453,8 +453,8 @@ rlpx_io_discovery_send_ping(
     rlpx_io_discovery* self,
     uint32_t ip,
     uint32_t port,
-    const knode* ep_src,
-    const knode* ep_dst,
+    const knodes* ep_src,
+    const knodes* ep_dst,
     uint32_t timestamp)
 {
     int err;
@@ -478,7 +478,7 @@ rlpx_io_discovery_send_pong(
     rlpx_io_discovery* self,
     uint32_t ip,
     uint32_t port,
-    const knode* ep_to,
+    const knodes* ep_to,
     h256* echo,
     uint32_t timestamp)
 {
@@ -540,15 +540,15 @@ rlpx_io_discovery_send_neighbours(
 }
 
 int
-rlpx_io_discovery_table_ping(ktable* t, knode* n)
+rlpx_io_discovery_table_ping(ktable* t, knodes* n)
 {
 
     int err;
     rlpx_io_discovery* self = t->context;
-    knode src = {.tcp = *self->base->listen_port,
-                 .udp = *self->base->listen_port,
-                 .ip = 0,
-                 .nodeid = self->base->node.id };
+    knodes src = {.tcp = *self->base->listen_port,
+                  .udp = *self->base->listen_port,
+                  .ip = 0,
+                  .nodeid = self->base->node.id };
     err = rlpx_io_discovery_send_ping(
         self, //
         n->ip,
@@ -560,7 +560,7 @@ rlpx_io_discovery_table_ping(ktable* t, knode* n)
 }
 
 int
-rlpx_io_discovery_table_find(ktable* t, knode* n, uint8_t* b, uint32_t l)
+rlpx_io_discovery_table_find(ktable* t, knodes* n, uint8_t* b, uint32_t l)
 {
     rlpx_io_discovery* self = t->context;
     return rlpx_io_discovery_send_find(

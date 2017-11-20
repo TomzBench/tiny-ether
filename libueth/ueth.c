@@ -147,7 +147,7 @@ int
 ueth_poll_internal(ueth_context* ctx)
 {
     uint32_t i, b = 0, err, now = usys_now();
-    knode src, dst;
+    knodes src, dst;
     rlpx_io_discovery* d;
     async_io* ch[ctx->n + 1];
 
