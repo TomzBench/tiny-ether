@@ -52,6 +52,24 @@ test_knodes_storage()
     }
     err |= knodes_size(nodes, 100) == 50 ? 0 : -1;
 
+    // empty all nodes
+    for (int i = 0; i < 50; i++) {
+        knodes_remove(nodes, i);
+    }
+    err |= knodes_size(nodes, 100) == 0 ? 0 : -1;
+
+    // Check adding nodes into free slot
+    for (int i = 0; i < 100; i++) {
+        knodes_insert_free(nodes, 100, i, i, i, NULL);
+    }
+    err |= knodes_size(nodes, 100) == 100 ? 0 : -1;
+
+    // Check overflow
+    for (int i = 0; i < 100; i++) {
+        knodes_insert_free(nodes, 100, i, i, i, NULL);
+    }
+    err |= knodes_size(nodes, 100) == 100 ? 0 : -1;
+
     // free nodes
     knodes_deinit(nodes, 100);
     return err;

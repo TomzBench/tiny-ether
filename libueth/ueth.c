@@ -100,11 +100,10 @@ ueth_boot(ueth_context* ctx, int n, ...)
         ctx->bootnodes[i].udp = node.port_udp ? node.port_udp : node.port_tcp;
         ktable_insert(
             &discovery->table,
-            ktable_pub_to_key(&node.id),
+            &node.id,
             node.ipv4,
             node.port_tcp,
             node.port_udp,
-            &node.id,
             NULL);
         rlpx_node_deinit(&node);
     }
@@ -146,8 +145,7 @@ ueth_stop(ueth_context* ctx)
 int
 ueth_poll_internal(ueth_context* ctx)
 {
-    uint32_t i, b = 0, err, now = usys_now();
-    knodes src, dst;
+    uint32_t i, b = 0, now = usys_now();
     rlpx_io_discovery* d;
     async_io* ch[ctx->n + 1];
 
@@ -177,33 +175,11 @@ ueth_poll_internal(ueth_context* ctx)
     ktable_poll(&d->table);
     if ((now - ctx->tick) > ctx->config.interval_discovery) {
         ctx->tick = now;
-        usys_log("[SYS] want peers (%d/%d)", 0, ktable_size(&d->table));
+        usys_log(
+            "[SYS] want peers (%d/%d)",
+            0,
+            knodes_size(d->table.nodes, KTABLE_N_NODES));
     }
-
-    // Check if we want to ping some nodes if we have room
-    // if ((now - ctx->tick) > ctx->config.interval_discovery) {
-    //    ctx->tick = now;
-    //    if (b < 30) {
-    //        usys_log("[SYS] need peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
-    //        src.ip = 0;
-    //        src.tcp = src.udp = ctx->config.udp;
-    //        d = rlpx_io_discovery_get_context(&ctx->discovery);
-    //        for (i = 0; i < UETH_CONFIG_MAX_BOOTNODES; i++) {
-    //            if (ctx->bootnodes[i].ip) {
-    //                dst.ip = ctx->bootnodes[i].ip;
-    //                dst.tcp = ctx->bootnodes[i].tcp;
-    //                dst.udp = ctx->bootnodes[i].udp;
-    //                // TODO - ping some in table.
-    //                rlpx_io_discovery_send_find(
-    //                    d, dst.ip, dst.udp, NULL, now + 2);
-    //            } else {
-    //                break;
-    //            }
-    //        }
-    //    } else {
-    //        usys_log("[SYS] peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
-    //    }
-    //}
 
     // Add our listener to poll
     ch[b++] = (async_io*)&ctx->discovery;

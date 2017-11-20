@@ -36,12 +36,60 @@ ktable_settings g_ktable_settings = {
 };
 
 int test_ktable_maintenance();
+int test_ktable_storage();
 
 int
 test_ktable()
 {
     int err = 0;
+    err |= test_ktable_storage();
     // err |= test_ktable_maintenance();
+    return err;
+}
+
+int
+test_ktable_storage()
+{
+    int err = 0;
+    ktable table;
+    ktable_init(&table, &g_ktable_settings, NULL);
+    uint8_t puba[65], pubb[65];
+    knodes* node = NULL;
+
+    uecc_ctx keys[KTABLE_N_NODES + 1];
+    for (int i = 0; i < KTABLE_N_NODES + 1; i++) {
+        uecc_key_init_new(&keys[i]);
+    }
+
+    // Insert the same node confirm table doesnt grow
+    for (int i = 0; i < 10; i++) {
+        ktable_insert(&table, &keys[0].Q, i, i, i, NULL);
+    }
+    err |= knodes_size(table.nodes, KTABLE_N_NODES) == 1 ? 0 : -1;
+
+    // Make sure no overflow
+    for (int i = 0; i < KTABLE_N_NODES + 1; i++) {
+        ktable_insert(&table, &keys[i].Q, i, i, i, NULL);
+    }
+    err |= knodes_size(table.nodes, KTABLE_N_NODES) == KTABLE_N_NODES ? 0 : -1;
+
+    // Access keys
+    for (int i = 0; i < KTABLE_N_NODES; i++) {
+        node = ktable_get(&table, &keys[i].Q);
+        if (!node) {
+            err |= -1;
+        } else {
+            uecc_qtob(&node->nodeid, puba, 65);
+            uecc_qtob(&keys[i].Q, pubb, 65);
+            err |= memcmp(puba, pubb, 65) ? -1 : 0;
+        }
+    }
+
+    // Free
+    for (int i = 0; i < KTABLE_N_NODES + 1; i++) {
+        uecc_key_deinit(&keys[i]);
+    }
+    ktable_deinit(&table);
     return err;
 }
 

@@ -41,6 +41,8 @@
 
 #define KNODES_IS_EMPTY(n) (n.flags & KNODES_EMPTY)
 
+typedef int knode_key;
+
 /**
  * @brief Type of endpoint with additional node id (static key) and usefulness
  */
@@ -48,7 +50,7 @@ typedef struct knodes
 {
     uint32_t ip, tcp, udp;  /*!< endpoing data*/
     uint8_t flags;          /*!< */
-    int key;                /*!< hash lookup*/
+    knode_key key;          /*!< hash lookup*/
     uecc_public_key nodeid; /*!< pubkey */
 } knodes;
 
@@ -76,7 +78,7 @@ knodes_size(knodes* nodes, int count)
 }
 
 static inline knodes*
-knodes_get(knodes* nodes, int idx)
+knodes_get(knodes* nodes, knode_key idx)
 {
     return KNODES_IS_EMPTY(nodes[idx]) ? NULL : &nodes[idx];
 }
@@ -84,7 +86,7 @@ knodes_get(knodes* nodes, int idx)
 static inline int
 knodes_insert(
     knodes* nodes,
-    int idx,
+    knode_key idx,
     uint32_t ip,
     uint32_t tcp,
     uint32_t udp,
@@ -99,8 +101,27 @@ knodes_insert(
     return 0;
 }
 
+static inline knode_key
+knodes_insert_free(
+    knodes* nodes,
+    int count,
+    uint32_t ip,
+    uint32_t tcp,
+    uint32_t udp,
+    uecc_public_key* q)
+{
+    knode_key key = 0;
+    for (key = 0; key < count; key++) {
+        if (KNODES_IS_EMPTY(nodes[key])) {
+            knodes_insert(nodes, key, ip, tcp, udp, q);
+            return key;
+        }
+    }
+    return -1;
+}
+
 static inline int
-knodes_remove(knodes* n, int idx)
+knodes_remove(knodes* n, knode_key idx)
 {
     n[idx].flags |= KNODES_EMPTY;
     return 0;

@@ -33,24 +33,6 @@
 #define KTABLE_N_NODES (20)
 #define KTABLE_N_TIMERS (KTABLE_N_NODES + 1)
 
-typedef int ktable_key;
-
-/**
- * @brief
- *
- * @param q
- *
- * @return
- */
-static inline ktable_key
-ktable_pub_to_key(uecc_public_key* q)
-{
-    uint8_t pub[65], h[32];
-    uecc_qtob(q, pub, 65);
-    ukeccak256(&pub[1], 64, h, 32);
-    return *(int64_t*)h;
-}
-
 /**
  * @brief Forward declaration
  */
@@ -71,17 +53,23 @@ typedef struct ktable_settings
     ktable_want_find_fn want_find;
 } ktable_settings;
 
+typedef struct
+{
+    uint8_t h32[32];
+} ktable_keys;
+
 /**
  * @brief A list of nodes we know about
  */
 typedef struct ktable
 {
-    ktable_settings settings;        /*!< callers config*/
-    void* context;                   /*!< callers callback context */
-    int timerid;                     /*!< refresh timer id */
-    utimers timers[KTABLE_N_TIMERS]; /*!< */
-    knodes nodes[KTABLE_N_NODES];    /*!< */
-    knodes* recents[3];              /*!< last ping */
+    ktable_settings settings;         /*!< callers config*/
+    void* context;                    /*!< callers callback context */
+    int timerid;                      /*!< refresh timer id */
+    ktable_keys keys[KTABLE_N_NODES]; /*!< */
+    utimers timers[KTABLE_N_TIMERS];  /*!< */
+    knodes nodes[KTABLE_N_NODES];     /*!< */
+    knodes* recents[3];               /*!< last ping */
 } ktable;
 
 /**
@@ -99,13 +87,14 @@ int ktable_init(ktable* table, ktable_settings* settings, void*);
 void ktable_deinit(ktable* table);
 
 /**
- * @brief Return the number of nodes in the table
+ * @brief Return a node index from a public key
  *
  * @param self
+ * @param q
  *
  * @return
  */
-uint32_t ktable_size(ktable* self);
+knode_key ktable_pub_to_key(ktable* self, uecc_public_key* q);
 
 /**
  * @brief Call periodically to maintain table
@@ -130,11 +119,10 @@ void ktable_poll(ktable* self);
  */
 int ktable_ping(
     ktable* self,
-    ktable_key key,
+    uecc_public_key* q,
     uint32_t ip,
     uint32_t tcp,
-    uint32_t udp,
-    uecc_public_key* id);
+    uint32_t udp);
 
 /**
  * @brief Pong a device in the table
@@ -150,11 +138,10 @@ int ktable_ping(
  */
 int ktable_pong(
     ktable* self,
-    ktable_key key,
+    uecc_public_key* q,
     uint32_t ip,
     uint32_t tcp,
-    uint32_t udp,
-    uecc_public_key* id);
+    uint32_t udp);
 
 /**
  * @brief Make this "node" a most recently heard from node
@@ -172,7 +159,7 @@ void ktable_update_recent(ktable* table, knodes* node);
  *
  * @return the node or NULL if it does not exist
  */
-knodes* ktable_get(ktable* self, ktable_key key);
+knodes* ktable_get(ktable* self, uecc_public_key* q);
 
 /**
  * @brief Add a node to our table using rlp data received from find node reply
@@ -182,7 +169,7 @@ knodes* ktable_get(ktable* self, ktable_key key);
  *
  * @return
  */
-ktable_key ktable_insert_rlp(ktable* table, ktable_key key, const urlp* rlp);
+knode_key ktable_insert_rlp(ktable* table, uecc_public_key*, const urlp* rlp);
 
 /**
  * @brief Add a node to out table using raw data
@@ -197,13 +184,12 @@ ktable_key ktable_insert_rlp(ktable* table, ktable_key key, const urlp* rlp);
  *
  * @return
  */
-ktable_key ktable_insert(
+knode_key ktable_insert(
     ktable* table,
-    ktable_key key,
+    uecc_public_key* q,
     uint32_t ip,
     uint32_t tcp,
     uint32_t udp,
-    uecc_public_key* id,
     urlp* meta);
 
 /**
@@ -212,7 +198,7 @@ ktable_key ktable_insert(
  * @param self
  * @param key
  */
-void ktable_remove(ktable* self, ktable_key key);
+void ktable_remove(ktable* self, knode_key key);
 
 //#ifdef __cplusplus
 //}

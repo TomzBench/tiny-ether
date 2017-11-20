@@ -29,6 +29,7 @@ int
 ktable_init(ktable* table, ktable_settings* settings, void* ctx)
 {
     memset(table, 0, sizeof(ktable));
+    knodes_init(table->nodes, KTABLE_N_NODES);
     table->settings = *settings;
     table->context = ctx;
     table->timerid = KTABLE_N_TIMERS - 1;
@@ -41,15 +42,25 @@ ktable_init(ktable* table, ktable_settings* settings, void* ctx)
 void
 ktable_deinit(ktable* table)
 {
+    knodes_deinit(table->nodes, KTABLE_N_NODES);
     utimers_deinit(table->timers, KTABLE_N_TIMERS);
     memset(table, 0, sizeof(ktable));
 }
 
-uint32_t
-ktable_size(ktable* self)
+knode_key
+ktable_pub_to_key(ktable* self, uecc_public_key* q)
 {
-    // TODO
-    // return kh_size(self->nodes);
+    uint8_t h32[32], pub65[65];
+    int i, c;
+    uecc_qtob(q, pub65, sizeof(pub65));
+    ukeccak256(&pub65[1], 64, h32, 32);
+    for (i = 0; i < KTABLE_N_NODES; i++) {
+        for (c = 0; c < 32; c++) {
+            if (!(self->keys[i].h32[c] == h32[c])) break;
+        }
+        if (c == 32) break; // all equal
+    }
+    return i == KTABLE_N_NODES ? -1 : i;
 }
 
 void
@@ -61,16 +72,15 @@ ktable_poll(ktable* self)
 int
 ktable_ping(
     ktable* self,
-    ktable_key key,
+    uecc_public_key* q,
     uint32_t ip,
     uint32_t tcp,
-    uint32_t udp,
-    uecc_public_key* id)
+    uint32_t udp)
 {
-    knodes* node = ktable_get(self, key);
+    knodes* node = ktable_get(self, q);
     if (!node) {
         // table insert auto pings (we'll see if we need to change that)
-        ktable_insert(self, key, ip, tcp, udp, id, NULL);
+        ktable_insert(self, q, ip, tcp, udp, NULL);
         return 0;
     } else {
         if (udp) node->udp = udp;
@@ -82,20 +92,18 @@ ktable_ping(
 int
 ktable_pong(
     ktable* self,
-    ktable_key key,
+    uecc_public_key* q,
     uint32_t ip,
     uint32_t tcp,
-    uint32_t udp,
-    uecc_public_key* id)
-
+    uint32_t udp)
 {
-    knodes* node = ktable_get(self, key);
+    knodes* node = ktable_get(self, q);
     if (node) {
         utimers_cancel(self->timers, node->key);
         if (ip) node->ip = ip;
         if (tcp) node->tcp = tcp;
         if (udp) node->udp = udp;
-        if (id) node->nodeid = *id;
+        if (q) node->nodeid = *q;
         return 0;
     } else {
         // unsolicited pong
@@ -112,15 +120,14 @@ ktable_update_recent(ktable* table, knodes* node)
 }
 
 knodes*
-ktable_get(ktable* self, ktable_key key)
+ktable_get(ktable* self, uecc_public_key* q)
 {
-    // TODO
-    // khiter_t k = kh_get(knode_table, self->nodes, key);
-    // return k == kh_end(self->nodes) ? NULL : &kh_val(self->nodes, k);
+    knode_key key = ktable_pub_to_key(self, q);
+    return key >= 0 ? knodes_get(self->nodes, key) : NULL;
 }
 
-ktable_key
-ktable_insert_rlp(ktable* table, ktable_key key, const urlp* rlp)
+knode_key
+ktable_insert_rlp(ktable* table, uecc_public_key* key, const urlp* rlp)
 {
     int err = 0;
     uint32_t n = urlp_children(rlp), udp, tcp, ip, publen = 64, iplen = 16;
@@ -135,66 +142,46 @@ ktable_insert_rlp(ktable* table, ktable_key key, const urlp* rlp)
         (!(err = urlp_idx_to_u32(rlp, 2, &tcp))) &&
         (!(err = urlp_idx_to_mem(rlp, 3, &pub[1], &publen))) &&
         (!(err = uecc_btoq(pub, publen + 1, &q)))) {
-        return ktable_insert(table, key, ip, udp, tcp, &q, NULL);
+        return ktable_insert(table, key, ip, udp, tcp, NULL);
     }
     return 0;
 }
 
-ktable_key
+knode_key
 ktable_insert(
     ktable* self,
-    ktable_key key,
+    uecc_public_key* q,
     uint32_t ip,
     uint32_t tcp,
     uint32_t udp,
-    uecc_public_key* id,
     urlp* meta)
 {
-    // TODO
     ((void)meta);
-    int absent;
-    knodes* n = NULL;
-    int k;
-    if (ktable_size(self) < self->settings.size) {
-        // k = kh_put(knode_table, self->nodes, key, &absent);
-        // n = &kh_val(self->nodes, k);
-        n->ip = ip;
-        n->tcp = tcp;
-        n->udp = udp;
-        if (id) n->nodeid = *id;
-        n->key = key;
-
-        // Need devp2p hello to figure out if we like this node
-        // This will probably change with introduction of topics in the
-        // udp discovery protocol.
-        //
-        // The rlpx_io_discovery driver will mark this node as useless if
-        // it doesn't like it - it will then be overwritten with other
-        // nodes when state is set to false.
-        //
-        // Not investing much effort here.
-        // TODO - state should be something like RLPX_STATE_WANT_PONG
-        // On pong update recents and have discovery connect use that.
-        // n->state = KNODE_STATE_PENDING;
-
-        // Ping this node
-        // self->settings.want_ping(self, n);
-
-        // Start timer - if no pong remove from table
-        n->key = key;
-        utimers_insert(self->timers, n->key, ktable_timer_want_pong, self);
-        utimers_start(self->timers, n->key, self->settings.pong_timeout);
+    knodes* node = ktable_get(self, q);
+    knode_key key;
+    uint8_t pub[65];
+    if (node) {
+        node->ip = ip;
+        node->tcp = tcp;
+        node->udp = udp;
+        node->nodeid = *q;
         return 0;
+    } else {
+        key = knodes_insert_free(self->nodes, KTABLE_N_NODES, ip, tcp, udp, q);
+        if (key >= 0) {
+            uecc_qtob(q, pub, 65);
+            ukeccak256(&pub[1], 64, self->keys[key].h32, 32);
+            return key;
+        } else {
+            return -1; // no room in table ping nodes cache insert
+        }
     }
-    return 0;
 }
 
 void
-ktable_remove(ktable* self, ktable_key key)
+ktable_remove(ktable* self, knode_key key)
 {
-    // TODO
-    // khiter_t k = kh_get(knode_table, self->nodes, key);
-    // if (!(k == kh_end(self->nodes))) kh_del(knode_table, self->nodes, k);
+    knodes_remove(self->nodes, key);
 }
 
 int

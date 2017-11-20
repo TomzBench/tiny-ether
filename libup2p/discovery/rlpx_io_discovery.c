@@ -146,12 +146,11 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
             // If in table
             // 	- Update UDP from socket data
             ktable_ping(
-                &self->table,                            // handle
-                ktable_pub_to_key(&self->base->node.id), // key
-                src.ip,                                  //
-                src.tcp,                                 // devp2p port
-                async_io_port(&self->base->io),          //
-                &self->base->node.id);                   // pubkey
+                &self->table,         // handle
+                &self->base->node.id, // key
+                src.ip,               //
+                src.tcp,              // devp2p port
+                async_io_port(&self->base->io));
 
             usys_log("[ IN] [UDP] (ping) %s:%d", usys_htoa(src.ip), src.udp);
         }
@@ -167,11 +166,10 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         if (!err) {
             ktable_pong(
                 &self->table,
-                ktable_pub_to_key(&self->base->node.id),
+                &self->base->node.id,
                 async_io_ip_addr(&self->base->io),
                 0,
-                0,
-                NULL);
+                0);
             usys_log(
                 "[ IN] [UDP] (pong) %s:%d",
                 usys_htoa(async_io_ip_addr(&self->base->io)),
