@@ -117,7 +117,7 @@ void ktable_poll(ktable* self);
  *
  * @return
  */
-int ktable_ping(
+int ktable_on_ping(
     ktable* self,
     uecc_public_key* q,
     uint32_t ip,
@@ -136,12 +136,21 @@ int ktable_ping(
  *
  * @return 0 ok -1 device does not exist or other error
  */
-int ktable_pong(
+int ktable_on_pong(
     ktable* self,
     uecc_public_key* q,
     uint32_t ip,
     uint32_t tcp,
     uint32_t udp);
+
+/**
+ * @brief
+ *
+ * @param self
+ *
+ * @return
+ */
+int ktable_on_find(ktable* self);
 
 /**
  * @brief Present nodes to the table
@@ -152,7 +161,7 @@ int ktable_pong(
  *
  * @return
  */
-int ktable_neighbours(ktable* self, const urlp** rlp);
+int ktable_on_neighbours(ktable* self, const urlp** rlp);
 
 /**
  * @brief Make this "node" a most recently heard from node

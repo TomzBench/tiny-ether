@@ -19,12 +19,12 @@
  * @date 2017
  */
 
-//#ifndef KNODE_H_
-//#define KNODE_H_
-//
-//#ifdef __cplusplus
-// extern "C" {
-//#endif
+#ifndef KNODE_H_
+#define KNODE_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "rlpx_config.h"
 #include "uecc.h"
@@ -148,7 +148,7 @@ int knodes_rlp_to_node(const urlp*, knodes* ep);
  */
 urlp* knodes_node_to_rlp(const knodes* ep);
 
-//#ifdef __cplusplus
-//}
-//#endif
-//#endif
+#ifdef __cplusplus
+}
+#endif
+#endif

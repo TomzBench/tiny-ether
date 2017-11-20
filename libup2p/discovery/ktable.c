@@ -71,7 +71,7 @@ ktable_poll(ktable* self)
 }
 
 int
-ktable_ping(
+ktable_on_ping(
     ktable* self,
     uecc_public_key* q,
     uint32_t ip,
@@ -91,7 +91,7 @@ ktable_ping(
 }
 
 int
-ktable_pong(
+ktable_on_pong(
     ktable* self,
     uecc_public_key* q,
     uint32_t ip,
@@ -113,7 +113,14 @@ ktable_pong(
 }
 
 int
-ktable_neighbours(ktable* self, const urlp** rlp)
+ktable_on_find(ktable* self)
+{
+    ((void)self);
+    return -1;
+}
+
+int
+ktable_on_neighbours(ktable* self, const urlp** rlp)
 {
     const urlp *n = urlp_at(*rlp, 0),              // get list of neighbours
         *ts = urlp_at(*rlp, 1);                    // get timestamp

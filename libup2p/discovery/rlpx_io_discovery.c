@@ -144,7 +144,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
             // 	- Send ping
             // If in table
             // 	- Update UDP from socket data
-            ktable_ping(
+            ktable_on_ping(
                 &self->table,         // handle
                 &self->base->node.id, // key
                 src.ip,               //
@@ -163,7 +163,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
         //  - Update ip address
         err = rlpx_io_discovery_recv_pong(&crlp, &dst, buff32, &tmp);
         if (!err) {
-            ktable_pong(
+            ktable_on_pong(
                 &self->table,
                 &self->base->node.id,
                 async_io_ip_addr(&self->base->io),
@@ -191,7 +191,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
 
         // Received some neighbours
-        err = ktable_neighbours(&self->table, &crlp);
+        err = ktable_on_neighbours(&self->table, &crlp);
         usys_log(
             "[ IN] [UDP] (neighbours) %s:%d",
             usys_htoa(async_io_ip_addr(&self->base->io)),
