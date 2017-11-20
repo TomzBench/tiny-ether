@@ -187,7 +187,7 @@ rlpx_io_discovery_recv(void* ctx, const urlp* rlp)
                 async_io_ip_addr(&self->base->io),
                 async_io_port(&self->base->io),
                 &self->table,
-                usys_now() + 2);
+                usys_now() + 15);
         }
     } else if (type == RLPX_DISCOVERY_NEIGHBOURS) {
 
@@ -317,7 +317,7 @@ rlpx_walk_neighbours(const urlp* rlp, int idx, void* ctx)
         dst.ip = ip;
         dst.tcp = tcp;
         dst.udp = udp;
-        rlpx_io_discovery_send_ping(self, ip, udp, &src, &dst, usys_now() + 2);
+        rlpx_io_discovery_send_ping(self, ip, udp, &src, &dst, usys_now() + 15);
     }
 }
 
@@ -463,7 +463,7 @@ rlpx_io_discovery_send_ping(
         4,
         ep_src,
         ep_dst,
-        timestamp ? timestamp : usys_now(),
+        timestamp ? timestamp : usys_now() + 15,
         stack,
         &len);
     // usys_log("[OUT] [UDP] (ping) (size: %d) %s", len, usys_htoa(ip));
@@ -487,7 +487,7 @@ rlpx_io_discovery_send_pong(
         self->base->skey,
         ep_to,
         echo,
-        timestamp ? timestamp : usys_now(),
+        timestamp ? timestamp : usys_now() + 15,
         stack,
         &len);
     if (!err) err = rlpx_io_sendto(self->base, ip, port, stack, len);
@@ -508,7 +508,7 @@ rlpx_io_discovery_send_find(
     err = rlpx_io_discovery_write_find(
         self->base->skey,
         nodeid,
-        timestamp ? timestamp : usys_now(),
+        timestamp ? timestamp : usys_now() + 15,
         stack,
         &len);
     // usys_log("[OUT] [UDP] (find) %s", usys_htoa(ip));
@@ -530,7 +530,7 @@ rlpx_io_discovery_send_neighbours(
     err = rlpx_io_discovery_write_neighbours(
         self->base->skey,
         table,
-        timestamp ? timestamp : usys_now(),
+        timestamp ? timestamp : usys_now() + 15,
         stack,
         &len);
     if (!err) err = rlpx_io_sendto(self->base, ip, port, stack, len);
@@ -553,7 +553,7 @@ rlpx_io_discovery_table_ping(ktable* t, knodes* n)
         n->udp,
         &src,
         n,
-        usys_now() + 2);
+        usys_now() + 15);
     return err;
 }
 
@@ -562,5 +562,5 @@ rlpx_io_discovery_table_find(ktable* t, knodes* n, uint8_t* b, uint32_t l)
 {
     rlpx_io_discovery* self = t->context;
     return rlpx_io_discovery_send_find(
-        self, n->ip, n->udp, NULL, usys_now() + 2);
+        self, n->ip, n->udp, NULL, usys_now() + 15);
 }
