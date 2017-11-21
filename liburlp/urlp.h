@@ -43,10 +43,10 @@ urlp* urlp_alloc(uint32_t);
 void urlp_free(urlp**);
 uint32_t urlp_read_size(const uint8_t* b);
 urlp* urlp_list();
-urlp* urlp_item_u64(const uint64_t);
-urlp* urlp_item_u32(const uint32_t);
-urlp* urlp_item_u16(const uint16_t);
-urlp* urlp_item_u8(const uint8_t);
+urlp* urlp_item_u64(uint64_t);
+urlp* urlp_item_u32(uint32_t);
+urlp* urlp_item_u16(uint16_t);
+urlp* urlp_item_u8(uint8_t);
 urlp* urlp_item_u64_arr(const uint64_t*, uint32_t sz);
 urlp* urlp_item_u32_arr(const uint32_t*, uint32_t sz);
 urlp* urlp_item_u16_arr(const uint16_t*, uint32_t sz);
@@ -87,6 +87,108 @@ uint32_t urlp_print_size(const urlp* rlp);
 int urlp_print(const urlp* rlp, uint8_t* b, uint32_t* sz);
 urlp* urlp_parse(const uint8_t* b, uint32_t);
 void urlp_foreach(const urlp* rlp, void* ctx, urlp_walk_fn fn);
+
+// Can macro these
+static inline int
+urlp_push_u8(urlp* rlp, uint8_t b)
+{
+    urlp* item = urlp_item_u8(b);
+    if (item) {
+        urlp_push(rlp, item);
+        return 0;
+    }
+    return -1;
+}
+
+static inline int
+urlp_push_u16(urlp* rlp, uint16_t b)
+{
+
+    urlp* item = urlp_item_u16(b);
+    if (item) {
+        urlp_push(rlp, item);
+        return 0;
+    }
+    return -1;
+}
+
+static inline int
+urlp_push_u32(urlp* rlp, uint32_t b)
+{
+    urlp* item = urlp_item_u32(b);
+    if (item) {
+        urlp_push(rlp, item);
+        return 0;
+    }
+    return -1;
+}
+
+static inline int
+urlp_push_u64(urlp* rlp, uint64_t b)
+{
+    urlp* item = urlp_item_u64(b);
+    if (item) {
+        urlp_push(rlp, item);
+        return 0;
+    }
+    return -1;
+}
+
+static inline int
+urlp_push_u8_arr(urlp* rlp, const uint8_t* b, uint32_t sz)
+{
+    urlp* item = urlp_item_u8_arr(b, sz);
+    if (item) {
+        urlp_push(rlp, item);
+        return 0;
+    }
+    return -1;
+}
+
+static inline int
+urlp_push_u16_arr(urlp* rlp, const uint16_t* b, uint32_t sz)
+{
+    urlp* item = urlp_item_u16_arr(b, sz);
+    if (item) {
+        urlp_push(rlp, item);
+        return 0;
+    }
+    return -1;
+}
+
+static inline int
+urlp_push_u32_arr(urlp* rlp, const uint32_t* b, uint32_t sz)
+{
+    urlp* item = urlp_item_u32_arr(b, sz);
+    if (item) {
+        urlp_push(rlp, item);
+        return 0;
+    }
+    return -1;
+}
+
+static inline int
+urlp_push_u64_arr(urlp* rlp, const uint64_t* b, uint32_t sz)
+{
+    urlp* item = urlp_item_u64_arr(b, sz);
+    if (item) {
+        urlp_push(rlp, item);
+        return 0;
+    }
+    return -1;
+}
+
+static inline int
+urlp_push_mem(urlp* rlp, const uint8_t* b, uint32_t sz)
+{
+    return urlp_push_u8_arr(rlp, b, sz);
+}
+
+static inline int
+urlp_push_str(urlp* rlp, const char* str)
+{
+    return urlp_push_u8_arr(rlp, (const uint8_t*)str, strlen(str));
+}
 
 #ifdef __cplusplus
 }

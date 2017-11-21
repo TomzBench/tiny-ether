@@ -65,16 +65,10 @@ typedef struct async_io_settings
  */
 typedef struct async_io_mock_settings
 {
-    union
-    {
-        usys_io_send_fn send;
-        usys_io_send_to_fn sendto;
-    };
-    union
-    {
-        usys_io_recv_fn recv;
-        usys_io_recv_from_fn recvfrom;
-    };
+    usys_io_send_fn send;
+    usys_io_send_to_fn sendto;
+    usys_io_recv_fn recv;
+    usys_io_recv_from_fn recvfrom;
     usys_io_ready_fn ready;
     usys_io_connect_fn connect;
     usys_io_close_fn close;
@@ -192,10 +186,11 @@ async_io_len(async_io* self)
 }
 
 static inline const void*
-async_io_memcpy(async_io* self, uint32_t idx, void* mem, size_t l)
+async_io_memcpy(async_io* self, void* mem, size_t l)
 {
-    self->len = idx + l;
-    return memcpy(&self->b[idx], mem, l);
+    l = (l <= self->len) ? l : self->len;
+    self->len = l;
+    return memcpy(self->b, mem, l);
 }
 
 static inline int
@@ -265,8 +260,13 @@ async_io_state_recv_set(async_io* io)
 static inline int
 async_io_state_send(async_io* io)
 {
-    return ASYNC_IO_IS_SEND(io->state);
-    // return ASYNC_IO_IS_READY(io->state) ? ASYNC_IO_IS_SEND(io->state) : 0;
+    return (ASYNC_IO_IS_SEND(io->state));
+}
+
+static inline int
+async_io_state_busy(async_io* io)
+{
+    return (ASYNC_IO_IS_SEND(io->state) || (io->c));
 }
 
 static inline void

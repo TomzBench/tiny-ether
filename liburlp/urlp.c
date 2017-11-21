@@ -217,23 +217,29 @@ urlp_list()
 }
 
 urlp*
-urlp_item_u64(const uint64_t val)
+urlp_item_u64(uint64_t val)
 {
     return urlp_item_u64_arr(&val, 1);
 }
 
 urlp*
-urlp_item_u32(const uint32_t val)
+urlp_item_u32(uint32_t val)
 {
     return urlp_item_u32_arr(&val, 1);
 }
 
 urlp*
-urlp_item_u16(const uint16_t val)
+urlp_item_u16(uint16_t val)
 {
     return urlp_item_u16_arr(&val, 1);
 }
-// urlp* urlp_item_u8(const uint8_t);
+
+urlp*
+urlp_item_u8(uint8_t val)
+{
+    return urlp_item_u8_arr(&val, 1);
+}
+
 urlp*
 urlp_item_u64_arr(const uint64_t* b, uint32_t sz)
 {

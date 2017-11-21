@@ -22,7 +22,7 @@
 #include "test.h"
 #include <string.h>
 
-extern async_io_mock_settings g_io_mock_settings;
+extern async_io_mock_settings g_io_mock_tcp_settings;
 
 test_vector g_test_vectors[] = { //
     {.auth = AUTH_1,
@@ -97,6 +97,9 @@ main(int argc, char* argv[])
     IF_ERR_EXIT(test_protocol());
     IF_ERR_EXIT(test_enode());
     IF_ERR_EXIT(test_discovery());
+    IF_ERR_EXIT(test_io());
+    IF_ERR_EXIT(test_ktable());
+    IF_ERR_EXIT(test_knodes());
 
 EXIT:
     if (!err) {
@@ -135,8 +138,8 @@ test_session_init(test_session* s, int vec)
     uecc_key_init_binary(&ekey_b, &bob_e);
     s->alice = rlpx_io_alloc(&s->skey_a, &s->udp[0]);
     s->bob = rlpx_io_alloc(&s->skey_b, &s->udp[1]);
-    async_io_install_mock(&s->alice->io, &g_io_mock_settings);
-    async_io_install_mock(&s->bob->io, &g_io_mock_settings);
+    async_io_install_mock(&s->alice->io, &g_io_mock_tcp_settings);
+    async_io_install_mock(&s->bob->io, &g_io_mock_tcp_settings);
     rlpx_io_devp2p_install(s->alice);
     rlpx_io_devp2p_install(s->bob);
 

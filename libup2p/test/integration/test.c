@@ -25,7 +25,7 @@
 #include "usys_signals.h"
 #include "usys_time.h"
 
-const char* g_test_enode = GETH_P2P_LOCAL;
+const char* g_test_enode = PYDEV_P2P_LOCAL; // GETH_P2P_LOCAL;
 
 /**
  * @brief 1) Connect and authenticate to a remote endpoint.

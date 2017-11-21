@@ -196,10 +196,10 @@ rlpx_handshake_auth_init(rlpx_handshake* hs, const uecc_public_key* to)
     uecc_sig_to_bin(&sig, rawsig);
     uecc_qtob(&hs->skey->Q, rawpub, 65);
     if ((rlp = urlp_list())) {
-        urlp_push(rlp, urlp_item_u8_arr(rawsig, 65));
-        urlp_push(rlp, urlp_item_u8_arr(&rawpub[1], 64));
-        urlp_push(rlp, urlp_item_u8_arr(hs->nonce->b, 32));
-        urlp_push(rlp, urlp_item_u64(4));
+        urlp_push_u8_arr(rlp, rawsig, 65);
+        urlp_push_u8_arr(rlp, &rawpub[1], 64);
+        urlp_push_u8_arr(rlp, hs->nonce->b, 32);
+        urlp_push_u64(rlp, 4);
     }
     err = rlpx_encrypt(rlp, to, hs->cipher, &hs->cipher_len);
     urlp_free(&rlp);
@@ -215,9 +215,9 @@ rlpx_handshake_ack_init(rlpx_handshake* hs, const uecc_public_key* to)
     if (uecc_qtob(&hs->ekey->Q, rawekey.b, sizeof(rawekey.b))) return -1;
     if (!(rlp = urlp_list())) return -1;
     if (rlp) {
-        urlp_push(rlp, urlp_item_u8_arr(&rawekey.b[1], 64));
-        urlp_push(rlp, urlp_item_u8_arr(hs->nonce->b, 32));
-        urlp_push(rlp, urlp_item_u64(4));
+        urlp_push_u8_arr(rlp, &rawekey.b[1], 64);
+        urlp_push_u8_arr(rlp, hs->nonce->b, 32);
+        urlp_push_u64(rlp, 4);
     }
     if (!(urlp_children(rlp) == 3)) {
         urlp_free(&rlp);
@@ -291,10 +291,10 @@ rlpx_handshake_auth_recv_legacy(
     if (!(l == 307)) return err;
     if (!(uecies_decrypt(hs->skey, NULL, 0, auth, l, b) == 194)) return err;
     if (!(*rlp_p = urlp_list())) return err;
-    urlp_push(*rlp_p, urlp_item_u8_arr(b, 65));                // signature
-    urlp_push(*rlp_p, urlp_item_u8_arr(&b[65 + 32], 64));      // pubkey
-    urlp_push(*rlp_p, urlp_item_u8_arr(&b[65 + 32 + 64], 32)); // nonce
-    urlp_push(*rlp_p, urlp_item_u64(4));                       // version
+    urlp_push_u8_arr(*rlp_p, b, 65);                // signature
+    urlp_push_u8_arr(*rlp_p, &b[65 + 32], 64);      // pubkey
+    urlp_push_u8_arr(*rlp_p, &b[65 + 32 + 64], 32); // nonce
+    urlp_push_u64(*rlp_p, 4);                       // version
     return 0;
 }
 
@@ -346,9 +346,9 @@ rlpx_handshake_ack_recv_legacy(
     uint8_t b[194];
     if (!(uecies_decrypt(hs->skey, NULL, 0, ack, l, b) > 0)) return err;
     if (!(*rlp_p = urlp_list())) return err;
-    urlp_push(*rlp_p, urlp_item_u8_arr(b, 64));      // pubkey
-    urlp_push(*rlp_p, urlp_item_u8_arr(&b[64], 32)); // nonce
-    urlp_push(*rlp_p, urlp_item_u64(4));             // ver
+    urlp_push_u8_arr(*rlp_p, b, 64);      // pubkey
+    urlp_push_u8_arr(*rlp_p, &b[64], 32); // nonce
+    urlp_push_u64(*rlp_p, 4);             // ver
     return 0;
 }
 

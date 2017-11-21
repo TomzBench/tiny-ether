@@ -35,8 +35,11 @@ usys_connect(usys_socket_fd* sock_p, const char* host, int port)
 {
     // return <0 if err, 0 if INPROGRESS, >0 if connect instant (ie local host)
     uint32_t ip;
-    inet_pton(AF_INET, host, &ip);
-    return usys_connect_raw(sock_p, ip, port);
+    if (inet_pton(AF_INET, host, &ip)) {
+        return usys_connect_raw(sock_p, ip, port);
+    } else {
+        return -1;
+    }
 }
 
 int

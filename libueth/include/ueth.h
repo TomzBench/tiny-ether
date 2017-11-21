@@ -28,8 +28,8 @@ extern "C" {
 
 #include "ueth_config.h"
 
+#include "discovery/rlpx_io_discovery.h"
 #include "rlpx_io_devp2p.h"
-#include "rlpx_io_discovery.h"
 
 typedef struct
 {
@@ -47,7 +47,7 @@ typedef struct ueth_context
     int (*poll)(struct ueth_context*);
     uint32_t n;
     uint32_t tick;
-    rlpx_io_discovery_endpoint bootnodes[UETH_CONFIG_MAX_BOOTNODES];
+    knodes bootnodes[UETH_CONFIG_MAX_BOOTNODES];
     rlpx_io discovery;
     rlpx_io ch[UETH_CONFIG_NUM_CHANNELS];
 } ueth_context;

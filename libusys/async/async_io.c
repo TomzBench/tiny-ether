@@ -135,7 +135,7 @@ async_io_udp_listen(async_io* io, uint32_t port)
 int
 async_io_tcp_send(async_io* io)
 {
-    if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
+    if ((async_io_has_sock(io)) && (!async_io_state_busy(io))) {
         // If we are already not in send state and have a socket
         async_io_state_send_set(io);
         io->poll = async_io_tcp_poll_send;
@@ -149,7 +149,7 @@ async_io_tcp_send(async_io* io)
 int
 async_io_udp_send(async_io* io, uint32_t ip, uint32_t port)
 {
-    if ((async_io_has_sock(io)) && (!async_io_state_send(io))) {
+    if ((async_io_has_sock(io)) && (!async_io_state_busy(io))) {
         io->addr.ip = ip;
         io->addr.port = port;
         async_io_state_send_set(io);
@@ -205,15 +205,16 @@ async_io_tcp_poll_connect(async_io* io)
 int
 async_io_tcp_poll_send(async_io* io)
 {
-    int ret = -1, c = 0, end = io->len;
+    int ret = -1, c = 0, end = io->len, sent = 0;
     for (c = 0; c < 2; c++) {
         ret = io->send(&io->sock, &io->b[io->c], io->len - io->c);
         if (ret >= 0) {
             if (ret + (int)io->c == end) {
                 // Send complete - put back to recv state
-                io->on_send(io->ctx, 0, io->b, io->len);
+                sent = io->len;
                 async_io_state_recv_set(io);
                 io->poll = async_io_tcp_poll_recv;
+                io->on_send(io->ctx, 0, io->b, sent);
                 ret = 0;
                 break;
             } else if (ret == 0) {
@@ -236,12 +237,13 @@ async_io_tcp_poll_send(async_io* io)
 int
 async_io_tcp_poll_recv(async_io* io)
 {
-    int ret = -1, end = io->len;
+    int ret = -1;
 
     for (int c = 0; c < 2; c++) {
         ret = io->recv(&io->sock, &io->b[io->c], io->len - io->c);
         if (ret >= 0) {
-            if (ret + (int)io->c == end) {
+            io->c += ret;
+            if (io->c >= io->len) {
                 // Buffer isn't big enough
                 io->on_error(io->ctx);
                 async_io_state_erro_set(io);
@@ -257,12 +259,12 @@ async_io_tcp_poll_recv(async_io* io)
                 } else {
                     // Looks like we read every thing.
                     io->on_recv(io->ctx, 0, io->b, io->c);
+                    io->c = 0;
                     ret = 0; // OK no more data
                 }
                 break;
             } else {
                 // Read in some data maybe try and read more (no break)
-                io->c += ret;
                 ret = 0;
             }
         } else {
@@ -278,15 +280,16 @@ async_io_tcp_poll_recv(async_io* io)
 int
 async_io_udp_poll_send(async_io* io)
 {
-    int c, ret = -1, end = io->len;
+    int c, ret = -1, end = io->len, sent = 0;
     for (c = 0; c < 2; c++) {
         ret = io->sendto(&io->sock, &io->b[io->c], io->len - io->c, &io->addr);
         if (ret >= 0) {
             if (ret + (int)io->c == end) {
                 // Send complete, put into listen mode
-                io->on_send(io->ctx, 0, io->b, io->len);
+                sent = io->len;
                 async_io_state_recv_set(io);
                 io->poll = async_io_udp_poll_recv;
+                io->on_send(io->ctx, 0, io->b, sent);
                 ret = 0;
                 break;
             } else if (ret == 0) {

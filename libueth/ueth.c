@@ -20,6 +20,7 @@
  */
 
 #include "ueth.h"
+#include "ueth_boot_nodes.h"
 #include "usys_io.h"
 #include "usys_log.h"
 #include "usys_time.h"
@@ -62,6 +63,9 @@ ueth_init(ueth_context* ctx, ueth_config* config)
     rlpx_io_udp_init(&ctx->discovery, &ctx->id, &ctx->config.udp);
     rlpx_io_discovery_install(&ctx->discovery);
 
+    // Setup boot nodes
+    ueth_boot(ctx, 4, TEST_NET_6, TEST_NET_15, GETH_P2P_LOCAL, CPP_P2P_LOCAL);
+
     return 0;
 }
 
@@ -89,9 +93,18 @@ ueth_boot(ueth_context* ctx, int n, ...)
     for (uint32_t i = 0; i < (uint32_t)n; i++) {
         enode = va_arg(l, const char*);
         rlpx_node_init_enode(&node, enode);
+        rlpx_io_discovery* discovery;
+        discovery = rlpx_io_discovery_get_context(&ctx->discovery);
         ctx->bootnodes[i].ip = node.ipv4;
         ctx->bootnodes[i].tcp = node.port_tcp;
         ctx->bootnodes[i].udp = node.port_udp ? node.port_udp : node.port_tcp;
+        ktable_insert(
+            &discovery->table,
+            &node.id,
+            node.ipv4,
+            node.port_tcp,
+            node.port_udp,
+            NULL);
         rlpx_node_deinit(&node);
     }
     va_end(l);
@@ -109,7 +122,7 @@ ueth_stop(ueth_context* ctx)
             devp2p = ctx->ch[i].protocols[0].context;
             if (!(rlpx_io_devp2p_send_disconnect(
                     devp2p, DEVP2P_DISCONNECT_QUITTING))) {
-                mask |= (1 << i);
+                mask |= (1 << b);
                 ch[b++] = &ctx->ch[i];
             }
         }
@@ -120,7 +133,10 @@ ueth_stop(ueth_context* ctx)
         rlpx_io_poll(ch, b, 100);
         for (i = 0; i < b; i++) {
             devp2p = ch[i]->protocols[0].context;
-            if (rlpx_io_is_shutdown(devp2p->base)) mask &= (~(1 << i));
+            if ((!async_io_has_sock(&devp2p->base->io)) ||
+                rlpx_io_is_shutdown(devp2p->base)) {
+                mask &= (~(1 << i));
+            }
         }
     }
     return 0;
@@ -129,8 +145,7 @@ ueth_stop(ueth_context* ctx)
 int
 ueth_poll_internal(ueth_context* ctx)
 {
-    uint32_t i, b = 0, err, now = usys_now();
-    rlpx_io_discovery_endpoint src, dst;
+    uint32_t i, b = 0, now = usys_now();
     rlpx_io_discovery* d;
     async_io* ch[ctx->n + 1];
 
@@ -145,9 +160,10 @@ ueth_poll_internal(ueth_context* ctx)
         }
         // Find free node to connect to if empty
         if (!ctx->ch[i].node.port_tcp) {
-            rlpx_io_discovery* d;
-            d = rlpx_io_discovery_get_context(&ctx->discovery);
-            rlpx_io_discovery_connect(d, &ctx->ch[i]);
+            // TODO
+            // rlpx_io_discovery* d;
+            // d = rlpx_io_discovery_get_context(&ctx->discovery);
+            // rlpx_io_discovery_connect(d, &ctx->ch[i]);
         }
         // Add to io polling if there is a socket
         if (async_io_has_sock(&ctx->ch[i].io)) {
@@ -155,26 +171,14 @@ ueth_poll_internal(ueth_context* ctx)
         }
     }
 
-    // Check if we want to ping some nodes if we have room
+    d = rlpx_io_discovery_get_context(&ctx->discovery);
+    ktable_poll(&d->table);
     if ((now - ctx->tick) > ctx->config.interval_discovery) {
         ctx->tick = now;
-        if (b < 3) {
-            usys_log("[SYS] need peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
-            src.ip = 0;
-            src.tcp = src.udp = ctx->config.udp;
-            d = rlpx_io_discovery_get_context(&ctx->discovery);
-            for (i = 0; i < UETH_CONFIG_MAX_BOOTNODES; i++) {
-                if (ctx->bootnodes[i].ip) {
-                    dst.ip = ctx->bootnodes[i].ip;
-                    dst.tcp = ctx->bootnodes[i].tcp;
-                    dst.udp = ctx->bootnodes[i].udp;
-                    rlpx_io_discovery_send_ping(
-                        d, dst.ip, dst.udp, &src, &dst, now + 2);
-                }
-            }
-        } else {
-            usys_log("[SYS] peers (%d/%d)", b, UETH_CONFIG_NUM_CHANNELS);
-        }
+        usys_log(
+            "[SYS] want peers (%d/%d)",
+            0,
+            knodes_size(d->table.nodes, KTABLE_N_NODES));
     }
 
     // Add our listener to poll

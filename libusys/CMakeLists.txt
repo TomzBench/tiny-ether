@@ -9,6 +9,7 @@ set(sources
 	)
 set(headers 
 	./async/async_io.h
+	./utimers.h
 	)
 list(APPEND sources 
 	./${USYS_DIR}/usys_signals.c 
@@ -27,9 +28,12 @@ list(APPEND headers
 add_library(usys ${sources} ${headers})
 target_include_directories(usys PUBLIC ./${USYS_DIR})
 target_include_directories(usys PUBLIC ./async)
+target_include_directories(usys PUBLIC ./)
 
 #unit test for libusys
-add_executable(usys_unit_test test/test.c)
+add_executable(usys_unit_test 
+	test/test.c 
+	test/test_timers.c)
 
 # setup unit test dependencies
 target_link_libraries(usys_unit_test usys)

@@ -24,19 +24,19 @@
 #include "usys_time.h"
 
 const char* g_devp2p_hello_errors[] = { //
-    "Disconnect requested.",            //
-    "TCP error.",
-    "Bad protocol.",
-    "Remote has no use for us.",
-    "Remote has to many peers.",
-    "Already connected.",
-    "Version mismatch.",
-    "Bad public key.",
-    "Remote shutting down.",
-    "Unexpected public key.",
+    "Disconnect requested",             //
+    "TCP error",
+    "Bad protocol",
+    "Remote has no use for us",
+    "Remote has to many peers",
+    "Already connected",
+    "Version mismatch",
+    "Bad public key",
+    "Remote shutting down",
+    "Unexpected public key",
     "Connected to ourself!",
-    "Timeout.",
-    "Unknown reason."
+    "Timeout",
+    "Unknown reason"
 };
 
 int rlpx_io_devp2p_on_send_shutdown(
@@ -134,19 +134,27 @@ rlpx_io_devp2p_write_hello(
     uint32_t* l)
 {
     int err = -1;
-    urlp *body = urlp_list(), *caps = urlp_list();
+    urlp *body = urlp_list(), *caps = urlp_list(), *pip = urlp_list(),
+         *les = urlp_list(), *p2p = urlp_list();
+    if (!(body && caps && pip && les && p2p)) return -1;
 
-    // Create cababilities list (p2p/4)
-    urlp_push(caps, urlp_push(urlp_item_str("p2p"), urlp_item_u32(4)));
-    urlp_push(caps, urlp_push(urlp_item_str("les"), urlp_item_u32(1)));
-    urlp_push(caps, urlp_push(urlp_item_str("pip"), urlp_item_u32(1)));
+    // Create cababilities list (p2p/4,les/2,pip/2)
+    urlp_push_str(p2p, "p2p");
+    urlp_push_u32(p2p, 4);
+    urlp_push_str(les, "les");
+    urlp_push_u32(les, 2);
+    urlp_push_str(pip, "pip");
+    urlp_push_u32(pip, 2);
+    urlp_push(caps, p2p);
+    urlp_push(caps, les);
+    urlp_push(caps, pip);
 
     // Create body list
-    urlp_push(body, urlp_item_u32(RLPX_VERSION_P2P));
-    urlp_push(body, urlp_item_str(RLPX_CLIENT_ID_STR));
+    urlp_push_u32(body, RLPX_VERSION_P2P);
+    urlp_push_str(body, RLPX_CLIENT_ID_STR);
     urlp_push(body, caps);
-    urlp_push(body, urlp_item_u32(port));
-    urlp_push(body, urlp_item_u8_arr(id, 64));
+    urlp_push_u32(body, port);
+    urlp_push_u8_arr(body, id, 64);
 
     // Encode
     err = rlpx_io_devp2p_write(x, DEVP2P_HELLO, body, out, l);
@@ -164,7 +172,7 @@ rlpx_io_devp2p_write_disconnect(
     int err;
     urlp* rlp = urlp_list();
     if (!rlp) return -1;
-    urlp_push(rlp, urlp_item_u32((uint32_t)reason));
+    urlp_push_u32(rlp, (uint32_t)reason);
     err = rlpx_io_devp2p_write(x, DEVP2P_DISCONNECT, rlp, out, l);
     urlp_free(&rlp);
     return err;
@@ -279,18 +287,17 @@ int
 rlpx_io_devp2p_send_hello(rlpx_io_devp2p* ch)
 {
     int err;
-    async_io* io = (async_io*)ch->base;
-    uint32_t* len = async_io_buffer_length_pointer(io);
-    async_io_len_reset(io);
+    uint32_t len = 1200;
+    uint8_t stack[len];
     err = rlpx_io_devp2p_write_hello(
         &ch->base->x,
         *ch->base->listen_port,
         &ch->base->node_id[1],
-        async_io_buffer(io),
-        len);
+        stack,
+        &len);
     if (!err) {
-        usys_log("[OUT] (hello) size: %d", *len);
-        return rlpx_io_send_sync(&ch->base->io);
+        usys_log("[OUT] (hello) size: %d", len);
+        return rlpx_io_send(ch->base, stack, len);
     } else {
         return err;
     }
@@ -302,15 +309,13 @@ rlpx_io_devp2p_send_disconnect(
     RLPX_DEVP2P_DISCONNECT_REASON reason)
 {
     int err;
-    async_io* io = (async_io*)ch->base;
-    uint32_t* len = async_io_buffer_length_pointer(io);
-    async_io_len_reset(io);
-    err = rlpx_io_devp2p_write_disconnect(
-        &ch->base->x, reason, async_io_buffer(io), len);
+    uint32_t len = 1200;
+    uint8_t stack[len];
+    err = rlpx_io_devp2p_write_disconnect(&ch->base->x, reason, stack, &len);
     if (!err) {
-        usys_log("[OUT] (disconnect) size: %d", *len);
+        usys_log("[OUT] (disconnect) size: %d", len);
         async_io_on_send(&ch->base->io, rlpx_io_devp2p_on_send_shutdown);
-        return rlpx_io_send_sync(&ch->base->io);
+        return rlpx_io_send(ch->base, stack, len);
     } else {
         return err;
     }
@@ -320,14 +325,12 @@ int
 rlpx_io_devp2p_send_ping(rlpx_io_devp2p* ch)
 {
     int err;
-    async_io* io = (async_io*)ch->base;
-    uint32_t* len = async_io_buffer_length_pointer(io);
-    async_io_len_reset(io);
-    err = rlpx_io_devp2p_write_ping(&ch->base->x, async_io_buffer(io), len);
+    uint32_t len = 1200;
+    uint8_t stack[len];
+    err = rlpx_io_devp2p_write_ping(&ch->base->x, stack, &len);
     if (!err) {
         ch->ping = usys_tick();
-        // usys_log("[OUT] (ping) size: %d", *len);
-        return rlpx_io_send_sync(&ch->base->io);
+        return rlpx_io_send(ch->base, stack, len);
     } else {
         return err;
     }
@@ -337,13 +340,11 @@ int
 rlpx_io_devp2p_send_pong(rlpx_io_devp2p* ch)
 {
     int err;
-    async_io* io = (async_io*)ch->base;
-    uint32_t* len = async_io_buffer_length_pointer(io);
-    async_io_len_reset(io);
-    err = rlpx_io_devp2p_write_pong(&ch->base->x, async_io_buffer(io), len);
+    uint32_t len = 1200;
+    uint8_t stack[len];
+    err = rlpx_io_devp2p_write_pong(&ch->base->x, stack, &len);
     if (!err) {
-        // usys_log("[OUT] (pong) size: %d", *len);
-        return rlpx_io_send_sync(&ch->base->io);
+        return rlpx_io_send(ch->base, stack, len);
     } else {
         return err;
     }

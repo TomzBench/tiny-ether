@@ -1,18 +1,22 @@
 #libup2p sources
 set(sources
+	discovery/knodes.c
+	discovery/ktable.c
+	discovery/rlpx_io_discovery.c
 	rlpx_io.c
 	rlpx_io_devp2p.c
-	rlpx_io_discovery.c
 	rlpx_frame.c
 	rlpx_handshake.c
 	rlpx_node.c
 	rlpx_test_helpers.c)
 set(headers
+	discovery/knodes.h
+	discovery/ktable.h
+	discovery/rlpx_io_discovery.h
 	rlpx_io.h
 	rlpx_config.h
 	rlpx_config_unix.h
 	rlpx_io_devp2p.h
-	rlpx_io_discovery.h
 	rlpx_frame.h
 	rlpx_handshake.h
 	rlpx_helper_macros.h
@@ -27,6 +31,9 @@ set(sources-unit-test
 	test/unit/test_enode.c
 	test/unit/test_frame.c
 	test/unit/test_handshake.c
+	test/unit/test_io.c
+	test/unit/test_ktable.c
+	test/unit/test_knodes.c
 	test/unit/test_mock.c
 	test/unit/test_protocol.c
 	)

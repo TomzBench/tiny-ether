@@ -23,6 +23,8 @@
 #include "usys_log.h"
 #include "usys_time.h"
 
+extern int test_timers(void);
+
 // 56 byte test vector
 char* g_lorem = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
 
@@ -84,6 +86,7 @@ main(int argc, char* argv[])
     ((void)argc);
     ((void)argv);
     int err = 0;
+    err |= test_timers();
     err |= test_send();
     err |= test_udp();
     if (err) {
